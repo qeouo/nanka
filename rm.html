@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=Edge"/>
+<meta charset="utf-8">
+<title>between</title>
+</head>
+<body style="vertical-align:top;">
+<canvas id="c" width="50" height="50" style="border:solid 1px black;width:200;height:200px;">
+</canvas>
+
+</body>
+<script type="text/javascript">
+"use strict"
+var Vec3=(function(){
+	var Vec3=function(){this[0]=0;this[1]=0;this[2]=0;};
+    Vec3.set=function(a,x,y,z){a[0]=x;a[1]=y;a[2]=z}
+    Vec3.cpy=function(a,b){a[0]=b[0];a[1]=b[1];a[2]=b[2];}
+    Vec3.add=function(a,b,c){a[0]=b[0]+c[0];a[1]=b[1]+c[1];a[2]=b[2]+c[2]}
+    Vec3.sub=function(a,b,c){a[0]=b[0]-c[0];a[1]=b[1]-c[1];a[2]=b[2]-c[2]}
+    Vec3.mul=function(a,b,c){a[0]=b[0]*c;a[1]=b[1]*c;a[2]=b[2]*c}
+    Vec3.sca=function(a){return Math.sqrt(a[0]*a[0]+a[1]*a[1]+a[2]*a[2]);}
+	Vec3.nrm=function(a,b){var s=1/Math.sqrt(b[0]*b[0]+b[1]*b[1]+b[2]*b[2]);a[0]*=s;a[1]*=s;a[2]*=s;}
+    Vec3.crs=function(a,b,c){a[0]=b[1]*c[2]-b[2]*c[1];a[1]=b[2]*c[0]-b[0]*c[2];a[2]=b[0]*c[1]-b[1]*c[0];}
+    Vec3.dot=function(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];}
+	return Vec3
+})()
+var Mat43=(function(){
+	var x,y,z;
+	var v = new Array(16)
+	var Mat43 = function(){this[0]=1;this[1]=0;this[2]=0;this[3]=0;this[4]=0;this[5]=1;this[6]=0;this[7]=0;
+	this[8]=0;this[9]=0;this[10]=1;this[11]=0;this[12]=0;this[13]=0;this[14]=0;this[15]=1;};
+	Mat43.set = function(m,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15){
+		m[0]=a0;m[1]=a1;m[2]=a2;m[3]=a3;m[4]=a4;m[5]=a5;m[6]=a6;m[7]=a7;
+	m[8]=a8;m[9]=a9;m[10]=a10;m[11]=a11;m[12]=a12;m[13]=a13;m[14]=a14;m[15]=a15;};
+	Mat43.dotVec=function(a,b,c){
+		x=b[0]*c[0]+b[4]*c[1]+b[8]*c[2]+b[12];
+		y=b[1]*c[0]+b[5]*c[1]+b[9]*c[2]+b[13];
+		z=b[2]*c[0]+b[6]*c[1]+b[10]*c[2] +b[14];
+		a[0]=x;a[1]=y;a[2]=z;
+	};
+	Mat43.dot=function(a,b,c){
+		var i,j;
+		for(i=0;i<16;i+=4){
+			for(j=4;j--;){
+				v[j+i]=b[j]*c[i] +b[4+j]*c[i+1] +b[8+j]*c[i+2]+b[12+j]*c[i+3];
+			}
+		}
+		for(i=16;i--;)a[i]=v[i]
+	};
+	return Mat43;
+})()
+var canvas=  document.getElementById('c');
+var WIDTH=canvas.width;
+var HEIGHT=canvas.height;
+var ctx = canvas.getContext('2d');
+var imagedata = ctx.createImageData(WIDTH,HEIGHT);
+for(var i=WIDTH*HEIGHT*4-1;i>=0;i-=4){
+	imagedata.data[i]=255;
+}
+var data= imagedata.data
+var frame=0;
+var pixel=[0,0,0];
+var cPos=new Vec3();Vec3.set(cPos,0,8,-4);
+var cDir=new Vec3();Vec3.set(cDir,0,1,0.4);Vec3.nrm(cDir,cDir);
+var cUp=new Vec3();Vec3.set(cUp,0,1,0);
+var cSide=new Vec3();//Vec3.crs(cSide,cDir,cUp);
+var ray=[0,0,0]
+var pos=[0,0,0]
+var calcVec=new Vec3();
+var light=new Vec3();Vec3.set(light,-1,-1,1);Vec3.nrm(light,light);
+var STEPMAX=32
+
+var getNrm=(function(){
+	var c=new Vec3()
+	return function(a,p){
+		var d=0.0001;
+		Vec3.set(c,p[0]+d,p[1],p[2])
+		a[0]=df(c)
+		Vec3.set(c,p[0]-d,p[1],p[2])
+		a[0]-=df(c)
+
+		Vec3.set(c,p[0]+d,p[1]+d,p[2])
+		a[1]=df(c)
+		Vec3.set(c,p[0]-d,p[1]-d,p[2])
+		a[1]-=df(c)
+
+		Vec3.set(c,p[0],p[1],p[2]+d)
+		a[2]=df(c)
+		Vec3.set(c,p[0],p[1],p[2]-d)
+		a[2]-=df(c)
+
+		Vec3.nrm(a,a)
+	}
+})()
+
+var mod=function(a,b){
+	return (a<0)?a%b+b:a%b;
+}
+var opRep=function(x,y,z,c){
+	x=mod(x,c)-c*0.5
+	y=mod(y,c)-c*0.5
+	z=mod(z,c)-c*0.5
+	return udRoundBox(x,y,z,2,0.5,0.5,1);
+	//return sd2(x,y,z,1);
+	//return sdSphere(x,y,z,1);
+}
+var udRoundBox=function(x,y,z,bx,by,bz,r){
+	var dx=Math.max(Math.abs(x)-bx,0)
+	var dy=Math.max(Math.abs(y)-by,0)
+	var dz=Math.max(Math.abs(z)-bz,0)
+	return Math.sqrt(dx*dx+dy*dy+dz*dz)-r
+}
+
+var sd2=function(x,y,z,s){
+
+	//var d1= sdSphere(x,y,z,s);
+	//var d2= sdSphere(x+0.8,y+0.8,z,s);
+	var d1= udRoundBox(x,y,z,0.5,0.5,0.5,0.4);
+	return d1
+	var d2= udRoundBox(x+0.5,y+0.5,z+0.5,0.5,0.5,0.5,0.5);
+	return Math.min(d1,d2)
+}
+var sdSphere=function(x,y,z,s){
+	return Math.sqrt(x*x + y*y + z*z)-s
+}	
+var df=(function(){
+	var calc=new Vec3();
+	return function(x,y,z,t){
+
+		//return udRoundBox(x,y,z,2,0.5,0.5,1);
+		return opRep(x,y,z,8)
+		//return Math.sqrt(calc[0]*calc[0]+calc[1]*calc[1]+calc[2]*calc[2])-1.0
+		//return Math.min(Math.max(dx,Math.max(dy,dz)),0.0) + 
+		//return Math.abs(Math.max(Math.max(dx,dy),dz))
+		return Math.min(Math.max(Math.max(dx,dy),dz),0.0)+
+		+ Math.abs(Math.max(Math.max(dx,dy),dz))
+	}
+})()
+var func=function(p,x,y,t){
+	var d,rx,ry,rz,px,py,pz;
+	x=(x-(WIDTH>>1))/WIDTH
+	y=-(y-(HEIGHT>>1))/WIDTH
+	rx=cSide[0]*x+cSide[1]*y+cSide[2]
+	ry=cUp[0]*x+cUp[1]*y+cUp[2]
+	rz=cDir[0]*x+cDir[1]*y+cDir[2]
+	d=1/Math.sqrt(rx*rx+ry*ry+rz*rz)
+	rx*=d
+	ry*=d
+	rz*=d
+
+	px=cPos[0]
+	py=cPos[1]
+	pz=cPos[2]
+
+	for(var i=STEPMAX;i--;){
+		d=df(px,py,pz,t)
+		//d=sdSphere(px,py,pz,1)
+		px+=rx*d
+		py+=ry*d
+		pz+=rz*d
+		if(d<0.0001){
+			break;
+		}
+	}
+	if(i>=0 || true){
+		var s
+		//s=1-pz*0.05
+		s=(1-i/STEPMAX);
+		Vec3.set(p,s,s,s)
+		//getNrm(calcVec,pos)
+
+		//Vec3.mul(calcVec,calcVec,0.5)
+		//Vec3.set(p,calcVec[0]+0.5,calcVec[1]+0.5,calcVec[2]+0.5)
+		//var s=-Vec3.dot(calcVec,light)
+		//if(s<0)s=0
+		//s+=0.2
+		//Vec3.set(p,s,s,s);
+	}else{
+		Vec3.set(p,0,0,0)
+	}
+}
+var mainloop=function(e){
+	var p,i,j,p2;
+	//cDir=new Vec3();Vec3.set(cDir,0,0,-1);
+	//frame=0
+	cPos[2]+=0.4
+//	Vec3.set(cDir,Math.sin(frame*0.02),0,-Math.cos(frame*0.02));
+//	Vec3.set(cUp,0,1,0);
+	Vec3.crs(cSide,cDir,cUp);Vec3.nrm(cSide,cSide)
+	Vec3.crs(cUp,cSide,cDir);Vec3.nrm(cUp,cUp)
+	for(j=0;j<HEIGHT;j++){
+		p=(j)*WIDTH4
+		//p2=(j+(1-(frame&1)))*WIDTH4
+		for(i=0;i<WIDTH;i++){
+			func(pixel,i,j,frame)
+			data[p+0]=pixel[0]*255
+			data[p+1]=pixel[1]*255
+			data[p+2]=pixel[2]*255
+
+		//	data[p2+0]=data[p2+0]*0.5+data[p+0]*0.5
+		//	data[p2+1]=data[p2+1]*0.5+data[p+1]*0.5
+		//	data[p2+2]=data[p2+2]*0.5+data[p+2]*0.5
+
+			p+=4
+		//	p2+=4
+
+		}
+		//j+=1;
+	}
+	ctx.putImageData(imagedata,0,0)
+	setTimeout(mainloop,100);
+	frame++;
+};
+var WIDTH4=WIDTH*4
+var STEPMAX=32
+mainloop()
+</script>
