@@ -6,33 +6,44 @@
 <title>between</title>
 </head>
 <body >
+<div id="fps"></div>
 <canvas id="c" width="160" height="90" style="border:solid 1px black;width:320px;height:180px;">
 </canvas>
-
 </body>
 <script type="text/javascript">
 "use strict"
+
 var canvas=  document.getElementById('c');
 var ctx = canvas.getContext('2d');
 var WIDTH=canvas.width;
+var WIDTH05=WIDTH*0.5
 var HEIGHT=canvas.height;
+var HEIGHT05=HEIGHT*0.5
 var WIDTH4 = WIDTH * 4;
 var IWIDTH = 1 / WIDTH;
 var STEPMAX = 32;
+var FPS = 15;
+var MPF = 1000/FPS|0;
 
-var frame = 0;
+var frame=0;
+var time = 0;
 var R, G, B;
 var cameraX = 100, cameraY = 0, cameraZ = 100;
 var m0, m1, m2, m3, m4, m5, m6, m7, m8, m9;
+
+var divfps = document.getElementById('fps');
+var oldTime = 0
+var totalFrame = 0;
+var truefps=0;
 
 var imagedata = ctx.createImageData(WIDTH, HEIGHT);
 var data = imagedata.data;
 for (var i = WIDTH * HEIGHT * 4 - 1; i >= 0; i -= 4) { data[i] = 255; }
 
 var ransu = []
-for (i = 0x100; i--;) { ransu.push(Math.random()); }
+for (i = 256; i--;) { ransu.push(Math.random()); }
 var rnd = function (a, b, c) {
-	return ransu[(a | 0) * 123.45678 + (b | 0) * 345.6789 + (c | 0) * 567.8901  & 0xff]; //tekitou
+	return ransu[a * 123.456789 + b * 34.5678901 + c * 5.67890123  & 255]; //tekitou
 }
 
 var df = function (x, y, z) {
@@ -40,27 +51,25 @@ var df = function (x, y, z) {
 	var l, xx, yy, zz;
 
 	for (var i = 0; i < 2; i++) {
-		l = rnd(x, z, 0) + frame * 0.05;
+		l = rnd(x|0, z|0, 0) + time;
 		l = l - (l | 0) - 0.5;
 		if (l < 0) l = -l;
 
-		xx = (x >= 0) ? x - (x | 0) : x - (x | 0) + 1;
-		zz = (z >= 0) ? z - (z | 0) : z - (z | 0) + 1;
-		xx -= 0.5;
-		zz -= 0.5;
+		xx = x - (x | 0) - (x>>30) - 0.5
+		zz = z - (z | 0) - (z>>30) - 0.5
 
 		yy = y + 4 + l;
 
 		if (xx < 0) xx = -xx;
 		if (yy < 0) yy = -yy;
 		if (zz < 0) zz = -zz;
-		xx -= 0.3;
+		xx -= 0.25;
 		if (xx < 0) xx = 0;
-		yy -= 0.3;
+		yy -= 0.25;
 		if (yy < 0) yy = 0;
-		zz -= 0.3;
+		zz -= 0.25;
 		if (zz < 0) zz = 0;
-		d2 = Math.sqrt(xx * xx + yy * yy + zz * zz) - 0.15;
+		d2 = Math.sqrt(xx * xx + yy * yy + zz * zz) - 0.2;
 
 		if (d2 < d) d = d2;
 		y = -y;
@@ -70,10 +79,13 @@ var df = function (x, y, z) {
 }
 
 var ray = function (x, y, t) {
-	var i, d, rx, ry, rz, px, py, pz;
+	var i, d, rx, ry, rz, px, py, pz,totald=0;
 
-	x = x * IWIDTH - 0.5;
-	y = -(y * IWIDTH - 0.5);
+	x = (x-WIDTH05) *  IWIDTH;
+	y = -((y-HEIGHT05) * IWIDTH);
+	d=2/(1.01-(x*x+y*y))
+	x*=d
+	y*=d
 
 	rx = m0 * x + m3 * y + m6;
 	ry = m1 * x + m4 * y + m7;
@@ -87,42 +99,45 @@ var ray = function (x, y, t) {
 	py = cameraY;
 	pz = cameraZ;
 
-	for (i = STEPMAX; i--;) {
+	for (i = 0;i< STEPMAX; i++) {
 		d = df(px, py, pz, t);
 		if (d < 0.01) {
 			break;
 		}
-		if ((pz - cameraZ) > 20) {
-			i = 0
+		totald+=d;
+		if (d > 20) {
+			i = STEPMAX
 			break;
 		}
 		px += rx * d;
 		py += ry * d;
 		pz += rz * d;
 	}
-	d = (i / STEPMAX);
+	d = 1-(i / STEPMAX);
 	if(d>0)d+=0.1;
-	R = d * rnd(px, pz, 1);
-	G = d * rnd(px, pz, 2);
-	B = d * rnd(px, pz, 3);
+	R = d * rnd(px|0, pz|0, 1);
+	G = d * rnd(px|0, pz|0, 2);
+	B = d * rnd(px|0, pz|0, 3);
 }
+
 var mainloop = function (e) {
 	var startTime = new Date();
 	var p, i, j, d;
+	time = frame/FPS;
 
 	cameraZ += 0.2;
-	cameraY = Math.sin(frame * 0.01) * 2;
+	cameraY = Math.sin(time*0.3) * 2;
 
-	m6 = Math.cos(frame * 0.01) * 0.5;
-	m7 = Math.sin(frame * 0.02);
-	m8 = 1;
-	d = 1 / Math.sqrt(m6 * m6 + m7 * m7 + m8 * m8);
-	m6 *= d;
-	m7 *= d;
-	m8 *= d;
+	m6 = Math.sin(time * 0.3) * 0.5;
+	m7 = Math.cos(time* 0.6)*0.4;
+	m8 = Math.sqrt(1-m6 * m6 + m7 * m7 );
+//	d = 1 / Math.sqrt(m6 * m6 + m7 * m7 + m8 * m8);
+//	m6 *= d;
+//	m7 *= d;
+//	m8 *= d;
 
-	m3 = Math.sin(frame * 0.01);
-	m4 = Math.cos(frame * 0.01);
+	m3 = Math.cos(frame * 0.01);
+	m4 = Math.sin(frame * 0.01);
 	m5 = 0;
 
 	m0 = m4 * m8 - m5 * m7;
@@ -136,10 +151,10 @@ var mainloop = function (e) {
 	m3 = m7 * m2 - m8 * m1;
 	m4 = m8 * m0 - m6 * m2;
 	m5 = m6 * m1 - m7 * m0;
-	d = 1 / Math.sqrt(m3 * m3 + m4 * m4 + m5 * m5);
-	m3 *= d;
-	m4 *= d;
-	m5 *= d;
+//	d = 1 / Math.sqrt(m3 * m3 + m4 * m4 + m5 * m5);
+//	m3 *= d;
+//	m4 *= d;
+//	m5 *= d;
 
 	p = 0;
 	for (j = 0; j < HEIGHT; j++) {
@@ -153,10 +168,26 @@ var mainloop = function (e) {
 	}
 	ctx.putImageData(imagedata, 0, 0);
 
-	var wait = 66 - (new Date() - startTime);
-	if (wait <= 0) wait = 1;
-	setTimeout(mainloop, wait);
+	var endTime = new Date();
+	totalFrame++;
 	frame++;
+	if(endTime-oldTime>=1000){
+		truefps=Math.round(totalFrame/(endTime-oldTime)*100000)/100;
+		totalFrame=0;
+		oldTime=endTime;
+	}
+
+	var dt = endTime - startTime;
+	var wait = MPF - dt;
+	if (wait <= 0){
+		wait = 1;
+		divfps.style.color="red";
+	}else{
+		divfps.style.color="black";
+	}
+	divfps.innerHTML="processing time : "+dt+"msec/frame" +" ("+truefps +"fps)";
+
+	setTimeout(mainloop, wait);
 }
 
 mainloop();
