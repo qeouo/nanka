@@ -13,17 +13,16 @@
 <script type="text/javascript">
 "use strict"
 
-var canvas=  document.getElementById('c');
+var canvas= document.getElementById('c');
 var ctx = canvas.getContext('2d');
-var WIDTH=canvas.width;
-var WIDTH05=WIDTH*0.5
-var HEIGHT=canvas.height;
-var HEIGHT05=HEIGHT*0.5
-var WIDTH4 = WIDTH * 4;
+var WIDTH = canvas.width;
+var WIDTH05 = WIDTH*0.5;
+var HEIGHT = canvas.height;
+var HEIGHT05 = HEIGHT*0.5
 var IWIDTH = 1 / WIDTH;
 var STEPMAX = 32;
 var FPS = 15;
-var MPF = 1000/FPS|0;
+var MPF = 1000 / FPS | 0;
 
 var frame=0;
 var time = 0;
@@ -51,7 +50,7 @@ var df = function (x, y, z) {
 	var l, xx, yy, zz;
 
 	for (var i = 0; i < 2; i++) {
-		l = rnd(x|0, z|0, 0) + time;
+		l = rnd(x | 0, z | 0, 0) + time;
 		l = l - (l | 0) - 0.5;
 		if (l < 0) l = -l;
 
@@ -81,11 +80,11 @@ var df = function (x, y, z) {
 var ray = function (x, y, t) {
 	var i, d, rx, ry, rz, px, py, pz,totald=0;
 
-	x = (x-WIDTH05) *  IWIDTH;
-	y = -((y-HEIGHT05) * IWIDTH);
-	d=2/(1.01-(x*x+y*y))
-	x*=d
-	y*=d
+	x = (x - WIDTH05) *  IWIDTH;
+	y = -((y - HEIGHT05) * IWIDTH);
+	d=2 / (1.01 - (x * x + y * y))
+	x *= d
+	y *= d
 
 	rx = m0 * x + m3 * y + m6;
 	ry = m1 * x + m4 * y + m7;
@@ -104,7 +103,7 @@ var ray = function (x, y, t) {
 		if (d < 0.01) {
 			break;
 		}
-		totald+=d;
+		totald += d;
 		if (d > 20) {
 			i = STEPMAX
 			break;
@@ -113,24 +112,24 @@ var ray = function (x, y, t) {
 		py += ry * d;
 		pz += rz * d;
 	}
-	d = 1-(i / STEPMAX);
-	if(d>0)d+=0.1;
-	R = d * rnd(px|0, pz|0, 1);
-	G = d * rnd(px|0, pz|0, 2);
-	B = d * rnd(px|0, pz|0, 3);
+	d = 1 - (i / STEPMAX);
+	if(d > 0) d += 0.1;
+	R = d * rnd(px | 0, pz | 0, 1);
+	G = d * rnd(px | 0, pz | 0, 2);
+	B = d * rnd(px | 0, pz | 0, 3);
 }
 
 var mainloop = function (e) {
 	var startTime = new Date();
 	var p, i, j, d;
-	time = frame/FPS;
+	time = frame / FPS;
 
 	cameraZ += 0.2;
 	cameraY = Math.sin(time*0.3) * 2;
 
 	m6 = Math.sin(time * 0.3) * 0.5;
-	m7 = Math.cos(time* 0.6)*0.4;
-	m8 = Math.sqrt(1-m6 * m6 + m7 * m7 );
+	m7 = Math.cos(time * 0.6) *0.4;
+	m8 = Math.sqrt(1 - m6 * m6 + m7 * m7 );
 //	d = 1 / Math.sqrt(m6 * m6 + m7 * m7 + m8 * m8);
 //	m6 *= d;
 //	m7 *= d;
@@ -171,21 +170,21 @@ var mainloop = function (e) {
 	var endTime = new Date();
 	totalFrame++;
 	frame++;
-	if(endTime-oldTime>=1000){
-		truefps=Math.round(totalFrame/(endTime-oldTime)*100000)/100;
-		totalFrame=0;
-		oldTime=endTime;
+	if(endTime - oldTime >= 1000){
+		truefps = Math.round(totalFrame / (endTime-oldTime) * 100000) / 100;
+		totalFrame = 0;
+		oldTime = endTime;
 	}
 
 	var dt = endTime - startTime;
 	var wait = MPF - dt;
-	if (wait <= 0){
-		wait = 1;
-		divfps.style.color="red";
+	if (wait < 0){
+		wait = 0;
+		divfps.style.color = "red";
 	}else{
-		divfps.style.color="black";
+		divfps.style.color = "black";
 	}
-	divfps.innerHTML="processing time : "+dt+"msec/frame" +" ("+truefps +"fps)";
+	divfps.innerHTML = "processing time : " + dt + "msec/frame" + " (" + truefps + "fps)";
 
 	setTimeout(mainloop, wait);
 }
