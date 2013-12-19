@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=Edge"/>
+<meta charset="utf-8">
+<title>between</title>
+</head>
+<body >
+test
+<audio id='a' controls="true">
+</audio>
+<input type="file" id="files" name="upfile[]" multiple  /><br />
+</body>
+<script type="text/javascript">
+"use strict"
+// バイト配列に文字列を書き込む
+function writeString(bytes, val, offset) {
+    for (var i = 0, l = val.length; i < l; i++) {
+        bytes[offset + i] = val.charCodeAt(i);
+    }
+}
+
+// バイト配列に 32-bit 整数を書き込む
+function writeInt32(bytes, val, offset) {
+    bytes[offset] = val & 255;
+    val >>>= 8;
+    bytes[offset + 1] = val & 255;
+    val >>>= 8;
+    bytes[offset + 2] = val & 255;
+    val >>>= 8;
+    bytes[offset + 3] = val & 255;
+}
+
+// バイト配列に 16-bit 整数を書き込む
+function writeInt16(bytes, val, offset) {
+    bytes[offset] = val & 255;
+    val >>>= 8;
+    bytes[offset + 1] = val & 255;
+}
+
+// -----------------------------------------------------------------------------
+
+var size = 88200;        // データサイズ (byte)
+var channel = 1;         // チャンネル数 (1:モノラル or 2:ステレオ)
+var bytesPerSec = 44100; // サンプリングレート
+var bitsPerSample = 16;  // サンプルあたりのビット数 (8 or 16)
+
+var offset = 44;         // ヘッダ部分のサイズ
+
+// バイト配列を作成
+var bytes = new Uint8Array(offset + size);
+// ヘッダ書き込み
+writeString(bytes, 'RIFF', 0);                 // RIFF ヘッダ
+writeInt32(bytes, offset + size - 8, 4);       // ファイルサイズ - 8
+writeString(bytes, 'WAVE', 8);                 // WAVE ヘッダ
+writeString(bytes, 'fmt ', 12);                // fmt チャンク
+writeInt32(bytes, 16, 16);                     // fmt チャンクのバイト数
+writeInt16(bytes, 1, 20);                      // フォーマットID
+writeInt16(bytes, channel, 22);                // チャンネル数
+writeInt32(bytes, bytesPerSec, 24);            // サンプリングレート
+writeInt32(bytes, bytesPerSec * (bitsPerSample >>> 3) * channel, 28); // データ速度
+writeInt16(bytes, (bitsPerSample >>> 3) * channel, 32); // ブロックサイズ
+writeInt16(bytes, bitsPerSample, 34);          // サンプルあたりのビット数
+writeString(bytes, 'data', 36);                // data チャンク
+writeInt32(bytes, size, 40);                   // 波形データのバイト数
+
+// 波形データ書き込み (サイン波)
+var i;
+for (i = 0; i < size; i += 2) {
+    writeInt16(bytes, Math.sin(i/32/Math.PI)*4096+Math.sin(i / 4 / Math.PI) * 4096 | 0, offset + i);
+}
+
+var blob=new Blob([bytes],{"type":"audio/wav"});
+var url=window.URL.createObjectURL(blob);
+
+document.getElementById('a').src=url;
+
+
+</script>
