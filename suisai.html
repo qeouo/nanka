@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=Edge"/>
+<meta charset="utf-8">
+<title>between</title>
+</head>
+<style>
+</style>
+<script>
+var fileselect=function(evt){
+	var reader = new FileReader();
+
+    reader.onload = (function(theFile) {
+     return function(e) {
+         shori(e.target.result);
+        };
+      })(files[0]);
+
+	files = evt.target.files;
+      reader.readAsDataURL(files[0]);
+}
+</script>
+<body >
+<input type="file" id='files' change='fileselect(event)' multiple />
+<div id="outarea">
+<br>
+</body>
+<script type="text/javascript">
+"use strict"
+
+var createCanvas=function(width,height){
+	var canvas=document.createElement('canvas')
+	canvas.setAttribute('width',width)
+	canvas.setAttribute('height',height)
+	return canvas;
+}
+
+var rgb2hsv=function(hsv,r,g,b){
+	var max=Math.max(r,Math.max(g,b));
+	var min = Math.min(r,Math.min(g,b));
+	if(max==min){
+		hsv[0]=0;
+	}else if(max==r){
+		hsv[0]=(60*(g-b)/(max-min)+360)%360
+	}else if(max==g){
+		hsv[0]=(60*(b-r)/(max-min))+120;
+	}else if(max==b){
+		hsv[0]=(60*(r-g)/(max-min))+240;
+	}
+	if(max==0){
+		hsv[1]=0;
+	}else{
+		hsv[1]=(255*((max-min)/max));
+	}
+	hsv[2]=max;
+}
+var hsv2rgb=function(rgb,h,s,v){
+	var f,i,p,q,t;
+	i= (Math.floor(h/60.0)|0)%6;
+	f=(h/60.0) - ((h/60.0)|0);
+	p= (v*(1.0-(s/255.0)))|0;
+	q= (v*(1.0-(s/255.0)*f))|0;
+	t= (v*(1.0-(s/255.0)*(1.0-f)))|0;
+	switch(i){
+		case 0:rgb[0]=v;rgb[1]=t;rgb[2]=p;break;
+		case 1:rgb[0]=q;rgb[1]=v;rgb[2]=p;break;
+		case 2:rgb[0]=p;rgb[1]=v;rgb[2]=t;break;
+		case 3:rgb[0]=p;rgb[1]=q;rgb[2]=v;break;
+		case 4:rgb[0]=t;rgb[1]=p;rgb[2]=v;break;
+		case 5:rgb[0]=v;rgb[1]=p;rgb[2]=q;break;
+	}
+}
+var createNoiz=function(a,x,y){
+	var i=0,imax=x*y*4;
+	var r;
+	for(i=0;i<imax;i+=4){
+		a[i]=Math.random()*255|0
+		a[i+1]=Math.random()*255|0
+		a[i+2]=Math.random()*255|0
+		a[i+3]=255
+	}
+}
+var createPerinNoiz=function(canvas){
+	var width=canvas.width;
+	var height=canvas.height;
+	var bufcanvas= createCanvas(width,height)
+
+	var i
+	var ctx = bufcanvas.getContext('2d');
+	var dst=ctx.createImageData(width,height);
+	var targetctx=canvas.getContext('2d');
+	targetctx.clearRect(0,0,width,height)
+	var alpha=1
+	var scale=1
+	var omomi=[0.5,0.25,0.125,0.0625];
+	for(i=0;i<8;i++){
+		createNoiz(dst.data,width,height)
+		ctx.putImageData(dst,0,0)
+		alpha*=0.5
+		scale*=2
+		targetctx.globalAlpha=alpha
+		targetctx.drawImage(bufcanvas,0,0,width/64*scale,height/64*scale,0,0,width,height)
+	}
+}
+
+var posterization=function(hsvdata,src){
+	var rgb=new Array(3)
+	var hsv=new Array(3)
+	var i,j,n;
+	var imax=src.height
+	var jmax=src.width
+	var data=src.data;
+	for(i=0;i<imax;i++){
+		for(j=0;j<jmax;j++){
+			n=(j+i*jmax)*4
+			rgb[0]=data[n]
+			rgb[1]=data[n+1]
+			rgb[2]=data[n+2]
+			rgb2hsv(hsv,rgb[0],rgb[1],rgb[2])
+			hsv[1]=hsv[1]&0xe0|0xf
+			hsv[2]=hsv[2]&0xe0|0xf
+			//hsv2rgb(rgb,hsv[0],hsv[1],hsv[2])
+			//data[n]=rgb[0]
+			//data[n+1]=rgb[1]
+			//data[n+2]=rgb[2]
+			hsvdata[n]=hsv[0]
+			hsvdata[n+1]=hsv[1]
+			hsvdata[n+2]=hsv[2]
+			hsvdata[n+3]=255;
+		}
+	}
+}
+var median=function(data,width,height){
+	var i,j;
+	var n;
+	var nn;
+	var num=new Array(8)
+	for(i=1;i<height-1;i++){
+		for(j=1;j<width-1;j++){
+			n=0
+			nn=(j+i*width)*4
+			for(k=0;k<9;k++){
+				num[k]=data[nn+2+nnd[k]]+k/10
+			}
+			for(var k=0;k<9;k++){
+				var cnt=0;
+				for(var l=0;l<9;l++){
+					if(num[k]<num[l]){
+						cnt++;
+					}
+				}
+				if(cnt==4){
+					data[nn+0]=data[nn+nnd[k]]
+					data[nn+1]=data[nn+nnd[k]+1]
+					data[nn+2]=data[nn+nnd[k]+2]
+					break;
+				}
+			}
+		}
+	}
+}
+
+var suisai = function(dest,src,low,high,width,height){
+	var i,j
+	var a,b
+
+	for(i=0;i<height;i++){
+		for(j=0;j<width;j++){
+			a=i*width*4+j*4
+			if(src[a+2]<low|| src[a+2]>=high){
+			dest[a]=0
+			dest[a+1]=0
+			dest[a+2]=0
+			dest[a+3]=0
+				continue;
+			}
+			dest[a]=src[a]
+			dest[a+1]=src[a+1]
+			dest[a+2]=src[a+2]
+			dest[a+3]=255;
+
+		}
+	}
+}
+var setHsv =function(ctx,hsvdata,width,height){
+	var src=ctx.getImageData(0,0,width,height)
+	var j,n,i
+	var rgb=new Array(3)
+	for(i=0;i<height;i++){
+		for(j=0;j<width;j++){
+			n=(j+i*width)*4
+			hsv2rgb(rgb,hsvdata[n],hsvdata[n+1],hsvdata[n+2])
+			src.data[n]=rgb[0]
+			src.data[n+1]=rgb[1]
+			src.data[n+2]=rgb[2]
+			src.data[n+3]=hsvdata[n+3]
+		}
+	}
+	ctx.putImageData(src,0,0)
+
+}
+var nijimi2=function(canvas,noiz){
+	var width=canvas.width
+	var height=canvas.height
+	var ctx=canvas.getContext('2d');
+	var noizctx=noiz.getContext('2d');
+	var imagedata=ctx.getImageData(0,0,width,height);
+	var buf=ctx.getImageData(0,0,width,height);
+	var bufdata=buf.data;
+	var noizimagedata=noizctx.getImageData(0,0,width,height);
+	var data=imagedata.data;
+	var noizdata=noizimagedata.data;
+
+	var rnd=Math.random()*3|0
+	var n,nn;
+	var k;
+	var x,y
+	for(var i=1;i<height-1;i++){
+		for(var j=1;j<width-1;j++){
+			n=(i*width+j)*4
+			x=0;y=0;
+
+			if(noizdata[n]<128-32){
+				x=1
+			}else if(noizdata[n]>128+32){
+				x=-1
+			}
+			if(noizdata[n+1]<128-32){
+				y=1
+			}else if(noizdata[n+1]>128+32){
+				y=-1
+			}
+			nn=n+(x<<2)+(y*width<<2)
+
+			data[n]=bufdata[nn]
+			data[n+1]=bufdata[nn+1]
+			data[n+2]=bufdata[nn+2]
+			data[n+3]=bufdata[nn+3]
+		}
+	}
+	ctx.putImageData(imagedata,0,0)
+}
+var nijimi=function(canvas,width,height){
+	var canvas2=createCanvas(width,height)
+	var ctx=canvas.getContext('2d');
+	var ctx2=canvas2.getContext('2d');
+	ctx2.drawImage(canvas,0,0)
+	ctx.globalCompositeOperation='source-over'
+	ctx.globalAlpha=0.5
+	ctx.drawImage(canvas2,-1,0)
+	ctx.drawImage(canvas2,1,0)
+	ctx.drawImage(canvas2,0,-1)
+	ctx.drawImage(canvas2,0,1)
+	ctx.globalAlpha=1
+}
+	
+var shukutai=function(canvas,width,height){
+	var canvas2=createCanvas(width,height)
+	var ctx=canvas.getContext('2d');
+//	var ctx2=canvas2.getContext('2d');
+//	ctx2.drawImage(canvas,0,0)
+//	ctx.globalCompositeOperation='source-in'
+//	ctx.drawImage(canvas2,-1,0)
+//	ctx.drawImage(canvas2,1,0)
+//	ctx.drawImage(canvas2,0,-1)
+//	ctx.drawImage(canvas2,0,1)
+	var imagedata = ctx.getImageData(0,0,width,height)
+	var imagedata2=ctx.createImageData(width,height);
+	var data=imagedata.data
+	var data2=imagedata2.data
+	var i = (width+1)<<2
+	var imax=(width*height-width)<<2
+	var j,a;
+
+	for(;i<imax;i+=4){
+		data2[i]=data[i]
+		data2[i+1]=data[i+1]
+		data2[i+2]=data[i+2]
+		a=0;
+		if(data[i+3]>0){
+			for(j=0;j<9;j++){
+				a+=data[i+3+nnd[j]]
+			}
+			a-=data[i+3+nnd[4]]
+			a/=8
+		}
+		data2[i+3]=a
+	}
+	ctx.putImageData(imagedata2,0,0)
+
+}
+var nnd,width,height
+
+var mura=function(canvas,noiz,width,height){
+	var ctx=canvas.getContext('2d');
+	var noizctx=noiz.getContext('2d');
+	var imagedata=ctx.getImageData(0,0,width,height);
+	var noizimagedata=noizctx.getImageData(0,0,width,height);
+	var data=imagedata.data;
+	var noizdata=noizimagedata.data;
+	var hsv=new Array(3);
+	var n
+	var rnd=Math.random()*3|0
+	for(var i=0;i<height;i++){
+		for(var j=0;j<width;j++){
+			n=(i*width+j)*4
+			if(data[n+3]==0)continue
+			rgb2hsv(hsv,data[n],data[n+1],data[n+2])
+			if(hsv[1]>0){
+				hsv[1]=Math.min(255,hsv[1]-(noizdata[n+rnd]-128)*0.5)
+			}
+			hsv[2]=Math.min(255,hsv[2]+noizdata[n+rnd]*0.2)
+			hsv2rgb(hsv,hsv[0],hsv[1],hsv[2])
+		
+			data[n+0]=hsv[0]
+			data[n+1]=hsv[1]
+			data[n+2]=hsv[2]
+		}
+	}
+	ctx.putImageData(imagedata,0,0)
+}
+
+var edge=function(src){
+	var ctx=src.getContext('2d');
+	var imagedata=ctx.getImageData(0,0,width,height)
+	var data=imagedata.data
+	var imagedata2=ctx.getImageData(0,0,width,height);
+	var data2=imagedata2.data
+	var n;
+	var sre=30
+	var i = (width+1)<<2
+	var imax=(width*height-width)<<2
+	var hsv=Array(3)
+	for(;i<imax;i+=4){
+		if(data[i+3]==0)continue;
+		for(var k=0;k<9;k++){
+			if(k==4)continue;
+			var n=i+nnd[k]
+			if(Math.abs(data[i]-data[n])>sre
+			||Math.abs(data[i+1]-data[n+1])>sre
+			||Math.abs(data[i+2]-data[n+2])>sre){
+				rgb2hsv(hsv,data[i],data[i+1],data[i+2])
+				hsv2rgb(hsv,hsv[0],hsv[1]+10,hsv[2]-10)
+				data2[i]=hsv[0]
+				data2[i+1]=hsv[1]
+				data2[i+2]=hsv[2]
+				break;
+			}
+		}
+	}
+	ctx.putImageData(imagedata2,0,0)
+}
+
+var multBlend=function(dst,src){
+	var width=dst.width
+	var height=dst.height
+	var srcctx=src.getContext('2d');
+	var srcimagedata=srcctx.getImageData(0,0,width,height);
+	var srcdata=srcimagedata.data
+
+	var dstctx=dst.getContext('2d');
+	var dstimagedata=dstctx.getImageData(0,0,width,height);
+	var dstdata=dstimagedata.data
+	var n,s,d
+	for(var i=0;i<height;i++){
+		for(var j=0;j<width;j++){
+			n=(i*width+j)*4
+			var alpha=srcdata[n+3]	
+			//if(alpha==0)continue;
+			//alpha/=2//128
+			alpha/=255.0;
+			//s*a+d*(1-a)=s*a+d-d*a=a*(s-d)+d
+			s=(srcdata[n]-255)*alpha + 255;
+			d=dstdata[n];
+
+			dstdata[n]=s*d>>8;
+			s=(srcdata[n+1]-255)*alpha + 255;
+			d=dstdata[n+1];
+			dstdata[n+1]=s*d>>8;
+			s=(srcdata[n+2]-255)*alpha + 255;
+			d=dstdata[n+2];
+			dstdata[n+2]=s*d>>8;
+	//		dstdata[n]=srcdata[n]*(255-(alpha*(255-dstdata[n])))>>8
+	//		dstdata[n+1]=srcdata[n+1]*(255-(alpha*(255-dstdata[n+1])))>>8
+	//		dstdata[n+2]=srcdata[n+2]*(255-(alpha*(255-dstdata[n+2])))>>8
+		}
+	}
+	dstctx.putImageData(dstimagedata,0,0)
+}
+window.onload=function(){
+	document.getElementById('files').addEventListener('change', fileselect, false)
+	shori("test.jpg")
+	
+}
+
+var debug=0
+var shori=function(filename){
+	var outarea=document.getElementById("outarea");
+	for(var i = outarea.childNodes.length-1;i>=0;i--){
+		outarea.removeChild(outarea.childNodes[i]);
+	}
+
+	var orgImg=	document.createElement("img");
+	orgImg.src=filename;
+	orgImg.onload=function(e){
+		width=e.target.width;
+		height=e.target.height;
+		var hsvdata=new Array(width*height*4)
+		var hsvdata2=new Array(width*height*4)
+		var img;
+		nnd=[-4-width*4,-width*4,4-width*4,-4,0,4,-4+width*4,width*4,4+width*4];
+
+		var c= createCanvas(width,height);
+
+		var ctx = c.getContext('2d');
+		ctx.fillStyle="#fff"
+		ctx.fillRect(0,0,width,height)
+		
+		ctx.drawImage(orgImg,0,0);
+		var src=ctx.getImageData(0,0,width,height)
+
+		//ポスタリゼーション
+		posterization(hsvdata,src)
+		//メディアん蛭田
+		median(hsvdata,width,height)
+		//median(hsvdata,width,height)
+		
+		setHsv(ctx,hsvdata,width,height);
+
+
+		img=	document.createElement("img");
+		outarea.appendChild(img);
+		img.src= c.toDataURL("image/png");
+
+		var c2= createCanvas(width,height);
+		var ctx2=c2.getContext('2d')
+		ctx2.fillStyle="#fff"
+		ctx2.fillRect(0,0,width,height)
+
+		var noizcanvas= createCanvas(width,height);
+		createPerinNoiz(noizcanvas);
+		var noizctx=noizcanvas.getContext('2d')
+
+
+		var k,kmax;
+		k=0;kmax=4;
+		if(debug){
+			k=0;
+			kmax=k+1;
+		}
+
+
+		for(;k<kmax;k++){
+			suisai(hsvdata2,hsvdata,256-64*(k+1),256-64*k,width,height);
+			setHsv(ctx,hsvdata2,width,height);
+		
+			createPerinNoiz(noizcanvas);
+
+			for(var i=0;i<1;i++){
+				nijimi2(c,noizcanvas);
+				shukutai(c,width,height);
+				nijimi(c,width,height);
+			if(debug){
+				img=	document.createElement("img");
+				outarea.appendChild(img);
+				img.src= c.toDataURL("image/png");
+			}
+			}
+
+			mura(c,noizcanvas,width,height);
+			if(debug){
+				img=	document.createElement("img");
+				outarea.appendChild(img);
+				img.src= c.toDataURL("image/png");
+			}
+			edge(c);
+			if(debug){
+				img=	document.createElement("img");
+				outarea.appendChild(img);
+				img.src= c.toDataURL("image/png");
+			}
+			//ctx2.drawImage(c,0,0);
+			multBlend(c2,c);
+		}
+
+		img=	document.createElement("img");
+		outarea.appendChild(img);
+		img.src= c2.toDataURL("image/png");
+
+		img=	document.createElement("img");
+		outarea.appendChild(img);
+		img.src= noizcanvas.toDataURL("image/png");
+	}
+
+	outarea.appendChild(orgImg);
+
+
+}
+</script>

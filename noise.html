@@ -1,0 +1,143 @@
+<img id="i">
+<img id="i2">
+<script>
+var rnd=function(x,y,z){
+	
+	 x=x+y*11111+z*12345;
+    x = ((x&0x0007ffff)<<13) ^ x;
+	x&=0xffff;
+    return  ( (x * (x * x * 15731 + 789221) + 1376312589) & 0x3fffffff) / 0x3fffffff;
+	
+};
+
+
+var cu=function(v0, v1, v2, v3,x){
+	P = (v3 - v2) - (v0 - v1)
+	Q = (v0 - v1) - P
+	R = v2 - v0
+	S = v1
+
+	return P*x*x*x + Q*x*x + R*x + S;
+}
+var width=128;
+var height=128;
+var noise2=function(x,y,z){
+	var fx=x-(x|0)
+	var fy=y-(y|0)
+	x|=0
+	y|=0
+	z|=0
+	//var v1=rnd(x-1,y,z)*(1-fx)+rnd(x,y,z)*fx
+	//var v2=rnd(x-1,y+1,z)*(1-fx)+rnd(x,y+1,z)*fx
+	var v1=cu(rnd(x-1,y-1,z),rnd(x,y-1,z),rnd(x+1,y-1,z),rnd(x+2,y-1,z),fx);
+	var v2=cu(rnd(x-1,y,z),rnd(x,y,z),rnd(x+1,y,z),rnd(x+2,y,z),fx);
+	var v3=cu(rnd(x-1,y+1,z),rnd(x,y+1,z),rnd(x+1,y+1,z),rnd(x+2,y+1,z),fx);
+	var v4=cu(rnd(x-1,y+2,z),rnd(x,y+2,z),rnd(x+1,y+2,z),rnd(x+2,y+2,z),fx);
+	
+	return cu(v1,v2,v3,v4,fy);
+}
+var noise3=function(x,y,z){
+	var fz=z-(z|0);
+	var v;
+	z|=0;
+	var v1=noise2(x,y,z-1);
+	var v2=noise2(x,y,z);
+	var v3=noise2(x,y,z+1);
+	var v4=noise2(x,y,z+2);
+	return cu(v1,v2,v3,v4,fz);
+}
+var createNoise=function(x,y,z,s){
+	
+	f=1;
+	a=0.5;
+	var v=0;
+	for(var i=s;i--;){
+		f=1/(1<<i)
+		v+=noise3(x*f,y*f,z*f)*a;
+		f*=0.5;
+		a*=0.5;
+	}
+	return v
+}
+var createNoiseQ=function(arr,w,h,z,s){
+	var a=1,i,j,k,s1,s2,s2w,y,n0,n2,n3,wh=w*h;
+	for(i=0;i<wh;i++)arr[i]=rnd(i%width,i/width|0,z);
+    for(k=s;k--;){
+        s1=1<<k;
+        s2=s1*2;
+		s2w=s2*w;
+		a*=0.5;
+		for(i=0;i<w;i+=s2){
+            n0=(i+w-s2)%w;
+			n2=(i+s2)%w;
+            n3=(i+s2*2)%w;
+			for(y=0;y<wh;y+=s2w) arr[y+i+s1] = 0.625*(arr[y+i]+arr[y+n2]) -0.125*(arr[y+n0]+arr[y+n3]);
+		}
+		for(y=0;y<wh;y+=s2w){
+            n0=(y-s2w+wh)%wh;
+			n2=(y+s2w)%wh;
+            n3=(y+s2w*2)%wh;
+			for(j=0;j<w;j+=s1) arr[y+j+s1*w] = 0.625*(arr[y+j]+arr[n2+j]) -0.125*(arr[n0+j]+arr[n3+j]);
+		}
+		for(y=0;y<wh;y+=s2w){
+			for(j=0;j<w;j+=s2){
+				arr[y+j+s1] = arr[y+j+s1]*(1-a) + rnd(j+s1,y,z)*a;
+				arr[y+s1*w+j] = arr[y+s1*w+j]*(1-a) + rnd(j,s1+y,z)*a;
+				arr[y+s1*w+j+s1] = arr[y+s1*w+j+s1]*(1-a) + rnd(j+s1,y+s1,z)*a;
+			}
+		}
+	}
+	return arr;
+};
+var draw=function(no,id){
+	for(var i = data.length;i>=0;i-=4){
+		var n = no[i>>2]*255;
+		data[i]=n;data[i+1]=n;data[i+2]=n;data[i+3]=255;
+	}
+	ctx.putImageData(imagedata,0,0);
+	document.getElementById(id).src = c.toDataURL("image/png");
+};
+
+var draw2=function(no,id){
+	for(var i = data.length;i>=0;i--){
+		data[i]=no[i]*255
+	}
+	ctx.putImageData(imagedata,0,0);
+	document.getElementById(id).src = c.toDataURL("image/png");
+};
+var c=document.createElement('canvas');
+c.setAttribute('width',width);c.setAttribute('height',height);
+document.body.appendChild(c);
+var ctx = c.getContext('2d');
+var imagedata = ctx.createImageData(width,height);
+var data=imagedata.data;
+
+var cnt=Math.random()*1024|0
+var noise = new Array(width*height)
+var main=function(){
+		for(i=0;i<height;i++){
+		for(j=0;j<width;j++){
+	   		noise[i*width+j]=createNoise(j,i,cnt,6);
+		}}
+		draw(noise,"i2");
+	   	createNoiseQ(noise,width,height,cnt,6);
+		noise2=new Array(width*height*4);
+		var width1=width-1
+		var height1=height-1
+		for(i=0;i<height;i++){
+		for(j=0;j<width;j++){
+			var n=i*width+j<<2
+			noise2[n]=(noise[i*width+(j-1&width1)]-noise[i*width+(j+1&width1)])*8
+			noise2[n+1]=(noise[(i-1&height1)*width+j]-noise[(i+1&height1)*width+j])*8
+			noise2[n+2]=1-noise2[n]*noise2[n]+noise2[n+1]*noise2[n+1]
+			noise2[n]=noise2[n]*0.5+0.5
+			noise2[n+1]=noise2[n+1]*0.5+0.5
+			noise2[n+2]=noise2[n+2]*0.5+0.5
+			noise2[n+3]=1
+		}}
+		draw2(noise2,"i");
+		cnt+=4;
+	//	setTimeout(main,1000/30);
+}
+main();
+</script>

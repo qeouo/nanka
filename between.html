@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="utf-8">
+<title>between</title>
+</head>
+<body>
+<span style="vertical-align:top;">
+(a)<canvas id="c1" width="160" height="160" style="border:solid 1px black;">
+</canvas>
+(b)<canvas id="c2" width="160" height="160" style="border:solid 1px black;">
+</canvas>
+</span><br>
+<br>
+(a)…普通の描画</br>
+(b)…8フレーム毎の投影後の頂点座標を線形補間して描画＋ランダムにぶれ
+<script type="text/javascript">
+"use strict"
+var ctx,ctx2;
+var WIDTH,HEIGHT;
+
+var Vec3=(function(){
+	var Vec3=function(){this[0]=0;this[1]=0;this[2]=0;};
+    Vec3.set=function(a,x,y,z){a[0]=x;a[1]=y;a[2]=z}
+    Vec3.cpy=function(a,b){a[0]=b[0];a[1]=b[1];a[2]=b[2]}
+    Vec3.add=function(a,b,c){a[0]=b[0]+c[0];a[1]=b[1]+c[1];a[2]=b[2]+c[2]}
+    Vec3.sub=function(a,b,c){a[0]=b[0]-c[0];a[1]=b[1]-c[1];a[2]=b[2]-c[2]}
+    Vec3.mul=function(a,b,c){a[0]=b[0]*c;a[1]=b[1]*c;a[2]=b[2]*c}
+	Vec3.sca2=function(a){a[0]*a[0]+a[1]*a[1]+a[2]*a[2];}
+	return Vec3
+})()
+var Mat43=(function(){
+	var x,y,z;
+	var v = new Array(16)
+	var Mat43 = function(){this[0]=1;this[1]=0;this[2]=0;this[3]=0;this[4]=0;this[5]=1;this[6]=0;this[7]=0;
+	this[8]=0;this[9]=0;this[10]=1;this[11]=0;this[12]=0;this[13]=0;this[14]=0;this[15]=1;};
+	Mat43.set = function(m,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,a10,a11,a12,a13,a14,a15){
+		m[0]=a0;m[1]=a1;m[2]=a2;m[3]=a3;m[4]=a4;m[5]=a5;m[6]=a6;m[7]=a7;
+	m[8]=a8;m[9]=a9;m[10]=a10;m[11]=a11;m[12]=a12;m[13]=a13;m[14]=a14;m[15]=a15;};
+	Mat43.dotVec=function(a,b,c){
+		x=b[0]*c[0]+b[4]*c[1]+b[8]*c[2]+b[12];
+		y=b[1]*c[0]+b[5]*c[1]+b[9]*c[2]+b[13];
+		z=b[2]*c[0]+b[6]*c[1]+b[10]*c[2] +b[14];
+		a[0]=x;a[1]=y;a[2]=z;
+	};
+	Mat43.dot=function(a,b,c){
+		var i,j;
+		for(i=0;i<16;i+=4){
+			for(j=4;j--;){
+				v[j+i]=b[j]*c[i] +b[4+j]*c[i+1] +b[8+j]*c[i+2]+b[12+j]*c[i+3];
+			}
+		}
+		for(i=16;i--;)a[i]=v[i]
+	};
+	return Mat43;
+})()
+var i,j;
+//var verticesOrg=[[1,1,-1],[-1,1,-1],[-1,-1,-1],[1,-1,-1],[1,1,1],[-1,1,1],[-1,-1,1],[1,-1,1]];
+var verticesOrg=[
+[0,17,-0],
+[-41,56,71],
+[40,56,71],
+[82,56,0],
+[41,56,-71],
+[-40,56,-71],
+[-82,56,-0],
+[-46,13,80],
+[46,13,80],
+[92,13,0],
+[46,13,-80],
+[-46,13,-80],
+[-92,13,-0],
+[-39,-55,67],
+[38,-55,67],
+[78,-55,0],
+[39,-55,-67],
+[-38,-55,-67],
+[-78,-55,-0],
+[0,-55,0],
+[0,-30,123],
+[25,13,102],
+[-25,13,102],
+[0,-47,72],
+[25,0,80],
+[-25,-0,80],
+[0,24,142],
+[18,39,121],
+[-18,39,121],
+[0,37,166],
+[20,49,127],
+[-20,49,127],
+[-13,44,-74],
+[-13,46,-120],
+[-13,-9,-142],
+[-13,-44,-74],
+[-13,-25,-79],
+[-13,-4,-121],
+[-13,31,-108],
+[-13,31,-77],
+[14,44,-74],
+[14,46,-120],
+[14,-9,-142],
+[14,-44,-74],
+[14,-25,-79],
+[14,-4,-121],
+[14,31,-108],
+[14,31,-77],
+[0,78,-0],
+[-31,53,53],
+[30,53,53],
+[62,53,0],
+[31,53,-53],
+[-30,53,-53],
+[-62,53,-0]]
+//var faces=[[0,1,2,3],[7,6,5,4],[0,4,5,1],[1,5,6,2],[2,6,7,3],[3,7,4,0]];
+var faces=[
+[0,2,1],
+[0,3,2],
+[0,4,3],
+[0,5,4],
+[0,6,5],
+[0,1,6],
+[19,13,14],
+[19,14,15],
+[19,15,16],
+[19,16,17],
+[19,17,18],
+[19,18,13],
+[39,38,32],
+[38,33,32],
+[38,34,33],
+[38,37,34],
+[37,35,34],
+[37,36,35],
+[40,46,47],
+[40,41,46],
+[41,42,46],
+[42,45,46],
+[42,43,45],
+[43,44,45],
+[48,50,49],
+[48,51,50],
+[48,52,51],
+[48,53,52],
+[48,54,53],
+[48,49,54],
+[2,8,7],
+[2,7,1],
+[3,9,8],
+[3,8,2],
+[3,4,10],
+[3,10,9],
+[5,11,10],
+[5,10,4],
+[6,12,11],
+[6,11,5],
+[1,7,12],
+[1,12,6],
+[8,14,13],
+[8,13,7],
+[9,15,14],
+[9,14,8],
+[10,16,15],
+[10,15,9],
+[11,17,16],
+[11,16,10],
+[12,18,17],
+[12,17,11],
+[7,13,18],
+[7,18,12],
+[20,21,24],
+[20,24,23],
+[22,25,24],
+[22,24,21],
+[20,23,25],
+[20,25,22],
+[28,22,21],
+[28,21,27],
+[26,27,21],
+[26,21,20],
+[26,20,22],
+[26,22,28],
+[31,28,27],
+[31,27,30],
+[30,27,26],
+[30,26,29],
+[31,29,26],
+[31,26,28],
+[46,38,39],
+[46,39,47],
+[40,32,33],
+[40,33,41],
+[41,33,34],
+[41,34,42],
+[45,37,38],
+[45,38,46],
+[42,34,35],
+[42,35,43],
+[44,36,37],
+[44,37,45],
+[29,31,30]]
+var edges=[];
+var facesides=new Array(faces.length);
+var facesz=[];
+for(i=faces.length;i--;){facesz.push({});}
+facesides[-1]=false;
+var verticesbufs=[];
+var vbindex=0;
+var BUFSIZE=8;
+for(j=BUFSIZE+2;j--;){
+	var vertices=[];
+	for(i=verticesOrg.length;i--;){vertices.push(new Vec3());}
+	verticesbufs.push(vertices);
+}
+
+var veca=new Vec3()
+var vecb=new Vec3()
+var mat=new Mat43()
+var frame = 0;
+
+var setEdge=function(a,b,c){
+	var edge =findEdge(a,b)
+	if(edge){
+		edge[3]=c;
+	}else{
+		edge=[a,b,c,-1]
+		edges.push(edge);
+	}
+	return edge
+}
+var findEdge=function(a,b){
+	var i
+	for(i=edges.length;i--;){
+		if((edges[i][0] ==a  && edges[i][1]==b)
+		|| (edges[i][0] ==b  && edges[i][1]==a)){
+			return edges[i]
+		}
+	}
+	return null;
+}
+
+var x=2,y=1,z=2;
+var vx=0.1,vy=0.1,vz=0.1;
+
+var mainloop=function(e){
+	var i,vertex,retio;
+	var vertices;
+	frame++;
+	a=Math.PI*frame*0.01;
+	x+=vx
+	y+=vy
+	z+=vz
+	if(x>5)vx=-0.1
+	if(x<-5)vx=0.1
+	if(y>5)vy=-0.1
+	if(y<-5)vy=0.1
+	if(z>5)vz=-0.1
+	if(z<0)vz=0.1
+	x=0;y=0;z=0;
+	for(i=verticesOrg.length;i--;){
+		vertex=verticesbufs[vbindex][i];
+
+		Vec3.cpy(vertex,verticesOrg[i]);
+
+		Mat43.set(transMat,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1);
+		
+		Mat43.set(mat,1,0,0,0,0,1,0,0,0,0,1,0,0,0,400,1);
+		Mat43.dot(transMat,transMat,mat);
+
+		Mat43.set(mat,-1,0,0,0
+			,0,Math.cos(0.8),Math.sin(0.8),0
+			,0,Math.sin(0.8),-Math.cos(0.8),0
+			,0,0,0,1);
+		Mat43.dot(transMat,transMat,mat);
+		Mat43.set(mat,Math.cos(a),0,Math.sin(a),0
+			,0,-1,0,0
+			,Math.sin(a),0,-Math.cos(a),0
+			,0,0,0,1);
+		Mat43.dot(transMat,transMat,mat);
+
+		Mat43.set(mat,1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1);
+		Mat43.dot(transMat,transMat,mat);
+
+		Mat43.dotVec(vertex,transMat,vertex);
+		
+		translate(vertex);
+		if(vbindex==0){
+			Vec3.cpy(verticesbufs[BUFSIZE+1][i],verticesbufs[BUFSIZE][i])
+			Vec3.cpy(verticesbufs[BUFSIZE][i],verticesbufs[0][i])
+			verticesbufs[BUFSIZE][i][0]+=(Math.random()-0.5)*4
+			verticesbufs[BUFSIZE][i][1]+=(Math.random()-0.5)*4
+		}
+	}	
+
+	vbindex=vbindex+1;
+	if(vbindex>=BUFSIZE)vbindex=0;
+	if(frame>BUFSIZE){
+	draw(ctx)
+	var vertices=verticesbufs[vbindex]
+	for(i=verticesOrg.length;i--;){
+		var ratio=(vbindex)/BUFSIZE
+		if(vbindex==0){
+			ratio=1
+		}
+		Vec3.sub(vertices[i],verticesbufs[BUFSIZE][i],verticesbufs[BUFSIZE+1][i])
+		Vec3.mul(vertices[i],vertices[i],ratio)
+		Vec3.add(vertices[i],verticesbufs[BUFSIZE+1][i],vertices[i])
+		verticesbufs[BUFSIZE][i][0]+=(Math.random()-0.5)*1
+		verticesbufs[BUFSIZE][i][1]+=(Math.random()-0.5)*1
+//		vertices[i][0]+=(Math.random()-0.5)*1
+//		vertices[i][1]+=(Math.random()-0.5)*1
+	}
+	draw(ctx2)
+	}
+	setTimeout(mainloop,66);
+}
+var facesz2=new Array(faces.length);
+var margeSort=function(objs,i,length){
+	var buf
+	if(length==1)return;
+	if(length==2){
+		if(objs[i+1]<objs[i]){
+			buf=objs[i+1]
+			objs[i+1]=objs[i];
+			objs[i]=buf
+		}
+	}else{
+		var j=i+(length/2|0)
+		var ii=i
+		var jj=j
+		var k
+		margeSort(objs,i,j-i)
+		margeSort(objs,j,length-(j-i))
+		for(k=0;k<length;k++){
+			if(ii>=j){
+				facesz2[k]=objs[jj]
+				jj++
+			}else if(jj>=(i+length)){
+				facesz2[k]=objs[ii]
+				ii++
+			}else if(objs[ii].z<objs[jj].z){
+				facesz2[k]=objs[ii]
+				ii++
+			}else{
+				facesz2[k]=objs[jj]
+				jj++
+			}
+		}
+		for(k=0;k<length;k++){
+			objs[i+k]=facesz2[k]
+		}
+	}
+
+}
+var draw = function(ctx){
+	var i,j;
+	var face,edge,vertex;
+	var vertices=verticesbufs[vbindex]
+
+	ctx.fillStyle="#FFFFFF"
+	ctx.fillRect(0,0,WIDTH,HEIGHT);
+	for(i=faces.length;i--;){
+		face=faces[i]
+		facesz[i].z=vertices[face[0]][2]
+			+vertices[face[1]][2]
+			+vertices[face[2]][2]
+		facesz[i].face=face
+	}
+	margeSort(facesz,0,facesz.length)
+	
+
+
+	for(i=faces.length;i--;){
+		face=faces[i]
+		Vec3.sub(veca,vertices[face[1]],vertices[face[0]])
+		Vec3.sub(vecb,vertices[face[2]],vertices[face[0]])
+		if(veca[0]*vecb[1]-veca[1]*vecb[0]<0){
+			facesides[i]=false;
+			continue;
+		}
+		facesides[i]=true;
+	}
+	for(i=facesz.length;i--;){
+		face=facesz[i].face
+
+		Vec3.sub(veca,vertices[face[1]],vertices[face[0]])
+		Vec3.sub(vecb,vertices[face[2]],vertices[face[0]])
+		if(veca[0]*vecb[1]-veca[1]*vecb[0]<0){
+			continue;
+		}
+
+
+		ctx.beginPath();
+		ctx.lineCap="butt"
+		vertex=vertices[face[0]];
+		ctx.moveTo(vertex[0],vertex[1]);
+		vertex=vertices[face[1]];
+		ctx.lineTo(vertex[0],vertex[1]);
+		vertex=vertices[face[2]];
+		ctx.lineTo(vertex[0],vertex[1]);
+		ctx.closePath()
+		ctx.fillStyle="#ccFFFF"
+		ctx.fill();
+		ctx.strokeStyle="#ccFFFF"
+		ctx.stroke()
+
+		ctx.strokeStyle="#000000"
+		for(j=3;j<6;j++){
+			edge=face[j]
+			//if(!facesides[edge[2]] && !facesides[edge[3]])continue;
+			if(facesides[edge[2]] == facesides[edge[3]])continue;
+			ctx.beginPath();
+			ctx.lineCap = "round";
+			ctx.lineWidth=1;
+			vertex=vertices[edge[0]];
+			ctx.moveTo(vertex[0],vertex[1]);
+			vertex=vertices[edge[1]];
+			ctx.lineTo(vertex[0],vertex[1]);
+			ctx.stroke();
+		}
+
+	}
+}
+var pos = new Vec3();
+var a=0;
+var transMat=new Mat43();
+var translate=function(vertex){
+
+	vertex[0]=vertex[0]*WIDTH/(vertex[2])+(WIDTH>>1);
+	vertex[1]=vertex[1]*HEIGHT/(vertex[2])+(HEIGHT>>1);
+}
+    var canvas=  document.getElementById('c1')
+    WIDTH=canvas.width;
+    HEIGHT=canvas.height;
+	ctx = canvas.getContext('2d');
+    ctx2=  document.getElementById('c2').getContext('2d')
+
+	var i,j;
+	for(i=faces.length;i--;){
+		var face=faces[i];
+		face[3]=setEdge(face[0],face[1],i)
+		face[4]=setEdge(face[1],face[2],i)
+		face[5]=setEdge(face[2],face[0],i)
+	}
+	mainloop()
+</script>
+
+</body>
+</html>
