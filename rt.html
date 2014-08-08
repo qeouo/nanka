@@ -1,0 +1,358 @@
+<body>
+<canvas id="c" width="256" height="256" style="width:256px;height:256px;">
+</canvas>
+<input type="button" id="start" value="start" />
+ <div id="stat">status</div>
+</body>
+<script>
+document.getElementById("start").onclick=function(){
+var DELTA= 0.00001;
+var REPETITION_MAX= 16;
+var LENGTH_MAX= 10000.1;
+var OUTER_LOOP= 1;
+var INNER_LOOP= 64;
+
+var gl;
+var c=document.getElementById("c");
+var stat=document.getElementById("stat");
+var width=c.width,height=c.height;
+params = {preserveDrawingBuffer: true};
+gl = c.getContext('webgl',params) || c.getContext('experimental-webgl',params);
+    if(!gl){
+        alert("gl shokika shippai.");
+        return;
+    }
+
+var vs=" \n\
+attribute vec3 aPos; \n\
+void main(void){ \n\
+	gl_Position = vec4(aPos,1.0); \n\
+	gl_PointSize=1.0; \n\
+} \n\
+";
+var fs=" \n\
+const lowp float DELTA = "+DELTA+"; \n\
+const lowp int REFLECT_MAX= "+REPETITION_MAX+"; \n\
+const lowp float LENGTH_MAX= " +LENGTH_MAX +"; \n\
+const lowp int GLSL_LOOP= " + INNER_LOOP +"; \n\
+uniform lowp float width; \n\
+uniform lowp float height; \n\
+uniform int loopcount; \n\
+uniform lowp float seed; \n\
+const lowp float PI= 3.14159265; \n\
+uniform sampler2D texture; \n\
+lowp float rndcount=0.0;\
+lowp float rand(void){ \n\
+	rndcount+=0.00123; \n\
+	return fract(sin(dot(gl_FragCoord.xy*seed+rndcount ,vec2(12.9898,78.233))) * 43758.5453); \n\
+} \n\
+lowp vec3 randvec(lowp vec3 n,lowp float hard){ \n\
+	lowp vec3 u; \n\
+    if(n.y==-1.0 || n.y==1.0){ \n\
+		u=vec3(0,0,1); \n\
+	}else{ \n\
+		u= vec3(-n.z,0,n.x)/sqrt(dot(n.xz,n.xz)); \n\
+	} \n\
+	lowp float nr =1.0-rand()*(1.0-hard); \n\
+	u*=sqrt(1.0-nr*nr); \n\
+	lowp float rr =rand()*PI*2.0; \n\
+	return nr*n + sin(rr)*u + cos(rr)*cross(n,u); \n\
+} \n\
+lowp vec3 line_parall(lowp vec3 p,lowp vec3 v,lowp vec3 p0,lowp vec3 p1,lowp vec3 p2){ \n\
+	lowp vec3 hitpos=vec3(0,0,LENGTH_MAX+100.); \n\
+	lowp vec3 h; \n\
+	lowp vec3 n = normalize(cross(p1,p2)); \n\
+	lowp vec3 d1=cross(n,p1)/dot(p2,cross(n,p1)); \n\
+	lowp vec3 d2=cross(p2,n)/dot(p1,cross(p2,n)); \n\
+    if(dot(v,n)<0.0 && dot(p0-p,n)<=0.0){ \n\
+		h=p+v*dot(p0-p,n)/dot(v,n); \n\
+	lowp float a=dot(h-p0,d2); \n\
+	lowp float b=dot(h-p0,d1); \n\
+		if( a>=0. && a<= 1. && b>= 0. && b<=1. && a+b<2.){ \n\
+			hitpos=h; \n\
+		} \n\
+	} \n\
+	return hitpos; \n\
+} \n\
+lowp vec3 line_triangle(lowp vec3 p,lowp vec3 v,lowp vec3 p0,lowp vec3 p1,lowp vec3 p2){ \n\
+	lowp vec3 hitpos=vec3(0,0,LENGTH_MAX+100.); \n\
+	lowp vec3 h; \n\
+	lowp vec3 n = normalize(cross(p1,p2)); \n\
+	lowp vec3 d1=cross(n,p1)/dot(p2,cross(n,p1)); \n\
+	lowp vec3 d2=cross(p2,n)/dot(p1,cross(p2,n)); \n\
+    if(dot(v,n)<0.0 && dot(p0-p,n)<=0.0){ \n\
+		h=p+v*dot(p0-p,n)/dot(v,n); \n\
+		if(dot(h-p0,d1)>=0. && dot(h-p0,d2)>=0. && (dot(h-p0,d1)+ dot(h-p0,d2))<=1.0){ \n\
+			hitpos=h; \n\
+		} \n\
+	} \n\
+	return hitpos; \n\
+} \n\
+lowp vec3 line_sphere(lowp vec3 p,lowp vec3 v,lowp vec3 p2,lowp float r){ \n\
+	lowp vec3 hitpos=vec3(0,0,LENGTH_MAX+100.0); \n\
+	lowp vec3 d = p2-p; \n\
+	lowp float flg=1.0; \n\
+	if(length(d)<r){ \n\
+		flg=-1.0; \n\
+	} \n\
+	lowp float l = dot(d,v); \n\
+	if(l<0.0 && flg>0.0){ \n\
+		return hitpos; \n\
+	} \n\
+	d=p+v*l - p2; \n\
+	l=length(d); \n\
+	if(l>=r){ \n\
+		return hitpos; \n\
+	} \n\
+	l=sqrt(r*r-l*l)*flg; \n\
+	hitpos =p2 + d - v*l; \n\
+	return hitpos; \n\
+} \n\
+lowp vec3 line_plane(lowp vec3 p,lowp vec3 v,lowp vec3 p2,lowp vec3 v2){ \n\
+	lowp vec3 hitpos=vec3(0,0,LENGTH_MAX+100.0); \n\
+	if(dot(v,v2)<0.0 && dot(p2-p,v2)<=0.0){ \n\
+		hitpos = p + v*dot(p2-p,v2)/dot(v,v2); \n\
+    } \n\
+	return hitpos; \n\
+} \n\
+highp float decData(int idx){ \n\
+	lowp vec4 data =texture2D(texture,vec2(mod(float(idx),64.)/64.,float(idx/64)/256.)); \n\
+	highp float value = dot(data.rgb,vec3(1,1./256.,1./256./256.)); \n\
+	return (value*2.-1.)*pow(2.,data.a*255.); \n\
+} \n\
+highp vec3 decDataVec3(int idx){ \n\
+	return vec3(decData(idx),decData(idx+1),decData(idx+2)); \n\
+} \n\
+	lowp vec3 aaa[6]; \n\
+	lowp vec3 bbb[6]; \n\
+lowp vec3 f(lowp vec3 v){ \n\
+	lowp vec3 p=vec3(0,0,0); \n\
+	lowp float sumlen=0.0; \n\
+	lowp vec3 result=vec3(1,1,1); \n\
+	lowp vec3 pos; \n\
+	lowp vec3 hitpos; \n\
+	lowp float hitlength; \n\
+	lowp float len; \n\
+	lowp vec3 n; \n\
+	int flg; \n\
+	int typ; \n\
+	lowp float spchard,spc,emi,reflact=1.,oldreflact; \n\
+	highp vec4 color; \n\
+	int idx; \n\
+	int didx; \n\
+	for(int j=0;j<REFLECT_MAX+1;j++){ \n\
+		if(j==REFLECT_MAX || length(color)<0.0){ \n\
+			result=vec3(0,0,0); \n\
+			break; \n\
+		} \n\
+		p=p+DELTA*v; \n\
+		oldreflact=reflact; \n\
+		hitlength=LENGTH_MAX+100.; \n\
+		spc=0.;emi=0.;idx=-1;reflact=1.; \n\
+		pos=line_parall(p,v,vec3(4,9.9,28),vec3(0,0,14),vec3(-8,0,0)); \n\
+		if(distance(p,pos)<hitlength){hitlength=distance(p,pos);hitpos=pos;idx=0;} \n\
+//		pos=line_plane(p,v,vec3(0.01,-10.01,0.01),vec3(0.01,0.99,0.01)); if(distance(p,pos)<hitlength){hitlength=distance(p,pos);hitpos=pos;idx=1;} \n\
+//		pos=line_plane(p,v,vec3(10.01,0.01,0.01),vec3(-1,0.01,0.01)); if(distance(p,pos)<hitlength){hitlength=distance(p,pos);hitpos=pos;idx=2;} \n\
+//		pos=line_plane(p,v,vec3(-10.01,0.01,0.01),vec3(1,0.01,0.01)); if(distance(p,pos)<hitlength){hitlength=distance(p,pos);hitpos=pos;idx=3;} \n\
+//		pos=line_plane(p,v,vec3(0.01,0.01,50.01),vec3(0.01,0.01,-0.99)); if(distance(p,pos)<hitlength){hitlength=distance(p,pos);hitpos=pos;idx=4;} \n\
+//		pos=line_plane(p,v,vec3(0.01,10.01,0.01),vec3(0.01,-0.99,0.01)); if(distance(p,pos)<hitlength){hitlength=distance(p,pos);hitpos=pos;idx=5;} \n\
+		pos=line_sphere(p,v,vec3(3,-6,40),4.); if(distance(p,pos)<hitlength){hitlength=distance(p,pos);hitpos=pos;idx=6;} \n\
+		pos=line_sphere(p,v,vec3(-4,-6.,25),4.); if(distance(p,pos)<hitlength){hitlength=distance(p,pos);hitpos=pos;idx=7;} \n\
+		didx=64; \n\
+		int k;\n\
+		for(int k=1;k<6;k++){ \n\
+			pos=line_plane(p,v,aaa[k],bbb[k]); if(distance(p,pos)<hitlength){hitlength=distance(p,pos);hitpos=pos;idx=k;}; \n\
+		} \n\
+		if(idx==0){emi=8.0;color=vec4(1,1,1,1);n=vec3(0,-1,0);}; \n\
+		if(idx==1){color=vec4(1,1,1,1);n=vec3(0,1,0);}; \n\
+		if(idx==2){color=vec4(1,0.7,0.7,1);n=vec3(0,1,0);}; \n\
+		if(idx==3){color=vec4(0.7,0.7,1,1);n=vec3(0,1,0);}; \n\
+		if(idx==4){color=vec4(0.7,1,0.7,1);n=vec3(0,1,0);}; \n\
+		if(idx==5){color=vec4(0.99,0.99,0.99,1);n=vec3(0,-1,0);}; \n\
+		if(idx==6){color=vec4(0.99,0.99,0.99,1);n=normalize(hitpos-vec3(3,-6,40));spc=1.;spchard=1.;}; \n\
+		if(idx==7){color=vec4(0.99,0.99,0.99,0.);n=normalize(hitpos-vec3(-4,-6,25));spc=0.1;spchard=0.9; \n\
+			if(distance(p,vec3(-4,-6,25))>=4.){ reflact=2.0;}} \n\
+		sumlen += hitlength; \n\
+		if(sumlen > LENGTH_MAX  ){ \n\
+			result=vec3(0,0,0); \n\
+			break; \n\
+		} else{ \n\
+			if(emi>0.0){ \n\
+				result *= emi * color.rgb; \n\
+				break; \n\
+			}else{ \n\
+				flg=0; \n\
+				if(spc>0.0){ \n\
+					if(rand()<spc){ \n\
+						result*=1.0/spc; \n\
+						flg=1; \n\
+					}else{ \n\
+						result*=1.0/(1.0-spc); \n\
+					} \n\
+				} \n\
+				if(flg==0){ \n\
+					if(color.a<1.0){ \n\
+						v=normalize(v+n*dot(n,v)*(reflact/oldreflact-1.)); \n\
+					}else{ \n\
+						v = randvec(n,0.0); \n\
+					} \n\
+					result*=color.rgb; \n\
+				}else if(flg==1){ \n\
+					result*=spc; \n\
+					v = randvec(v+n*2.0,spchard); \n\
+				} \n\
+				p= hitpos; \n\
+			} \n\
+		} \n\
+	} \n\
+	return result; \n\
+} \n\
+void main(void){ \n\
+	lowp float x= -(gl_FragCoord.x/width*2.0-1.0); \n\
+	lowp float y= gl_FragCoord.y/height*2.0-1.0; \n\
+	lowp vec3 v=normalize(vec3(x,y,2)); \n\
+	highp vec3 color=vec3(0,0,0); \n\
+	for(int k=1;k<6;k++){ \n\
+		aaa[k]=decDataVec3(k*64); \n\
+		bbb[k]=decDataVec3(k*64+3); \n\
+	} \n\
+	for(int i=0;i<GLSL_LOOP;i++){ \n\
+		color+=f(v); \n\
+	} \n\
+	//gl_FragColor =vec4(texture2D(texture,vec2(x*0.5+0.5,y*0.5+0.5)).rgb,1.0); \n\
+	gl_FragColor = vec4(color/float(GLSL_LOOP),1.0/float(loopcount)); \n\
+} \n\
+";
+var vshader = gl.createShader(gl.VERTEX_SHADER);
+gl.shaderSource(vshader, vs);
+gl.compileShader(vshader);
+  if(!gl.getShaderParameter(vshader, gl.COMPILE_STATUS)){
+    alert(gl.getShaderInfoLog(vshader));
+    return null;
+  }
+
+var fshader = gl.createShader(gl.FRAGMENT_SHADER);
+gl.shaderSource(fshader, fs);
+gl.compileShader(fshader);
+  if(!gl.getShaderParameter(fshader, gl.COMPILE_STATUS)){
+    alert(gl.getShaderInfoLog(fshader));
+    return null;
+  }
+
+var program = gl.createProgram();
+gl.attachShader(program, vshader);
+gl.attachShader(program, fshader);
+gl.linkProgram(program);
+gl.useProgram(program);
+
+var att = gl.getAttribLocation(program,"aPos"); 
+var buffer = gl.createBuffer();
+gl.enableVertexAttribArray(att);
+gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+gl.vertexAttribPointer(att , 3, gl.FLOAT, false, 0, 0);
+var posBuffer = buffer;
+var posArray = new Float32Array(3*3);
+	posArray[0]=-1;
+	posArray[1]=-1;
+	posArray[2]=1;
+	posArray[3]=3;
+	posArray[4]=-1;
+	posArray[5]=1;
+	posArray[6]=-1;
+	posArray[7]=3;
+	posArray[8]=1;
+gl.uniform1f(gl.getUniformLocation(program,"width"),width);
+gl.uniform1f(gl.getUniformLocation(program,"height"),height);
+gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
+gl.bufferData(gl.ARRAY_BUFFER, posArray, gl.STATIC_DRAW);
+gl.enable(gl.BLEND);
+gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE);
+
+var tex = gl.createTexture();
+gl.bindTexture(gl.TEXTURE_2D, tex);
+var ta= new Uint8Array(64*256*4);
+var setData=function(idx,value){
+	var flg=0;
+	idx=idx<<2;
+	if(value==0){
+		ta[idx+0]=128;
+		ta[idx+1]=0;
+		ta[idx+2]=0;
+		ta[idx+3]=0;
+		return;
+	}
+	if(value<0){
+		value*=-1;
+		flg=1
+	}
+	var tei=Math.ceil(Math.log(value)/Math.LN2);
+	value =value/(1<<tei);
+	if(flg){
+		value*=-1
+	}
+	value =(value+1)*0.5;	
+
+	ta[idx+0]=value*255&0xff;
+	ta[idx+1]=value*255*256&0xff;
+	ta[idx+2]=value*255*256*256&0xff;
+	ta[idx+3]=tei;
+}
+var setDataVec3=function(idx,v0,v1,v2){
+	setData(idx,v0);idx++;
+	setData(idx,v1);idx++;
+	setData(idx,v2);
+}
+idx=64;
+setDataVec3(idx,0,-10,0); setDataVec3(idx+3,0,1,0);idx+=64;
+setDataVec3(idx,10,0,0); setDataVec3(idx+3,-1,0,0);idx+=64;
+setDataVec3(idx,-10,0,0); setDataVec3(idx+3,1,0,0);idx+=64;
+setDataVec3(idx,0,0,50); setDataVec3(idx+3,0,0,-1);idx+=64;
+setDataVec3(idx,0,10,0); setDataVec3(idx+3,0,-1,0);idx+=64;
+gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,64,256,0,gl.RGBA,gl.UNSIGNED_BYTE,ta);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+gl.generateMipmap(gl.TEXTURE_2D);
+gl.activeTexture(gl.TEXTURE0);
+gl.uniform1i( gl.getUniformLocation(program, 'texture'),0);
+
+var linecount=0;
+var totaltime=0;
+var loopcount=0;
+var pixels = new Uint8Array(4);
+var timeout=null;
+var mainloop=function(){
+    var start=new Date();
+
+		gl.uniform1i(gl.getUniformLocation(program,"loopcount"),loopcount+1);
+		gl.uniform1f(gl.getUniformLocation(program,"seed"),Math.random());
+//		posArray[1]=1-linecount/height*2;
+//		posArray[4]=posArray[1]
+//		gl.bufferData(gl.ARRAY_BUFFER, posArray, gl.STATIC_DRAW);
+//		gl.drawArrays(gl.LINES, 0, 2);
+		gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+		linecount++;
+//		if(linecount>=height){
+		  linecount=0;
+		  loopcount++;
+//		}
+
+    gl.flush();
+    
+	gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+	var t=new Date()-start;
+	totaltime+=t;
+	stat.innerHTML="line="+linecount+"/"+height+"<BR>" 
+		+ "process time= "+t+"ms/"+INNER_LOOP+"line<BR>"
+		+ "total time= "+Math.floor(totaltime/1000)+"sec<BR>"
+		+ "sample = "  +INNER_LOOP +"*"+loopcount+ "= "+(INNER_LOOP*loopcount)
+
+	if(loopcount<OUTER_LOOP){
+		clearTimeout(timeout);
+        timeout=setTimeout(function(){mainloop();},9);
+	}
+}
+mainloop();
+};
+start.onclick();
+</script>

@@ -1,96 +1,201 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html xmlns="http://www.w3.org/1999/xhtml"
+onselect="return false;"
+onselectstart="return false;" >
 <head>
 <meta http-equiv="X-UA-Compatible" content="IE=Edge"/>
 <meta charset="utf-8">
 <title>between</title>
+
+<style>
+html,body,div{height:100%;width:100%;}
+</style>
 </head>
-<body >
-test
-<audio id='a' controls="true">
-</audio>
-<input type="file" id="files" name="upfile[]" multiple  /><br />
-</body>
+<body>
+<canvas id="c" style="border:1px solid black;" width=256 height=128 ></canvas><br>
+<textarea id="text" rows="4" cols="32">
+c<c>b<cec>b<c> c<c>-b<cec>-b<c> 
+c<c>a<cec>a<c> c<c>-a<cec>-a<c> 
+</textarea><br>
+<audio id='a' ></audio>
+<bgsound id='b' loop="infinite" volume="-1000">
+<br>
+<input type="button" value="play(audio)" onclick="play();">
+<input type="button" value="play(bgsound)" onclick="play2();">
+<input type="button" value="stop" onclick="stop();">
 <script type="text/javascript">
 "use strict"
-// バイト配列に文字列を書き込む
+
 function writeString(bytes, val, offset) {
-    for (var i = 0, l = val.length; i < l; i++) {
+    for (var i = 0,imax = val.length; i < imax; i++) {
         bytes[offset + i] = val.charCodeAt(i);
     }
 }
 
-// バイト配列に 32-bit 整数を書き込む
 function writeInt32(bytes, val, offset) {
-    bytes[offset] = val & 255;
+    bytes[offset] = val & 0xff;
     val >>>= 8;
-    bytes[offset + 1] = val & 255;
+    bytes[offset + 1] = val & 0xff;
     val >>>= 8;
-    bytes[offset + 2] = val & 255;
+    bytes[offset + 2] = val & 0xff;
     val >>>= 8;
-    bytes[offset + 3] = val & 255;
+    bytes[offset + 3] = val & 0xff;
 }
 
-// バイト配列に 16-bit 整数を書き込む
 function writeInt16(bytes, val, offset) {
     bytes[offset] = val & 255;
     val >>>= 8;
     bytes[offset + 1] = val & 255;
 }
 
-// -----------------------------------------------------------------------------
+var ch = 1;  
+var samplePerSec = 44100; 
+var bitsPerSample = 16;  
+var blockSize = (bitsPerSample >>>3) * ch ;
+var header = new Uint8Array(44);
+writeString(header, 'RIFF    WAVEfmt ', 0);
+writeInt32(header, 16, 16);
+writeInt16(header, 1, 20);
+writeInt16(header, ch, 22);
+writeInt32(header, samplePerSec , 24);
+writeInt32(header, samplePerSec * blockSize, 28);
+writeInt16(header, blockSize , 32);
+writeInt16(header, bitsPerSample, 34);
+writeString(header, 'data', 36);
 
-var channel = 1;         // チャンネル数 (1:モノラル or 2:ステレオ)
-var srate = 44100; // サンプリングレート
-var bitsPerSample = 16;  // サンプルあたりのビット数 (8 or 16)
-var blockSize = (bitsPerSample >>>3) * channel ;
-var size = srate * blockSize * 2;        // データサイズ (byte)
-
-var offset = 44;         // ヘッダ部分のサイズ
+var SAMPLENUM=32
+var wave=new Array(SAMPLENUM);
+for(var i=0;i<SAMPLENUM;i++){wave[i]=Math.sin(i/SAMPLENUM *Math.PI*2)*30000;}
 
 
-var bytes2 = new Uint8Array(srate * blockSize * 8);
-offset=0
-// 波形データ書き込み (サイン波)
-var i;
-var ps=1/srate * 440 * Math.pow(2,1/12) * (Math.PI*2)
-var size=bytes2.length;
-var imax=size/2
-var oto=0;
-var drm=[3,5,7,8,10,12,14,15]
-var score=[2,2,2,2,2,2,2,2,2,4,0,1,2,2,2,2,2,2]
-for (i = 0; i < imax; i ++) {
-	if(i%(srate/2)==0){
-		ps=1/srate * 440 * Math.pow(2,drm[score[oto]]/12) * (Math.PI*2)
-		oto++
-	}
-	if(i%(srate/2)>srate/8){
-	    writeInt16(bytes2,0, offset + i*2);
-	}else{
-	    writeInt16(bytes2, Math.sin(i*ps)*32767| 0, offset + i*2);
+var canvas=document.getElementById("c")
+var ctx=canvas.getContext("2d");
+var	audio=document.getElementById('a');
+audio.volume=0.1
+var bgsound=document.getElementById('b');
+
+var drawCanvas= function(){
+	var i
+	ctx.fillStyle="#ffffff";
+	ctx.fillRect(0,0,256,128)
+	ctx.fillStyle="#000000";
+	for(i=0;i<SAMPLENUM;i++){
+		ctx.fillRect(i*(256/SAMPLENUM),wave[i]*64/30000+64,(256/SAMPLENUM),128-(wave[i]*64/30000+64))
 	}
 }
-// バイト配列を作成
-var bytes = new Uint8Array(44);
-// ヘッダ書き込み
-writeString(bytes, 'RIFF', 0);                 // RIFF ヘッダ
-writeInt32(bytes, 44 + size - 8, 4);       // ファイルサイズ - 8
-writeString(bytes, 'WAVE', 8);                 // WAVE ヘッダ
-writeString(bytes, 'fmt ', 12);                // fmt チャンク
-writeInt32(bytes, 16, 16);                     // fmt チャンクのバイト数
-writeInt16(bytes, 1, 20);                      // フォーマットID
-writeInt16(bytes, channel, 22);                // チャンネル数
-writeInt32(bytes, srate , 24);            // サンプリングレート
-writeInt32(bytes, srate * blockSize, 28); // データ速度
-writeInt16(bytes, blockSize , 32); // ブロックサイズ
-writeInt16(bytes, bitsPerSample, 34);          // サンプルあたりのビット数
-writeString(bytes, 'data', 36);                // data チャンク
-writeInt32(bytes, size, 40);                   // 波形データのバイト数
 
-var blob=new Blob([bytes,bytes2]);
-var url=window.URL.createObjectURL(blob);
+var rect = canvas.getBoundingClientRect()
+var cursorOffsetX=rect.left
+var cursorOffsetY=rect.top
 
-document.getElementById('a').src=url;
+var editWave=function(x,y){
+	x=x*(SAMPLENUM/256)|0
+	wave[x]=(y-64)/64*30000|0
+	drawCanvas();
+}
 
+var pressOn=0;
+canvas.onmousemove = function(e){
+	if(!pressOn)return
+	if(!e){ e = window.event }
+	editWave(e.clientX-cursorOffsetX,e.clientY-cursorOffsetY)
+}
+canvas.onmousedown = function(e){
+	pressOn = 1
+	if(!e){ e = window.event }
+	editWave(e.clientX-cursorOffsetX,e.clientY-cursorOffsetY)
+}
+window.document.onmouseup = function(e){
+	pressOn = 0 
+}
 
+var play=function(){
+	stop();
+	audio.src=gen();
+	audio.addEventListener('loadedmetadata',looper,false)
+
+}
+
+var play2=function(){
+	stop();
+	bgsound.src=gen();
+}
+var gen=function(){
+	var octave=1
+	var halftone=0
+	var len=samplePerSec/10
+	var ps;
+	var drm=[0,2,-9,-7,-5,-4,-2]
+	var score=document.getElementById("text").value
+	var data = new Uint8Array(score.length*samplePerSec/8*blockSize);
+	var syuha=0
+	var size=0
+	score=score.toUpperCase();
+	var scoremax=score.length
+
+	for(var j=0;j<scoremax;j++){
+		var c=score.charAt(j)
+		if(c==">"){
+			octave--
+			continue;
+		}
+		if(c=="<"){
+			octave++
+			continue;
+		}
+		if(c=="-"){
+			halftone=-1
+			continue;
+		}
+		if(c=="+"){
+			halftone=1
+			continue;
+		}
+
+		var cc=score.charCodeAt(j)-65
+		if(cc<0 || cc>8){
+			if(c=="_"){
+				ps=0
+			}else{
+				continue
+			}
+		}else{
+			ps= 440  * Math.pow(2,(drm[cc]+halftone)/12 + octave)/samplePerSec 
+		}
+		for (var i = 0;i < len; i ++) {
+			var v=1
+			if(i/len<0.1){
+				v=i/len*10
+			}
+			if(1-(i/len)<0.1){
+				v=(1-(i/len))*10
+			}
+			writeInt16(data, (wave[i*ps*SAMPLENUM&(SAMPLENUM-1)])*v|0, size);
+			size+=2
+		}
+		halftone=0
+	}
+	writeInt32(header, 36 + size, 4);
+	writeInt32(header, size, 40); 
+
+	var blob=new Blob([header,data], { "type" : "audio/wav" });
+	var url=window.URL.createObjectURL(blob);
+
+	return url;
+
+}
+var timer;
+var looper=function(){
+	timer=setTimeout(looper,audio.duration*1000,false);
+	audio.currentTime=0
+	audio.play();
+}
+var stop=function(){
+	audio.pause();
+	bgsound.src="";
+	clearTimeout(timer)
+
+}
+drawCanvas();
 </script>
+</body>
