@@ -1,0 +1,68 @@
+html{
+	height:95%;
+}
+body{
+	background-color:lightgray;
+	height:100%;
+}
+div.cons{
+	font-size:small;
+	position:absolute;
+	top:0px;right:0px;
+	padding:10px;
+	text-align:left;
+	background-color:rgba(0,0,0,0.7);
+	color:white;
+	font-family: monospace;
+}
+div.status_a{
+	color:#ff0000;
+
+}
+div.status_b,pre.status_b{
+	color:#00ff00
+}
+div.status_c{
+	color:#6666ff
+}
+a.oc{
+	color:red;
+}
+a{
+	color:white;
+}
+input[type="range"]{
+	width:80px;
+}
+fieldset[disabled]{
+	opacity:0.1;
+}
+pre{
+	font-size:small;
+	margin:0px;
+}
+
+label
+{
+cursor:pointer;
+}
+.js-slider{
+  position:relative;
+  display:inline-block;
+  width:100px;
+  height:20px;
+}
+.js-slider div{
+  background:#ddd;
+  height:3px;
+  border:1px inset #aaa;
+  position:relative;
+  top:12px;
+  font-size:0px;
+}
+.js-slider input{
+  position:absolute;
+  width:15px;
+  height:20px;
+  display:block;
+}
