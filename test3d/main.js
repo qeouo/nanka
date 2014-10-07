@@ -344,7 +344,6 @@ var mainfunc=(function(){
 		Util.fpsman()
 		if(global_param.model){
 			obj3d = O3o.load("./"+global_param.model+"?"+Date.now())
-			//objcube=objman.createObj(objCube)
 		}
 		
 

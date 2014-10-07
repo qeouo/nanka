@@ -1946,16 +1946,18 @@ var O3o=(function(){
 			if(object== null)continue;
 			calcPhyObj(object);
 			phyObj=phyObjs[j];
-			for(i=0,imax=phyObj.pos.length;i<imax;i++){
-				var pos=phyObj.pos[i];
-				renderVertex=renderVertices[i+rvIndex]
-				pos[0]=renderVertex.pos[0]
-				pos[1]=renderVertex.pos[1]
-				pos[2]=renderVertex.pos[2]
-				pos=phyObj.v[i];
-				pos[0]=0;
-				pos[1]=0;
-				pos[2]=0;
+			if(phyObj.type== OnoPhy.SPRING_MESH){
+				for(i=0,imax=phyObj.pos.length;i<imax;i++){
+					var pos=phyObj.pos[i];
+					renderVertex=renderVertices[i+rvIndex]
+					pos[0]=renderVertex.pos[0]
+					pos[1]=renderVertex.pos[1]
+					pos[2]=renderVertex.pos[2]
+					pos=phyObj.v[i];
+					pos[0]=0;
+					pos[1]=0;
+					pos[2]=0;
+				}
 			}
 		}
 	}
