@@ -245,6 +245,10 @@ gl.attachShader(program, fshader);
 gl.linkProgram(program);
 gl.useProgram(program);
 
+  if(!gl.getShaderParameter(program, gl.COMPILE_STATUS)){
+    alert(gl.getShaderInfoLog(program));
+    return null;
+  }
 var att = gl.getAttribLocation(program,"aPos"); 
 var buffer = gl.createBuffer();
 gl.enableVertexAttribArray(att);
