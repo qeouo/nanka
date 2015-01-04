@@ -57,6 +57,9 @@ var Ono3d = (function(){
 		this.vertices=new Array(3)
 		this.normal=new Vec3()
 		this.angle=new Vec3()
+		this.r=1;
+		this.g=1;
+		this.b=1;
 	}
 	var RenderVertex = function(){
 		this.pos = new Vec3()
@@ -175,7 +178,11 @@ var Ono3d = (function(){
 		this.renderFaces = new Array(RENDERFACES_MAX)
 		for(i=this.renderFaces.length;i--;)this.renderFaces[i] = new RenderFace()
 		this.renderVertices = new Array(RENDERFACES_MAX)
-		for(i=this.renderVertices.length;i--;)this.renderVertices[i] = new RenderVertex()
+		for(i=this.renderVertices.length;i--;){
+			this.renderVertices[i] = new RenderVertex()
+			this.renderVertices[i].idx=i;
+		}
+
 
 		this.stackTransMatrix=new Array()
 		this.stackIndex=0
@@ -610,6 +617,7 @@ var Ono3d = (function(){
 			}
 
 
+			if(drawMethod!=3){
 			for(i=this.renderFaces_index;i--;){
 				count = 0
 				renderFace = this.renderFaces[i]
@@ -755,8 +763,9 @@ var Ono3d = (function(){
 				
 				}
 			}
-			if(drawMethod==3){
-				Rastgl.flush();
+			}else{
+				Rastgl.set(this);
+				Rastgl.flush(this.renderFaces,this.renderFaces_index,this.renderVertices,this.renderVertices_index);
 			}
 		}
 		,init:function(_canvas,_ctx){

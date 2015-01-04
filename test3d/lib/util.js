@@ -321,31 +321,27 @@ var Util=(function(){
 		}
 	}
 	ret.setFps=function(argfps,mf){
-		var i
-		
-		fps=argfps|0
-		spf=(1000/fps)|0
-		fpserror = 0
-		fpserrordelta= 1000%fps
-		nextsleep=new Date()|0
-		mainfunc=mf
+		fps=argfps|0;
+		spf=(1000/fps)|0;
+		fpserror = 0;
+		fpserrordelta= 1000%fps;
+		nextsleep=Date.now();
+		mainfunc=mf;
 	
 		ret.pressCount = 0
-		
 
 	}
 	
 	var fpsman = ret.fpsman= function(){
-		var nowTime = new Date()|0
-		var dt = nextsleep - nowTime
-
+		var nowTime = Date.now();
+		var dt = nextsleep - nowTime;
 
 //		if(0<dt>>1){
-//			setTimeout(fpsman,dt>>1)
-//			return
+//			setTimeout(fpsman,dt>>1);
+//			return;
 //		}
 		
-		fpserror +=fpserrordelta
+		fpserror +=fpserrordelta;
 		if(dt>spf)dt=spf
 		if(dt<-spf)dt=-spf
 		if(fpserror>=fps){
@@ -353,12 +349,12 @@ var Util=(function(){
 			dt+=1
 		}
 		
-		nextsleep = nowTime + spf + dt
+		nextsleep = nowTime + spf + dt;
 		mainloop()
-		nowTime = new Date()|0
-		dt=nextsleep-nowTime
-		if(dt<=0)dt=1
-		setTimeout(fpsman,dt)
+		nowTime = Date.now();
+		dt=nextsleep-nowTime;
+		if(dt<=0)dt=1;
+		setTimeout(fpsman,dt);
 
 	}
 	ret.drawText=function(target,x,y,text,img,sizex,sizey){

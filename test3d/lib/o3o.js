@@ -7,7 +7,6 @@ var O3o=(function(){
 	,bM=new Mat43()
 	,bM2=new Mat43()
 	
-	,motionBufs = new Array(128)
 	,groupMatricies = new Array(32)
 	,groupMatFlg= new Array(32)
 	,defMatrix = new Mat43()
@@ -84,13 +83,6 @@ var O3o=(function(){
 	rotationMode["ZXY"]=EULER_ZXY
 	rotationMode["ZYX"]=EULER_ZYX
 
-
-	//モーションバッファ
-	var MotionBuf = function(){
-		this.name=""
-		this.flg=0
-		this.matrix=new Mat43()
-	}
 	//モデル描画計算用バッファ
 	function bufFace (){
 		this.normal=new Vec3()
@@ -98,7 +90,6 @@ var O3o=(function(){
 		this.angle=new Vec3()
 	}
 	
-	for(i=motionBufs.length;i--;)motionBufs[i] = new MotionBuf()
 	for(i=groupMatricies.length;i--;)groupMatricies[i] = new Mat43()
 	for(i=bufFaces.length;i--;)bufFaces[i] = new bufFace()
 
@@ -219,7 +210,7 @@ var O3o=(function(){
 		this.pos = new Vec3()
 		this.normal = new Vec3()
 		this.groups = new Array()
-		this.groupretios = new Array()
+		this.groupratios = new Array()
 	}
 	O3o.Vertex=Vertex
 
@@ -417,6 +408,7 @@ var O3o=(function(){
 
 			var scene = new Scene()
 			o3o.scenes.push(scene)
+
 			//mesh
 			imax=mqo.objects.length
 			o3o.meshes= new Array(imax)
@@ -704,7 +696,7 @@ var O3o=(function(){
 								vertex.pos=obj.pos
 								vertex.normal=obj.normal
 								if(obj.groups)vertex.groups= obj.groups
-								if(obj.groupretios)vertex.groupretios= obj.groupretios
+								if(obj.groupratios)vertex.groupratios= obj.groupratios
 								obj=null
 							}
 						}else if(line.match(/ShapeKeys (.+)\[/)){
@@ -940,24 +932,12 @@ var O3o=(function(){
 
 		return o3o
 	}
-	var clearAction = O3o.clearAction = function(){
-		var i,motionBuf
-		for(i=motionBufs.length;i--;){
-			motionBuf = motionBufs[i]
-			motionBuf.flg=0
-		}
-	}
-	var setAction = O3o.setAction= function(action,frame){
-		clearAction()
-		//addAction(action,frame)
-	}
 	var calcVertex = function(obj,physics){
 		var i,j
 			,pos
 			,vertex
-			,retiosum
-			,motionbuf
-			,retio
+			,ratiosum
+			,ratio
 			,shapeKeyPoint
 			,shapeKey
 			,vertices
@@ -972,7 +952,7 @@ var O3o=(function(){
 		}
 
 		if(mesh.shapeKeys.length){
-			retiosum=0
+			ratiosum=0
 			for(i = mesh.vertices.length;i--;){
 				pos = bufVertices[i].pos
 				pos[0]=0
@@ -982,29 +962,29 @@ var O3o=(function(){
 			for(j=mesh.shapeKeys.length;j--;){
 				shapeKey = mesh.shapeKeys[j]
 				matrix=searchMotionBuf(shapeKey.name)
-				retio = matrix[0]
-				retiosum+=retio
+				ratio = matrix[0]
+				ratiosum+=ratio
 
 				for(i = mesh.vertices.length;i--;){
 					pos = bufVertices[i].pos
 					shapeKeyPoint = shapeKey.shapeKeyPoints[i]
 
-					pos[0]+=retio*shapeKeyPoint[0]
-					pos[1]+=retio*shapeKeyPoint[1]
-					pos[2]+=retio*shapeKeyPoint[2]
+					pos[0]+=ratio*shapeKeyPoint[0]
+					pos[1]+=ratio*shapeKeyPoint[1]
+					pos[2]+=ratio*shapeKeyPoint[2]
 
 				}
 			}
-			retio=1-retiosum
-			if(retio>0){
+			ratio=1-ratiosum
+			if(ratio>0){
 				shapeKey = mesh.shapeKeys[0]
 				for(i = mesh.vertices.length;i--;){
 					pos = bufVertices[i].pos
 					shapeKeyPoint = shapeKey.shapeKeyPoints[i]
 
-					pos[0]+=retio*shapeKeyPoint[0]
-					pos[1]+=retio*shapeKeyPoint[1]
-					pos[2]+=retio*shapeKeyPoint[2]
+					pos[0]+=ratio*shapeKeyPoint[0]
+					pos[1]+=ratio*shapeKeyPoint[1]
+					pos[2]+=ratio*shapeKeyPoint[2]
 
 
 				}
@@ -1023,11 +1003,11 @@ var O3o=(function(){
 				pos[1]=0
 				pos[2]=0
 				for(j = vertex.groups.length;j--;){
-					retio=vertex.groupretios[j]
+					ratio=vertex.groupratios[j]
 					Mat43.dotMat43Vec3(bV1,groupMatricies[vertex.groups[j]],bV0)
-					pos[0] +=  bV1[0] * retio
-					pos[1] +=  bV1[1] * retio
-					pos[2] +=  bV1[2] * retio
+					pos[0] +=  bV1[0] * ratio
+					pos[1] +=  bV1[1] * ratio
+					pos[2] +=  bV1[2] * ratio
 				}
 			}
 		}else{
@@ -1227,7 +1207,7 @@ var O3o=(function(){
 		}
 
 		if( ono3d.smoothing>0){
-			for(i = mesh.vertices.length;i--;){
+			for(i = rvSize;i--;){
 				bufVertex = renderVertices[i+rvIndex]
 				Vec3.norm(bufVertex.normal)
 			}
@@ -1302,275 +1282,148 @@ var O3o=(function(){
 			}
 		}
 	}
-	var addAction2 = function(obj,name,action,frame){
-		var i,j,a,b,c,x
-		,motionBuf
-		,tim,retio
-		,fcurve
-		,name
-		,mat43
-		,paramA,paramB
-		,quat = bVec4
-		,imax
-		,t1,t2,t3,A
-
-		bM[12]=0
-		bM[13]=0
-		bM[14]=0
+	var addaction = function(obj,name,action,frame){
+		var a,b,c
+			,tim,ratio
+			,fcurve
+			,keys
+			,mat43
+			,paramA,paramB
+			,quat = bVec4
+		;
 
 		frame=frame%action.endframe
-		for(i=0,imax=action.fcurves.length;i<imax;i++){
+
+		for(var i=0,imax=action.fcurves.length;i<imax;i++){
 			fcurve=action.fcurves[i]
 			if(fcurve.target != name)continue;
+			keys=fcurve.keys;
 			tim=frame
 
 			a=0;b=fcurve.keys.length-1
 			switch(fcurve.repeatmode){
 			case REPEAT_NONE:
-				if(tim<fcurve.keys[a])tim=fcurve.keys[a]
-				if(tim>fcurve.keys[b])tim=fcurve.keys[b]
+				if(tim<keys[a])tim=keys[a]
+				if(tim>keys[b])tim=keys[b]
 				break
 			case REPEAT_LOOP:
-				if(tim<fcurve.keys[a])tim=fcurve.keys[b]-(fcurve.keys[a]-tim)%(fcurve.keys[b]-fcurve.keys[a])
-				if(tim>fcurve.keys[b])tim=fcurve.keys[a]+(tim-fcurve.keys[b])%(fcurve.keys[b]-fcurve.keys[a])
+				if(tim<keys[a])tim=keys[b]-(keys[a]-tim)%(keys[b]-keys[a])
+				if(tim>keys[b])tim=keys[a]+(tim-keys[b])%(keys[b]-keys[a])
 				break
 			case REPEAT_LINER:
 				break
 			}
 			while (a < b) {
-				c = (a + b) >>1
-				if (fcurve.keys[c] <= tim)
-					a = c + 1
-				else
-					b = c
+				c = (a + b) >>1;
+				if (keys[c] <= tim){
+					a = c + 1;
+				}else{
+					b = c;
+				}
 			}
 			if(tim == fcurve.keys[a]){
-				retio=0;
+				ratio=0;
 				paramA=fcurve.params[a]
 				paramB=fcurve.params[a]
 			}else{
 				if(a>0)a--
-				retio=(tim-fcurve.keys[a])/(fcurve.keys[a+1]-fcurve.keys[a])
-
-				
+				ratio=(tim-fcurve.keys[a])/(fcurve.keys[a+1]-fcurve.keys[a])
 				paramA=fcurve.params[a]
 				paramB=fcurve.params[a+1]
 			}
 			switch(fcurve.type){
 			case FCURVE_ROT_QUAT:
-				Vec4.slerp(obj.rotation,paramA,paramB,retio)
+				Vec4.slerp(obj.rotation,paramA,paramB,ratio)
 				break;
 			case FCURVE_ROT_EULERX:
-				obj.rotation[0] = (paramB-paramA)*retio + paramA
+				obj.rotation[0] = (paramB-paramA)*ratio + paramA
 				break;
 			case FCURVE_ROT_EULERY:
-				obj.rotation[1] = (paramB-paramA)*retio + paramA
+				obj.rotation[1] = (paramB-paramA)*ratio + paramA
 				break;
 			case FCURVE_ROT_EULERZ:
-				obj.rotation[2] = (paramB-paramA)*retio + paramA
+				obj.rotation[2] = (paramB-paramA)*ratio + paramA
 				break
 			case FCURVE_SCALEX:
-				obj.scale[0] = (paramB-paramA)*retio + paramA
+				obj.scale[0] = (paramB-paramA)*ratio + paramA
 				break;
 			case FCURVE_SCALEY:
-				obj.scale[1] = (paramB-paramA)*retio + paramA
+				obj.scale[1] = (paramB-paramA)*ratio + paramA
 				break;
 			case FCURVE_SCALEZ:
-				obj.scale[2] = (paramB-paramA)*retio + paramA
+				obj.scale[2] = (paramB-paramA)*ratio + paramA
 				break;
 			case FCURVE_LOCATIONX:
-				obj.location[0]= (paramB-paramA)*retio + paramA
+				obj.location[0]= (paramB-paramA)*ratio + paramA
 				break;
 			case FCURVE_LOCATIONY:
-				obj.location[1]= (paramB-paramA)*retio + paramA
+				obj.location[1]= (paramB-paramA)*ratio + paramA
 				break;
 			case FCURVE_LOCATIONZ:
-				obj.location[2]= (paramB-paramA)*retio + paramA
+				obj.location[2]= (paramB-paramA)*ratio + paramA
 				break
 			case FCURVE_SHAPEKEY:
 				switch(fcurve.interpolatemode){
 				case INTERPOLATE_SPLINE:
-					retio=retio*2-1
-					if(retio<0)
-						retio=-Math.pow(-retio,1.5)
-					else retio=Math.pow(retio,1.5)
-					retio=(retio+1)*0.5
-					mat43[0]= (paramB[0]-paramA[0])*retio + paramA[0]
+					ratio=ratio*2-1
+					if(ratio<0)
+						ratio=-Math.pow(-ratio,1.5)
+					else ratio=Math.pow(ratio,1.5)
+					ratio=(ratio+1)*0.5
+					mat43[0]= (paramB[0]-paramA[0])*ratio + paramA[0]
 					break
 				case INTERPOLATE_LINER:
-					mat43[0]= (paramB[0]-paramA[0])*retio + paramA[0]
+					mat43[0]= (paramB[0]-paramA[0])*ratio + paramA[0]
 					break
 				}
 				break
 			}
 		}
 	}
-	var addAction = function(obj,name,action,frame){
-		var i,j,a,b,c,x
-		,motionBuf
-		,tim,retio
-		,fcurve
-		,name
-		,mat43
-		,paramA,paramB
-		,quat = bVec4
-		,imax
-		,t1,t2,t3,A
-
-		bM[12]=0
-		bM[13]=0
-		bM[14]=0
-
-		tim=frame%action.endframe
-		mat43=obj.actmatrix;
-		for(i=0,imax=action.fcurves.length;i<imax;i++){
-			fcurve=action.fcurves[i]
-			if(fcurve.target != name)continue;
-
-			a=0;b=fcurve.keys.length-1
-			switch(fcurve.repeatmode){
-			case REPEAT_NONE:
-				if(tim<fcurve.keys[a])tim=fcurve.keys[a]
-				if(tim>fcurve.keys[b])tim=fcurve.keys[b]
-				break
-			case REPEAT_LOOP:
-				if(tim<fcurve.keys[a])tim=fcurve.keys[b]-(fcurve.keys[a]-tim)%(fcurve.keys[b]-fcurve.keys[a])
-				if(tim>fcurve.keys[b])tim=fcurve.keys[a]+(tim-fcurve.keys[b])%(fcurve.keys[b]-fcurve.keys[a])
-				break
-			case REPEAT_LINER:
-				break
+	var calcMatrixArmature=function(armature,frame){
+		var posebones=armature.posebones;
+		var posebone;
+		var actmatrix;
+		for(var i=posebones.length;i--;){
+			posebone=posebones[i];
+			actmatrix=posebone.actmatrix;
+			if(armature.action){
+				addaction(posebone,posebone.target.name,armature.action,frame)
 			}
-			while (a < b) {
-				c = (a + b) >>1
-				if (fcurve.keys[c] <= tim)
-					a = c + 1
-				else
-					b = c
-			}
-			if(tim == fcurve.keys[a]){
-				retio=0;
-				paramA=fcurve.params[a]
-				paramB=fcurve.params[a]
-			}else{
-				if(a>0)a--
-				retio=(tim-fcurve.keys[a])/(fcurve.keys[a+1]-fcurve.keys[a])
-
-				
-				paramA=fcurve.params[a]
-				paramB=fcurve.params[a+1]
-			}
-			switch(fcurve.type){
-			case FCURVE_ROT_QUAT:
-				Vec4.slerp(quat,paramA,paramB,retio)
-				Vec4.qTOm(bM,quat)
-				Mat43.dot(mat43,mat43,bM)
-				break;
-			case FCURVE_ROT_EULERX:
-				x = (paramB-paramA)*retio + paramA
-				Mat43.getRotMat(bM,x,0,0,1)
-				Mat43.dot(mat43,bM,mat43)
-				break;
-			case FCURVE_ROT_EULERY:
-				x = (paramB-paramA)*retio + paramA
-				Mat43.getRotMat(bM,x,1,0,0)
-				Mat43.dot(mat43,bM,mat43)
-				break;
-			case FCURVE_ROT_EULERZ:
-				x = (paramB-paramA)*retio + paramA
-				Mat43.getRotMat(bM,x,0,1,0)
-				Mat43.dot(mat43,bM,mat43)
-				break
-			case FCURVE_SCALEX:
-				x = (paramB-paramA)*retio + paramA
-				mat43[0]*=x
-				mat43[1]*=x
-				mat43[2]*=x
-				break;
-			case FCURVE_SCALEY:
-				x = (paramB-paramA)*retio + paramA
-				mat43[4]*=x
-				mat43[5]*=x
-				mat43[6]*=x
-				break;
-			case FCURVE_SCALEZ:
-				x = (paramB-paramA)*retio + paramA
-				mat43[8]*=x
-				mat43[9]*=x
-				mat43[10]*=x
-				break;
-			case FCURVE_LOCATIONX:
-				mat43[12]+= (paramB-paramA)*retio + paramA
-				break;
-			case FCURVE_LOCATIONY:
-				mat43[13]+= (paramB-paramA)*retio + paramA
-				break;
-			case FCURVE_LOCATIONZ:
-				mat43[14]+= (paramB-paramA)*retio + paramA
-				break
-			case FCURVE_SHAPEKEY:
-				switch(fcurve.interpolatemode){
-				case INTERPOLATE_SPLINE:
-					retio=retio*2-1
-					if(retio<0)
-						retio=-Math.pow(-retio,1.5)
-					else retio=Math.pow(retio,1.5)
-					retio=(retio+1)*0.5
-					mat43[0]= (paramB[0]-paramA[0])*retio + paramA[0]
-					break
-				case INTERPOLATE_LINER:
-					mat43[0]= (paramB[0]-paramA[0])*retio + paramA[0]
-					break
-				}
-				break
-			}
-		}
-	}
-	var flg=0;
-	var calcMatrixArmature=function(obj,frame){
-		var bones=obj.posebones;
-		var bone;
-		for(i=bones.length;i--;){
-			bone=bones[i];
-			Mat43.setInit(bone.actmatrix);
-			if(obj.action){
-				addAction2(bone,bone.target.name,obj.action,frame)
-			}
-			genMatrix(bone);
-			Mat43.dot(bone.actmatrix,bone.actmatrix,bone.target.imatrix)
-			Mat43.dot(bone.actmatrix,bone.target.matrix,bone.actmatrix)
+			genMatrix(posebone);
+			Mat43.dot(actmatrix,actmatrix,posebone.target.imatrix)
+			Mat43.dot(actmatrix,posebone.target.matrix,actmatrix)
 
 		}
 	}
 	var genMatrix=function(obj){
 		var mat=obj.actmatrix;
-		Mat43.setInit(obj.actmatrix);
-		obj.actmatrix[0]=obj.scale[0];
-		obj.actmatrix[5]=obj.scale[1];
-		obj.actmatrix[10]=obj.scale[2];
 		if(obj.rotation_mode==QUATERNION){
-			Vec4.qTOm(bM,obj.rotation);
-			Mat43.dot(obj.actmatrix,bM,obj.actmatrix)
+			Vec4.qTOm(mat,obj.rotation);
 				
 		}else{
-			Mat43.getRotMat(bM,obj.rotation[0],1,0,0)
-			Mat43.dot(obj.actmatrix,bM,obj.actmatrix);
+			Mat43.getRotMat(mat,obj.rotation[0],1,0,0)
 			Mat43.getRotMat(bM,obj.rotation[1],0,1,0)
-			Mat43.dot(obj.actmatrix,bM,obj.actmatrix);
+			Mat43.dot(mat,bM,mat);
 			Mat43.getRotMat(bM,obj.rotation[2],0,0,1)
-			Mat43.dot(obj.actmatrix,bM,obj.actmatrix);
+			Mat43.dot(mat,bM,mat);
 		}
-		obj.actmatrix[12]=obj.location[0];
-		obj.actmatrix[13]=obj.location[1];
-		obj.actmatrix[14]=obj.location[2];
+		var s=obj.scale[0];
+		mat[0]*=s; mat[1]*=s; mat[2]*=s;
+		s=obj.scale[1];
+		mat[4]*=s; mat[5]*=s; mat[6]*=s;
+		s=obj.scale[2];
+		mat[8]*=s; mat[9]*=s; mat[10]*=s;
+
+		mat[12]=obj.location[0];
+		mat[13]=obj.location[1];
+		mat[14]=obj.location[2];
 	}
 	var calcMatrix=function(obj,frame){
-		Mat43.setInit(obj.actmatrix);
 		if(obj.action){
-			addAction2(obj,"",obj.action,frame)
+			addaction(obj,"",obj.action,frame)
 		}
 		genMatrix(obj);
-		//Mat43.dot(obj.actmatrix,obj.actmatrix,obj.imatrix)
-		//Mat43.dot(obj.actmatrix,obj.matrix,obj.actmatrix)
 
 		if(obj.type=="ARMATURE"){
 			calcMatrixArmature(obj,frame);
@@ -1607,14 +1460,14 @@ var O3o=(function(){
 			drawObject(scene.objects[i],physics)
 		}
 	}
-	var cnt=0;
 	var calcModifier=function(obj,phyObjs){
 		var renderVertices =ono3d.renderVertices;
 		var renderFaces=ono3d.renderFaces;
 		var renderVertex;
 		var groupMatrix;
 		var groupName;
-		var i,j,imax,jmax,k,kmax;
+		var jmax,k,kmax;
+		var x,y,z;
 		for(var i=0,imax=obj.modifiers.length;i<imax;i++){
 			var mod = obj.modifiers[i];
 			if(mod.type=="MIRROR"){
@@ -1631,26 +1484,27 @@ var O3o=(function(){
 					pos2[0]=-pos[0]
 					pos2[1]=pos[1]
 					pos2[2]=pos[2]
+					
 				}
 				var face,face2;
 				var faces=obj.data.faces;
 				var vertex;
 				var srcidx=rfIndex,dstidx=rfIndex+rfSize;
 				var flg;
-				for(j =0;j<rfSize;j++){
+				for(var j =0;j<rfSize;j++){
 					face= renderFaces[srcidx]
 					face2 = renderFaces[dstidx]
 	
 					face2.vertices[0] = face.vertices[0];
 					face2.vertices[1] = face.vertices[2];
 					face2.vertices[2] = face.vertices[1];
-					if(renderVertices[face2.vertices[0]].pos[0]){
+					if(Math.abs(renderVertices[face2.vertices[0]].pos[0])>0.01){
 						face2.vertices[0]+=rvSize;
 					}
-					if(renderVertices[face2.vertices[1]].pos[0]){
+					if(Math.abs(renderVertices[face2.vertices[1]].pos[0])>0.01){
 						face2.vertices[1]+=rvSize;
 					}
-					if(renderVertices[face2.vertices[2]].pos[0]){
+					if(Math.abs(renderVertices[face2.vertices[2]].pos[0])>0.01){
 						face2.vertices[2]+=rvSize;
 					}
 					face2.r = face.r
@@ -1711,27 +1565,24 @@ var O3o=(function(){
 			}else if(mod.type=="ARMATURE"){
 				calcChainMatrix(defMatrix,obj);
 
-				var retio,pos,vertex;
+				var ratio,pos,vertex;
 
 				calcChainMatrix(bM,obj);
 				calcChainMatrix(bM2,mod.object);
 				Mat43.getInv(bM2,bM2);
 				Mat43.dot(bM,bM2,bM);
 				Mat43.getInv(bM2,bM);
-				for(j=obj.groups.length;j--;){
-					groupMatrix = groupMatricies[j]
+				for(var j=obj.groups.length;j--;){
 					groupMatFlg[j] = false;
-					//Mat43.setInit(groupMatrix)
-					Mat43.copy(groupMatrix,bM);
+					Mat43.copy(groupMatricies[j],bM);
 				}
 				var posebones=mod.object.posebones;
-				for(j=obj.groups.length;j--;){
-					groupName=obj.groups[j].name
-					groupMatrix = groupMatricies[j]
+				for(var j=obj.groups.length;j--;){
+					groupName=obj.groups[j].name;
+					groupMatrix = groupMatricies[j];
 					for(k=0,kmax=posebones.length;k<kmax;k++){
 						if(posebones[k].name!=groupName)continue
 						groupMatFlg[j] = true;
-						//Mat43.dot(groupMatrix,bM,groupMatrix);
 						calcChainBoneMatrix(groupMatrix,posebones[k]);
 						Mat43.dot(groupMatrix,bM2,groupMatrix);
 						break
@@ -1746,7 +1597,6 @@ var O3o=(function(){
 
 						for(j=obj.groups.length;j--;){
 							groupName=obj.groups[j].name
-							groupMatrix = groupMatricies[j]
 							if(groupName.match(/L$/)){
 								groupName=groupName.replace(/L$/,"R");
 							}else if(groupName.match(/R$/)){
@@ -1754,8 +1604,9 @@ var O3o=(function(){
 							}else{
 								continue;
 							}
+							groupMatrix = groupMatricies[j]
 							for(var l=posebones.length;l--;){
-								if(posebones[l].name!=groupName)continue
+								if(posebones[l].name!=groupName)continue;
 								groupMatFlg[j] = true;
 								Mat43.copy(groupMatrix,bM);
 								calcChainBoneMatrix(groupMatrix,posebones[l]);
@@ -1764,28 +1615,28 @@ var O3o=(function(){
 							}
 						}
 					}
-					bV1[0]=0
-					bV1[1]=0
-					bV1[2]=0
-					var retiosum=0;
+					x=0;
+					y=0;
+					z=0;
+					var ratiosum=0;
 					for(j = vertex.groups.length;j--;){
 
-						retio=vertex.groupretios[j]
+						ratio=vertex.groupratios[j]
 						if(!groupMatFlg[vertex.groups[j]]){
 							continue;
 						}
 						Mat43.dotMat43Vec3(bV0,groupMatricies[vertex.groups[j]],pos)
 						
-						bV1[0] +=  bV0[0] * retio
-						bV1[1] +=  bV0[1] * retio
-						bV1[2] +=  bV0[2] * retio
-						retiosum+=retio;
+						x +=  bV0[0] * ratio
+						y +=  bV0[1] * ratio
+						z +=  bV0[2] * ratio
+						ratiosum+=ratio;
 					}
-					if(retiosum>0){
-						retiosum=1.0/retiosum;
-						pos[0] =  bV1[0] * retiosum
-						pos[1] =  bV1[1] * retiosum
-						pos[2] =  bV1[2] * retiosum
+					if(ratiosum>0){
+						ratiosum=1.0/ratiosum;
+						pos[0] =  x * ratiosum;
+						pos[1] =  y * ratiosum;
+						pos[2] =  z * ratiosum;
 					}else{
 						if(mod.vertex_group >=0){
 							Mat43.dotMat43Vec3(pos,groupMatricies[mod.vertex_group],pos)
@@ -1798,14 +1649,12 @@ var O3o=(function(){
 	}
 	var drawObject = O3o.drawObject = function(obj,physics){
 		var mesh = obj.data
-		var group,groupMatrix
 		var armature
 		var i,j,k
 		var o
 		var renderVertices =ono3d.renderVertices;
 		var renderFaces=ono3d.renderFaces;
 		var renderVertex;
-
 
 		var matrix=obj.actmatrix;
 		calcVertex(obj,physics)

@@ -55,10 +55,11 @@ var uniSpca;
 
 var vertexshader=" \
 attribute vec3 aPos; \
-attribute vec4 aColor; \
-attribute vec2 aUv; \
 attribute vec3 aNormal; \
+attribute vec4 aColor; \
+attribute int aTexture; \
 varying lowp vec4 vColor; \
+varying int vTexture; \
 varying highp vec2 vUv; \
 varying lowp vec3 vNormal; \
 varying lowp vec3 vEye; \
@@ -67,11 +68,78 @@ uniform lowp float uPersH; \
 void main(void){ \
 	gl_Position = vec4(-aPos.x*uPersW,aPos.y*uPersH,-1.0, aPos.z); \
 	vColor = aColor; \
-	vUv = aUv; \
-	vNormal = aNormal; \
-	vEye = aPos; \
+	vNormal= aNormal; \
+	vTexture = aTexture; \
 } \
 ";
+//var fragmentshader=" \
+//varying lowp vec4 vColor; \
+//varying highp vec2 vUv; \
+//varying lowp vec3 vNormal; \
+//varying lowp vec3 vEye; \
+//uniform sampler2D uSampler; \
+//uniform int iFlg; \
+//uniform lowp vec3 uLight; \
+//uniform lowp float uAmb; \
+//uniform sampler2D uEnvSampler; \
+//uniform lowp float uEnv; \
+//uniform sampler2D uNrmSampler; \
+//uniform int  uNrmMap; \
+//uniform lowp mat4 uMatT; \
+//uniform lowp float uSpc; \
+//uniform lowp float uSpca; \
+//void main(void){ \
+//	lowp vec3 nrm = vNormal; \
+//	if(uNrmMap == 1){ \
+//		lowp vec3 nrmcol = (texture2D(uNrmSampler,vec2(vUv.s,vUv.t))*2.0 -1.0).rgb; \
+//		nrmcol.x=-nrmcol.x; \
+//		lowp vec3 nn= -cross(nrm,uMatT[2].xyz); \
+//		nrm = (uMatT * vec4(nrmcol,0)).xyz; \
+//		lowp float SIN=nn.x*nn.x+nn.y*nn.y+nn.z*nn.z; \
+//		if(SIN != 0.0){ \
+//			lowp float COS=sqrt(1.0-SIN); \
+//			lowp float COS1=1.0-COS; \
+//			SIN=sqrt(SIN); \
+//			nn=normalize(nn); \
+//			lowp mat3 m = mat3(1.0); \
+//			m[0][0] =nn.x*nn.x*COS1+COS;m[1][0]=nn.x*nn.y*COS1-nn.z*SIN;m[2][0]=nn.z*nn.x*COS1+nn.y*SIN; \
+//			m[0][1]=nn.x*nn.y*COS1+nn.z*SIN;m[1][1]=nn.y*nn.y*COS1+COS;m[2][1]=nn.y*nn.z*COS1-nn.x*SIN; \
+//			m[0][2]=nn.z*nn.x*COS1-nn.y*SIN;m[1][2]=nn.y*nn.z*COS1+nn.x*SIN;m[2][2]=nn.z*nn.z*COS1+COS; \
+//			nrm = m *nrm; \
+//		}  \
+//		nrm = normalize(nrm); \
+//	} \
+//	lowp float diffuse = clamp((1.-dot(nrm,uLight))*0.5,0.0,1.0); \
+//	diffuse = clamp(diffuse + uAmb,0.0,1.0); \
+//	if(iFlg == 2 ){ \
+//		diffuse=1.0; \
+//	} \
+//	lowp vec4 vColor2 = vec4(vColor.xyz * diffuse,vColor.w); \
+//	if(iFlg==1){ \
+//		gl_FragColor = vColor2 * texture2D(uSampler,vec2(vUv.s,vUv.t)); \
+//	}else{ \
+//		gl_FragColor = vColor2; \
+//	} \
+//	lowp vec3 vE  = normalize(vEye); \
+//	if(uSpc >0.0){ \
+//		lowp float d1=-dot(uLight,nrm); \
+//		if(d1>0.0){ \
+//			lowp vec3 bv =nrm * (2.0 * d1); \
+//			bv = uLight + bv; \
+//			lowp float d =-dot(vE,bv); \
+//			if(d>0.0){ \
+//				d = pow(d,uSpca)*uSpc*d1; \
+//				gl_FragColor = gl_FragColor +vec4(d,d,d,0.0); \
+//			} \
+//		} \
+//	} \
+//	if(uEnv > 0.0){ \
+//		lowp vec3 ref = normalize(nrm) - vE * dot(vE,normalize(nrm)) ; \
+//		lowp vec2 uv = ref.xy * 0.5 + vec2(0.5,0.5); \
+//		gl_FragColor = gl_FragColor + uEnv * vec4(texture2D(uEnvSampler,uv).xyz,0); \
+//	} \
+//} \
+//";
 var fragmentshader=" \
 varying lowp vec4 vColor; \
 varying highp vec2 vUv; \
@@ -90,54 +158,10 @@ uniform lowp float uSpc; \
 uniform lowp float uSpca; \
 void main(void){ \
 	lowp vec3 nrm = vNormal; \
-	if(uNrmMap == 1){ \
-		lowp vec3 nrmcol = (texture2D(uNrmSampler,vec2(vUv.s,vUv.t))*2.0 -1.0).rgb; \
-		nrmcol.x=-nrmcol.x; \
-		lowp vec3 nn= -cross(nrm,uMatT[2].xyz); \
-		nrm = (uMatT * vec4(nrmcol,0)).xyz; \
-		lowp float SIN=nn.x*nn.x+nn.y*nn.y+nn.z*nn.z; \
-		if(SIN != 0.0){ \
-			lowp float COS=sqrt(1.0-SIN); \
-			lowp float COS1=1.0-COS; \
-			SIN=sqrt(SIN); \
-			nn=normalize(nn); \
-			lowp mat3 m = mat3(1.0); \
-			m[0][0] =nn.x*nn.x*COS1+COS;m[1][0]=nn.x*nn.y*COS1-nn.z*SIN;m[2][0]=nn.z*nn.x*COS1+nn.y*SIN; \
-			m[0][1]=nn.x*nn.y*COS1+nn.z*SIN;m[1][1]=nn.y*nn.y*COS1+COS;m[2][1]=nn.y*nn.z*COS1-nn.x*SIN; \
-			m[0][2]=nn.z*nn.x*COS1-nn.y*SIN;m[1][2]=nn.y*nn.z*COS1+nn.x*SIN;m[2][2]=nn.z*nn.z*COS1+COS; \
-			nrm = m *nrm; \
-		}  \
-		nrm = normalize(nrm); \
-	} \
-	lowp float diffuse = clamp((1.-dot(nrm,uLight))*0.5,0.0,1.0); \
+	lowp float diffuse = clamp(-dot(normalize(nrm),uLight)*0.5+0.5,0.,1.); \
 	diffuse = clamp(diffuse + uAmb,0.0,1.0); \
-	if(iFlg == 2 ){ \
-		diffuse=1.0; \
-	} \
 	lowp vec4 vColor2 = vec4(vColor.xyz * diffuse,vColor.w); \
-	if(iFlg==1){ \
-		gl_FragColor = vColor2 * texture2D(uSampler,vec2(vUv.s,vUv.t)); \
-	}else{ \
-		gl_FragColor = vColor2; \
-	} \
-	lowp vec3 vE  = normalize(vEye); \
-	if(uSpc >0.0){ \
-		lowp float d1=-dot(uLight,nrm); \
-		if(d1>0.0){ \
-			lowp vec3 bv =nrm * (2.0 * d1); \
-			bv = uLight + bv; \
-			lowp float d =-dot(vE,bv); \
-			if(d>0.0){ \
-				d = pow(d,uSpca)*uSpc*d1; \
-				gl_FragColor = gl_FragColor +vec4(d,d,d,0.0); \
-			} \
-		} \
-	} \
-	if(uEnv > 0.0){ \
-		lowp vec3 ref = normalize(nrm) - vE * dot(vE,normalize(nrm)) ; \
-		lowp vec2 uv = ref.xy * 0.5 + vec2(0.5,0.5); \
-		gl_FragColor = gl_FragColor + uEnv * vec4(texture2D(uEnvSampler,uv).xyz,0); \
-	} \
+	gl_FragColor = vColor2; \
 } \
 ";
 var createShader = function(){
@@ -145,7 +169,11 @@ var createShader = function(){
 	gl.useProgram(program);
 
 	posBuffer = createBuffer(program,"aPos",3,gl.FLOAT);
+	normalBuffer = createBuffer(program,"aNormal",3,gl.FLOAT);
+	idxBuffer = createElementBuffer();
 	colorBuffer = createBuffer(program,"aColor",4,gl.FLOAT);
+	normalBuffer = createBuffer(program,"aNormal",3,gl.FLOAT);
+	textureBuffer = createBuffer2(program,"aTexture",1,gl.FLOAT);
 	uvBuffer  = createBuffer(program,"aUv",2,gl.FLOAT);
 	uvBuffer.itemSize=2;
 	uvBuffer.numltems=3;
@@ -168,6 +196,7 @@ var createShader = function(){
 
 var colorBuffer =null; 
 var posBuffer =null; 
+var idxBuffer =null; 
 var uvBuffer=null; 
 var normal= new Float32Array(3*3);
 var normalBuffer=null; 
@@ -461,6 +490,18 @@ var createBuffer=function(program,attName,size,type){
   gl.vertexAttribPointer(att , size, type, false, 0, 0);
   return buffer;
 }
+var createBuffer2=function(program,attName,size,type){
+  var att = gl.getAttribLocation(program,attName); 
+  var buffer = gl.createBuffer();
+  gl.enableVertexAttribArray(att);
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  return buffer;
+}
+var createElementBuffer=function(){
+  var buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
+  return buffer;
+}
 
 ret.set=function(ono3d){
 	gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER);
@@ -481,8 +522,103 @@ ret.set=function(ono3d){
 	gl.bindTexture(gl.TEXTURE_2D,ono3d.envTexture.gltexture);
 	gl.uniform1i(uniEnvSampler,1);
 }
-var pixels = new Uint8Array(4);
-ret.flush=function(){
+//var idxbuffer=new Int16Array(1024*3);
+var posbuffer=new Float32Array(4096*3);
+var colorbuffer=new Float32Array(4096*4);
+var normalbuffer=new Float32Array(4096*3);
+
+ret.flush=function(faces,facesize,vertices,vertexsize){
+	var faceindex=0;
+	var renderface;
+	var vertexindex=0;
+	var posindex=0;
+	var colorindex=0;
+
+//	for(var i=0;i<facesize;i++){
+//		renderface=faces[i];
+//		if(renderface.operator == Ono3d.OP_TRIANGLES){
+//			idxbuffer[faceindex]=renderface.vertices[0].idx;
+//			idxbuffer[faceindex+1]=renderface.vertices[1].idx;
+//			idxbuffer[faceindex+2]=renderface.vertices[2].idx;
+//			faceindex+=3;
+//		}
+//	}
+//	for(var i=0;i<vertexsize;i++){
+//		posbuffer[i*3]=vertices[i].pos[0]
+//		posbuffer[i*3+1]=vertices[i].pos[1]
+//		posbuffer[i*3+2]=vertices[i].pos[2]
+//		colorbuffer[i*4]=1;
+//		colorbuffer[i*4+1]=1;
+//		colorbuffer[i*4+2]=1;
+//		colorbuffer[i*4+3]=1;
+//	}
+	for(var i=0;i<facesize;i++){
+		renderface=faces[i];
+		if(renderface.operator == Ono3d.OP_TRIANGLES){
+			var smoothing=renderface.smoothing
+			var vertices = renderface.vertices;
+			var nx = renderface.normal[0] * (1-smoothing);
+			var ny = renderface.normal[1] * (1-smoothing);
+			var nz = renderface.normal[2] * (1-smoothing);
+			var r=renderface.r;
+			var g=renderface.g;
+			var b=renderface.b;
+			var a=renderface.a;
+			var vertex=vertices[0];
+			posbuffer[posindex]=vertex.pos[0]
+			posbuffer[posindex+1]=vertex.pos[1]
+			posbuffer[posindex+2]=vertex.pos[2]
+			normalbuffer[posindex]=vertex.normal[0] * smoothing + nx
+			normalbuffer[posindex+1]=vertex.normal[1] * smoothing + ny
+			normalbuffer[posindex+2]=vertex.normal[2] * smoothing + nz
+			colorbuffer[colorindex]=r;
+			colorbuffer[colorindex+1]=g;
+			colorbuffer[colorindex+2]=b;
+			colorbuffer[colorindex+3]=a;;
+			posindex+=3;
+			colorindex+=4;
+
+			vertex=vertices[1]
+			posbuffer[posindex]=vertex.pos[0]
+			posbuffer[posindex+1]=vertex.pos[1]
+			posbuffer[posindex+2]=vertex.pos[2]
+			normalbuffer[posindex]=vertex.normal[0] * smoothing + nx
+			normalbuffer[posindex+1]=vertex.normal[1] * smoothing + ny
+			normalbuffer[posindex+2]=vertex.normal[2] * smoothing + nz
+			colorbuffer[colorindex]=r;
+			colorbuffer[colorindex+1]=g;
+			colorbuffer[colorindex+2]=b;
+			colorbuffer[colorindex+3]=a;;
+			posindex+=3;
+			colorindex+=4;
+
+			vertex=vertices[2]
+			posbuffer[posindex]=vertex.pos[0]
+			posbuffer[posindex+1]=vertex.pos[1]
+			posbuffer[posindex+2]=vertex.pos[2]
+			normalbuffer[posindex]=vertex.normal[0] * smoothing + nx
+			normalbuffer[posindex+1]=vertex.normal[1] * smoothing + ny
+			normalbuffer[posindex+2]=vertex.normal[2] * smoothing + nz
+			colorbuffer[colorindex]=r;
+			colorbuffer[colorindex+1]=g;
+			colorbuffer[colorindex+2]=b;
+			colorbuffer[colorindex+3]=a;;
+			posindex+=3;
+			colorindex+=4;
+		}
+	}
+	gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, posbuffer, gl.STATIC_DRAW);
+	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, colorbuffer, gl.STATIC_DRAW);
+	gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, normalbuffer, gl.STATIC_DRAW);
+
+//	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, idxBuffer);
+//	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, idxbuffer, gl.STATIC_DRAW);
+
+//    gl.drawElements(gl.TRIANGLES, faceindex, gl.UNSIGNED_SHORT, 0);
+	gl.drawArrays(gl.TRIANGLES, 0, colorindex>>2);
 	gl.flush();
 }
 ret.setPers=function(w,h){

@@ -38,11 +38,11 @@ var objControl = (function(){
 		light.angle[2] = -0.4
 		light.power=1
 		Vec3.norm(light.angle)
-	//	ono3d.lightSources.push(light)
+		ono3d.lightSources.push(light)
 		light1=light;
 		light = new ono3d.LightSource()
 		light.type =Ono3d.LT_AMBIENT
-		light.power =1
+		light.power =0.;
 		ono3d.lightSources.push(light)
 	}
 	ret.f_move=function(obj,param){
@@ -321,15 +321,12 @@ var mainfunc=(function(){
 		O3o.setOno3d(ono3d)
 		ono3d.init(Util.canvas,Util.ctx)
 
-		
-
 		Ono3d.setDrawMethod(global_param.drawmethod)
 
-		if(Util.ctx.createImageData)
-		imagedata = Util.ctx.createImageData(Util.canvas.width,Util.canvas.height)
+		if(Util.ctx.createImageData){
+			imagedata = Util.ctx.createImageData(Util.canvas.width,Util.canvas.height)
+		}
 
-		//ono3d.backTexture=back
-	
 		if(global_param.enableGL){
 			envtex = Util.loadImage("lib/envtex.png",1);
 		}else{
