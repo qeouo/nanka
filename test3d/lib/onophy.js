@@ -104,7 +104,7 @@ var OnoPhy = (function(){
 			,GRAVITY = 9.8*dt
 			
 			,obj,obj2
-			,len
+			,len,dlen
 			,x,y,z,nx,ny,nz
 			,p0,p1,p2
 			,matrix
@@ -328,18 +328,17 @@ var OnoPhy = (function(){
 									x=Geono.sPoint[0]-Geono.sPoint2[0]
 									y=Geono.sPoint[1]-Geono.sPoint2[1]
 									z=Geono.sPoint[2]-Geono.sPoint2[2]
-									len = x*x+y*y+z*z
-									len = Math.sqrt(len)
-									nx=x/len
-									ny=y/len
-									nz=z/len
+									len = Math.sqrt(x*x+y*y+z*z)
+									dlen=1/len;
+									nx=x*dlen;
+									ny=y*dlen;
+									nz=z*dlen;
 									len= (retio + len) * PENALTY
-									x=nx*len
-									y=ny*len
-									z=nz*len
+									x=nx*len;
+									y=ny*len;
+									z=nz*len;
 									
 								}else{
-
 									x=Geono.sPoint2[0]-Geono.sPoint[0]
 									y=Geono.sPoint2[1]-Geono.sPoint[1]
 									z=Geono.sPoint2[2]-Geono.sPoint[2]
@@ -347,18 +346,16 @@ var OnoPhy = (function(){
 									len = x*x+y*y+z*z
 									if(len>retio2)continue
 									len = Math.sqrt(len)
-									nx=x/len
-									ny=y/len
-									nz=z/len
+									dlen=1/len;
+									nx=x*dlen;
+									ny=y*dlen;
+									nz=z*dlen;
 									
 									len= (retio - len) * PENALTY
 									x=nx*len
 									y=ny*len
 									z=nz*len
 								}
-								
-
-								
 								velocity = velocities[p0]
 								len= -(velocity[0]*nx+velocity[1]*ny + velocity[2]*nz)*REFLECT_DAMPER
 								velocity[0]+=x + nx*len
@@ -377,7 +374,7 @@ var OnoPhy = (function(){
 								velocity[1]+=y + ny*len
 								velocity[2]+=z + nz*len
 							}
-							break
+							break;
 						case ELLIPSOLID_CAPSULE:
 
 							matrix=obj2.matrix

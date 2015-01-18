@@ -31,13 +31,6 @@ var Rastgl= (function(){
 var gl;
 var calcLighting;
 var calcSpc;
-var posArray = new Float32Array(3*3);
-var colorArray = new Float32Array(4*3);
-var uvArray = new Float32Array(2*3);
-var normalArray = new Float32Array(3*3);
-var matT= new Float32Array(4*4);
-var nowTexture=null;
-var flg;
 
 var uniSampler;
 var uniEnvSampler;
@@ -57,9 +50,8 @@ var vertexshader=" \
 attribute vec3 aPos; \
 attribute vec3 aNormal; \
 attribute vec4 aColor; \
-attribute int aTexture; \
+attribute vec2 aUv; \
 varying lowp vec4 vColor; \
-varying int vTexture; \
 varying highp vec2 vUv; \
 varying lowp vec3 vNormal; \
 varying lowp vec3 vEye; \
@@ -69,77 +61,9 @@ void main(void){ \
 	gl_Position = vec4(-aPos.x*uPersW,aPos.y*uPersH,-1.0, aPos.z); \
 	vColor = aColor; \
 	vNormal= aNormal; \
-	vTexture = aTexture; \
+	vUv = aUv; \
 } \
 ";
-//var fragmentshader=" \
-//varying lowp vec4 vColor; \
-//varying highp vec2 vUv; \
-//varying lowp vec3 vNormal; \
-//varying lowp vec3 vEye; \
-//uniform sampler2D uSampler; \
-//uniform int iFlg; \
-//uniform lowp vec3 uLight; \
-//uniform lowp float uAmb; \
-//uniform sampler2D uEnvSampler; \
-//uniform lowp float uEnv; \
-//uniform sampler2D uNrmSampler; \
-//uniform int  uNrmMap; \
-//uniform lowp mat4 uMatT; \
-//uniform lowp float uSpc; \
-//uniform lowp float uSpca; \
-//void main(void){ \
-//	lowp vec3 nrm = vNormal; \
-//	if(uNrmMap == 1){ \
-//		lowp vec3 nrmcol = (texture2D(uNrmSampler,vec2(vUv.s,vUv.t))*2.0 -1.0).rgb; \
-//		nrmcol.x=-nrmcol.x; \
-//		lowp vec3 nn= -cross(nrm,uMatT[2].xyz); \
-//		nrm = (uMatT * vec4(nrmcol,0)).xyz; \
-//		lowp float SIN=nn.x*nn.x+nn.y*nn.y+nn.z*nn.z; \
-//		if(SIN != 0.0){ \
-//			lowp float COS=sqrt(1.0-SIN); \
-//			lowp float COS1=1.0-COS; \
-//			SIN=sqrt(SIN); \
-//			nn=normalize(nn); \
-//			lowp mat3 m = mat3(1.0); \
-//			m[0][0] =nn.x*nn.x*COS1+COS;m[1][0]=nn.x*nn.y*COS1-nn.z*SIN;m[2][0]=nn.z*nn.x*COS1+nn.y*SIN; \
-//			m[0][1]=nn.x*nn.y*COS1+nn.z*SIN;m[1][1]=nn.y*nn.y*COS1+COS;m[2][1]=nn.y*nn.z*COS1-nn.x*SIN; \
-//			m[0][2]=nn.z*nn.x*COS1-nn.y*SIN;m[1][2]=nn.y*nn.z*COS1+nn.x*SIN;m[2][2]=nn.z*nn.z*COS1+COS; \
-//			nrm = m *nrm; \
-//		}  \
-//		nrm = normalize(nrm); \
-//	} \
-//	lowp float diffuse = clamp((1.-dot(nrm,uLight))*0.5,0.0,1.0); \
-//	diffuse = clamp(diffuse + uAmb,0.0,1.0); \
-//	if(iFlg == 2 ){ \
-//		diffuse=1.0; \
-//	} \
-//	lowp vec4 vColor2 = vec4(vColor.xyz * diffuse,vColor.w); \
-//	if(iFlg==1){ \
-//		gl_FragColor = vColor2 * texture2D(uSampler,vec2(vUv.s,vUv.t)); \
-//	}else{ \
-//		gl_FragColor = vColor2; \
-//	} \
-//	lowp vec3 vE  = normalize(vEye); \
-//	if(uSpc >0.0){ \
-//		lowp float d1=-dot(uLight,nrm); \
-//		if(d1>0.0){ \
-//			lowp vec3 bv =nrm * (2.0 * d1); \
-//			bv = uLight + bv; \
-//			lowp float d =-dot(vE,bv); \
-//			if(d>0.0){ \
-//				d = pow(d,uSpca)*uSpc*d1; \
-//				gl_FragColor = gl_FragColor +vec4(d,d,d,0.0); \
-//			} \
-//		} \
-//	} \
-//	if(uEnv > 0.0){ \
-//		lowp vec3 ref = normalize(nrm) - vE * dot(vE,normalize(nrm)) ; \
-//		lowp vec2 uv = ref.xy * 0.5 + vec2(0.5,0.5); \
-//		gl_FragColor = gl_FragColor + uEnv * vec4(texture2D(uEnvSampler,uv).xyz,0); \
-//	} \
-//} \
-//";
 var fragmentshader=" \
 varying lowp vec4 vColor; \
 varying highp vec2 vUv; \
@@ -158,9 +82,16 @@ uniform lowp float uSpc; \
 uniform lowp float uSpca; \
 void main(void){ \
 	lowp vec3 nrm = vNormal; \
-	lowp float diffuse = clamp(-dot(normalize(nrm),uLight)*0.5+0.5,0.,1.); \
+	lowp float diffuse = -dot(normalize(nrm),uLight)*0.5+0.5; \
+	diffuse = clamp(diffuse + uAmb,0.0,1.0); \
+	if(diffuse<0.5){ \
+		diffuse=0.7; \
+	}else{ \
+		diffuse=1.; \
+	} \
 	diffuse = clamp(diffuse + uAmb,0.0,1.0); \
 	lowp vec4 vColor2 = vec4(vColor.xyz * diffuse,vColor.w); \
+	vColor2 = vColor2 * texture2D(uSampler,vec2(vUv.s,vUv.t)); \
 	gl_FragColor = vColor2; \
 } \
 ";
@@ -170,10 +101,11 @@ var createShader = function(){
 
 	posBuffer = createBuffer(program,"aPos",3,gl.FLOAT);
 	normalBuffer = createBuffer(program,"aNormal",3,gl.FLOAT);
+	uvBuffer = createBuffer(program,"aUv",2,gl.FLOAT);
 	idxBuffer = createElementBuffer();
 	colorBuffer = createBuffer(program,"aColor",4,gl.FLOAT);
 	normalBuffer = createBuffer(program,"aNormal",3,gl.FLOAT);
-	textureBuffer = createBuffer2(program,"aTexture",1,gl.FLOAT);
+	//textureBuffer = createBuffer2(program,"aTexture",1,gl.FLOAT);
 	uvBuffer  = createBuffer(program,"aUv",2,gl.FLOAT);
 	uvBuffer.itemSize=2;
 	uvBuffer.numltems=3;
@@ -200,195 +132,6 @@ var idxBuffer =null;
 var uvBuffer=null; 
 var normal= new Float32Array(3*3);
 var normalBuffer=null; 
-
-ret.drawMethod =  function(ono3d,renderFace,drawMethod){
-	var vertices=renderFace.vertices
-	,lightSources
-	,uv
-	,u0,v0,u1,v1,u2,v2
-	,normal=renderFace.normal
-	,pos=renderFace.pos
-	,nx,ny,nz
-	,smoothing=renderFace.smoothing
-	,shading=renderFace.rf & RF_SHADE
-	,light=renderFace.light
-	,r=renderFace.r
-	,g=renderFace.g
-	,b=renderFace.b
-	,a=renderFace.a
-	,vnormal0,vnormal1,vnormal2
-	,ior
-	,rf = renderFace.rf
-	,spc=renderFace.spc
-	,spchard=renderFace.spchard
-	
-	,vtx0=vertices[0]
-	,vtx1=vertices[1]
-	,vtx2=vertices[2]
-	if(renderFace.operator != OP_TRIANGLES){
-		vtx2=vertices[1];
-	}
-	var 
-	p0=vtx0.pos
-	,p1=vtx1.pos
-	,p2=vtx2.pos
-	,texture=renderFace.texture
-	,uv=renderFace.uv
-	,lightSources=ono3d.lightSources
-	,normalmap=renderFace.normalmap
-
-
-	posArray[0]=p0[0];
-	posArray[1]=p0[1];
-	posArray[2]=p0[2];
-	posArray[3]=p1[0];
-	posArray[4]=p1[1];
-	posArray[5]=p1[2];
-	posArray[6]=p2[0];
-	posArray[7]=p2[1];
-	posArray[8]=p2[2];
-	flg=0;
-	
-	Vec3.copy(bV0,vtx0.normal)
-	Vec3.copy(bV1,vtx1.normal)
-	Vec3.copy(bV2,vtx2.normal)
-
-	vnormal0=bV0
-	vnormal1=bV1
-	vnormal2=bV2
-	if(smoothing==0){
-		vnormal0= normal
-		vnormal1= vnormal0
-		vnormal2= vnormal0
-	}else{
-		nx=normal[0]*(1-smoothing)
-		ny=normal[1]*(1-smoothing)
-		nz=normal[2]*(1-smoothing)
-		vnormal0[0]= nx+vnormal0[0]* smoothing
-		vnormal0[1]= ny+vnormal0[1]* smoothing
-		vnormal0[2]= nz+vnormal0[2]* smoothing
-		vnormal1[0]= nx+vnormal1[0]* smoothing
-		vnormal1[1]= ny+vnormal1[1]* smoothing
-		vnormal1[2]= nz+vnormal1[2]* smoothing
-		vnormal2[0]= nx+vnormal2[0]* smoothing
-		vnormal2[1]= ny+vnormal2[1]* smoothing
-		vnormal2[2]= nz+vnormal2[2]* smoothing
-		Vec3.norm(vnormal0)
-		Vec3.norm(vnormal1)
-		Vec3.norm(vnormal2)
-	}
-	if(texture){
-		r=1,g=1,b=1;
-		texture=texture.gltexture;
-	}
-	normalArray[0]=vnormal0[0];
-	normalArray[1]=vnormal0[1];
-	normalArray[2]=vnormal0[2];
-	normalArray[3]=vnormal1[0];
-	normalArray[4]=vnormal1[1];
-	normalArray[5]=vnormal1[2];
-	normalArray[6]=vnormal2[0];
-	normalArray[7]=vnormal2[1];
-	normalArray[8]=vnormal2[2];
-	colorArray[0]=r;
-	colorArray[1]=g;
-	colorArray[2]=b;
-	colorArray[3]=a;
-	colorArray[4]=r;
-	colorArray[5]=g;
-	colorArray[6]=b;
-	colorArray[7]=a;
-	colorArray[8]=r;
-	colorArray[9]=g;
-	colorArray[10]=b;
-	colorArray[11]=a;
-	if(shading){
-	}else{
-		flg |=2;
-	}
-	if(texture){
-			uvArray[0]=uv[0][0];
-			uvArray[1]=uv[0][1];
-			uvArray[2]=uv[1][0];
-			uvArray[3]=uv[1][1];
-			uvArray[4]=uv[2][0];
-			uvArray[5]=uv[2][1];
-
-			gl.uniform1i(uniFlg,1);
-			if(nowTexture != texture){
-				gl.activeTexture(gl.TEXTURE0);
-				gl.bindTexture(gl.TEXTURE_2D,texture);
-				gl.uniform1i(uniSampler,0);
-				nowTexture = texture;
-			}
-		flg=1;
-	}else{
-	}
-
-	if(normalmap){
-		uv=renderFace.uv
-		uvArray[0]=uv[0][0];
-		uvArray[1]=uv[0][1];
-		uvArray[2]=uv[1][0];
-		uvArray[3]=uv[1][1];
-		uvArray[4]=uv[2][0];
-		uvArray[5]=uv[2][1];
-
-		setNormalMap(p0,p1,p2,uv[0][0],uv[0][1],uv[1][0],uv[1][1],uv[2][0],uv[2][1]);
-		gl.activeTexture(gl.TEXTURE2);
-		gl.bindTexture(gl.TEXTURE_2D,normalmap.gltexture);
-
-		gl.uniform1i(uniNrmSampler,2);
-		gl.uniform1i(uniNrmMap,1);
-	}else{
-		gl.uniform1i(uniNrmMap,0);
-	}
-	gl.uniform1f(uniSpc,renderFace.spc);
-	gl.uniform1f(uniSpca,renderFace.spchard);
-	gl.uniform1f(uniEnv,renderFace.mrr);
-	gl.enable(gl.BLEND);
-	gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-	gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
-	gl.bufferData(gl.ARRAY_BUFFER, posArray, gl.STATIC_DRAW);
-	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-	gl.bufferData(gl.ARRAY_BUFFER, colorArray, gl.STATIC_DRAW);
-	gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
-	gl.bufferData(gl.ARRAY_BUFFER, uvArray, gl.STATIC_DRAW);
-	gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-	gl.bufferData(gl.ARRAY_BUFFER, normalArray, gl.STATIC_DRAW);
-  	gl.uniform1i(uniFlg,flg);
-	if(renderFace.operator == OP_TRIANGLES){
-		gl.drawArrays(gl.TRIANGLES, 0, 3);
-	}else{
-		gl.drawArrays(gl.LINES, 0, 2);
-	}
-//	while(shading && spc){
-//		smoothing=renderFace.smoothing
-//
-//		if(smoothing){
-//			setColor(1,1,1,calcSpc(vnormal0,vtx0.angle,spchard,lightSources)*spc
-//					,1,1,1,calcSpc(vnormal1,vtx1.angle,spchard,lightSources)*spc
-//					,1,1,1,calcSpc(vnormal2,vtx2.angle,spchard,lightSources)*spc);
-//		}
-//		if(!smoothing){
-//			light = calcSpc(normal,renderFace.angle,spchard,lightSources)*spc;
-//			setColor(1,1,1,light
-//					,1,1,1,light
-//					,1,1,1,light);
-//			
-//		}
-//		gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-//		gl.bufferData(gl.ARRAY_BUFFER, colorArray, gl.STATIC_DRAW);
-// 		gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
-//  		gl.uniform1i(uniFlg,2);
-//		if(renderFace.operator == OP_TRIANGLES){
-//			gl.drawArrays(gl.TRIANGLES, 0, 3);
-//		}else{
-//			gl.drawArrays(gl.LINES, 0, 2);
-//		}
-//		break
-//	}
-}
 
 var ttt=false;
 var NUVec=new Vec3()
@@ -526,6 +269,7 @@ ret.set=function(ono3d){
 var posbuffer=new Float32Array(4096*3);
 var colorbuffer=new Float32Array(4096*4);
 var normalbuffer=new Float32Array(4096*3);
+var uvbuffer=new Float32Array(4096*2);
 
 ret.flush=function(faces,facesize,vertices,vertexsize){
 	var faceindex=0;
@@ -533,6 +277,7 @@ ret.flush=function(faces,facesize,vertices,vertexsize){
 	var vertexindex=0;
 	var posindex=0;
 	var colorindex=0;
+	var uvindex=0;
 
 //	for(var i=0;i<facesize;i++){
 //		renderface=faces[i];
@@ -552,6 +297,7 @@ ret.flush=function(faces,facesize,vertices,vertexsize){
 //		colorbuffer[i*4+2]=1;
 //		colorbuffer[i*4+3]=1;
 //	}
+	var texture=null;
 	for(var i=0;i<facesize;i++){
 		renderface=faces[i];
 		if(renderface.operator == Ono3d.OP_TRIANGLES){
@@ -603,16 +349,36 @@ ret.flush=function(faces,facesize,vertices,vertexsize){
 			colorbuffer[colorindex+1]=g;
 			colorbuffer[colorindex+2]=b;
 			colorbuffer[colorindex+3]=a;;
+
+			if(renderface.texture){
+				uvbuffer[uvindex]=renderface.uv[0][0]
+				uvbuffer[uvindex+1]=renderface.uv[0][1]
+				uvbuffer[uvindex+2]=renderface.uv[1][0]
+				uvbuffer[uvindex+3]=renderface.uv[1][1]
+				uvbuffer[uvindex+4]=renderface.uv[2][0]
+				uvbuffer[uvindex+5]=renderface.uv[2][1]
+				texture=renderface.texture.gltexture;
+			}
+
 			posindex+=3;
 			colorindex+=4;
+				uvindex+=6;
 		}
 	}
+	if(texture){
+		gl.activeTexture(gl.TEXTURE0);
+		gl.bindTexture(gl.TEXTURE_2D,texture);
+		gl.uniform1i(uniSampler,0);
+	}
+		
 	gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
 	gl.bufferData(gl.ARRAY_BUFFER, posbuffer, gl.STATIC_DRAW);
 	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
 	gl.bufferData(gl.ARRAY_BUFFER, colorbuffer, gl.STATIC_DRAW);
 	gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
 	gl.bufferData(gl.ARRAY_BUFFER, normalbuffer, gl.STATIC_DRAW);
+	gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, uvbuffer, gl.STATIC_DRAW);
 
 //	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, idxBuffer);
 //	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, idxbuffer, gl.STATIC_DRAW);
