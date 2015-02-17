@@ -1,6 +1,6 @@
 Ono3dObject Version 0.1
 Textures 1[
-   name:"Texture.003"; type:"IMAGE"; path:"//raara.png";
+   name:"Texture.003"; type:"IMAGE"; path:"./raara.png";
 ]
 Materials 1[
   name:"Material"; r: 0.999879;g: 1.000000;b: 1.000000;a: 1.000000; dif: 1.000000; emt: 0.000000; mrr: 0.000000; ior: 1.000000; spc: 0.000000;spchard:50; tex:"Texture.003";
