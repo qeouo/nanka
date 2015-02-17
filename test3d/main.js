@@ -33,8 +33,8 @@ var objControl = (function(){
 
 		light = new ono3d.LightSource()
 		light.type =Ono3d.LT_DIRECTION
-		light.angle[0] = -0.4
-		light.angle[1] = -0.4
+		light.angle[0] = -0.3
+		light.angle[1] = -0.8
 		light.angle[2] = -0.4
 		light.power=1
 		Vec3.norm(light.angle)
@@ -42,7 +42,7 @@ var objControl = (function(){
 		light1=light;
 		light = new ono3d.LightSource()
 		light.type =Ono3d.LT_AMBIENT
-		light.power =0.;
+		light.power =0.8;
 		ono3d.lightSources.push(light)
 	}
 	ret.f_move=function(obj,param){
@@ -328,9 +328,9 @@ var mainfunc=(function(){
 		}
 
 		if(global_param.enableGL){
-			envtex = Util.loadImage("lib/envtex.png",1);
+			envtex = Util.loadImage("../lib/envtex.png",1);
 		}else{
-			envtex = Util.loadImage("lib/envtex.png");	
+			envtex = Util.loadImage("../lib/envtex.png");	
 		}
 
 		onoPhy = new OnoPhy()
