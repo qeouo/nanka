@@ -25,10 +25,10 @@ var objControl = (function(){
 	var ret=function(){}
 	ret.f_create= function(obj,param){
 		frame =  0
-		viewx = -Math.PI/64
+		viewx = -Math.PI/32
 		viewy = Math.PI
 		viewz = 0
-		views = 1
+		views = 0.75
 		obj.z=100
 
 		light = new ono3d.LightSource()
@@ -48,7 +48,14 @@ var objControl = (function(){
 	ret.f_move=function(obj,param){
 		if(obj3d && phyObjs==null){
 			if(obj3d.scenes.length>0){
-				phyObjs=O3o.createPhyObjs(obj3d,onoPhy);
+				phyObjs=new Array();
+				var scene=obj3d.scenes[0];
+				for(i=0;i<scene.objects.length;i++){
+					var obj=O3o.createPhyObjs(scene.objects[i],onoPhy);
+					if(obj){
+						phyObjs.push(obj);
+					}
+				}
 				ono3d.setTargetMatrix(0)
 				ono3d.loadIdentity()
 				ono3d.rotate(-Math.PI*0.5,1,0,0)
@@ -287,13 +294,10 @@ var mainfunc=(function(){
 	return function(){
 		Util.canvas.hidden=true
 		var nowTime = new Date()
-		var n=5,i
 	
 		objman.move()
-		for(i=n;i--;){
-			
-			onoPhy.calc(1.0/(30*n))
-		}
+		onoPhy.calc(1.0/30,5)
+
 		Ono3d.setDrawMethod(global_param.drawmethod)
 		objman.draw()
 	

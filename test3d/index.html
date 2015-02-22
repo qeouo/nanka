@@ -333,10 +333,14 @@ var onloadfunc = function(e){
 	document.getElementById("nobr_perscollect").style.display="none";
 	document.getElementById("nobr_texture").style.display="none";
 	document.getElementById("nobr_phongshading").style.display="none";
-	document.getElementById("nobr_outline").style.display="none";
+	//document.getElementById("nobr_outline").style.display="none";
 	document.getElementById("nobr_wireframe").style.display="none";
 
 	var url=location.search.substring(1,location.search.length)
+	if(url.length==0){
+		url="model=raara.o3o&drawmethod=3&smoothing=1&outline=1";
+	}
+	
 	var args=url.split("&")
 
 	for(i=args.length;i--;){
@@ -413,7 +417,7 @@ var onloadfunc = function(e){
 </script>
 <body style="font-size:small;" onLoad="onloadfunc(event)">
 	
-	<div id="console" class="cons" style="min-width:200px;">
+	<div id="console" class="cons" style="min-width:200px;visibility:hidden;">
 
 		<div><pre id="status_a">-</pre></div>
 		<span id="sp_scene">scene</span><select type="select" id="cmb_scene" onchange="sb(event)" >

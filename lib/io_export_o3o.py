@@ -162,9 +162,16 @@ def ExportOno3dObject():
                     fileout2("vertex_group:\"{}\";".format(group.vertex_group))
             elif(group.type=="CLOTH" ):
                 fileout2("pin:\"{}\";".format(group.settings.vertex_group_mass))
+                fileout2("mass:\"{}\";".format(group.settings.mass))
+                fileout2("structural:\"{}\";".format(group.settings.structural_stiffness))
+                fileout2("bending_stiffness:\"{}\";".format(group.settings.bending_stiffness))
+                fileout2("spring_damping:\"{}\";".format(group.settings.spring_damping))
+                fileout2("air_damping:\"{}\";".format(group.settings.air_damping))
+                fileout2("vel_damping:\"{}\";".format(group.settings.vel_damping))
             elif(group.type=="SOFT_BODY" ):
                 fileout2("friction:{:9f};".format(group.settings.friction))
                 fileout2("mass:{:9f};".format(group.settings.mass))
+                fileout2("speed:{:9f};".format(group.settings.speed))
                 fileout2("vertex_group_mass:\"{}\";".format(group.settings.vertex_group_goal))
                 fileout2("goal_default:{:9f};".format(group.settings.goal_default))
                 fileout2("damping:{:9f};".format(group.settings.damping))
@@ -312,6 +319,18 @@ def WriteMesh(mesh):
             fileout2(";")
         fileout2("\n")
     fileoutLd()
+
+#    fileout("Edges {}".format( len(mesh.edges)))
+#    fileoutLu()
+#    fileout("")
+#    for i,edge in enumerate(mesh.edges):
+#        fileout2("{},{}".format( edge.vertices[0],edge.vertices[1]))
+#        if(i<len(mesh.edges)-1):
+#            fileout2(",");
+#        else:
+#            fileout2("\n");
+#    fileoutLd()
+
     fileout("Faces {}".format( len(mesh.polygons)))
     fileoutLu()
     faceIndex = 0
@@ -329,6 +348,9 @@ def WriteMesh(mesh):
             Index+=1
             if Index < len(Face.vertices): fileout2(",")
         fileout2(";")
+        if(Face.use_freestyle_mark):
+            fileout2("fs:1;")
+        
 #        Normal = Face.normal
 #        fileout2("normal:{:9f},{:9f},{:9f};".format(Normal[0], Normal[1], Normal[2]))
         if Face.material_index < len(mesh.materials):
