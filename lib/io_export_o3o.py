@@ -354,7 +354,7 @@ def WriteMesh(mesh):
 #        Normal = Face.normal
 #        fileout2("normal:{:9f},{:9f},{:9f};".format(Normal[0], Normal[1], Normal[2]))
         if Face.material_index < len(mesh.materials):
-            if mesh.materials[Face.material_index].name != None:
+            if mesh.materials[Face.material_index] != None:
                 fileout2("mat:{};".format(bpy.data.materials.keys().index(mesh.materials[Face.material_index].name)))
         if(uv != None):
             if(len(uv)>0):
