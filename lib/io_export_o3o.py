@@ -162,6 +162,7 @@ def ExportOno3dObject():
                     fileout2("vertex_group:\"{}\";".format(group.vertex_group))
             elif(group.type=="CLOTH" ):
                 fileout2("pin:\"{}\";".format(group.settings.vertex_group_mass))
+<<<<<<< HEAD
                 fileout2("mass:\"{}\";".format(group.settings.mass))
                 fileout2("structural:\"{}\";".format(group.settings.structural_stiffness))
                 fileout2("bending_stiffness:\"{}\";".format(group.settings.bending_stiffness))
@@ -172,6 +173,11 @@ def ExportOno3dObject():
                 fileout2("friction:{:9f};".format(group.settings.friction))
                 fileout2("mass:{:9f};".format(group.settings.mass))
                 fileout2("speed:{:9f};".format(group.settings.speed))
+=======
+            elif(group.type=="SOFT_BODY" ):
+                fileout2("friction:{:9f};".format(group.settings.friction))
+                fileout2("mass:{:9f};".format(group.settings.mass))
+>>>>>>> f704968143a2213a4b37c0f3bb4ebb92c8068be2
                 fileout2("vertex_group_mass:\"{}\";".format(group.settings.vertex_group_goal))
                 fileout2("goal_default:{:9f};".format(group.settings.goal_default))
                 fileout2("damping:{:9f};".format(group.settings.damping))
@@ -319,6 +325,7 @@ def WriteMesh(mesh):
             fileout2(";")
         fileout2("\n")
     fileoutLd()
+<<<<<<< HEAD
 
 #    fileout("Edges {}".format( len(mesh.edges)))
 #    fileoutLu()
@@ -331,6 +338,8 @@ def WriteMesh(mesh):
 #            fileout2("\n");
 #    fileoutLd()
 
+=======
+>>>>>>> f704968143a2213a4b37c0f3bb4ebb92c8068be2
     fileout("Faces {}".format( len(mesh.polygons)))
     fileoutLu()
     faceIndex = 0
@@ -348,6 +357,7 @@ def WriteMesh(mesh):
             Index+=1
             if Index < len(Face.vertices): fileout2(",")
         fileout2(";")
+<<<<<<< HEAD
         if(Face.use_freestyle_mark):
             fileout2("fs:1;")
         
@@ -355,6 +365,12 @@ def WriteMesh(mesh):
 #        fileout2("normal:{:9f},{:9f},{:9f};".format(Normal[0], Normal[1], Normal[2]))
         if Face.material_index < len(mesh.materials):
             if mesh.materials[Face.material_index] != None:
+=======
+#        Normal = Face.normal
+#        fileout2("normal:{:9f},{:9f},{:9f};".format(Normal[0], Normal[1], Normal[2]))
+        if Face.material_index < len(mesh.materials):
+            if mesh.materials[Face.material_index].name != None:
+>>>>>>> f704968143a2213a4b37c0f3bb4ebb92c8068be2
                 fileout2("mat:{};".format(bpy.data.materials.keys().index(mesh.materials[Face.material_index].name)))
         if(uv != None):
             if(len(uv)>0):
