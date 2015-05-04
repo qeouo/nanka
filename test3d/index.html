@@ -8,445 +8,52 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<title>3d polygon viewer</title>
-<link rel="stylesheet" type="text/css" href="main.css" media="all">
-<script>
 
-if (!document.createElement('canvas').getContext) { location.href="error.html" }
-</script>
 </head>
 
-<script type="text/javascript" src="./lib/vector.js"></script>
-<script type="text/javascript" src="./lib/geono.js"></script>
-<script type="text/javascript" src="./lib/util.js"></script>
-<script type="text/javascript" src="./lib/rastono.js"></script>
-<script type="text/javascript" src="./lib/rastc2d.js"></script>
-<script type="text/javascript" src="./lib/ono3d.js"></script>
-<script type="text/javascript" src="./lib/onophy.js"></script>
-<script type="text/javascript" src="./lib/o3o.js"></script>
-<script type="text/javascript" src="./lib/objman.js"></script>
-<script type="text/javascript" src="./lib/mmd.js"></script>
-<script type="text/javascript" src="./lib/mqo.js"></script>
-<script type="text/javascript" src="./lib/rastgl.js"></script>
-<script type="text/javascript" src="./main.js"></script>
-
+<script type="text/javascript" src="../lib/vector.js"></script>
+<script type="text/javascript" src="../lib/geono.js"></script>
+<script type="text/javascript" src="../lib/util.js"></script>
+<script type="text/javascript" src="../lib/rastono.js"></script>
+<script type="text/javascript" src="../lib/rastc2d.js"></script>
+<script type="text/javascript" src="../lib/ono3d.js"></script>
+<script type="text/javascript" src="../lib/onophy.js"></script>
+<script type="text/javascript" src="../lib/o3o.js"></script>
+<script type="text/javascript" src="../lib/objman.js"></script>
+<script type="text/javascript" src="../lib/rastgl.js"></script>
+<script type="text/javascript" src="../lib/slider.js"></script>
+<script type="text/javascript" src="../lib/colorpicker.js"></script>
 <script type="text/javascript">
 
-var handleFileSelect = function(evt) {
-    evt.stopPropagation();
-    evt.preventDefault();
-    var files
-	
-	var btn = document.getElementById("btn_submit")
-	btn.disabled=true
-	Main.deleteModel();
-	if(evt.dataTransfer){
-    	files = evt.dataTransfer.files
-	}else{
-		files = evt.target.files
-	}
-	if(files.length>3){
-		alert("ファイル数が多いです。合計3ファイルまでにしてください。")
-		return
-	}
-	var allsize=0
-    for (var i = 0, f; f = files[i]; i++) {
-		allsize+=f.size
-	}
-	if(allsize>10000000){
-		alert("ファイルサイズが大きいです。合計10MBくらいにしてください。")
-		return
-	}
-	if(files.length>3){
-		alert("選択できるファイルは合計3ファイルまでです。")
-		return
-	}
-	global_param.files=files
 
-	var str=""
-    for (var i = 0, f; f = files[i]; i++) {
-		allsize+=f.size
-		if(f.type.indexOf("image")==0){
-			
-			var reader = new FileReader()
-			var name =f.name
-				
-			reader.onload =  function(e){
-				var buf=e.target.result
-				var image = new Image()
-				image.onload=function(e){
-					if(image.width>256 || image.width>256){
-						alert("画像の縦横のサイズが256を超えています:"+name)
-					}
-				}
-				image.src=buf
-			}
-			reader.readAsDataURL(f)
-		}else{
-			Main.loadModelLocal(f)
-		}
+var pickerflg=false;
+	var onl=function(){
+
+		Util.fireEvent(document.getElementById("txtSmoothing"),"change");
+		Util.fireEvent(document.getElementById("Material"),"change");
 	}
+var aaa=function(hex){
+	var a=new Vec3();
+	Util.hex2rgb(a,hex);
+	globalParam.backgroundColorR=a[0];
+	globalParam.backgroundColorG=a[1];
+	globalParam.backgroundColorB=a[2];
 }
-
-
-var ctl =new Object()
-var chks=[
-"texture"
-,"wireframe"
-,"outline"
-,"depthtest"
-,"perscollect"
-,"phongshading"
-];
-var control_ids = [
-	["oc_b",""]
-	,["status_b",""]
-	,["oc_c",""]
-	,["status_c",""]
-	,["chk_texture","usetexture"]
-	,["chk_wireframe","wireframe"]
-	,["chk_outline","outline"]
-	,["chk_phongshading","phongshading"]
-	,["chk_depthtest","depthtest"]
-	,["chk_perscollect","perscollect"]
-	,["cmb_drawmethod","drawmethod"]
-	,["chk_custommat","custommat"]
-	,["txt_smoothing","smoothing"]
-	,["txt_r","r"]
-	,["txt_g","g"]
-	,["txt_b","b"]
-	,["txt_a","a"]
-	,["txt_mrr","mrr"]
-	,["span_r",""]
-	,["span_g",""]
-	,["span_b",""]
-	,["span_a",""]
-	,["span_mrr",""]
-	,["fs_custom",""]
-]
-var refreshControl = function(){
-
-	for(var i = control_ids.length;i--;){
-		if(control_ids[i][1]=="")continue;
-		var obj= ctl[control_ids[i][0]];
-		var value= global_param[control_ids[i][1]];
-		if(obj.nodeName == "INPUT"){
-			switch(obj.type){
-			case "checkbox":
-			   obj.checked= value;
-			   break;
-			case "text": obj.value= value;break;
-			}
-		}else if(obj.nodeName=="SELECT"){
-			obj.value=value;
-		}
-		Util.fireEvent(obj,"change")
-		
-	}
-
-
-	document.getElementById("console").style.display="inline"
-}
-
-var changeFunc = function(e){
-	var obj= this;
-	var paramname="";
-	for(var i = control_ids.length;i--;){
-		if(obj == ctl[control_ids[i][0]]){
-			if(obj.nodeName == "INPUT"){
-				switch(obj.type){
-				case "checkbox":
-				   value = obj.checked
-				   break;
-				case "text":
-				case "range":
-					value = obj.value;
-					if(isNaN(value)){
-						value=0
-					}else{
-						value=parseFloat(value)
-					}
-					if(value<0)value=0
-					if(value>1)value=1
-					break;
-				}
-			}else if(obj.nodeName=="SELECT"){
-				value = obj.value;
-			}
-			global_param[control_ids[i][1]] = value;
-
-			var mat = O3o.defaultMaterial;
-			mat.r=global_param.r;
-			mat.g=global_param.g;
-			mat.b=global_param.b;
-			mat.a=global_param.a;
-			mat.mrr=global_param.mrr;
-			break;
-		}
-	}
-}
-var onloadfunc = function(e){
-	global_param.outline=0
-	global_param.smoothing=0
-	global_param.model=""
-	global_param.drawmethod=9
-	global_param.smoothing=0
-	global_param.phongshading=1
-	global_param.depthtest=1
-	global_param.perscollect=1
-	global_param.usetexture=1
-	global_param.wireframe=0
-	global_param.outline=0
-	global_param.r=0.8
-	global_param.g=0.8
-	global_param.b=0.8
-	global_param.a=1
-	global_param.mrr=0
-	global_param.custommat=0
-	global_param.menu=1
-	global_param.files=null
-	global_param.no=""
-	global_param.caption=""
-	global_param.scene=0
-	global_param.fps=30
-	
-	var createRng = function(id){
-		var div=document.createElement("DIV");
-		div.style.width="200px";
-
-
-		var lbl= document.createElement('label');
-		lbl.innerHTML=id;
-		div.appendChild(lbl);
-		var output= document.createElement('input');
-		output.setAttribute("type","text");
-		output.id="txt_" + id;
-		output.style.width="32px";
-		output.style.margin="0px 8px";
-		output.value=1;
-		div.appendChild(output);
-
-		var slider=document.createElement('div');
-		slider.setAttribute("class","js-slider");
-		div.appendChild(slider);
-
-		var div2=document.createElement('div');
-		slider.appendChild(div2);
-
-		var input=document.createElement('input');
-		input.setAttribute("type","button");
-		slider.appendChild(input);
-
-		var root = document.documentElement;
-		var dragging = false;
-		var value = output.value;
-		var width = input.clientWidth / 2;
-
-		var set_value = function (){
-			var max=slider.clientWidth;
-			var w = input.clientWidth;
-			if(w==0)w=15;
-			if(max==0)max=100;
-		  input.style.left = (value*max - w/2) + 'px';
-		  output.value = value;
-		};
-
-		output.onchange = function(evt){
-			value = evt.target.value;
-			set_value();
-		}
-		input.onmousedown = function(evt){
-		  dragging = true;
-		  return false;
-		};
-		var drugend =function(evt){
-		  if (dragging) {
-			dragging = false;
-			output.value = value;
-		  }
-		};
-		var drug=function(evt){
-		  if(dragging){
-			if(!evt){
-			  evt = window.event;
-			}
-			var left = evt.clientX;
-			var rect = slider.getBoundingClientRect();
-			value = Math.round(left - rect.left - width);
-			if (value < 0) {
-			  value = 0;
-			} else if (value > slider.clientWidth) {
-			  value = slider.clientWidth;
-			}
-			value/=slider.clientWidth;
-			set_value();
-			Util.fireEvent(output,"change")
-
-			return false;
-		}};
-		
-		document.addEventListener("mouseup",drugend,false);
-		document.addEventListener("mousemove",drug,false);
-
-		slider.onclick = function(evt){
-		  dragging = true;
-		  drug(evt);
-		  drugend();
-		};
-		return div;
-	};
-
-	var createChkCtl=function(id){
-		var nobr=document.createElement("SPAN");
-		var chk=document.createElement("INPUT");
-		var lbl=document.createElement("LABEL");
-		chk.id="chk_"+id;
-		chk.type="checkbox";
-		chk.addEventListener('change', changeFunc, false);
-		//chk.setAttribute("onchange",changeFunc); 
-		lbl.setAttribute("for",chk.id);
-		lbl.innerHTML=id;
-		lbl.id="lbl_"+id
-		nobr.id="nobr_"+id;
-		nobr.style.whiteSpace="nowrap";
-		nobr.appendChild(chk);
-		nobr.appendChild(lbl);
-		document.getElementById("area_chk").appendChild(nobr);
-		document.getElementById("area_chk").innerHTML+="\n";
-	}
-
-	for(var i=chks.length;i--;){
-		createChkCtl(chks[i]);
-	}	
-	field=document.getElementById("area_chk");
-	field.appendChild(createRng("smoothing"));
-	var field=document.getElementById("fs_custom");
-	field.appendChild(createRng("r"));
-	field.appendChild(createRng("g"));
-	field.appendChild(createRng("b"));
-	field.appendChild(createRng("a"));
-	field.appendChild(createRng("mrr"));
-
-	for(var i=0,c;c=control_ids[i];i++){ ctl[c[0]]=document.getElementById(c[0]) }
-
-	document.getElementById("nobr_depthtest").style.display="none";
-	document.getElementById("nobr_perscollect").style.display="none";
-	document.getElementById("nobr_texture").style.display="none";
-	document.getElementById("nobr_phongshading").style.display="none";
-	document.getElementById("nobr_outline").style.display="none";
-	document.getElementById("nobr_wireframe").style.display="none";
-
-	var url=location.search.substring(1,location.search.length)
-	var args=url.split("&")
-
-	for(i=args.length;i--;){
-		var arg=args[i].split("=")
-		if(arg.length >1){
-			if(!isNaN(arg[1]) && arg[1]!=""){
-				global_param[arg[0]] = +arg[1]
-			}else{
-				global_param[arg[0]] = arg[1]
-			}
-		}else{
-			global_param["no"]=arg[0]
-		}
-	}
-
-	
-	for(var i = control_ids.length;i--;){
-		if(control_ids[i][1]=="")continue;
-		var obj= ctl[control_ids[i][0]];
-		if(obj.nodeName == "INPUT"){
-			obj.addEventListener('change',changeFunc,false);
-		}else if(obj.nodeName=="SELECT"){
-		}
-	}
-
-	ctl.chk_custommat.onchange=function(){
-		global_param.custommat=ctl.chk_custommat.checked
-		O3o.useDefaultMaterial=global_param.custommat
-		ctl.fs_custom.disabled=!global_param.custommat
-		ctl.txt_r.disabled=!global_param.custommat
-		ctl.txt_g.disabled=!global_param.custommat
-		ctl.txt_b.disabled=!global_param.custommat
-		ctl.txt_a.disabled=!global_param.custommat
-		ctl.txt_mrr.disabled=!global_param.custommat
-	}
-		
-	cmb_drawmethod.onchange=function(){
-		global_param.drawmethod=parseInt(ctl.cmb_drawmethod.value)
-		if(global_param.drawmethod==3){
-			document.getElementById("maincanvas2").style.display="inline";
-			document.getElementById("maincanvas").style.display="none";
-		}else{
-			document.getElementById("maincanvas").style.display="inline";
-			document.getElementById("maincanvas2").style.display="none";
-		}
-		if(global_param.drawmethod==9){
-			ctl.chk_depthtest.disabled=false
-			ctl.chk_perscollect.disabled=false
-		}else{
-			ctl.chk_depthtest.disabled=true
-			ctl.chk_perscollect.disabled=true
-			document.getElementById("lbl_depthtest").disabled=true;
-		}
-	}
-	refreshControl()
-	Util.init()
-		global_param.enableGL=!Rastgl.init(document.getElementById("maincanvas2"));
-	
-
-	if(!global_param.enableGL){
-		var option=document.getElementById("opt3");
-		option.disabled="disabled";
-		if(global_param.drawmethod==3){
-			global_param.drawmethod=9
-			refreshControl();
-		}
-	}
-	Main.init()
-
-}
-	var sb=function(event){
-		global_param.scene=parseInt(event.target.value)
-	}
 </script>
-<body style="font-size:small;" onLoad="onloadfunc(event)">
-	
-	<div id="console" class="cons" style="min-width:200px;">
 
-		<div><pre id="status_a">-</pre></div>
-		<span id="sp_scene">scene</span><select type="select" id="cmb_scene" onchange="sb(event)" >
-		</select></nobr>
-		<pre id="status_b">-</pre>
-
-		<div id="status_c" style="width:0px;">
-			<nobr>drawmethod
-			<select id="cmb_drawmethod">
-			<option value="0">clip+fillRect</option>
-			<option value="1">clip+drawImage</option>
-			<option value="2">fill</option>
-			<option value="3" id="opt3">WebGL</option>
-			<option value="9">putImageData</option>
-			</select></nobr>
-			<div id="area_chk">
-			</div>
-
-			<nobr><input type="checkbox" id="chk_custommat" />use custom material</nobr><br />
-			<fieldset id="fs_custom">
-			</fieldset>
-			
-		
-		</div>
-	</div>
-<div style="width:100%;height:100%;" id="inputarea">
-<div>
-	<canvas id="maincanvas" width="512" height="512" >
-	</canvas>
-	<canvas id="maincanvas2" width="512" height="512" >
-	</canvas>
+<body onload="onl();">
+<div style="float:left;">
+<script type="text/javascript" src="./test3d.js"> </script>
 </div>
-</div>
+<div style="float:left;" id="control">
+<pre>
+＜説明が入る＞
+</pre>
+<input class="slider" id="Smoothing" value="1" onchange="globalParam.smoothing=parseFloat(this.value)"/><br />
+<input class="colorpicker" id="Material" value="ffffff" onchange="aaa(this.value)"/><br />
+<input class="colorpicker" id="Material2" value="ffffff" /><br />
+<input class="colorpicker" id="Material3" value="ffffff" /><br />
+
 </body>
 </html>
 
