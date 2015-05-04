@@ -51,9 +51,7 @@ var aaa=function(hex){
 </pre>
 <input class="slider" id="Smoothing" value="1" onchange="globalParam.smoothing=parseFloat(this.value)"/><br />
 <input class="colorpicker" id="Material" value="ffffff" onchange="aaa(this.value)"/><br />
-<input class="colorpicker" id="Material2" value="ffffff" /><br />
-<input class="colorpicker" id="Material3" value="ffffff" /><br />
-
+<label><input type="checkbox" id="chkPhy" onchange="Test3d.setPhysics(this.checked);"/>物理シミュレーション</label><br />
 </body>
 </html>
 

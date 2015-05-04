@@ -1,11 +1,11 @@
 "use strict"
-var Dustg=(function(){
+var Test3d=(function(){
 	var HEIGHT=480,WIDTH=360
 	var canvas,canvasgl;
 	var ctx;
 	var div;
 	var obj3d;
-	var ret=null;
+	var ret={};
 	var oldTime = 0
 	var span;
 	var mseccount=0;
@@ -18,6 +18,7 @@ var Dustg=(function(){
 	var PI=Math.PI
 	var OBJSLENGTH=1024;
 	var i;
+	var onoPhy=null;
 
 	var STAT_EMPTY=0
 		,STAT_ENABLE=1
@@ -40,6 +41,7 @@ var Dustg=(function(){
 		this.stat=STAT_EMPTY;
 		this.type=0;
 		this.hp=1;
+		this.t=0;
 		this.hitareas=[];
 		this.matrix=new Mat43();
 		this.calcMat43=new Mat43();
@@ -92,11 +94,58 @@ var Dustg=(function(){
 		}
 		return;
 	}
+	var phyObjs=null;
 	var mainObj=function(obj,msg,param){
 		switch(msg){
+		case MSG_MOVE:
+			if(obj3d && phyObjs==null){
+				if(obj3d.scenes.length>0){
+					phyObjs=new Array();
+					var scene=obj3d.scenes[0];
+					for(i=0;i<scene.objects.length;i++){
+						var phyobj=O3o.createPhyObjs(scene.objects[i],onoPhy);
+						if(phyobj){
+							phyObjs.push(phyobj);
+						}
+					}
+					ono3d.setTargetMatrix(1)
+					ono3d.loadIdentity()
+					ono3d.setTargetMatrix(0)
+					ono3d.loadIdentity()
+					ono3d.rotate(-Math.PI*0.5,1,0,0)
+					O3o.initPhyObjs(obj3d.scenes[0],0,phyObjs);
+				}
+			}
+			if(globalParam.physics){
+				ono3d.setTargetMatrix(1)
+				ono3d.loadIdentity()
+				ono3d.setTargetMatrix(0)
+				ono3d.loadIdentity()
+				ono3d.rotate(-Math.PI*0.5,1,0,0)
+				if(obj3d){
+					if(obj3d.scenes.length>0){
+						O3o.movePhyObjs(obj3d.scenes[0],obj.t*24/30,phyObjs)
+					}
+				}
+			}
+			break;
+
 		case MSG_DRAW:
-			ono3d.rotate(-Math.PI/2,1,0,0);
-			O3o.drawScene(obj3d.scenes[0],obj.t*24/30,null);
+			ono3d.setTargetMatrix(0)
+			ono3d.loadIdentity()
+
+//			Mat43.dot(ono3d.transMat,ono3d.viewMatrix,ono3d.worldMatrix)
+			ono3d.rotate(-Math.PI*0.5,1,0,0)
+			if(obj3d){
+				if(obj3d.scenes.length>0){
+					//O3o.movePhyObjs(obj3d.scenes[0],obj.t*24/30,phyObjs)
+					if(globalParam.physics){
+						O3o.drawScene(obj3d.scenes[0],obj.t*24/30,phyObjs);
+					}else{
+						O3o.drawScene(obj3d.scenes[0],obj.t*24/30,null);
+					}
+				}
+			}
 			break;
 		}
 		return defObj(obj,msg,param);
@@ -125,6 +174,9 @@ var Dustg=(function(){
 		for(i=0;i<OBJSLENGTH;i++){
 			if(objs[i].stat!=STAT_ENABLE)continue;
 			objs[i].func(objs[i],MSG_MOVE,0);
+		}
+		if(globalParam.physics){
+			onoPhy.calc(1.0/30,5);
 		}
 		for(i=0;i<OBJSLENGTH;i++){
 			if(objs[i].stat!=STAT_ENABLE)continue;
@@ -222,6 +274,7 @@ var Dustg=(function(){
 
 	obj3d=O3o.load("./raara.o3o");
 	
+	onoPhy = new OnoPhy();
 	globalParam.fps=30;
 	Util.setFps(globalParam.fps,mainloop);
 	Util.fpsman();
@@ -241,5 +294,21 @@ var Dustg=(function(){
 	Vec3.set(camera.p,0,5,10)
 	Vec3.set(camera.a,0,Math.PI,0)
 
+	ret.setPhysics=function(flg){
+		if(globalParam.physics == flg){
+			return;
+		}
+		globalParam.physics=flg;
+		if(flg){
+			var obj=mainObj;
+			ono3d.setTargetMatrix(1)
+			ono3d.loadIdentity()
+			ono3d.setTargetMatrix(0)
+			ono3d.loadIdentity()
+			ono3d.rotate(-Math.PI*0.5,1,0,0)
+			O3o.initPhyObjs(obj3d.scenes[0],0,phyObjs);
+		}
+
+	}
 	return ret;
 })()
