@@ -49,7 +49,7 @@ var Test3d=(function(){
 	var createObj = function(func){
 		for(i=0;i<OBJSLENGTH;i++){
 			var obj=objs[i];
-			if(obj.stat!=STAT_EMPTY)continue;
+			if(obj.stat!==STAT_EMPTY)continue;
 			obj.func=func;
 			Mat43.setInit(obj.matrix);
 			obj.parent=null;
@@ -98,7 +98,10 @@ var Test3d=(function(){
 	var mainObj=function(obj,msg,param){
 		switch(msg){
 		case MSG_MOVE:
-			if(obj3d && phyObjs==null){
+			if(obj3d.scenes.length===0){
+				break;
+			}
+			if(phyObjs===null){
 				if(obj3d.scenes.length>0){
 					phyObjs=new Array();
 					var scene=obj3d.scenes[0];
@@ -108,37 +111,37 @@ var Test3d=(function(){
 							phyObjs.push(phyobj);
 						}
 					}
-					ono3d.setTargetMatrix(1)
-					ono3d.loadIdentity()
-					ono3d.setTargetMatrix(0)
-					ono3d.loadIdentity()
-					ono3d.rotate(-Math.PI*0.5,1,0,0)
-					O3o.initPhyObjs(obj3d.scenes[0],0,phyObjs);
 				}
 			}
-			if(globalParam.physics){
+			if(phyObjs && globalParam.physics){
 				ono3d.setTargetMatrix(1)
 				ono3d.loadIdentity()
 				ono3d.setTargetMatrix(0)
 				ono3d.loadIdentity()
 				ono3d.rotate(-Math.PI*0.5,1,0,0)
-				if(obj3d){
-					if(obj3d.scenes.length>0){
-						O3o.movePhyObjs(obj3d.scenes[0],obj.t*24/30,phyObjs)
-					}
+				ono3d.scale(-1,1,1)
+
+				if(!globalParam.physics_){
+					O3o.initPhyObjs(obj3d.scenes[0],(obj.t+1)*24/30,phyObjs);
+					globalParam.physics_=true;
 				}
+				globalParam.physics_=globalParam.physics;
+
+				O3o.movePhyObjs(obj3d.scenes[0],(obj.t+1)*24/30,phyObjs)
+			}else{
+				globalParam.physics_=false;
 			}
+
 			break;
 
 		case MSG_DRAW:
 			ono3d.setTargetMatrix(0)
 			ono3d.loadIdentity()
 
-//			Mat43.dot(ono3d.transMat,ono3d.viewMatrix,ono3d.worldMatrix)
 			ono3d.rotate(-Math.PI*0.5,1,0,0)
+			ono3d.scale(-1,1,1)
 			if(obj3d){
 				if(obj3d.scenes.length>0){
-					//O3o.movePhyObjs(obj3d.scenes[0],obj.t*24/30,phyObjs)
 					if(globalParam.physics){
 						O3o.drawScene(obj3d.scenes[0],obj.t*24/30,phyObjs);
 					}else{
@@ -163,7 +166,7 @@ var Test3d=(function(){
 		}
 		var i;
 		for(i=0;i<OBJSLENGTH;i++){
-			if(objs[i].stat==STAT_CREATE){
+			if(objs[i].stat===STAT_CREATE){
 				objs[i].stat=STAT_ENABLE;
 			}
 			if(objs[i].stat<0){
@@ -172,14 +175,14 @@ var Test3d=(function(){
 		}
 
 		for(i=0;i<OBJSLENGTH;i++){
-			if(objs[i].stat!=STAT_ENABLE)continue;
+			if(objs[i].stat!==STAT_ENABLE)continue;
 			objs[i].func(objs[i],MSG_MOVE,0);
 		}
 		if(globalParam.physics){
-			onoPhy.calc(1.0/30,5);
+			onoPhy.calc(1.0/30,globalParam.step2);
 		}
 		for(i=0;i<OBJSLENGTH;i++){
-			if(objs[i].stat!=STAT_ENABLE)continue;
+			if(objs[i].stat!==STAT_ENABLE)continue;
 			objs[i].t++;
 			objs[i].frame++;
 		}
@@ -194,10 +197,14 @@ var Test3d=(function(){
 
 		ono3d.setPers(1/2,HEIGHT/WIDTH/2)
 
-
+		ono3d.rf=0;
+		if(globalParam.outlineWidth>0.){
+			ono3d.lineWidth=globalParam.outlineWidth;
+			ono3d.rf=Ono3d.RF_OUTLINE;
+		}
 		ono3d.smoothing=globalParam.smoothing;
 		for(i=0;i<OBJSLENGTH;i++){
-			if(objs[i].stat!=STAT_ENABLE)continue;
+			if(objs[i].stat!==STAT_ENABLE)continue;
 			ono3d.push();
 			ono3d.setTargetMatrix(0)
 			ono3d.loadIdentity()
@@ -218,7 +225,7 @@ var Test3d=(function(){
 		if(nowTime-oldTime > 1000){
 			var mspf=0;
 			var fps = framecount*1000/(nowTime-oldTime)
-			if(framecount!=0)mspf = mseccount/framecount
+			if(framecount!==0)mspf = mseccount/framecount
 			
 			Util.setText(span,fps.toFixed(2) + "fps " + mspf.toFixed(2) + "msec")
 	
@@ -295,19 +302,20 @@ var Test3d=(function(){
 	Vec3.set(camera.a,0,Math.PI,0)
 
 	ret.setPhysics=function(flg){
-		if(globalParam.physics == flg){
-			return;
-		}
 		globalParam.physics=flg;
-		if(flg){
-			var obj=mainObj;
-			ono3d.setTargetMatrix(1)
-			ono3d.loadIdentity()
-			ono3d.setTargetMatrix(0)
-			ono3d.loadIdentity()
-			ono3d.rotate(-Math.PI*0.5,1,0,0)
-			O3o.initPhyObjs(obj3d.scenes[0],0,phyObjs);
-		}
+//		if(globalParam.physics === flg){
+//			return;
+//		}
+//		if(flg && obj3d.scenes){
+//			var obj=mainObj;
+//			ono3d.setTargetMatrix(1)
+//			ono3d.loadIdentity()
+//			ono3d.setTargetMatrix(0)
+//			ono3d.loadIdentity()
+//			ono3d.rotate(-Math.PI*0.5,1,0,0)
+//			ono3d.scale(-1,1,1)
+//			O3o.initPhyObjs(obj3d.scenes[0],0,phyObjs);
+//		}
 
 	}
 	return ret;

@@ -28,9 +28,33 @@
 
 var pickerflg=false;
 	var onl=function(){
+		var url=location.search.substring(1,location.search.length)
+		//if(url.length==0){
+		//	url="model=raara.o3o&drawmethod=3&smoothing=1&outline=1";
+		//}
+		
+		var args=url.split("&")
 
+		for(i=args.length;i--;){
+			var arg=args[i].split("=")
+			if(arg.length >1){
+				if(!isNaN(arg[1]) && arg[1]!=""){
+					globalParam[arg[0]] = +arg[1]
+				}else{
+					globalParam[arg[0]] = arg[1]
+				}
+			}
+		}
+		if(globalParam.physics){
+			globalParam.physics=false;
+			checkbox=document.getElementById("chkPhy");
+			checkbox.checked=true;
+		}
+
+		Util.fireEvent(document.getElementById("chkPhy"),"change");
 		Util.fireEvent(document.getElementById("txtSmoothing"),"change");
 		Util.fireEvent(document.getElementById("Material"),"change");
+		Util.fireEvent(document.getElementById("txtOutlineWidth"),"change");
 	}
 var aaa=function(hex){
 	var a=new Vec3();
@@ -52,6 +76,7 @@ var aaa=function(hex){
 <input class="slider" id="Smoothing" value="1" onchange="globalParam.smoothing=parseFloat(this.value)"/><br />
 <input class="colorpicker" id="Material" value="ffffff" onchange="aaa(this.value)"/><br />
 <label><input type="checkbox" id="chkPhy" onchange="Test3d.setPhysics(this.checked);"/>物理シミュレーション</label><br />
+<input class="slider" id="OutlineWidth" value="0" max="5" onchange="globalParam.outlineWidth=parseFloat(this.value)"/><br />
 </body>
 </html>
 
