@@ -8,12 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<title>3d polygon viewer</title>
-<link rel="stylesheet" type="text/css" href="main.css" media="all">
-<script>
 
-if (!document.createElement('canvas').getContext) { location.href="error.html" }
-</script>
 </head>
 
 <script type="text/javascript" src="../lib/vector.js"></script>
@@ -25,121 +20,21 @@ if (!document.createElement('canvas').getContext) { location.href="error.html" }
 <script type="text/javascript" src="../lib/onophy.js"></script>
 <script type="text/javascript" src="../lib/o3o.js"></script>
 <script type="text/javascript" src="../lib/objman.js"></script>
-<script type="text/javascript" src="../lib/mmd.js"></script>
-<script type="text/javascript" src="../lib/mqo.js"></script>
 <script type="text/javascript" src="../lib/rastgl.js"></script>
-<script type="text/javascript" src="./main.js"></script>
-
+<script type="text/javascript" src="../lib/slider.js"></script>
+<script type="text/javascript" src="../lib/colorpicker.js"></script>
+<style type="text/css">
+html,body { height:100%;margin:0; }
+</style>
 <script type="text/javascript">
-
-var handleFileSelect = function(evt) {
-    evt.stopPropagation();
-    evt.preventDefault();
-    var files
-	
-	var btn = document.getElementById("btn_submit")
-	btn.disabled=true
-	Main.deleteModel();
-	if(evt.dataTransfer){
-    	files = evt.dataTransfer.files
-	}else{
-		files = evt.target.files
-	}
-	if(files.length>3){
-		alert("ファイル数が多いです。合計3ファイルまでにしてください。")
-		return
-	}
-	var allsize=0
-    for (var i = 0, f; f = files[i]; i++) {
-		allsize+=f.size
-	}
-	if(allsize>10000000){
-		alert("ファイルサイズが大きいです。合計10MBくらいにしてください。")
-		return
-	}
-	if(files.length>3){
-		alert("選択できるファイルは合計3ファイルまでです。")
-		return
-	}
-	global_param.files=files
-
-	var str=""
-    for (var i = 0, f; f = files[i]; i++) {
-		allsize+=f.size
-		if(f.type.indexOf("image")==0){
-			
-			var reader = new FileReader()
-			var name =f.name
-				
-			reader.onload =  function(e){
-				var buf=e.target.result
-				var image = new Image()
-				image.onload=function(e){
-					if(image.width>256 || image.width>256){
-						alert("画像の縦横のサイズが256を超えています:"+name)
-					}
-				}
-				image.src=buf
-			}
-			reader.readAsDataURL(f)
-		}else{
-			Main.loadModelLocal(f)
+var pickerflg=false;
+	var onl=function(){
+		if(globalParam.physics){
+			globalParam.physics=false;
+			checkbox=document.getElementById("chkPhy");
+			checkbox.checked=true;
 		}
-	}
-}
-
-
-var ctl =new Object()
-var chks=[
-"texture"
-,"wireframe"
-,"outline"
-,"depthtest"
-,"perscollect"
-,"phongshading"
-];
-var control_ids = [
-	["oc_b",""]
-	,["status_b",""]
-	,["oc_c",""]
-	,["status_c",""]
-	,["chk_texture","usetexture"]
-	,["chk_wireframe","wireframe"]
-	,["chk_outline","outline"]
-	,["chk_phongshading","phongshading"]
-	,["chk_depthtest","depthtest"]
-	,["chk_perscollect","perscollect"]
-	,["cmb_drawmethod","drawmethod"]
-	,["chk_custommat","custommat"]
-	,["txt_smoothing","smoothing"]
-	,["txt_r","r"]
-	,["txt_g","g"]
-	,["txt_b","b"]
-	,["txt_a","a"]
-	,["txt_mrr","mrr"]
-	,["span_r",""]
-	,["span_g",""]
-	,["span_b",""]
-	,["span_a",""]
-	,["span_mrr",""]
-	,["fs_custom",""]
-]
-var refreshControl = function(){
-
-	for(var i = control_ids.length;i--;){
-		if(control_ids[i][1]=="")continue;
-		var obj= ctl[control_ids[i][0]];
-		var value= global_param[control_ids[i][1]];
-		if(obj.nodeName == "INPUT"){
-			switch(obj.type){
-			case "checkbox":
-			   obj.checked= value;
-			   break;
-			case "text": obj.value= value;break;
-			}
-		}else if(obj.nodeName=="SELECT"){
-			obj.value=value;
-		}
+<<<<<<< HEAD
 		Util.fireEvent(obj,"change")
 		
 	}
@@ -351,70 +246,40 @@ var onloadfunc = function(e){
 			}else{
 				global_param[arg[0]] = arg[1]
 			}
+=======
+		if(globalParam.stereomode==-1){
+			checkbox=document.getElementById("parallel");
+>>>>>>> master
 		}else{
-			global_param["no"]=arg[0]
+			checkbox=document.getElementById("cross");
 		}
-	}
+		checkbox.checked=1;
 
-	
-	for(var i = control_ids.length;i--;){
-		if(control_ids[i][1]=="")continue;
-		var obj= ctl[control_ids[i][0]];
-		if(obj.nodeName == "INPUT"){
-			obj.addEventListener('change',changeFunc,false);
-		}else if(obj.nodeName=="SELECT"){
-		}
-	}
+		document.getElementById("txtSmoothing").value=globalParam.smoothing;
+		document.getElementById("txtOutlineWidth").value=globalParam.outlineWidth;
+		document.getElementById("outlineColor").value=globalParam.outlineColor;
+		document.getElementById("lightcol1").value=globalParam.lightcol1;
+		document.getElementById("lightcol2").value=globalParam.lightcol2;
+		document.getElementById("txtlightThreshold1").value=globalParam.lightThreshold1;
+		document.getElementById("txtlightThreshold2").value=globalParam.lightThreshold2;
+		document.getElementById("txtStereo").value=globalParam.stereoscope;
 
-	ctl.chk_custommat.onchange=function(){
-		global_param.custommat=ctl.chk_custommat.checked
-		O3o.useDefaultMaterial=global_param.custommat
-		ctl.fs_custom.disabled=!global_param.custommat
-		ctl.txt_r.disabled=!global_param.custommat
-		ctl.txt_g.disabled=!global_param.custommat
-		ctl.txt_b.disabled=!global_param.custommat
-		ctl.txt_a.disabled=!global_param.custommat
-		ctl.txt_mrr.disabled=!global_param.custommat
+		Util.fireEvent(document.getElementById("chkPhy"),"change");
+		Util.fireEvent(document.getElementById("txtSmoothing"),"change");
+		Util.fireEvent(document.getElementById("txtOutlineWidth"),"change");
+		Util.fireEvent(document.getElementById("outlineColor"),"change");
+		Util.fireEvent(document.getElementById("txtStereo"),"change");
+		Util.fireEvent(document.getElementById("lightcol1"),"change");
+		Util.fireEvent(document.getElementById("lightcol2"),"change");
+		Util.fireEvent(document.getElementById("txtlightThreshold1"),"change");
+		Util.fireEvent(document.getElementById("txtlightThreshold2"),"change");
 	}
-		
-	cmb_drawmethod.onchange=function(){
-		global_param.drawmethod=parseInt(ctl.cmb_drawmethod.value)
-		if(global_param.drawmethod==3){
-			document.getElementById("maincanvas2").style.display="inline";
-			document.getElementById("maincanvas").style.display="none";
-		}else{
-			document.getElementById("maincanvas").style.display="inline";
-			document.getElementById("maincanvas2").style.display="none";
-		}
-		if(global_param.drawmethod==9){
-			ctl.chk_depthtest.disabled=false
-			ctl.chk_perscollect.disabled=false
-		}else{
-			ctl.chk_depthtest.disabled=true
-			ctl.chk_perscollect.disabled=true
-			document.getElementById("lbl_depthtest").disabled=true;
-		}
-	}
-	refreshControl()
-	Util.init()
-		global_param.enableGL=!Rastgl.init(document.getElementById("maincanvas2"));
-	
-
-	if(!global_param.enableGL){
-		var option=document.getElementById("opt3");
-		option.disabled="disabled";
-		if(global_param.drawmethod==3){
-			global_param.drawmethod=9
-			refreshControl();
-		}
-	}
-	Main.init()
-
+var aaa=function(hex){
+	var a=new Vec3();
+	Util.hex2rgb(globalParam.lightColor,hex);
 }
-	var sb=function(event){
-		global_param.scene=parseInt(event.target.value)
-	}
 </script>
+<<<<<<< HEAD
 <body style="font-size:small;" onLoad="onloadfunc(event)">
 	
 	<div id="console" class="cons" style="min-width:200px;visibility:hidden;">
@@ -435,20 +300,35 @@ var onloadfunc = function(e){
 			</select></nobr>
 			<div id="area_chk">
 			</div>
+=======
+>>>>>>> master
 
-			<nobr><input type="checkbox" id="chk_custommat" />use custom material</nobr><br />
-			<fieldset id="fs_custom">
-			</fieldset>
-			
-		
-		</div>
-	</div>
-<div style="width:100%;height:100%;" id="inputarea">
-<div>
-	<canvas id="maincanvas" width="512" height="512" >
-	</canvas>
-	<canvas id="maincanvas2" width="512" height="512" >
-	</canvas>
+<body onload="onl();" style="height:100%;">
+<div style="width:100%;height:100%;">
+<span id="cons"></span>
+
+<pre>
+＜説明が入る＞
+</pre>
+<div  id="control" style="float:left;" >
+<div style="float:left;margin:10px;"> 
+法線補間<input class="slider" id="Smoothing" onchange="globalParam.smoothing=parseFloat(this.value)"/><br />
+光源色1<input class="colorpicker" id="lightcol1" onchange="globalParam.lightcol1=this.value"/><br />
+光源色2<input class="colorpicker" id="lightcol2"  onchange="globalParam.lightcol2=this.value"/><br />
+セル塗り閾値1<input class="slider" id="lightThreshold1"  onchange="globalParam.lightThreshold1=parseFloat(this.value)"/><br />
+セル塗り閾値2<input class="slider" id="lightThreshold2" onchange="globalParam.lightThreshold2=parseFloat(this.value)"/><br />
+</div>
+<div style="float:left;">
+<label><input type="checkbox" id="chkPhy" onchange="Test3d.setPhysics(this.checked);"/>物理シミュ</label><br />
+輪郭線太さ<input class="slider" id="OutlineWidth" max="4" onchange="globalParam.outlineWidth=parseFloat(this.value)"/><br />
+輪郭線色<input class="colorpicker" id="outlineColor"  onchange="globalParam.outlineColor=this.value"/><br />
+立体度<input class="slider" id="Stereo" max="2" onchange="globalParam.stereoscope=parseFloat(this.value)"/><br />
+<label><input type="radio" id="cross" name="q1" value="1" onchange="globalParam.stereomode=parseFloat(this.value)"> 交差法</label>
+<label><input type="radio" id="parallel" name="q1" value="-1" onchange="globalParam.stereomode=parseFloat(this.value)"> 平行法</label>
+</div>
+</div>
+<div style="clear:both;left:0;right:0;margin:0 auto;width:720px;height:720px;">
+<script type="text/javascript" src="./test3d.js"> </script>
 </div>
 </div>
 </body>
