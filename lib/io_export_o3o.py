@@ -171,12 +171,6 @@ def ExportOno3dObject():
             elif(group.type=="SOFT_BODY" ):
                 fileout2("pin:\"{}\";".format(group.settings.vertex_group_goal))
                 fileout2("mass:{:9f};".format(group.settings.mass))
-<<<<<<< HEAD
-                fileout2("speed:{:9f};".format(group.settings.speed))
-                fileout2("vertex_group_mass:\"{}\";".format(group.settings.vertex_group_goal))
-                fileout2("goal_default:{:9f};".format(group.settings.goal_default))
-                fileout2("damping:{:9f};".format(group.settings.damping))
-=======
                 fileout2("friction:{:9f};".format(group.settings.friction))
                 fileout2("speed:{:9f};".format(group.settings.speed))
                 fileout2("goalDefault:{:9f};".format(group.settings.goal_default))
@@ -184,7 +178,6 @@ def ExportOno3dObject():
                 fileout2("edgePull:{:9f};".format(group.settings.pull))
                 fileout2("edgePush:{:9f};".format(group.settings.push))
                 fileout2("edgeDamping:{:9f};".format(group.settings.damping))
->>>>>>> master
             elif(group.type=="MIRROR" ):
                 fileout2("use_x:{};".format(group.use_x));
                 fileout2("use_y:{};".format(group.use_y));
