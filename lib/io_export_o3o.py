@@ -194,7 +194,7 @@ def ExportOno3dObject():
     fileoutLd()
 
     config.File.close()
-    print("Finished")
+    print("aFinished")
 
 def writeMatrix(matrix):
     fileout2("matrix:{}\n".format(stringMatrix(matrix)))
@@ -338,7 +338,7 @@ def WriteMesh(mesh):
     fileoutLu()
     faceIndex = 0
     if(len(mesh.uv_textures) > 0):
-        uv = mesh.uv_layers.active.data
+        uv = mesh.uv_layers[0].data #.active.data
     else:
         uv = None
     faceIndex = 0
