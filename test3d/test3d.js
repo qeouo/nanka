@@ -104,7 +104,7 @@ var Test3d=(function(){
 			if(phyObjs===null){
 				if(obj3d.scenes.length>0){
 					phyObjs=new Array();
-					var scene=obj3d.scenes[0];
+					var scene=obj3d.scenes[globalParam.scene];
 					for(i=0;i<scene.objects.length;i++){
 						var phyobj=O3o.createPhyObjs(scene.objects[i],onoPhy);
 						if(phyobj){
@@ -121,12 +121,12 @@ var Test3d=(function(){
 				ono3d.rotate(-Math.PI*0.5,1,0,0)
 
 				if(!globalParam.physics_){
-					O3o.initPhyObjs(obj3d.scenes[0],(obj.t+1)*24/30,phyObjs);
+					O3o.initPhyObjs(obj3d.scenes[globalParam.scene],(obj.t+1)*24/30,phyObjs);
 					globalParam.physics_=true;
 				}
 				globalParam.physics_=globalParam.physics;
 
-				O3o.movePhyObjs(obj3d.scenes[0],(obj.t+1)*24/globalParam.fps,phyObjs)
+				O3o.movePhyObjs(obj3d.scenes[globalParam.scene],(obj.t+1)*24/globalParam.fps,phyObjs)
 			}else{
 				globalParam.physics_=false;
 			}
@@ -141,9 +141,9 @@ var Test3d=(function(){
 			if(obj3d){
 				if(obj3d.scenes.length>0){
 					if(globalParam.physics){
-						O3o.drawScene(obj3d.scenes[0],obj.t*24/globalParam.fps,phyObjs);
+						O3o.drawScene(obj3d,globalParam.scene,obj.t*24/globalParam.fps,phyObjs);
 					}else{
-						O3o.drawScene(obj3d.scenes[0],obj.t*24/globalParam.fps,null);
+						O3o.drawScene(obj3d,globalParam.scene,obj.t*24/globalParam.fps,null);
 					}
 				}
 			}
@@ -164,6 +164,7 @@ var Test3d=(function(){
 		globalParam.stereoscope=1;
 		globalParam.step2=1;
 		globalParam.fps=30;
+		globalParam.scene=2;
 		globalParam.model="./raara.o3o";
 
 		//if(url.length==0){
@@ -260,12 +261,16 @@ var Test3d=(function(){
 		globalParam.gl.viewport(0,0,WIDTH,HEIGHT);
 
 		ono3d.render(Util.ctx)
+		Rastgl.drawEmi(ono3d);
 
 		globalParam.stereo=globalParam.stereoscope * globalParam.stereomode;
 		ono3d.projectionMat[8]=-globalParam.stereo/5;
 		ono3d.projectionMat[12]=globalParam.stereo;
 		globalParam.gl.viewport(WIDTH,0,WIDTH,HEIGHT);
 		ono3d.render(Util.ctx)
+		Rastgl.drawEmi(ono3d);
+
+		ono3d.framebuffer();
 
 		ono3d.clear()
 
