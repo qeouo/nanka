@@ -165,7 +165,7 @@ var Test3d=(function(){
 		globalParam.step2=1;
 		globalParam.fps=30;
 		globalParam.scene=2;
-		globalParam.model="./raara.o3o";
+		globalParam.model="./raara.o3o?20150730";
 
 		//if(url.length==0){
 		//	url="model=raara.o3o&drawmethod=3&smoothing=1&outline=1";
