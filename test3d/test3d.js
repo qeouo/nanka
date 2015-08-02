@@ -360,8 +360,6 @@ var Test3d=(function(){
 	var light = new ono3d.LightSource()
 	light.type =Ono3d.LT_DIRECTION
 	Vec3.set(light.angle,-1,-1,-1);
-	Vec3.set(light.pos,5,10,5);
-	Vec3.set(light.angle,-1,-1,-1);
 	Vec3.set(light.pos,8,20,8);
 	light.power=1
 	light.color[0]=1

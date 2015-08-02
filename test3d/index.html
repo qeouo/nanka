@@ -40,6 +40,10 @@ var pickerflg=false;
 			checkbox=document.getElementById("cross");
 		}
 		checkbox.checked=1;
+		if(globalParam.shadow){
+			document.getElementById("shadow").checked=true;
+		}
+			
 
 		document.getElementById("txtSmoothing").value=globalParam.smoothing;
 		document.getElementById("txtOutlineWidth").value=globalParam.outlineWidth;
@@ -61,6 +65,7 @@ var pickerflg=false;
 		Util.fireEvent(document.getElementById("txtlightThreshold1"),"change");
 		Util.fireEvent(document.getElementById("txtlightThreshold2"),"change");
 		Util.fireEvent(document.getElementById("scene"),"change");
+		Util.fireEvent(document.getElementById("shadow"),"change");
 	}
 var aaa=function(hex){
 	var a=new Vec3();
@@ -95,7 +100,8 @@ var aaa=function(hex){
 シーン(衣装)<select id="scene"  onchange="globalParam.scene=parseInt(this.value);Test3d.changeScene();"/>
 <option value="1">1</option>
 <option value="2">2</option>
-</select>
+</select><br />
+<label><input type="checkbox" id="shadow" onchange="globalParam.shadow=(this.checked);"/>影</label><br />
 
 </div>
 </div>
