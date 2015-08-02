@@ -259,6 +259,7 @@ var Test3d=(function(){
 
 		Rastgl.set(ono3d);
 		Rastgl.renderShadowmap(ono3d);
+		gl.flush();
 
 		globalParam.stereo=-globalParam.stereoscope * globalParam.stereomode;
 		ono3d.setPers(1/2,HEIGHT/WIDTH/2)
