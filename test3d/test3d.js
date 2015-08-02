@@ -102,6 +102,7 @@ var Test3d=(function(){
 				break;
 			}
 			if(phyObjs===null){
+				onoPhy.phyObjs = [];
 				if(obj3d.scenes.length>0){
 					phyObjs=new Array();
 					var scene=obj3d.scenes[globalParam.scene];
@@ -165,7 +166,7 @@ var Test3d=(function(){
 		globalParam.step2=1;
 		globalParam.fps=30;
 		globalParam.scene=2;
-		globalParam.model="./raara.o3o?20150730";
+		globalParam.model="./raara.o3o";
 
 		//if(url.length==0){
 		//	url="model=raara.o3o&drawmethod=3&smoothing=1&outline=1";
@@ -186,6 +187,7 @@ var Test3d=(function(){
 	
 	var mainObj=createObj(mainObj);
 	var camera=createObj(defObj);
+	var viewMatrix=new Mat44();
 	var mainloop=function(){
 		var nowTime = new Date()
 		var obj;
@@ -225,6 +227,9 @@ var Test3d=(function(){
 		ono3d.rotate(-camera.a[1],0,1,0)
 		ono3d.translate(-camera.p[0],-camera.p[1],-camera.p[2])
 
+		Mat43.copy(viewMatrix,ono3d.viewMatrix);
+//		ono3d.loadIdentity();
+
 		ono3d.rf=0;
 		if(globalParam.outlineWidth>0.){
 			ono3d.lineWidth=globalParam.outlineWidth;
@@ -253,22 +258,35 @@ var Test3d=(function(){
 		}
 
 		Rastgl.set(ono3d);
+		Rastgl.renderShadowmap(ono3d);
+
 		globalParam.stereo=-globalParam.stereoscope * globalParam.stereomode;
 		ono3d.setPers(1/2,HEIGHT/WIDTH/2)
+
 		ono3d.projectionMat[8]=-globalParam.stereo/5;
 		ono3d.projectionMat[12]=globalParam.stereo;
+		//var zf=40;
+		//var zn=10;
+		//ono3d.projectionMat[10]=(zf+zn)/(zf-zn);
+		//ono3d.projectionMat[14]=-2*zn*zf/(zf-zn);
 
+		Mat43.copy(ono3d.viewMatrix,viewMatrix);
+		Mat44.dotMat44Mat43(ono3d.projectionMat,ono3d.projectionMat,viewMatrix);
+
+		globalParam.gl.viewport(0,0,WIDTH,HEIGHT);
 		globalParam.gl.viewport(0,0,WIDTH,HEIGHT);
 
 		ono3d.render(Util.ctx)
-		Rastgl.drawEmi(ono3d);
+		//Rastgl.drawEmi(ono3d);
 
-		globalParam.stereo=globalParam.stereoscope * globalParam.stereomode;
-		ono3d.projectionMat[8]=-globalParam.stereo/5;
-		ono3d.projectionMat[12]=globalParam.stereo;
-		globalParam.gl.viewport(WIDTH,0,WIDTH,HEIGHT);
-		ono3d.render(Util.ctx)
-		Rastgl.drawEmi(ono3d);
+//		globalParam.stereo=globalParam.stereoscope * globalParam.stereomode;
+//		ono3d.setPers(1/2,HEIGHT/WIDTH/2)
+//		ono3d.projectionMat[8]=-globalParam.stereo/5;
+//		ono3d.projectionMat[12]=globalParam.stereo;
+//		Mat44.dotMat44Mat43(ono3d.projectionMat,ono3d.projectionMat,viewMatrix);
+//		globalParam.gl.viewport(WIDTH,0,WIDTH,HEIGHT);
+//		ono3d.render(Util.ctx)
+//		Rastgl.drawEmi(ono3d);
 
 		ono3d.framebuffer();
 
@@ -341,7 +359,10 @@ var Test3d=(function(){
 
 	var light = new ono3d.LightSource()
 	light.type =Ono3d.LT_DIRECTION
-	Vec3.set(light.angle,-0.3,-0.5,-0.5);
+	Vec3.set(light.angle,-1,-1,-1);
+	Vec3.set(light.pos,5,10,5);
+	Vec3.set(light.angle,-1,-1,-1);
+	Vec3.set(light.pos,8,20,8);
 	light.power=1
 	light.color[0]=1
 	light.color[1]=1
@@ -358,22 +379,9 @@ var Test3d=(function(){
 	Vec3.set(camera.a,0,Math.PI,0)
 
 	span=document.getElementById("cons");
-	ret.setPhysics=function(flg){
-		globalParam.physics=flg;
-//		if(globalParam.physics === flg){
-//			return;
-//		}
-//		if(flg && obj3d.scenes){
-//			var obj=mainObj;
-//			ono3d.setTargetMatrix(1)
-//			ono3d.loadIdentity()
-//			ono3d.setTargetMatrix(0)
-//			ono3d.loadIdentity()
-//			ono3d.rotate(-Math.PI*0.5,1,0,0)
-//			ono3d.scale(-1,1,1)
-//			O3o.initPhyObjs(obj3d.scenes[0],0,phyObjs);
-//		}
-
+	ret.changeScene=function(){
+		phyObjs=null;
+		globalParam.physics_=false;
 	}
 	var homingCamera=function(angle,target,camera){
 		var dx=target[0]-camera[0]
