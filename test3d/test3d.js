@@ -1,11 +1,11 @@
 "use strict"
 var Test3d=(function(){
+	var ret={};
 	var HEIGHT=480,WIDTH=360
 	var canvas,canvasgl;
 	var ctx;
 	var div;
 	var obj3d;
-	var ret={};
 	var oldTime = 0
 	var span;
 	var mseccount=0;
@@ -18,6 +18,7 @@ var Test3d=(function(){
 	var PI=Math.PI
 	var OBJSLENGTH=1024;
 	var i;
+	var gl;
 	var onoPhy=null;
 
 	var STAT_EMPTY=0
@@ -114,6 +115,7 @@ var Test3d=(function(){
 					}
 				}
 			}
+			O3o.setFrame(obj3d,obj3d.scenes[globalParam.scene],(obj.t+1)*24/30);
 			if(phyObjs && globalParam.physics){
 				ono3d.setTargetMatrix(1)
 				ono3d.loadIdentity()
@@ -168,10 +170,6 @@ var Test3d=(function(){
 		globalParam.scene=2;
 		globalParam.model="./raara.o3o";
 
-		//if(url.length==0){
-		//	url="model=raara.o3o&drawmethod=3&smoothing=1&outline=1";
-		//}
-		
 		var args=url.split("&")
 
 		for(i=args.length;i--;){
@@ -228,7 +226,6 @@ var Test3d=(function(){
 		ono3d.translate(-camera.p[0],-camera.p[1],-camera.p[2])
 
 		Mat43.copy(viewMatrix,ono3d.viewMatrix);
-//		ono3d.loadIdentity();
 
 		ono3d.rf=0;
 		if(globalParam.outlineWidth>0.){
@@ -256,9 +253,10 @@ var Test3d=(function(){
 			ono3d.setTargetMatrix(1)
 			ono3d.pop();
 		}
+			
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-		Rastgl.set(ono3d);
-		Rastgl.renderShadowmap(ono3d);
+		Rastgl.renderShadowmap();
 		gl.flush();
 
 		globalParam.stereo=-globalParam.stereoscope * globalParam.stereomode;
@@ -266,28 +264,13 @@ var Test3d=(function(){
 
 		ono3d.projectionMat[8]=-globalParam.stereo/5;
 		ono3d.projectionMat[12]=globalParam.stereo;
-		//var zf=40;
-		//var zn=10;
-		//ono3d.projectionMat[10]=(zf+zn)/(zf-zn);
-		//ono3d.projectionMat[14]=-2*zn*zf/(zf-zn);
 
 		Mat43.copy(ono3d.viewMatrix,viewMatrix);
 		Mat44.dotMat44Mat43(ono3d.projectionMat,ono3d.projectionMat,viewMatrix);
 
 		globalParam.gl.viewport(0,0,WIDTH,HEIGHT);
-		globalParam.gl.viewport(0,0,WIDTH,HEIGHT);
 
 		ono3d.render(Util.ctx)
-		//Rastgl.drawEmi(ono3d);
-
-//		globalParam.stereo=globalParam.stereoscope * globalParam.stereomode;
-//		ono3d.setPers(1/2,HEIGHT/WIDTH/2)
-//		ono3d.projectionMat[8]=-globalParam.stereo/5;
-//		ono3d.projectionMat[12]=globalParam.stereo;
-//		Mat44.dotMat44Mat43(ono3d.projectionMat,ono3d.projectionMat,viewMatrix);
-//		globalParam.gl.viewport(WIDTH,0,WIDTH,HEIGHT);
-//		ono3d.render(Util.ctx)
-//		Rastgl.drawEmi(ono3d);
 
 		ono3d.framebuffer();
 
@@ -324,7 +307,7 @@ var Test3d=(function(){
 	canvasgl.height=HEIGHT;
 	parentnode.appendChild(canvasgl);
 	ctx=canvas.getContext("2d");
-	var gl = canvasgl.getContext('webgl') || canvasgl.getContext('experimental-webgl');
+	gl = canvasgl.getContext('webgl') || canvasgl.getContext('experimental-webgl');
 
 	Util.init(canvas,document.body);
 	var ono3d = new Ono3d()
@@ -341,7 +324,7 @@ var Test3d=(function(){
 
 
 	if(globalParam.enableGL){
-		Rastgl.init(gl);
+		Rastgl.init(gl,ono3d);
 		canvas.style.display="none";
 		canvasgl.style.display="inline";
 		Ono3d.setDrawMethod(3);
