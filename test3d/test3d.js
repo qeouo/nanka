@@ -2,24 +2,14 @@
 var Test3d=(function(){
 	var ret={};
 	var HEIGHT=480,WIDTH=360
-	var canvas,canvasgl;
-	var ctx;
-	var div;
 	var obj3d;
-	var oldTime = 0
-	var span;
-	var mseccount=0;
-	var framecount=0;
-	var camera;
-	var camerazoom=1;
-	var calcMat43=new Mat43();
-	var calcVec3=new Vec3();
-	var jikipos=new Vec3();
-	var PI=Math.PI
+	var PI=Math.PI;
 	var OBJSLENGTH=1024;
 	var i;
 	var gl;
 	var onoPhy=null;
+	var objs=[];
+	var phyObjs=null;
 
 	var STAT_EMPTY=0
 		,STAT_ENABLE=1
@@ -45,7 +35,6 @@ var Test3d=(function(){
 		this.t=0;
 		this.hitareas=[];
 		this.matrix=new Mat43();
-		this.calcMat43=new Mat43();
 	}	
 	var createObj = function(func){
 		for(i=0;i<OBJSLENGTH;i++){
@@ -72,7 +61,6 @@ var Test3d=(function(){
 		obj.stat=-10;
 	}
 	
-	var objs=[];
 	for(i=0;i<OBJSLENGTH;i++){
 		var obj=new Obj();
 		obj.num=i;
@@ -95,7 +83,6 @@ var Test3d=(function(){
 		}
 		return;
 	}
-	var phyObjs=null;
 	var mainObj=function(obj,msg,param){
 		switch(msg){
 		case MSG_MOVE:
@@ -121,7 +108,7 @@ var Test3d=(function(){
 				ono3d.loadIdentity()
 				ono3d.setTargetMatrix(0)
 				ono3d.loadIdentity()
-				ono3d.rotate(-Math.PI*0.5,1,0,0)
+				ono3d.rotate(-PI*0.5,1,0,0)
 
 				if(!globalParam.physics_){
 					O3o.initPhyObjs(obj3d.scenes[globalParam.scene],(obj.t+1)*24/30,phyObjs);
@@ -140,7 +127,7 @@ var Test3d=(function(){
 			ono3d.setTargetMatrix(0)
 			ono3d.loadIdentity()
 
-			ono3d.rotate(-Math.PI*0.5,1,0,0)
+			ono3d.rotate(-PI*0.5,1,0,0)
 			if(obj3d){
 				if(obj3d.scenes.length>0){
 					if(globalParam.physics){
@@ -185,7 +172,14 @@ var Test3d=(function(){
 	
 	var mainObj=createObj(mainObj);
 	var camera=createObj(defObj);
+	var camera2=createObj(defObj);
+	var camerazoom=1;
 	var viewMatrix=new Mat44();
+	var span;
+	var oldTime = 0;
+	var mseccount=0;
+	var framecount=0;
+	var vec3=new Vec3();
 	var mainloop=function(){
 		var nowTime = new Date()
 		var obj;
@@ -210,6 +204,18 @@ var Test3d=(function(){
 		if(globalParam.physics){
 			onoPhy.calc(1.0/globalParam.fps,globalParam.step2);
 		}
+
+		vec3[0]=mainObj.p[0]
+		vec3[1]=camera.p[1]
+		vec3[2]=mainObj.p[2]
+		camera2.p[0]=(Util.cursorX-WIDTH)/WIDTH*8;
+		camera2.p[1]=6;
+		camera2.p[2]=10-Math.pow((Util.cursorX-WIDTH)/WIDTH,2)*2;
+		camera.p[0]+=(camera2.p[0]-camera.p[0])*0.1
+		camera.p[1]+=(camera2.p[1]-camera.p[1])*0.1
+		camera.p[2]+=(camera2.p[2]-camera.p[2])*0.1
+		homingCamera(camera.a,vec3,camera.p);
+
 		for(i=0;i<OBJSLENGTH;i++){
 			if(objs[i].stat!==STAT_ENABLE)continue;
 			objs[i].t++;
@@ -225,7 +231,7 @@ var Test3d=(function(){
 		ono3d.rotate(-camera.a[1],0,1,0)
 		ono3d.translate(-camera.p[0],-camera.p[1],-camera.p[2])
 
-		Mat43.copy(viewMatrix,ono3d.viewMatrix);
+//		Mat43.copy(viewMatrix,ono3d.viewMatrix);
 
 		ono3d.rf=0;
 		if(globalParam.outlineWidth>0.){
@@ -253,7 +259,11 @@ var Test3d=(function(){
 			ono3d.setTargetMatrix(1)
 			ono3d.pop();
 		}
-			
+
+		gl.clearColor(ono3d.lightSources[1].color[0]
+			,ono3d.lightSources[1].color[1]
+			,ono3d.lightSources[1].color[2]
+			,1.0);
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
 		Rastgl.renderShadowmap();
@@ -262,11 +272,11 @@ var Test3d=(function(){
 		globalParam.stereo=-globalParam.stereoscope * globalParam.stereomode;
 		ono3d.setPers(1/2,HEIGHT/WIDTH/2)
 
-		ono3d.projectionMat[8]=-globalParam.stereo/5;
-		ono3d.projectionMat[12]=globalParam.stereo;
+//		ono3d.projectionMat[8]=-globalParam.stereo/5;
+//		ono3d.projectionMat[12]=globalParam.stereo;
 
-		Mat43.copy(ono3d.viewMatrix,viewMatrix);
-		Mat44.dotMat44Mat43(ono3d.projectionMat,ono3d.projectionMat,viewMatrix);
+		//Mat43.copy(ono3d.viewMatrix,viewMatrix);
+//		Mat44.dotMat44Mat43(ono3d.projectionMat,ono3d.projectionMat,viewMatrix);
 
 		globalParam.gl.viewport(0,0,WIDTH,HEIGHT);
 
@@ -298,15 +308,15 @@ var Test3d=(function(){
 
 	var div=document.createElement("div");
 	parentnode.appendChild(div);
-	canvas =document.createElement("canvas");
+	var canvas =document.createElement("canvas");
 	canvas.width=WIDTH;
 	canvas.height=HEIGHT;
 	parentnode.appendChild(canvas);
-	canvasgl =document.createElement("canvas");
+	var canvasgl =document.createElement("canvas");
 	canvasgl.width=WIDTH*2;
 	canvasgl.height=HEIGHT;
 	parentnode.appendChild(canvasgl);
-	ctx=canvas.getContext("2d");
+	var ctx=canvas.getContext("2d");
 	gl = canvasgl.getContext('webgl') || canvasgl.getContext('experimental-webgl');
 
 	Util.init(canvas,document.body);
@@ -325,7 +335,7 @@ var Test3d=(function(){
 
 	if(globalParam.enableGL){
 		Rastgl.init(gl,ono3d);
-		canvas.style.display="none";
+		canvas.style.width="0px";
 		canvasgl.style.display="inline";
 		Ono3d.setDrawMethod(3);
 	}else{
@@ -358,7 +368,7 @@ var Test3d=(function(){
 	light.color[2]=0.2
 	ono3d.lightSources.push(light)
 	Vec3.set(camera.p,0,6,10)
-	Vec3.set(camera.a,0,Math.PI,0)
+	Vec3.set(camera.a,0,PI,0)
 
 	span=document.getElementById("cons");
 	ret.changeScene=function(){
@@ -369,7 +379,7 @@ var Test3d=(function(){
 		var dx=target[0]-camera[0]
 		var dy=target[1]-camera[1]
 		var dz=target[2]-camera[2]
-		angle[0]=Math.atan2(dy,dz)+Math.PI;
+		angle[0]=Math.atan2(dy,Math.sqrt(dz*dz+dx*dx));
 		angle[1]=Math.atan2(dx,dz);
 		angle[2]=0;
 	}
