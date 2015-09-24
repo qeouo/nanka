@@ -231,8 +231,6 @@ var Test3d=(function(){
 		ono3d.rotate(-camera.a[1],0,1,0)
 		ono3d.translate(-camera.p[0],-camera.p[1],-camera.p[2])
 
-//		Mat43.copy(viewMatrix,ono3d.viewMatrix);
-
 		ono3d.rf=0;
 		if(globalParam.outlineWidth>0.){
 			ono3d.lineWidth=globalParam.outlineWidth;
@@ -271,14 +269,6 @@ var Test3d=(function(){
 
 		globalParam.stereo=-globalParam.stereoscope * globalParam.stereomode;
 		ono3d.setPers(1/2,HEIGHT/WIDTH/2)
-
-//		ono3d.projectionMat[8]=-globalParam.stereo/5;
-//		ono3d.projectionMat[12]=globalParam.stereo;
-
-		//Mat43.copy(ono3d.viewMatrix,viewMatrix);
-//		Mat44.dotMat44Mat43(ono3d.projectionMat,ono3d.projectionMat,viewMatrix);
-
-		globalParam.gl.viewport(0,0,WIDTH,HEIGHT);
 
 		ono3d.render(Util.ctx)
 
