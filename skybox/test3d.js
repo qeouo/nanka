@@ -273,7 +273,7 @@ var Test3d=(function(){
 	//drawEdge(ono3d);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.viewport(0,0,720,480);
-		ono3d.setPers(1/1,HEIGHT/WIDTH/1)
+		ono3d.setPers(1/0.75,HEIGHT/WIDTH/0.75)
 	ono3d.projectionMat[8]=0;
 	ono3d.projectionMat[12]=0;
 	Mat44.dotMat44Mat43(ono3d.projectionMat,ono3d.projectionMat,ono3d.viewMatrix);
