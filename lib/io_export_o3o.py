@@ -221,7 +221,7 @@ def WriteMaterial( Material=None):
     fileout("name:\"{}\";".format( Material.name))
     lst = list(Material.diffuse_color)
     fileout2(" r:{:9f};g:{:9f};b:{:9f};a:{:9f};".format( lst[0],lst[1],lst[2],Material.alpha))
-    fileout2(" dif:{:9f};".format( Material.diffuse_intensity*2))
+    fileout2(" dif:{:9f};".format( Material.diffuse_intensity))
     fileout2(" emt:{:9f};".format(Material.emit))
     lst = list(Material.mirror_color)
     if(Material.raytrace_mirror):
