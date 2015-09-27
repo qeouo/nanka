@@ -3,6 +3,7 @@ var Test3d=(function(){
 	var ret={};
 	var HEIGHT=480,WIDTH=360
 	var obj3d;
+	var skybox;
 	var PI=Math.PI;
 	var OBJSLENGTH=1024;
 	var i;
@@ -206,10 +207,10 @@ var Test3d=(function(){
 		}
 
 		vec3[0]=mainObj.p[0]
-		vec3[1]=camera.p[1]
+		vec3[1]=6//mainObj.p[1];
 		vec3[2]=mainObj.p[2]
 		camera2.p[0]=(Util.cursorX-WIDTH)/WIDTH*8;
-		camera2.p[1]=6;
+		camera2.p[1]=-(Util.cursorY-HEIGHT)/HEIGHT*6;
 		camera2.p[2]=10-Math.pow((Util.cursorX-WIDTH)/WIDTH,2)*2;
 		camera.p[0]+=(camera2.p[0]-camera.p[0])*0.1
 		camera.p[1]+=(camera2.p[1]-camera.p[1])*0.1
@@ -266,6 +267,14 @@ var Test3d=(function(){
 
 		Rastgl.renderShadowmap();
 		gl.flush();
+		
+		ono3d.setTargetMatrix(0)
+		ono3d.loadIdentity()
+		ono3d.scale(100,100,100);
+				ono3d.rotate(-PI*0.5,1,0,0)
+		if(skybox.objects.length>0){
+			O3o.drawObject(skybox.objects[1],null);
+		}
 
 		globalParam.stereo=-globalParam.stereoscope * globalParam.stereomode;
 		ono3d.setPers(1/2,HEIGHT/WIDTH/2)
@@ -336,6 +345,7 @@ var Test3d=(function(){
 	gl.clearColor(1, 1, 1,1.0);
 
 	obj3d=O3o.load(globalParam.model);
+	skybox=O3o.load("skybox.o3o");
 	
 	onoPhy = new OnoPhy();
 	Util.setFps(globalParam.fps,mainloop);
@@ -369,7 +379,7 @@ var Test3d=(function(){
 		var dx=target[0]-camera[0]
 		var dy=target[1]-camera[1]
 		var dz=target[2]-camera[2]
-		angle[0]=Math.atan2(dy,Math.sqrt(dz*dz+dx*dx));
+		angle[0]=-Math.atan2(dy,Math.sqrt(dz*dz+dx*dx));
 		angle[1]=Math.atan2(dx,dz);
 		angle[2]=0;
 	}
