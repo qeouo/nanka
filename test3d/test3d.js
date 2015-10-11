@@ -270,7 +270,7 @@ var Test3d=(function(){
 		
 		ono3d.setTargetMatrix(0)
 		ono3d.loadIdentity()
-		ono3d.scale(100,100,100);
+		ono3d.scale(50,50,50);
 				ono3d.rotate(-PI*0.5,1,0,0)
 		if(skybox.objects.length>0){
 			O3o.drawObject(skybox.objects[1],null);
