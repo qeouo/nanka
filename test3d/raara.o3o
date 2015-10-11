@@ -5,9 +5,9 @@ Textures 3[
    name:"Texture.003"; type:"IMAGE"; path:"//raara.png";
 ]
 Materials 3[
-  name:"a"; r: 0.800000;g: 0.800000;b: 0.800000;a: 1.000000; dif: 1.600000; emt: 5.000000; mrr: 0.000000; ior: 1.000000; spc: 0.500000;spchard:50; tex:"sairiumutex"; action:sairiumuAction.001;
-  name:"matbg"; r: 1.000000;g: 1.000000;b: 1.000000;a: 1.000000; dif: 1.000000; emt: 0.000000; mrr: 0.000000; ior: 1.000000; spc: 0.000000;spchard:50; tex:"bgtex";
-  name:"Material"; r: 0.999879;g: 1.000000;b: 1.000000;a: 1.000000; dif: 1.000000; emt: 0.000000; mrr: 0.000000; ior: 1.000000; spc: 0.000000;spchard:50; tex:"Texture.003";
+  name:"a"; r: 1.00000;g: 0.800000;b: 0.800000;a: 1.000000; dif: 1.00000; emt: 5.000000; mrr: 0.000000; ior: 1.000000; spc: 0.500000;spchard:50; tex:"sairiumutex"; action:sairiumuAction.001;
+  name:"matbg"; r: 1.000000;g: 1.000000;b: 1.000000;a: 1.000000; dif: 1.00000; emt: 0.000000; mrr: 0.000000; ior: 1.000000; spc: 0.000000;spchard:50; tex:"bgtex";
+  name:"Material"; r: 1.0;g: 1.000000;b: 1.000000;a: 1.000000; dif: 1.00000; emt: 0.000000; mrr: 0.000000; ior: 1.000000; spc: 0.000000;spchard:50; tex:"Texture.003";
 ]
 Meshes 18[
   Mesh{
@@ -1924,7 +1924,7 @@ Actions 3[
     ]
   }
 ]
-Objects 47[
+Objects 48[
   Object{
     Groups 2[
       name:"head";
@@ -2237,7 +2237,7 @@ Objects 47[
     ]
     PoseBones 52[
       target:"west";name:"west";location: 0.000000, 0.000000, 0.000000;rotation: 1.000000, 0.000000, 0.000000, 0.000000;scale: 1.000000, 1.000000, 1.000000;
-      target:"body";name:"body";parent:"west";location: 0.000000, 0.000000, 0.000000;rotation: 0.998318, 0.055898, 0.000000,-0.015401;scale: 1.000000, 1.000000, 1.000000;
+      target:"body";name:"body";parent:"west";location: 0.000000, 0.000000, 0.000000;rotation: 0.999767, 0.007730, 0.000000,-0.002130;scale: 1.000000, 1.000000, 1.000000;
       target:"neck";name:"neck";parent:"body";location: 0.000000, 0.000000, 0.000000;rotation: 0.992022,-0.009847,-0.096082,-0.081012;scale: 1.000000, 1.000000, 1.000000;
       target:"head";name:"head";parent:"neck";location: 0.000000, 0.000000, 0.000000;rotation: 1.000000, 0.000000, 0.000000, 0.000000;scale: 0.900000, 0.902242, 0.902242;
       target:"eye_R";name:"eye_R";parent:"head";location: 0.000000, 0.000000, 0.000000;rotation: 1.000000, 0.000000, 0.000000, 0.000000;scale: 1.000000, 1.000000, 1.000000;
@@ -2252,13 +2252,13 @@ Objects 47[
       target:"mabutaU_R";name:"mabutaU_R";parent:"head";location:-0.009716,-0.015649, 0.013440;rotation: 0.947496,-0.310883,-0.072872,-0.017125;scale: 1.000000, 1.000000, 1.000000;
       target:"mabutaS_L";name:"mabutaS_L";parent:"head";location: 0.000000, 0.000000, 0.000000;rotation: 1.000000, 0.000000, 0.000000, 0.000000;scale: 1.000000, 1.000000, 1.000000;
       target:"mabutaS_R";name:"mabutaS_R";parent:"head";location: 0.000000, 0.000000, 0.000000;rotation: 1.000000, 0.000000, 0.000000, 0.000000;scale: 1.000000, 1.000000, 1.000000;
-      target:"mabutaH_L";name:"mabutaH_L";parent:"head";location: 0.000000, 0.000000, 0.000000;rotation: 0.936495,-0.266097,-0.189819,-0.005766;scale: 1.000000, 1.000000, 1.000000;
-      target:"mabutaH_R";name:"mabutaH_R";parent:"head";location: 0.000000, 0.000000, 0.000000;rotation: 0.981039, 0.027551,-0.010376,-0.178569;scale: 1.000000, 1.000000, 1.000000;
-      target:"kuchiue";name:"kuchiue";parent:"neck";location: 0.000000, 0.000000, 0.000000;rotation: 0.996951, 0.029716,-0.015692, 0.010285;scale: 0.534370, 0.847580, 0.998839;
-      target:"kuchishita";name:"kuchishita";parent:"neck";location: 0.000000, 0.000000, 0.000000;rotation: 0.998157,-0.054113, 0.014578,-0.023172;scale: 0.519743, 0.959192, 0.899487;
+      target:"mabutaH_L";name:"mabutaH_L";parent:"head";location: 0.000000, 0.000000, 0.000000;rotation: 0.946089,-0.225896,-0.161142,-0.004895;scale: 1.000000, 1.000000, 1.000000;
+      target:"mabutaH_R";name:"mabutaH_R";parent:"head";location: 0.000000, 0.000000, 0.000000;rotation: 0.983904, 0.023389,-0.008808,-0.151592;scale: 1.000000, 1.000000, 1.000000;
+      target:"kuchiue";name:"kuchiue";parent:"neck";location: 0.000000, 0.000000, 0.000000;rotation: 0.986665,-0.050220, 0.027589, 0.006112;scale: 0.534370, 0.847580, 0.998839;
+      target:"kuchishita";name:"kuchishita";parent:"neck";location: 0.000000, 0.000000, 0.000000;rotation: 0.998710,-0.039012, 0.010216,-0.016338;scale: 0.519743, 0.959192, 0.899487;
       target:"shoulder.R";name:"shoulder.R";parent:"body";location: 0.000000, 0.000000, 0.000000;rotation: 1.000000, 0.000000, 0.000000, 0.000000;scale: 1.000000, 1.000000, 1.000000;
-      target:"arm1.R";name:"arm1.R";parent:"shoulder.R";location: 0.000000, 0.000000, 0.000000;rotation: 0.826608,-0.499961, 0.257977, 0.014323;scale: 1.000000, 1.000000, 1.000000;
-      target:"arm2.R";name:"arm2.R";parent:"arm1.R";location: 0.000000, 0.000000, 0.000000;rotation: 0.337683, 0.473064,-0.077851, 0.810013;scale: 1.000000, 1.000000, 1.000000;
+      target:"arm1.R";name:"arm1.R";parent:"shoulder.R";location: 0.000000, 0.000000, 0.000000;rotation: 0.786110,-0.451611, 0.397103, 0.137847;scale: 1.000000, 1.000000, 1.000000;
+      target:"arm2.R";name:"arm2.R";parent:"arm1.R";location: 0.000000, 0.000000, 0.000000;rotation: 0.450618, 0.442744,-0.150358, 0.758285;scale: 1.000000, 1.000000, 1.000000;
       target:"hand_R";name:"hand_R";parent:"arm2.R";location: 0.000000, 0.000000, 0.000000;rotation: 1.000000, 0.000000, 0.000000, 0.000000;scale: 1.000000, 1.000000, 1.000000;
       target:"koyubi_R";name:"koyubi_R";parent:"hand_R";location: 0.000000, 0.000000, 0.000000;rotation: 0.883112,-0.460909, 0.076480, 0.042746;scale: 1.000000, 1.000000, 1.000000;
       target:"koyubi2_R";name:"koyubi2_R";parent:"koyubi_R";location: 0.000000, 0.000000, 0.000000;rotation: 0.566920,-0.782807, 0.252903, 0.043075;scale: 1.000000, 1.000000, 1.000000;
@@ -2270,8 +2270,8 @@ Objects 47[
       target:"hitosashi2_R";name:"hitosashi2_R";parent:"hitosashi_R";location: 0.000000, 0.000000, 0.000000;rotation: 0.566920,-0.760523, 0.313610, 0.043075;scale: 1.000000, 1.000000, 1.000000;
       target:"oya_R";name:"oya_R";parent:"hand_R";location: 0.000000, 0.000000, 0.000000;rotation: 0.955013,-0.088641, 0.167780,-0.227909;scale: 1.000000, 1.000000, 1.000000;
       target:"shoulder.L";name:"shoulder.L";parent:"body";location: 0.000000, 0.000000, 0.000000;rotation: 1.000000, 0.000000, 0.000000, 0.000000;scale: 1.000000, 1.000000, 1.000000;
-      target:"arm1.L";name:"arm1.L";parent:"shoulder.L";location: 0.000000, 0.000000, 0.000000;rotation: 0.774837,-0.537227,-0.227400,-0.215654;scale: 1.000000, 1.000000, 1.000000;
-      target:"arm2.L";name:"arm2.L";parent:"arm1.L";location: 0.000000, 0.000000, 0.000000;rotation: 0.400807,-0.033989, 0.120003,-0.907633;scale: 1.000000, 1.000000, 1.000000;
+      target:"arm1.L";name:"arm1.L";parent:"shoulder.L";location: 0.000000, 0.000000, 0.000000;rotation: 0.747375,-0.568188,-0.245017,-0.213159;scale: 1.000000, 1.000000, 1.000000;
+      target:"arm2.L";name:"arm2.L";parent:"arm1.L";location: 0.000000, 0.000000, 0.000000;rotation: 0.396250,-0.020409, 0.073533,-0.914754;scale: 1.000000, 1.000000, 1.000000;
       target:"hand_L";name:"hand_L";parent:"arm2.L";location: 0.000000, 0.000000, 0.000000;rotation: 1.000000, 0.000000, 0.000000, 0.000000;scale: 1.000000, 1.000000, 1.000000;
       target:"koyubi_L";name:"koyubi_L";parent:"hand_L";location: 0.000000, 0.000000, 0.000000;rotation: 0.914434,-0.354252, 0.195737,-0.001924;scale: 1.000000, 1.000000, 1.000000;
       target:"koyubi2_L";name:"koyubi2_L";parent:"koyubi_L";location: 0.000000, 0.000000, 0.000000;rotation: 0.634929,-0.710217,-0.169759,-0.252268;scale: 1.000000, 1.000000, 1.000000;
@@ -2282,17 +2282,17 @@ Objects 47[
       target:"hitosashi_L";name:"hitosashi_L";parent:"hand_L";location: 0.000000, 0.000000, 0.000000;rotation: 1.000000, 0.000000, 0.000000, 0.000000;scale: 1.000000, 1.000000, 1.000000;
       target:"hitosashi2_L";name:"hitosashi2_L";parent:"hitosashi_L";location: 0.000000, 0.000000, 0.000000;rotation: 0.634929,-0.694688,-0.225022,-0.252268;scale: 1.000000, 1.000000, 1.000000;
       target:"oya_L";name:"oya_L";parent:"hand_L";location: 0.000000, 0.000000, 0.000000;rotation: 1.000000, 0.000000, 0.000000, 0.000000;scale: 1.000000, 1.000000, 1.000000;
-      target:"leg.R";name:"leg.R";parent:"west";location: 0.000000, 0.000000, 0.000000;rotation: 0.984435,-0.165097,-0.004038,-0.019370;scale: 1.000000, 1.000000, 1.000000;
-      target:"leg2.R";name:"leg2.R";parent:"leg.R";location: 0.000000, 0.000000, 0.000000;rotation: 0.900468,-0.420018,-0.002827,-0.039853;scale: 1.000000, 1.000000, 1.000000;
-      target:"foot.R";name:"foot.R";parent:"leg2.R";location:-0.001689, 0.002153,-0.018122;rotation: 0.969159, 0.251024,-0.006442, 0.001334;scale: 1.000000, 1.000000, 1.000000;
-      target:"leg.L";name:"leg.L";parent:"west";location: 0.000000, 0.000000, 0.000000;rotation: 0.986165,-0.155640, 0.009242, 0.014264;scale: 1.000000, 1.000000, 1.000000;
-      target:"leg2.L";name:"leg2.L";parent:"leg.L";location: 0.000000, 0.000000, 0.000000;rotation: 0.921133,-0.367634, 0.000705, 0.021833;scale: 1.000000, 1.000000, 1.000000;
-      target:"foot.L";name:"foot.L";parent:"leg2.L";location: 0.000519,-0.000035, 0.018283;rotation: 0.976413, 0.219655, 0.017805, 0.005326;scale: 1.000000, 1.000000, 1.000000;
+      target:"leg.R";name:"leg.R";parent:"west";location: 0.000000, 0.000000, 0.000000;rotation: 0.997640,-0.041703,-0.001286,-0.003223;scale: 1.000000, 1.000000, 1.000000;
+      target:"leg2.R";name:"leg2.R";parent:"leg.R";location: 0.000000, 0.000000, 0.000000;rotation: 0.976309,-0.188459,-0.001686,-0.008737;scale: 1.000000, 1.000000, 1.000000;
+      target:"foot.R";name:"foot.R";parent:"leg2.R";location: 0.000032, 0.003386, 0.023585;rotation: 0.988763, 0.143968,-0.006442,-0.000269;scale: 1.000000, 1.000000, 1.000000;
+      target:"leg.L";name:"leg.L";parent:"west";location: 0.000000, 0.000000, 0.000000;rotation: 0.998027,-0.031674, 0.001669, 0.002265;scale: 1.000000, 1.000000, 1.000000;
+      target:"leg2.L";name:"leg2.L";parent:"leg.L";location: 0.000000, 0.000000, 0.000000;rotation: 0.986919,-0.112008, 0.000705, 0.004532;scale: 1.000000, 1.000000, 1.000000;
+      target:"foot.L";name:"foot.L";parent:"leg2.L";location: 0.000519,-0.006736,-0.022866;rotation: 0.992699, 0.113607, 0.006691, 0.001082;scale: 1.000000, 1.000000, 1.000000;
     ]
-    location: 0.000000,-0.066956, 4.847489
-    rotation: 0.000000, 0.000000,-0.268849
+    location: 0.000000,-0.230024, 5.107549
+    rotation: 0.000000, 0.000000, 0.000000
     scale: 1.000000, 1.000000, 1.000000
-    matrix: 0.964077,-0.265622, 0.000000, 0.000000, 0.265622, 0.964077, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000,-0.066956, 4.847489, 1.000000
+    matrix: 1.000000, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000,-0.230024, 5.107549, 1.000000
     iparentmatrix: 1.000000, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000
     name:armature.001
     type:ARMATURE
@@ -2310,6 +2310,20 @@ Objects 47[
     matrix: 8.832498, 0.000000, 0.000000, 0.000000, 0.000000, 8.832498, 0.000000, 0.000000, 0.000000, 0.000000, 0.713670, 0.000000, 0.000000, 0.000000,-0.804464, 1.000000
     iparentmatrix: 1.000000, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000
     name:bg
+    type:MESH
+    data:rippou
+    modifiers 0[
+    ]
+  ]
+  Object{
+    Groups 0[
+    ]
+    location: 0.000000, 0.000000,-0.182203
+    rotation: 0.000000, 0.000000, 0.000000
+    scale: 8.832498, 8.832498, 0.713670
+    matrix: 8.832498, 0.000000, 0.000000, 0.000000, 0.000000, 8.832498, 0.000000, 0.000000, 0.000000, 0.000000, 0.713670, 0.000000, 0.000000, 0.000000,-0.182203, 1.000000
+    iparentmatrix: 1.000000, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000
+    name:bg.001
     type:MESH
     data:rippou
     modifiers 0[
@@ -3134,12 +3148,12 @@ Scenes 3[
     name:cylume
     frame_start:0
     frame_end:140
-    Objects 21["Camera.001","Area.001","armature.001","sho.001","face.001","hair2.001","ribbon.001","bonbon.001","mayu.001","leg.001","Cylinder2.001","Cylinder.001","cyalume.001","hair.001","ti.001","arm.001","ahogeFront.001","ahoge_L.001","ahoge_R.001","eye.001","Sun.001"]
+    Objects 22["bg.001","Camera.001","Area.001","armature.001","sho.001","face.001","hair2.001","ribbon.001","bonbon.001","mayu.001","leg.001","Cylinder2.001","Cylinder.001","cyalume.001","hair.001","ti.001","arm.001","ahogeFront.001","ahoge_L.001","ahoge_R.001","eye.001","Sun.001"]
   }
   Scene{
     name:normal
     frame_start:0
     frame_end:140
-    Objects 21["Camera.001","Area.002","armature.001","sho.001","face.001","eye.001","hair2.001","ribbon.001","bonbon.001","mayu.001","leg.001","Cylinder2.001","Cylinder.001","bodyNormal.001","hair.001","ti.001","arm.001","ahogeFront.001","ahoge_L.001","ahoge_R.001","Sun.002"]
+    Objects 22["bg.001","Camera.001","Area.002","armature.001","sho.001","face.001","eye.001","hair2.001","ribbon.001","bonbon.001","mayu.001","leg.001","Cylinder2.001","Cylinder.001","bodyNormal.001","hair.001","ti.001","arm.001","ahogeFront.001","ahoge_L.001","ahoge_R.001","Sun.002"]
   }
 ]

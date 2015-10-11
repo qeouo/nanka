@@ -156,6 +156,7 @@ var Test3d=(function(){
 		globalParam.step2=1;
 		globalParam.fps=30;
 		globalParam.scene=2;
+		globalParam.shadow=1;
 		globalParam.model="./raara.o3o";
 
 		var args=url.split("&")
@@ -273,7 +274,7 @@ var Test3d=(function(){
 		ono3d.scale(50,50,50);
 				ono3d.rotate(-PI*0.5,1,0,0)
 		if(skybox.objects.length>0){
-			O3o.drawObject(skybox.objects[1],null);
+		//	O3o.drawObject(skybox.objects[1],null);
 		}
 
 		globalParam.stereo=-globalParam.stereoscope * globalParam.stereomode;
