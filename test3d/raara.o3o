@@ -1959,7 +1959,7 @@ Objects 48[
     type:MESH
     data:meshAhoge_L
     modifiers 2[
-      name:"ソフトボディ";type:"SOFT_BODY";pin:"pin";mass: 0.100000;friction:10.000000;speed: 1.000000;goalDefault: 0.700000;edgePull: 0.500000;edgePush: 0.500000;edgeDamping: 0.500000;
+      name:"ソフトボディ";type:"SOFT_BODY";pin:"pin";mass: 1.000000;friction: 0.500000;speed: 1.000000;goalDefault: 0.700000;edgePull: 0.500000;edgePush: 0.500000;edgeDamping: 0.500000;
       name:"アーマチュア";type:"ARMATURE";object:"armature.001";vertex_group:"";
     ]
   ]
@@ -1979,7 +1979,7 @@ Objects 48[
     data:meshAhoge_R
     modifiers 2[
       name:"アーマチュア";type:"ARMATURE";object:"armature";vertex_group:"";
-      name:"ソフトボディ";type:"SOFT_BODY";pin:"pin";mass: 0.100000;friction:10.000000;speed: 1.000000;goalDefault: 0.700000;edgePull: 0.500000;edgePush: 0.500000;edgeDamping: 1.000000;
+      name:"ソフトボディ";type:"SOFT_BODY";pin:"pin";mass: 1.00000;friction:.500000;speed: 1.000000;goalDefault: 0.700000;edgePull: 0.500000;edgePush: 0.500000;edgeDamping: 1.000000;
     ]
   ]
   Object{
@@ -1998,7 +1998,7 @@ Objects 48[
     data:meshAhoge_R
     modifiers 2[
       name:"アーマチュア";type:"ARMATURE";object:"armature.001";vertex_group:"";
-      name:"ソフトボディ";type:"SOFT_BODY";pin:"pin";mass: 0.100000;friction:10.000000;speed: 1.000000;goalDefault: 0.700000;edgePull: 0.500000;edgePush: 0.500000;edgeDamping: 1.000000;
+      name:"ソフトボディ";type:"SOFT_BODY";pin:"pin";mass: 1.00000;friction:0.500000;speed: 1.000000;goalDefault: 0.700000;edgePull: 0.500000;edgePush: 0.500000;edgeDamping: 1.000000;
     ]
   ]
   Object{
@@ -2016,7 +2016,7 @@ Objects 48[
     type:MESH
     data:meshAhogeFront
     modifiers 2[
-      name:"ソフトボディ";type:"SOFT_BODY";pin:"pin";mass: 0.500000;friction:10.000000;speed: 1.000000;goalDefault: 0.700000;edgePull: 0.500000;edgePush: 0.500000;edgeDamping: 0.500000;
+      name:"ソフトボディ";type:"SOFT_BODY";pin:"pin";mass: 0.500000;friction:0.500000;speed: 1.000000;goalDefault: 0.700000;edgePull: 0.500000;edgePush: 0.500000;edgeDamping: 0.500000;
       name:"アーマチュア";type:"ARMATURE";object:"armature";vertex_group:"";
     ]
   ]
@@ -2035,7 +2035,7 @@ Objects 48[
     type:MESH
     data:meshAhogeFront
     modifiers 2[
-      name:"ソフトボディ";type:"SOFT_BODY";pin:"pin";mass: 0.500000;friction:10.000000;speed: 1.000000;goalDefault: 0.700000;edgePull: 0.500000;edgePush: 0.500000;edgeDamping: 0.500000;
+      name:"ソフトボディ";type:"SOFT_BODY";pin:"pin";mass: 0.500000;friction:0.500000;speed: 1.000000;goalDefault: 0.700000;edgePull: 0.500000;edgePush: 0.500000;edgeDamping: 0.500000;
       name:"アーマチュア";type:"ARMATURE";object:"armature.001";vertex_group:"";
     ]
   ]
@@ -2362,7 +2362,7 @@ Objects 48[
     modifiers 3[
       name:"Mirror";type:"MIRROR";use_x:True;use_y:False;use_z:False;
       name:"Armature";type:"ARMATURE";object:"armature";vertex_group:"";
-      name:"Cloth";type:"CLOTH";pin:"clothpin";mass:"0.30000001192092896";structural:"15.0";bending_stiffness:"0.5";spring_damping:"5.0";air_damping:"1.0";vel_damping:"1.0";
+      name:"Cloth";type:"CLOTH";pin:"clothpin";mass:"0.30000001192092896";structural:"15.0";bending_stiffness:"10.0";spring_damping:"5.0";air_damping:"1.0";vel_damping:"1.0";
     ]
   ]
   Object{
@@ -2538,21 +2538,20 @@ Objects 48[
   ]
   Object{
     hide_render: True
-    Groups 1[
-      name:"leg.L";
+    Groups 0[
     ]
     location: 0.424652, 0.000000,-1.613678
     rotation: 0.000000, 0.000000, 0.000000
     scale: 0.299346, 0.299346, 0.815544
     matrix: 0.299346, 0.000000, 0.000000, 0.000000, 0.000000, 0.299346, 0.000000, 0.000000, 0.000000, 0.000000, 0.815544, 0.000000, 0.424652, 0.000000,-1.613678, 1.000000
-    parent:leg
+    parent:armature
+    parent_bone:leg.L
     iparentmatrix: 0.999999, 0.001460, 0.000000, 0.000000,-0.001460, 0.999999, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000
     name:Cylinder
     type:MESH
     data:meshCylinder
     modifiers 2[
       name:"Collision";type:"COLLISION";
-      name:"Armature";type:"ARMATURE";object:"armature";vertex_group:"leg.L";
     ]
   ]
   Object{
@@ -2576,21 +2575,20 @@ Objects 48[
   ]
   Object{
     hide_render: True
-    Groups 1[
-      name:"leg.L";
+    Groups 0[
     ]
     location:-0.409225, 0.000000,-1.613678
     rotation: 0.000000, 0.000000, 0.000000
     scale: 0.299346, 0.299346, 0.815544
     matrix: 0.299346, 0.000000, 0.000000, 0.000000, 0.000000, 0.299346, 0.000000, 0.000000, 0.000000, 0.000000, 0.815544, 0.000000,-0.409225, 0.000000,-1.613678, 1.000000
-    parent:leg
+    parent:armature
+    parent_bone:leg.R
     iparentmatrix: 0.999999, 0.001460, 0.000000, 0.000000,-0.001460, 0.999999, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000
     name:Cylinder2
     type:MESH
     data:meshCylinder
     modifiers 2[
       name:"Collision";type:"COLLISION";
-      name:"Armature";type:"ARMATURE";object:"armature";vertex_group:"leg.L";
     ]
   ]
   Object{
@@ -3133,7 +3131,7 @@ Objects 48[
     data:meshTi
     modifiers 2[
       name:"アーマチュア";type:"ARMATURE";object:"armature.001";vertex_group:"";
-      name:"ソフトボディ";type:"SOFT_BODY";pin:"pin";mass: 0.100000;friction: 5.000000;speed: 1.000000;goalDefault: 0.700000;edgePull: 0.500000;edgePush: 0.500000;edgeDamping: 0.500000;
+      name:"ソフトボディ";type:"SOFT_BODY";pin:"pin";mass: 1.000000;friction: 0.500000;speed: 1.000000;goalDefault: 0.500000;edgePull: 0.500000;edgePush: 0.500000;edgeDamping: 0.500000;
     ]
   ]
 ]

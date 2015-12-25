@@ -90,11 +90,11 @@ var Test3d=(function(){
 			if(obj3d.scenes.length===0){
 				break;
 			}
+			var scene= obj3d.scenes[globalParam.scene];
 			if(phyObjs===null){
 				onoPhy.phyObjs = [];
 				if(obj3d.scenes.length>0){
 					phyObjs=new Array();
-					var scene=obj3d.scenes[globalParam.scene];
 					for(i=0;i<scene.objects.length;i++){
 						var phyobj=O3o.createPhyObjs(scene.objects[i],onoPhy);
 						if(phyobj){
@@ -103,7 +103,8 @@ var Test3d=(function(){
 					}
 				}
 			}
-			O3o.setFrame(obj3d,obj3d.scenes[globalParam.scene],(obj.t+1)*24/30);
+			//O3o.setFrame(obj3d,scene,(obj.t+1)*24/30);
+			O3o.setFrame(obj3d,scene,timer/1000.0*24);
 			if(phyObjs && globalParam.physics){
 				ono3d.setTargetMatrix(1)
 				ono3d.loadIdentity()
@@ -112,12 +113,13 @@ var Test3d=(function(){
 				ono3d.rotate(-PI*0.5,1,0,0)
 
 				if(!globalParam.physics_){
-					O3o.initPhyObjs(obj3d.scenes[globalParam.scene],(obj.t+1)*24/30,phyObjs);
+					
+					O3o.initPhyObjs(scene,phyObjs);
 					globalParam.physics_=true;
 				}
 				globalParam.physics_=globalParam.physics;
 
-				O3o.movePhyObjs(obj3d.scenes[globalParam.scene],(obj.t+1)*24/globalParam.fps,phyObjs)
+				O3o.movePhyObjs(scene,(obj.t+1)*24/globalParam.fps,phyObjs)
 			}else{
 				globalParam.physics_=false;
 			}
@@ -182,8 +184,12 @@ var Test3d=(function(){
 	var mseccount=0;
 	var framecount=0;
 	var vec3=new Vec3();
+	var inittime=0;
+	var timer=0;
 	var mainloop=function(){
-		var nowTime = new Date()
+		var nowTime = Date.now()
+		timer=nowTime-inittime;
+		
 		var obj;
 
 		if(obj3d.objects.length<=0){
@@ -260,24 +266,18 @@ var Test3d=(function(){
 			ono3d.pop();
 		}
 
-		gl.clearColor(ono3d.lightSources[1].color[0]
-			,ono3d.lightSources[1].color[1]
-			,ono3d.lightSources[1].color[2]
-			,1.0);
-		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
 		Rastgl.renderShadowmap();
-		gl.flush();
 		
-		ono3d.setTargetMatrix(0)
-		ono3d.loadIdentity()
-		ono3d.scale(50,50,50);
-				ono3d.rotate(-PI*0.5,1,0,0)
 		if(skybox.objects.length>0){
-		//	O3o.drawObject(skybox.objects[1],null);
+			ono3d.setTargetMatrix(0)
+			ono3d.loadIdentity()
+			ono3d.translate(camera.p[0],camera.p[1],camera.p[2])
+			ono3d.scale(50,50,50);
+			ono3d.rotate(-PI*0.5,1,0,0)
+			O3o.drawObject(skybox.objects[1],null);
 		}
 
-		globalParam.stereo=-globalParam.stereoscope * globalParam.stereomode;
+		globalParam.stereo=-globalParam.stereoscope * globalParam.stereomode*0.7;
 		ono3d.setPers(1/2,HEIGHT/WIDTH/2)
 
 		ono3d.render(Util.ctx)
@@ -285,9 +285,10 @@ var Test3d=(function(){
 		ono3d.framebuffer();
 
 		ono3d.clear()
+		gl.finish();
 
 
-		mseccount += (new Date() - nowTime)
+		mseccount += (Date.now() - nowTime)
 		framecount++
 		if(nowTime-oldTime > 1000){
 			var mspf=0;
@@ -370,6 +371,7 @@ var Test3d=(function(){
 	ono3d.lightSources.push(light)
 	Vec3.set(camera.p,0,6,10)
 	Vec3.set(camera.a,0,PI,0)
+	inittime=Date.now();
 
 	span=document.getElementById("cons");
 	ret.changeScene=function(){

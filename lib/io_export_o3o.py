@@ -142,6 +142,8 @@ def ExportOno3dObject():
             fileout("matrix:{}\n".format(stringMatrix(obj.matrix_basis)))
         if(obj.parent):
             fileout("parent:{}\n".format(obj.parent.name))
+        if(obj.parent_bone):
+            fileout("parent_bone:{}\n".format(obj.parent_bone))
         fileout("iparentmatrix:{}\n".format(stringMatrix(obj.matrix_parent_inverse)))
         fileout("name:{}\n".format(obj.name))
         fileout("type:{}\n".format(obj.type))
@@ -262,6 +264,7 @@ def WriteArmatureBones(Armature):
 
         fileout("matrix:{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f}\n".format( BoneMatrix[0][0], BoneMatrix[1][0], BoneMatrix[2][0], BoneMatrix[3][0],BoneMatrix[0][1], BoneMatrix[1][1], BoneMatrix[2][1], BoneMatrix[3][1],BoneMatrix[0][2], BoneMatrix[1][2], BoneMatrix[2][2], BoneMatrix[3][2],BoneMatrix[0][3], BoneMatrix[1][3], BoneMatrix[2][3], BoneMatrix[3][3]))
 
+        fileout("length:{:9f} \n".format( Bone.length))
 
         fileoutMd()
     fileoutLd()
