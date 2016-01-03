@@ -1,4 +1,4 @@
-<html
+<html>
 <head>
 <title>skybox convert</title>
 </head>
@@ -44,17 +44,17 @@ var convert=function(){
 		polerAngle2Uv
 		,boxAngle2Uv
 		,sphereAngle2Uv
-		,poler2Angle2Uv
 		,exAngle2Uv
-	][document.getElementById("fromtype").value];
+		,box2Angle2Uv
+	][document.getElementById("fromtype").selectedIndex];
 
 	var uv2angle=[
 		polerUv2Angle
 		,boxUv2Angle
 		,sphereUv2Angle
-		,poler2Uv2Angle
 		,exUv2Angle
-	][document.getElementById("totype").value];
+		,box2Uv2Angle
+	][document.getElementById("totype").selectedIndex];
 
 	for(y=0;y<dstheight;y++){
 		for(x=0;x<dstwidth;x++){
@@ -82,44 +82,33 @@ var convert=function(){
 	document.getElementById("i").src=canvas.toDataURL("image/png");
 //		});
 }
+var atan2=Math.atan2;
+var asin=Math.asin;
+var PI=Math.PI;
+var _PI = 1/PI;
+var _PI05=_PI*0.5;
+var sqrt=Math.sqrt;
+var _sqrt2=1.0/Math.sqrt(2);
+var sqrt32=Math.sqrt(32);
+var _sqrt32=sqrt(1/32);
+
 var polerAngle2Uv=function(uv,angle){
-	uv[0]=-Math.atan2(angle[0],angle[2])/Math.PI*0.5;
-	if(uv[0]<0)uv[0]+=1;
-	if(uv[0]>1)uv[0]-=1;
-	uv[1]=-Math.asin(angle[1])/Math.PI+0.5;
-	if(uv[1]<0)uv[1]+=1;
-	if(uv[1]>1)uv[1]-=1;
+	uv[0]=atan2(angle[0],-angle[2])*_PI05+0.5;
+	uv[1]=-asin(angle[1])*_PI+0.5;
 }
 var polerUv2Angle=function(angle,uv){
 	angle[1]=-Math.sin((uv[1]-0.5)*Math.PI)
-	var l=Math.sqrt(1-angle[1]*angle[1])
-	var r=-uv[0]*Math.PI*2
-	angle[0]=Math.sin(r)*l
-	angle[2]=Math.cos(r)*l
-}
-var poler2Angle2Uv=function(uv,angle){
-	uv[0]=-Math.atan2(angle[0],angle[2])/Math.PI*0.5;
-	uv[1]=-Math.asin(angle[1])/Math.PI+0.5;
-}
-var poler2Uv2Angle=function(angle,uv){
-	angle[1]=-Math.sin((uv[1]-0.5)*Math.PI)
-	var l=Math.sqrt(1-angle[1]*angle[1])
+	var l=sqrt(1-angle[1]*angle[1])
 	var r=-uv[0]*Math.PI*2
 	angle[0]=Math.sin(r)*l
 	angle[2]=Math.cos(r)*l
 }
 var sphereAngle2Uv=function(uv,angle){
-	var l=1//(angle[0]*angle[0]+angle[2]*angle[2])
-	uv[0]=angle[0]*l
-	uv[1]=angle[2]*l
 
-	uv[0]=uv[0]*0.5+0.5;
-	uv[1]=uv[1]*0.5+0.5;
+	uv[0]=angle[0]*0.5+0.5;
+	uv[1]=angle[2]*0.5+0.5;
 
-	uv[0]*=0.5;
-	if(angle[1]>0){
-		uv[0]+=0.5;
-	}
+	uv[0]=(uv[0]+(((-angle[1]*(1<<30))>>30)&1))*0.5;
 }
 var sphereUv2Angle=function(angle,uv){
 	var u=uv[0];
@@ -138,7 +127,7 @@ var sphereUv2Angle=function(angle,uv){
 		angle[1]=0;
 		Vec3.norm(angle);
 	}else{
-		angle[1]=-Math.sqrt(1-angle[0]*angle[0]-angle[2]*angle[2]);
+		angle[1]=-sqrt(1-angle[0]*angle[0]-angle[2]*angle[2]);
 	}
 	if(u>0.5){
 		angle[1]*=-1;
@@ -233,52 +222,121 @@ var boxUv2Angle=function(angle,uv){
 }
 
 var exUv2Angle=function(angle,uv){
-	var a=((uv[0]+0.125)*4)|0;
-	angle[1]=1.0-2.0*uv[1];
-	var len=8/Math.sqrt(2)//*Math.sqrt(1-angle[1]*angle[1]);
-	switch(a){
-	case 0:
-	case 4:
-		angle[0]=-(uv[0]-0.25*a)*len;
-		angle[2]=Math.sqrt(1-angle[1]*angle[1]-angle[0]*angle[0])
-		break;
-	case 1:
-		angle[2]=-(uv[0]-0.25*a)*len;
-		angle[0]=-Math.sqrt(1-angle[1]*angle[1]-angle[2]*angle[2])
-		break;
-	case 2:
-		angle[0]=(uv[0]-0.25*a)*len;
-		angle[2]=-Math.sqrt(1-angle[1]*angle[1]-angle[0]*angle[0])
-		break;
-	case 3:
-		angle[2]=(uv[0]-0.25*a)*len;
-		angle[0]=Math.sqrt(1-angle[1]*angle[1]-angle[2]*angle[2])
-		break;
+	var quad=((uv[0]+0.125)*4)|0;
+	var y=1.0-2.0*uv[1];
+
+	var val=((quad&2)-1)*(uv[0]-0.25*quad)*sqrt32;
+	if(0<=(val*val)*2+y*y-1){
+		angle[0]=0;
+		angle[1]=-0.9;
+		angle[2]=0;
+	}else{
+		angle[1]=y;
+		angle[(quad&1)<<1]=val;
+		angle[((~quad)&1)<<1]=(((quad-1)&2)-1)*sqrt(1-y*y-val*val)
 	}
 }
-var exAngle2Uv=function(angle,uv){
-	var sx=angle[0]*angle[0]-angle[2]*angle[2]
-	var sy=(angle[1]>>30)&0x1
+var exAngle2Uv=function(uv,angle){
 	
-	Vec3.norm(angle);
+	uv[1]=(1-angle[1])*0.5;
+	var a=angle[0]*angle[0]*(1<<30)
+	var b=angle[2]*angle[2]*(1<<30)
+	var sign=((a-b)>>30)&1
+	var sign2=((angle[0]*(1<<30))>>30)&1
+	var sign3=((angle[2]*(1<<30))>>30)&1
+	var u =-angle[0]*(1-sign3*2)*(sign)+angle[2]*(1-sign2*2)*(1-sign)
+
+	var quad=sign3*2*sign+(1-sign)*((1-sign2)*2+1);
+	uv[0]=quad*0.25+u*_sqrt32
+	if(uv[0]<0){
+		uv[0]+=1;
+	}
+	
 }
+var box2Angle2Uv=function(uv,angle){
+	var s1=(angle[0]*angle[0]-angle[1]*angle[1])*(1<<30)&1;
+	var s2=(angle[1]*angle[1]-angle[2]*angle[2])*(1<<30)&1;
+	var s3=(angle[1]*angle[1]-angle[2]*angle[2])*(1<<30)&1;
+	var s2=angle[0]*angle[0]-angle[2]*angle[2];
+	s2=s2*(1<<30)&1;
+	var yy=uv[1]*2|0;
+	var u=(uv[0]-(xx*0.25)-0.125)*8*_sqrt2;
+	var v=(uv[1]-(yy*0.5)-0.25)*4*_sqrt2;
+	var n=Math.sqrt(1-u*u-v*v)
+	
+	var s1=(xx&1);
+	var s4=(yy&1);
+	var s2=(1-s1)*((xx&2)-1)*(1-s4);
+	var s3=(s1)*(((xx-1)&2)-1)*(1-s4);
+	var s5=s4*((xx&2)-1)
+
+	angle[0]=(s2*u + s3*n) + (s5)*u;
+	angle[1]=(-v)*(1-s4) +s5*n;
+	angle[2]=(-s2*n + s3*u) -s4*v ;
+
+	uv[0]=u;
+	uv[1]=v;
+
+}
+var box2Uv2Angle=function(angle,uv){
+	var xx=uv[0]*4|0;
+	var yy=uv[1]*2|0;
+	var u=(uv[0]-(xx*0.25)-0.125)*8*_sqrt2;
+	var v=(uv[1]-(yy*0.5)-0.25)*4*_sqrt2;
+	var n=Math.sqrt(1-u*u-v*v)
+	
+	var s1=(xx&1);
+	var s4=(yy&1);
+	var s2=(1-s1)*((xx&2)-1)*(1-s4);
+	var s3=(s1)*(((xx-1)&2)-1)*(1-s4);
+	var s5=s4*((xx&2)-1)
+
+	angle[0]=(s2*u + s3*n) + (s5)*u;
+	angle[1]=(-v)*(1-s4) +s5*n;
+	angle[2]=(-s2*n + s3*u) -s4*v ;
+}
+
+	var uu=new Vec3();
+	var vv=new Vec3();
+	uu[0]=1;
+	uu[1]=1;
+	vv[0]=1;
+	vv[1]=1;
+	vv[2]=1;
+	Vec2.norm(uu);
+	Vec3.norm(vv);
+	var t=Date.now();
+	var i;
+	for(i=0;i<100000;i++){
+	//	polerAngle2Uv(uu,vv);
+		//sphereAngle2Uv(uu,vv);
+		boxAngle2Uv(uu,vv);
+	}
+	t=Date.now()-t;
+
+	var t2=Date.now();
+	for(i=0;i<100000;i++){
+		exAngle2Uv(uu,vv);
+	}
+	t2=Date.now()-t2;
+//	alert((t/1000)+","+(t2/1000));
 </script>
 
 <body onLoad="onloadfunc(event)">
 <input type="file" id="selfile">
 From:<select id="fromtype">
-<option value="0">poler</option>
-<option value="1">box</option>
-<option value="2">sphere</option>
-<option value="3">poler2</option>
-<option value="4">ex1</option>
+<option selected>poler</option>
+<option >box</option>
+<option >sphere</option>
+<option >ex1</option>
+<option >box2</option>
 </select>
 To:<select id="totype"> 
-<option value="0">poler</option>
-<option value="1">box</option>
-<option value="2">sphere</option>
-<option value="3">poler2</option>
-<option value="4" selected>ex1</option>
+<option >poler</option>
+<option >box</option>
+<option >sphere</option>
+<option  >ex1</option>
+<option  selected>box2</option>
 </select>
 <input type="button" value="convert" onclick="convert()">
 <img src="" id="srcImg"/><br />
