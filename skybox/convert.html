@@ -8,79 +8,190 @@
 "use strict"
 var ctx,canvas;
 var onloadfunc=function(e){
-	canvas =  document.getElementById('maincanvas')
-	ctx =  canvas.getContext('2d')
-	Util.init(canvas,document.getElementById('main'));
 
-	var obj1=document.getElementById("selfile");
-	obj1.addEventListener("change",function(evt){
+	document.getElementById("selfile").addEventListener("change",function(evt){
 		var file=evt.target.files;
 		var reader=new FileReader();
 		reader.readAsDataURL(file[0]);
 		reader.onload=function(){
 			var dataUrl = reader.result;
 			document.getElementById("srcImg").src=dataUrl;
-			convert();
+//			convert();
 		}
 	});
-}
-var convert=function(){
-	var srcImg=document.getElementById("srcImg");
+	var options=[
+		"panorama"
+		,"box"
+		,"sphere"
+		,"ex1"
+		,"box2"
+	];
+	var fromSelect=document.getElementById("fromtype");
+	var toSelect=document.getElementById("totype");
+	var option = document.createElement('option');
+	option.setAttribute('value', -1);
+	option.innerHTML = "";
+	toSelect.appendChild(option);
 
-	ctx.drawImage(srcImg,0,0,srcImg.width,srcImg.height,0,0,canvas.width,canvas.height)
+	for(var i=0;i<options.length;i++){
+		option = document.createElement('option');
+		option.setAttribute('value', i);
+		option.innerHTML = options[i];
+		fromSelect.appendChild(option);
+
+		option = document.createElement('option');
+		option.setAttribute('value', i);
+		option.innerHTML = options[i];
+		toSelect.appendChild(option);
+	}
+ 
+	canvas =  document.createElement('canvas')
+}
+
+var randvec=function(v,dst,r){
+	var r2=Math.random()*Math.PI*2;
+	var sx,sy,sz,tx,ty,tz;
+	var n=Math.cos(r);
+	var s=Math.sin(r);
+	var t=s*Math.cos(r2);
+	s=s*Math.sin(r2);
+	var Vx=dst[0];
+	var Vy=dst[1];
+	var Vz=dst[2];
+
+	
+    if(Vy*Vy<0.25){
+		sx=Vz/Math.sqrt(Vx*Vx+Vz*Vz);
+		sy=0;
+		sz=-Vx/Math.sqrt(Vx*Vx+Vz*Vz);
+
+		tx=-sz*Vy;
+		ty=sz*Vx-sx*Vz;
+		tz=sx*Vy;
+	}else{
+		sx=0;
+		sy=-Vz/Math.sqrt(Vy*Vy+Vz*Vz);
+		sz=Vy/Math.sqrt(Vy*Vy+Vz*Vz);
+
+		tx=sy*Vz-sz*Vy;
+		ty=sz*Vx;
+		tz=-sy*Vx;
+	}
+	v[0]=n*Vx + s*sx + t*tx;
+	v[1]=n*Vy + s*sy + t*ty;
+	v[2]=n*Vz + s*sz + t*tz;
+};
+var sqrt=Math.sqrt;
+var random=Math.random;
+var acos=Math.acos;
+var convert=function(){
+	var srcImg = document.getElementById("srcImg");
+	canvas.width=srcImg.width;
+	canvas.height=srcImg.height;
+	ctx =  canvas.getContext('2d')
+	ctx.drawImage(srcImg,0,0,srcImg.width,srcImg.height,0,0,canvas.width,canvas.height);
 
 	var srcimg=ctx.getImageData(0,0,canvas.width,canvas.height);
-	var dstwidth=canvas.width;
-	var dstheight=canvas.height;
-	var dst = ctx.createImageData(dstwidth,dstheight);
-	var dstdata=dst.data;
+	var srcwidth=srcimg.width;
+	var srcheight=srcimg.height;
 	var srcdata=srcimg.data;
+
+	var dstwidth=parseInt(document.getElementById("dstwidth").value);
+	var dstheight=parseInt(document.getElementById("dstheight").value);
+	var roughness=parseFloat(document.getElementById("roughness").value);
+	if(!dstwidth){
+		dstwidth=srcwidth;
+	}
+	if(!dstheight){
+		dstheight=srcheight;
+	}
+	var dst = ctx.createImageData(dstwidth,dstheight)
+	var dstdata=dst.data;
+
+	var loopmax=parseInt(document.getElementById("loopnum").value);
 
 	var uv=new Vec2();
 	var angle=new Vec3();
+	var angledef=new Vec3();
+	var u,v,x,y,i;
+	var srcidx;
 
-	var x,y,u,v;
-	var angle2uv=[
-		polerAngle2Uv
-		,boxAngle2Uv
-		,sphereAngle2Uv
-		,exAngle2Uv
-		,box2Angle2Uv
-	][document.getElementById("fromtype").selectedIndex];
+	var toSelect= document.getElementById("totype");
+	var fromSelect= document.getElementById("fromtype");
+	var angle2uv=angle2Uvs[fromSelect.selectedIndex];
+	var uv2angle;
+	if(toSelect.value<0){
+		uv2angle=uv2Angles[fromSelect.selectedIndex];
+	}else{
+		uv2angle=uv2Angles[toSelect.value];
+	}
+	var srcImg=document.getElementById("srcImg");
 
-	var uv2angle=[
-		polerUv2Angle
-		,boxUv2Angle
-		,sphereUv2Angle
-		,exUv2Angle
-		,box2Uv2Angle
-	][document.getElementById("totype").selectedIndex];
-
+	var R,G,B,A;
+	var _dstwidth = 1/dstwidth;
+	var _dstheight = 1/dstheight;
+	if(roughness<=0){
+		loopmax=1;
+	}
+	var _loopmax = 1/loopmax;
 	for(y=0;y<dstheight;y++){
 		for(x=0;x<dstwidth;x++){
-			uv[0]=(x)/dstwidth;
-			uv[1]=(y)/dstheight;
+			uv[0]=x*_dstwidth;
+			uv[1]=y*_dstheight;
+			R=0;G=0;B=0;A=0;
+			uv2angle(angledef,uv);
+			for(i=0;i<loopmax;i++){
+				randvec(angle,angledef,acos(sqrt(1-random()*roughness)));
+				angle2uv(uv,angle);
 
-			uv2angle(angle,uv);
-			angle2uv(uv,angle);
+				var u=uv[0]*srcwidth-0.5;
+				var v=uv[1]*srcheight-0.5;
+				var uu=u-(u|0);
+				var vv=v-(v|0);
+				var v1=((v|0)+1)
+				var u1=((u|0)+1)
+				if(v1>=srcheight)v1=0;
+				if(u1>=srcwidth)u1=0;
+				srcidx=((uv[1]*srcheight|0)*srcwidth+(uv[0]*srcwidth|0))<<2;
+				srcidx=(v1*srcwidth+u1)<<2;
+				var ratio=uu*vv;
+				R+=srcdata[srcidx] * ratio
+				G+=srcdata[srcidx+1] * ratio
+				B+=srcdata[srcidx+2] * ratio
+				A+=srcdata[srcidx+3] * ratio
 
-			u=(uv[0]*srcimg.width)|0;
-			v=(uv[1]*srcimg.height)|0;
-			var srcidx=(v*srcimg.width+u)*4
-			var dstidx=(y*dstwidth+x)*4
-			dstdata[dstidx]=srcdata[srcidx]
-			dstdata[dstidx+1]=srcdata[srcidx+1]
-			dstdata[dstidx+2]=srcdata[srcidx+2]
-			dstdata[dstidx+3]=srcdata[srcidx+3]
-			//dstdata[dstidx]=angle[0]*128+128|0
-			//dstdata[dstidx+1]=angle[1]*128+128|0
-			//dstdata[dstidx+2]=angle[2]*128+128|0
-			//dstdata[dstidx+3]=255;
+				srcidx=(((v|0))*srcwidth+u1)<<2;
+				ratio=uu*(1-vv);
+				R+=srcdata[srcidx] * ratio
+				G+=srcdata[srcidx+1] * ratio
+				B+=srcdata[srcidx+2] * ratio
+				A+=srcdata[srcidx+3] * ratio
+				srcidx=(v1*srcwidth+((u|0)))<<2;
+				ratio=(1-uu)*vv;
+				R+=srcdata[srcidx] * ratio
+				G+=srcdata[srcidx+1] * ratio
+				B+=srcdata[srcidx+2] * ratio
+				A+=srcdata[srcidx+3] * ratio
+				srcidx=(((v|0))*srcwidth+((u|0)))<<2;
+				ratio=(1-uu)*(1-vv);
+				R+=srcdata[srcidx] * ratio
+				G+=srcdata[srcidx+1] * ratio
+				B+=srcdata[srcidx+2] * ratio
+				A+=srcdata[srcidx+3] * ratio
+			}
+			var dstidx=(y*dstwidth+x)<<2;
+			dstdata[dstidx  ]=R*_loopmax;
+			dstdata[dstidx+1]=G*_loopmax;
+			dstdata[dstidx+2]=B*_loopmax;
+			dstdata[dstidx+3]=A*_loopmax;
 		}
 	}
+
+	canvas.width=dstwidth;
+	canvas.height=dstheight;
+	ctx =  canvas.getContext('2d')
 	ctx.putImageData(dst,0,0);
-	document.getElementById("i").src=canvas.toDataURL("image/png");
-//		});
+	document.getElementById("dstImg").src=canvas.toDataURL("image/png");
 }
 var atan2=Math.atan2;
 var asin=Math.asin;
@@ -92,11 +203,11 @@ var _sqrt2=1.0/Math.sqrt(2);
 var sqrt32=Math.sqrt(32);
 var _sqrt32=sqrt(1/32);
 
-var polerAngle2Uv=function(uv,angle){
+var panoramaAngle2Uv=function(uv,angle){
 	uv[0]=atan2(angle[0],-angle[2])*_PI05+0.5;
 	uv[1]=-asin(angle[1])*_PI+0.5;
 }
-var polerUv2Angle=function(angle,uv){
+var panoramaUv2Angle=function(angle,uv){
 	angle[1]=-Math.sin((uv[1]-0.5)*Math.PI)
 	var l=sqrt(1-angle[1]*angle[1])
 	var r=-uv[0]*Math.PI*2
@@ -142,6 +253,10 @@ var boxAngle2Uv=function(uv,angle){
 	if(y*y>x*x && y*y>z*z){
 		x/=Math.abs(y);
 		z/=Math.abs(y);
+		if(x>0.99)x=0.99;
+		if(x<-0.99)x=-0.99;
+		if(z>0.99)z=0.99;
+		if(z<-0.99)z=-0.99;
 		if(y>0){
 			u=0.25+0.125-x*0.125
 			v=0.5+0.25+z*0.25
@@ -155,6 +270,10 @@ var boxAngle2Uv=function(uv,angle){
 			var orgy=y;
 			z/=Math.abs(x);
 			y/=Math.abs(x);
+		if(y>0.99)y=0.99;
+		if(y<-0.99)y=-0.99;
+		if(z>0.99)z=0.99;
+		if(z<-0.99)z=-0.99;
 			if(x<0){
 				u=0.25+0.125-z*0.125
 				v=0.25-y*0.25
@@ -165,6 +284,10 @@ var boxAngle2Uv=function(uv,angle){
 		}else{
 			x/=Math.abs(z);
 			y/=Math.abs(z);
+		if(y>0.99)y=0.99;
+		if(y<-0.99)y=-0.99;
+		if(x>0.99)x=0.99;
+		if(x<-0.99)x=-0.99;
 			if(z>0){
 				u=0.125-x*0.125
 				v=0.25-y*0.25
@@ -232,7 +355,7 @@ var exUv2Angle=function(angle,uv){
 		angle[2]=0;
 	}else{
 		angle[1]=y;
-		angle[(quad&1)<<1]=val;
+		angle[(quad&1)<<1]=val;RE: 最新デザインの場所
 		angle[((~quad)&1)<<1]=(((quad-1)&2)-1)*sqrt(1-y*y-val*val)
 	}
 }
@@ -296,54 +419,38 @@ var box2Uv2Angle=function(angle,uv){
 	angle[2]=(-s2*n + s3*u) -s4*v ;
 }
 
-	var uu=new Vec3();
-	var vv=new Vec3();
-	uu[0]=1;
-	uu[1]=1;
-	vv[0]=1;
-	vv[1]=1;
-	vv[2]=1;
-	Vec2.norm(uu);
-	Vec3.norm(vv);
-	var t=Date.now();
-	var i;
-	for(i=0;i<100000;i++){
-	//	polerAngle2Uv(uu,vv);
-		//sphereAngle2Uv(uu,vv);
-		boxAngle2Uv(uu,vv);
-	}
-	t=Date.now()-t;
-
-	var t2=Date.now();
-	for(i=0;i<100000;i++){
-		exAngle2Uv(uu,vv);
-	}
-	t2=Date.now()-t2;
-//	alert((t/1000)+","+(t2/1000));
+var angle2Uvs=[
+	panoramaAngle2Uv
+	,boxAngle2Uv
+	,sphereAngle2Uv
+	,exAngle2Uv
+	,box2Angle2Uv
+];
+var uv2Angles=[
+	panoramaUv2Angle
+	,boxUv2Angle
+	,sphereUv2Angle
+	,exUv2Angle
+	,box2Uv2Angle
+];
 </script>
 
 <body onLoad="onloadfunc(event)">
 <input type="file" id="selfile">
 From:<select id="fromtype">
-<option selected>poler</option>
-<option >box</option>
-<option >sphere</option>
-<option >ex1</option>
-<option >box2</option>
-</select>
+</select><br />
 To:<select id="totype"> 
-<option >poler</option>
-<option >box</option>
-<option >sphere</option>
-<option  >ex1</option>
-<option  selected>box2</option>
 </select>
-<input type="button" value="convert" onclick="convert()">
+
+	x<input type="number" id="dstwidth" min="0" step="1" style="width:50px;">
+	y<input type="number" id="dstheight" min="0" step="1" style="width:50px;">
+	roughness<input type="number" id="roughness" max="1" min="0" value="0" step="0.1" style="width:50px;">
+	loop<input type="number" id="loopnum" max="2000" min="0" step="1" value="100" style="width:50px;">
+	<input type="button" value="convert" onclick="convert()"><br>
+
 <img src="" id="srcImg"/><br />
-<div id="main"><canvas id="maincanvas" width="1024" height="512" style="display:none;">
-</canvas>
 <br />
-<img id="i">
+<img id="dstImg">
 </div>
 </body>
 </html>
