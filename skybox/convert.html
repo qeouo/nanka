@@ -355,7 +355,7 @@ var exUv2Angle=function(angle,uv){
 		angle[2]=0;
 	}else{
 		angle[1]=y;
-		angle[(quad&1)<<1]=val;RE: 最新デザインの場所
+		angle[(quad&1)<<1]=val;
 		angle[((~quad)&1)<<1]=(((quad-1)&2)-1)*sqrt(1-y*y-val*val)
 	}
 }

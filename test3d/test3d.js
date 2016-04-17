@@ -157,7 +157,7 @@ var Test3d=(function(){
 		globalParam.stereoscope=1;
 		globalParam.step2=1;
 		globalParam.fps=30;
-		globalParam.scene=2;
+		globalParam.scene=0;
 		globalParam.shadow=1;
 		globalParam.model="./raara.o3o";
 
@@ -346,7 +346,22 @@ var Test3d=(function(){
 
 	gl.clearColor(1, 1, 1,1.0);
 
-	obj3d=O3o.load(globalParam.model);
+	obj3d=O3o.load(globalParam.model,function(){
+		var sceneSelect = document.getElementById("scene");
+		var option;
+		for(var i=0;i<obj3d.scenes.length;i++){
+			if(obj3d.scenes[i].name.indexOf("_",0)==0){
+				continue;
+			}
+			option = document.createElement('option');
+			option.setAttribute('value', i);
+			option.innerHTML = obj3d.scenes[i].name;
+			sceneSelect.appendChild(option);
+		}
+		document.getElementById("scene").selectedIndex=globalParam.scene;
+		Util.fireEvent(document.getElementById("scene"),"change");
+
+	});
 	skybox=O3o.load("skybox.o3o");
 	
 	onoPhy = new OnoPhy();
