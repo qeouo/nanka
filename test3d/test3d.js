@@ -10,6 +10,7 @@ var Test3d=(function(){
 	var gl;
 	var onoPhy=null;
 	var objs=[];
+	var sky=null;
 	var phyObjs=null;
 
 	var STAT_EMPTY=0
@@ -280,6 +281,11 @@ var Test3d=(function(){
 		globalParam.stereo=-globalParam.stereoscope * globalParam.stereomode*0.7;
 		ono3d.setPers(1/2,HEIGHT/WIDTH/2)
 
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.clear(gl.DEPTH_BUFFER_BIT);
+	if(sky.gltexture){
+		Env.env(sky.gltexture);
+	}
 		ono3d.render(Util.ctx)
 
 		ono3d.framebuffer();
@@ -363,6 +369,8 @@ var Test3d=(function(){
 
 	});
 	//skybox=O3o.load("skybox.o3o");
+	//sky = Util.loadImage("sky2.png",1);
+	sky = Util.loadImage("sky.jpg",1);
 	
 	onoPhy = new OnoPhy();
 	Util.setFps(globalParam.fps,mainloop);
