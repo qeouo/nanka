@@ -269,23 +269,20 @@ var Test3d=(function(){
 
 		Rastgl.renderShadowmap();
 		
-	//	if(skybox.objects.length>0){
-	//		ono3d.setTargetMatrix(0)
-	//		ono3d.loadIdentity()
-	//		ono3d.translate(camera.p[0],camera.p[1],camera.p[2])
-	//		ono3d.scale(50,50,50);
-	//		ono3d.rotate(-PI*0.5,1,0,0)
-	//		O3o.drawObject(skybox.objects[1],null);
-	//	}
-
 		globalParam.stereo=-globalParam.stereoscope * globalParam.stereomode*0.7;
-		ono3d.setPers(1/2,HEIGHT/WIDTH/2)
+
+		ono3d.setPers(0.577,480/360);
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.clear(gl.DEPTH_BUFFER_BIT);
-	if(sky.gltexture){
-		Env.env(sky.gltexture);
-	}
+		if(sky.gltexture){
+			ono3d.setPers(0.577,480/360);
+			gl.disable(gl.DEPTH_TEST);
+			gl.viewport(0,0,360,480);
+			Env.env(sky.gltexture);
+			gl.viewport(360,0,360,480);
+			Env.env(sky.gltexture);
+		}
 		ono3d.render(Util.ctx)
 
 		ono3d.framebuffer();
@@ -369,8 +366,7 @@ var Test3d=(function(){
 
 	});
 	//skybox=O3o.load("skybox.o3o");
-	//sky = Util.loadImage("sky2.png",1);
-	sky = Util.loadImage("sky.jpg",1);
+	sky = Util.loadImage("sky.png",1);
 	
 	onoPhy = new OnoPhy();
 	Util.setFps(globalParam.fps,mainloop);
