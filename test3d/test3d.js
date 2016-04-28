@@ -215,7 +215,7 @@ var Test3d=(function(){
 		}
 
 		vec3[0]=mainObj.p[0]
-		vec3[1]=6//mainObj.p[1];
+		vec3[1]=0//6//mainObj.p[1];
 		vec3[2]=mainObj.p[2]
 		camera2.p[0]=(Util.cursorX-WIDTH)/WIDTH*8;
 		camera2.p[1]=-(Util.cursorY-HEIGHT)/HEIGHT*6;
@@ -286,6 +286,7 @@ var Test3d=(function(){
 		ono3d.render(Util.ctx)
 
 		ono3d.framebuffer();
+		Env.drawMrr(ono3d,sky.gltexture);
 
 		ono3d.clear()
 		gl.finish();
