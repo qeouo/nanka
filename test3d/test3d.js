@@ -382,15 +382,15 @@ var Test3d=(function(){
 
 		var envs=[0.25,0.5,0.75,1.0];
 		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-		gl.viewport(0,0,512,256);
+		gl.viewport(0,0,256,128);
 		envtexes=[];
 		envtexes.push(image.gltexture);
 		for(var i=0;i<envs.length;i++){
-			var tex=Rastgl.createTexture(512,256);
+			var tex=Rastgl.createTexture(256,128);
 			Env.rough(image.gltexture,envs[i]);
 			gl.bindTexture(gl.TEXTURE_2D, tex);
 			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-			gl.copyTexImage2D(gl.TEXTURE_2D,0,gl.RGBA,0,0,512,256,0);
+			gl.copyTexImage2D(gl.TEXTURE_2D,0,gl.RGBA,0,0,256,128,0);
 			envtexes.push(envs[i]);
 			envtexes.push(tex);
 		}
