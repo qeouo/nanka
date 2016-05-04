@@ -11,6 +11,7 @@ var Test3d=(function(){
 	var onoPhy=null;
 	var objs=[];
 	var sky=null;
+	var envtexes;
 	var phyObjs=null;
 
 	var STAT_EMPTY=0
@@ -215,7 +216,7 @@ var Test3d=(function(){
 		}
 
 		vec3[0]=mainObj.p[0]
-		vec3[1]=0//6//mainObj.p[1];
+		vec3[1]=6;//mainObj.p[1];
 		vec3[2]=mainObj.p[2]
 		camera2.p[0]=(Util.cursorX-WIDTH)/WIDTH*8;
 		camera2.p[1]=-(Util.cursorY-HEIGHT)/HEIGHT*6;
@@ -267,6 +268,7 @@ var Test3d=(function(){
 			ono3d.pop();
 		}
 
+		gl.depthMask(true);
 		Rastgl.renderShadowmap();
 		
 		globalParam.stereo=-globalParam.stereoscope * globalParam.stereomode*0.7;
@@ -285,8 +287,16 @@ var Test3d=(function(){
 		}
 		ono3d.render(Util.ctx)
 
+		gl.depthMask(false);
 		ono3d.framebuffer();
-		Env.drawMrr(ono3d,sky.gltexture);
+		if(sky.gltexture){
+			Env.drawMrr(ono3d,envtexes,camera.p);
+		}
+		gl.disable(gl.BLEND);
+			
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.viewport(0,0,720,480);
+		//Rastgl.copyframe(sky2,1);
 
 		ono3d.clear()
 		gl.finish();
@@ -366,8 +376,30 @@ var Test3d=(function(){
 		Util.fireEvent(document.getElementById("scene"),"change");
 
 	});
-	//skybox=O3o.load("skybox.o3o");
-	sky = Util.loadImage("sky.png",1);
+	sky = Util.loadImage("sky.png",1,function(image){
+		gl.bindTexture(gl.TEXTURE_2D, sky.gltexture);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+		var envs=[0.25,0.5,0.75,1.0];
+		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+		gl.viewport(0,0,512,256);
+		envtexes=[];
+		envtexes.push(image.gltexture);
+		for(var i=0;i<envs.length;i++){
+			var tex=Rastgl.createTexture(512,256);
+			Env.rough(image.gltexture,envs[i]);
+			gl.bindTexture(gl.TEXTURE_2D, tex);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+			gl.copyTexImage2D(gl.TEXTURE_2D,0,gl.RGBA,0,0,512,256,0);
+			envtexes.push(envs[i]);
+			envtexes.push(tex);
+		}
+		gl.bindTexture(gl.TEXTURE_2D, null);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+	    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+			
+
+	});
 	
 	onoPhy = new OnoPhy();
 	Util.setFps(globalParam.fps,mainloop);
