@@ -3,7 +3,6 @@ var Test3d=(function(){
 	var ret={};
 	var HEIGHT=480,WIDTH=360
 	var obj3d;
-	var skybox;
 	var PI=Math.PI;
 	var OBJSLENGTH=1024;
 	var i;
@@ -294,9 +293,6 @@ var Test3d=(function(){
 		}
 		gl.disable(gl.BLEND);
 			
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		gl.viewport(0,0,720,480);
-		//Rastgl.copyframe(sky2,1);
 
 		ono3d.clear()
 		gl.finish();
