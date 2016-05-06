@@ -142,6 +142,8 @@ def ExportOno3dObject():
             fileout("matrix:{}\n".format(stringMatrix(obj.matrix_basis)))
         if(obj.parent):
             fileout("parent:{}\n".format(obj.parent.name))
+        if(obj.parent_bone):
+            fileout("parent_bone:{}\n".format(obj.parent_bone))
         fileout("iparentmatrix:{}\n".format(stringMatrix(obj.matrix_parent_inverse)))
         fileout("name:{}\n".format(obj.name))
         fileout("type:{}\n".format(obj.type))
@@ -194,7 +196,7 @@ def ExportOno3dObject():
     fileoutLd()
 
     config.File.close()
-    print("aFinished")
+    print("Finished")
 
 def writeMatrix(matrix):
     fileout2("matrix:{}\n".format(stringMatrix(matrix)))
@@ -213,7 +215,6 @@ def WriteTexture(Texture=None):
     fileout2(" type:\"{}\";".format(Texture.type))
     if(Texture.type == "IMAGE"):
         fileout2(" path:\"{}\";".format(Texture.image.filepath))
-        
     fileout2("\n")
 
 def WriteMaterial( Material=None):
@@ -222,7 +223,7 @@ def WriteMaterial( Material=None):
     fileout("name:\"{}\";".format( Material.name))
     lst = list(Material.diffuse_color)
     fileout2(" r:{:9f};g:{:9f};b:{:9f};a:{:9f};".format( lst[0],lst[1],lst[2],Material.alpha))
-    fileout2(" dif:{:9f};".format( Material.diffuse_intensity*2))
+    fileout2(" dif:{:9f};".format( Material.diffuse_intensity))
     fileout2(" emt:{:9f};".format(Material.emit))
     lst = list(Material.mirror_color)
     if(Material.raytrace_mirror):
@@ -235,6 +236,9 @@ def WriteMaterial( Material=None):
         fileout2(" tex:\"{}\";".format(texture_slot.texture.name))
         if(texture_slot.use_map_normal):
             fileout2(" normal:\"{:9f}\";".format(texture_slot.normal_factor))
+    if(Material.animation_data):
+        if(Material.animation_data.action):
+            fileout2(" action:{};".format(Material.animation_data.action.name))
 
     fileout2("\n")
 
@@ -260,6 +264,7 @@ def WriteArmatureBones(Armature):
 
         fileout("matrix:{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f}\n".format( BoneMatrix[0][0], BoneMatrix[1][0], BoneMatrix[2][0], BoneMatrix[3][0],BoneMatrix[0][1], BoneMatrix[1][1], BoneMatrix[2][1], BoneMatrix[3][1],BoneMatrix[0][2], BoneMatrix[1][2], BoneMatrix[2][2], BoneMatrix[3][2],BoneMatrix[0][3], BoneMatrix[1][3], BoneMatrix[2][3], BoneMatrix[3][3]))
 
+        fileout("length:{:9f} \n".format( Bone.length))
 
         fileoutMd()
     fileoutLd()
@@ -380,29 +385,9 @@ def WriteAction(action):
     fileoutMu()
     fileout("name:\"{}\"\n".format(action.name))
     fileout("endframe:{}\n".format(int(action.frame_range[1])))
+    fileout("id_root:\"{}\"\n".format(action.id_root))
     fcurvesize = 0
     i = 0
-#    while i < len(action.fcurves):
-#        fcurve = action.fcurves[i]
-#        p = re.search("\[\"(.+)\"\]\.(.+)$",fcurve.data_path)
-#        if(p):
-#            pflg = p.group(2)
-#        else:
-#            pflg = fcurve.data_path
-#        if(pflg == "location"):
-#            i+=3
-#        elif(pflg == "rotation_quaternion"):
-#            i+=4
-#        elif(pflg == "rotation_euler"):
-#            i+=3
-#        elif(pflg == "scale"):
-#            i+=3
-#        elif(pflg == "value"):
-#            i+=1
-#        else:
-#            i += 1
-#            fcurvesize -= 1
-#        fcurvesize += 1
 
     fileout("Fcurves {}".format(len(action.fcurves)))
     fileoutLu()
@@ -411,13 +396,12 @@ def WriteAction(action):
         fcurve = action.fcurves[i]
         ii = 0
         p = re.search("\[\"(.+)\"\]\.(.+)$",fcurve.data_path)
+        if(not p):
+            p = re.search("\[(.+)\]\.(.+)$",fcurve.data_path)
         if(p):
             pflg = p.group(2)
         else:
             pflg = fcurve.data_path
-
-#        fileout("Fcurve")
-#        fileoutMu()
         target=""
         if p:
             target=p.group(1)
@@ -425,26 +409,9 @@ def WriteAction(action):
 #        fileout("data_path:{}\n".format(fcurve.data_path))
 #        fileout("keyframes {}".format(len(fcurve.keyframe_points)))
 #        fileoutLu()
-        if(pflg == "location" or pflg =="rotation_euler" or pflg=="scale"):
+        if(pflg == "rotation_quaternion"):
             fileout("target:\"{}\",".format(target))
-            fileout2("{}X {}[".format(pflg,len(fcurve.keyframe_points)))
-            for keyframe_points in fcurve.keyframe_points:
-                fileout2("{}:{:9f},".format(int(keyframe_points.co[0]),keyframe_points.co[1]))
-            fileout2("]\n")
-            fileout("target:\"{}\",".format(target))
-            fileout2("{}Y {}[".format(pflg,len(action.fcurves[i+1].keyframe_points)))
-            for keyframe_points in action.fcurves[i+1].keyframe_points:
-                fileout2("{}:{:9f},".format(int(keyframe_points.co[0]),keyframe_points.co[1]))
-            fileout2("]\n")
-            fileout("target:\"{}\",".format(target))
-            fileout2("{}Z {}[".format(pflg,len(action.fcurves[i+2].keyframe_points)))
-            for keyframe_points in action.fcurves[i+2].keyframe_points:
-                fileout2("{}:{:9f},".format(int(keyframe_points.co[0]),keyframe_points.co[1]))
-            fileout2("]\n")
-            i += 3
-        elif(pflg == "rotation_quaternion"):
-            fileout("target:\"{}\",".format(target))
-            fileout2("{} {}[".format(pflg,len(fcurve.keyframe_points)))
+            fileout2("{},0 {}[".format(pflg,len(fcurve.keyframe_points)))
             xi=0;yi=0;zi=0;
             pw=action.fcurves[i].keyframe_points;
             px=action.fcurves[i+1].keyframe_points;
@@ -464,14 +431,12 @@ def WriteAction(action):
                 ii +=1;
             fileout2("]\n")
             i += 4
-        elif(pflg == "value"):
-            while ii < len(fcurve.keyframe_points):
-                fileout("time:{};param:{:9f}\n".format(
-                    int(fcurve.keyframe_points[ii].co[0])
-                    ,action.fcurves[i    ].keyframe_points[ii].co[1]))
-                ii +=1
-            i += 1
         else:
+            fileout("target:\"{}\",".format(target))
+            fileout2("{},{} {}[".format(pflg,fcurve.array_index,len(fcurve.keyframe_points)))
+            for keyframe_points in fcurve.keyframe_points:
+                fileout2("{}:{:9f},".format(int(keyframe_points.co[0]),keyframe_points.co[1]))
+            fileout2("]\n")
             i += 1
 #        fileoutLd()
 #        fileoutMd()

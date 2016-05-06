@@ -5,11 +5,10 @@
 <meta http-equiv="Content-Language" content="ja" />
 <meta http-equiv="Content-Style-Type" content="text/css" />
 <meta http-equiv="Content-Script-Type" content="text/javascript" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+<!-- meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" /-->
 
-</head>
 
 <script type="text/javascript" src="../lib/vector.js"></script>
 <script type="text/javascript" src="../lib/geono.js"></script>
@@ -40,6 +39,10 @@ var pickerflg=false;
 			checkbox=document.getElementById("cross");
 		}
 		checkbox.checked=1;
+		if(globalParam.shadow){
+			document.getElementById("shadow").checked=true;
+		}
+			
 
 		document.getElementById("txtSmoothing").value=globalParam.smoothing;
 		document.getElementById("txtOutlineWidth").value=globalParam.outlineWidth;
@@ -49,6 +52,7 @@ var pickerflg=false;
 		document.getElementById("txtlightThreshold1").value=globalParam.lightThreshold1;
 		document.getElementById("txtlightThreshold2").value=globalParam.lightThreshold2;
 		document.getElementById("txtStereo").value=globalParam.stereoscope;
+		document.getElementById("scene").value=globalParam.scene;
 
 		Util.fireEvent(document.getElementById("chkPhy"),"change");
 		Util.fireEvent(document.getElementById("txtSmoothing"),"change");
@@ -59,13 +63,20 @@ var pickerflg=false;
 		Util.fireEvent(document.getElementById("lightcol2"),"change");
 		Util.fireEvent(document.getElementById("txtlightThreshold1"),"change");
 		Util.fireEvent(document.getElementById("txtlightThreshold2"),"change");
+		Util.fireEvent(document.getElementById("scene"),"change");
+		Util.fireEvent(document.getElementById("shadow"),"change");
+
+		var userAgent = window.navigator.userAgent.toLowerCase();
+		if (navigator.platform.indexOf("Win") != -1) {
+			globalParam.windows=true;
+		}else{
+			globalParam.windows=false;
+		}
 	}
-var aaa=function(hex){
-	var a=new Vec3();
-	Util.hex2rgb(globalParam.lightColor,hex);
-}
+
 </script>
 
+</head>
 <body onload="onl();" style="height:100%;">
 <div style="width:100%;height:100%;">
 <span id="cons"></span>
@@ -82,12 +93,18 @@ var aaa=function(hex){
 セル塗り閾値2<input class="slider" id="lightThreshold2" onchange="globalParam.lightThreshold2=parseFloat(this.value)"/><br />
 </div>
 <div style="float:left;">
-<label><input type="checkbox" id="chkPhy" onchange="Test3d.setPhysics(this.checked);"/>物理シミュ</label><br />
+<label><input type="checkbox" id="chkPhy" onchange="globalParam.physics=(this.checked);"/>物理シミュ</label><br />
 輪郭線太さ<input class="slider" id="OutlineWidth" max="4" onchange="globalParam.outlineWidth=parseFloat(this.value)"/><br />
 輪郭線色<input class="colorpicker" id="outlineColor"  onchange="globalParam.outlineColor=this.value"/><br />
 立体度<input class="slider" id="Stereo" max="2" onchange="globalParam.stereoscope=parseFloat(this.value)"/><br />
 <label><input type="radio" id="cross" name="q1" value="1" onchange="globalParam.stereomode=parseFloat(this.value)"> 交差法</label>
 <label><input type="radio" id="parallel" name="q1" value="-1" onchange="globalParam.stereomode=parseFloat(this.value)"> 平行法</label>
+</div>
+<div style="float:left;">
+シーン(衣装)<select id="scene"  onchange="globalParam.scene=parseInt(this.value);Test3d.changeScene();">
+</select><br />
+<label><input type="checkbox" id="shadow" onchange="globalParam.shadow=(this.checked);"/>影</label><br />
+
 </div>
 </div>
 <div style="clear:both;left:0;right:0;margin:0 auto;width:720px;height:720px;">

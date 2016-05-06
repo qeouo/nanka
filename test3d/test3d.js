@@ -1,24 +1,18 @@
 "use strict"
 var Test3d=(function(){
-	var HEIGHT=480,WIDTH=360
-	var canvas,canvasgl;
-	var ctx;
-	var div;
-	var obj3d;
 	var ret={};
-	var oldTime = 0
-	var span;
-	var mseccount=0;
-	var framecount=0;
-	var camera;
-	var camerazoom=1;
-	var calcMat43=new Mat43();
-	var calcVec3=new Vec3();
-	var jikipos=new Vec3();
-	var PI=Math.PI
+	var HEIGHT=480,WIDTH=360
+	var obj3d;
+	var PI=Math.PI;
 	var OBJSLENGTH=1024;
 	var i;
+	var gl;
 	var onoPhy=null;
+	var objs=[];
+	var sky=null;
+	var envtexes;
+	var phyObjs=null;
+	var shadowTexture;
 
 	var STAT_EMPTY=0
 		,STAT_ENABLE=1
@@ -44,7 +38,6 @@ var Test3d=(function(){
 		this.t=0;
 		this.hitareas=[];
 		this.matrix=new Mat43();
-		this.calcMat43=new Mat43();
 	}	
 	var createObj = function(func){
 		for(i=0;i<OBJSLENGTH;i++){
@@ -71,7 +64,6 @@ var Test3d=(function(){
 		obj.stat=-10;
 	}
 	
-	var objs=[];
 	for(i=0;i<OBJSLENGTH;i++){
 		var obj=new Obj();
 		obj.num=i;
@@ -94,17 +86,17 @@ var Test3d=(function(){
 		}
 		return;
 	}
-	var phyObjs=null;
 	var mainObj=function(obj,msg,param){
 		switch(msg){
 		case MSG_MOVE:
 			if(obj3d.scenes.length===0){
 				break;
 			}
+			var scene= obj3d.scenes[globalParam.scene];
 			if(phyObjs===null){
+				onoPhy.phyObjs = [];
 				if(obj3d.scenes.length>0){
 					phyObjs=new Array();
-					var scene=obj3d.scenes[0];
 					for(i=0;i<scene.objects.length;i++){
 						var phyobj=O3o.createPhyObjs(scene.objects[i],onoPhy);
 						if(phyobj){
@@ -113,20 +105,23 @@ var Test3d=(function(){
 					}
 				}
 			}
+			//O3o.setFrame(obj3d,scene,(obj.t+1)*24/30);
+			O3o.setFrame(obj3d,scene,timer/1000.0*24);
 			if(phyObjs && globalParam.physics){
 				ono3d.setTargetMatrix(1)
 				ono3d.loadIdentity()
 				ono3d.setTargetMatrix(0)
 				ono3d.loadIdentity()
-				ono3d.rotate(-Math.PI*0.5,1,0,0)
+				ono3d.rotate(-PI*0.5,1,0,0)
 
 				if(!globalParam.physics_){
-					O3o.initPhyObjs(obj3d.scenes[0],(obj.t+1)*24/30,phyObjs);
+					
+					O3o.initPhyObjs(scene,phyObjs);
 					globalParam.physics_=true;
 				}
 				globalParam.physics_=globalParam.physics;
 
-				O3o.movePhyObjs(obj3d.scenes[0],(obj.t+1)*24/globalParam.fps,phyObjs)
+				O3o.movePhyObjs(scene,(obj.t+1)*24/globalParam.fps,phyObjs)
 			}else{
 				globalParam.physics_=false;
 			}
@@ -137,13 +132,13 @@ var Test3d=(function(){
 			ono3d.setTargetMatrix(0)
 			ono3d.loadIdentity()
 
-			ono3d.rotate(-Math.PI*0.5,1,0,0)
+			ono3d.rotate(-PI*0.5,1,0,0)
 			if(obj3d){
 				if(obj3d.scenes.length>0){
 					if(globalParam.physics){
-						O3o.drawScene(obj3d.scenes[0],obj.t*24/globalParam.fps,phyObjs);
+						O3o.drawScene(obj3d,globalParam.scene,obj.t*24/globalParam.fps,phyObjs);
 					}else{
-						O3o.drawScene(obj3d.scenes[0],obj.t*24/globalParam.fps,null);
+						O3o.drawScene(obj3d,globalParam.scene,obj.t*24/globalParam.fps,null);
 					}
 				}
 			}
@@ -164,12 +159,10 @@ var Test3d=(function(){
 		globalParam.stereoscope=1;
 		globalParam.step2=1;
 		globalParam.fps=30;
+		globalParam.scene=0;
+		globalParam.shadow=1;
 		globalParam.model="./raara.o3o";
 
-		//if(url.length==0){
-		//	url="model=raara.o3o&drawmethod=3&smoothing=1&outline=1";
-		//}
-		
 		var args=url.split("&")
 
 		for(i=args.length;i--;){
@@ -185,8 +178,20 @@ var Test3d=(function(){
 	
 	var mainObj=createObj(mainObj);
 	var camera=createObj(defObj);
+	var camera2=createObj(defObj);
+	var camerazoom=1;
+	var viewMatrix=new Mat44();
+	var span;
+	var oldTime = 0;
+	var mseccount=0;
+	var framecount=0;
+	var vec3=new Vec3();
+	var inittime=0;
+	var timer=0;
 	var mainloop=function(){
-		var nowTime = new Date()
+		var nowTime = Date.now()
+		timer=nowTime-inittime;
+		
 		var obj;
 
 		if(obj3d.objects.length<=0){
@@ -209,6 +214,18 @@ var Test3d=(function(){
 		if(globalParam.physics){
 			onoPhy.calc(1.0/globalParam.fps,globalParam.step2);
 		}
+
+		vec3[0]=mainObj.p[0]
+		vec3[1]=6;//mainObj.p[1];
+		vec3[2]=mainObj.p[2]
+		camera2.p[0]=(Util.cursorX-WIDTH)/WIDTH*8;
+		camera2.p[1]=-(Util.cursorY-HEIGHT)/HEIGHT*6;
+		camera2.p[2]=10-Math.pow((Util.cursorX-WIDTH)/WIDTH,2)*2;
+		camera.p[0]+=(camera2.p[0]-camera.p[0])*0.1
+		camera.p[1]+=(camera2.p[1]-camera.p[1])*0.1
+		camera.p[2]+=(camera2.p[2]-camera.p[2])*0.1
+		homingCamera(camera.a,vec3,camera.p);
+
 		for(i=0;i<OBJSLENGTH;i++){
 			if(objs[i].stat!==STAT_ENABLE)continue;
 			objs[i].t++;
@@ -251,26 +268,73 @@ var Test3d=(function(){
 			ono3d.pop();
 		}
 
-		Rastgl.set(ono3d);
-		globalParam.stereo=-globalParam.stereoscope * globalParam.stereomode;
-		ono3d.setPers(1/2,HEIGHT/WIDTH/2)
-		ono3d.projectionMat[8]=-globalParam.stereo/5;
-		ono3d.projectionMat[12]=globalParam.stereo;
+		gl.depthMask(true);
+		Rastgl.renderShadowmap();
+		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
+		gl.copyTexImage2D(gl.TEXTURE_2D,0,gl.RGBA,0,0,1024,1024,0);
+		
+		globalParam.stereo=-globalParam.stereoscope * globalParam.stereomode*0.7;
 
-		globalParam.gl.viewport(0,0,WIDTH,HEIGHT);
+		ono3d.setPers(0.577,480/360);
 
-		ono3d.render(Util.ctx)
+		//gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+		gl.clear(gl.DEPTH_BUFFER_BIT);
+		if(sky.gltexture){
+			ono3d.setPers(0.577,480/360);
+			gl.disable(gl.DEPTH_TEST);
+			gl.viewport(0,0,360,480);
+			Env.env(sky.gltexture);
+			gl.viewport(360,0,360,480);
+			Env.env(sky.gltexture);
+		}
+//		ono3d.render(Util.ctx)
+	//plainShader.draw(ono3d);
+	
+	gl.disable(gl.BLEND);
+	gl.depthMask(true);
+	gl.enable(gl.DEPTH_TEST);
+	//edgeShader.draw(ono3d);
+	plainShader.draw(ono3d);
+	mainShader.draw(ono3d,shadowTexture);
+	//Shade.draw(ono3d,envtexes[envtexes.length-1],shadowTexture);
+	//gl.depthMask(false);
+	//Color.draw(ono3d);
+	gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
+	gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,720,480);
 
-		globalParam.stereo=globalParam.stereoscope * globalParam.stereomode;
-		ono3d.projectionMat[8]=-globalParam.stereo/5;
-		ono3d.projectionMat[12]=globalParam.stereo;
-		globalParam.gl.viewport(WIDTH,0,WIDTH,HEIGHT);
-		ono3d.render(Util.ctx)
+	gl.clearColor(0.0,0.0,0.0,1.0);
+	gl.clear(gl.COLOR_BUFFER_BIT );
+	gl.depthMask(false);
+	Rastgl.drawEmi(ono3d);
+
+	ono3d.framebuffer();
+
+	gl.viewport(0,0,720,480);
+	gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+	gl.disable(gl.BLEND);
+	Rastgl.copyframe(shadowTexture,0,0,720/1024,480/1024);
+	gl.enable(gl.BLEND);
+	gl.blendFunc(gl.ONE,gl.ONE);
+
+	Rastgl.copyframe(Rastgl.fTexture,0,0,720/1024,480/1024);
+	
+	if(sky.gltexture){
+		//Env.drawMrr(ono3d,envtexes,camera.p);
+	}
+	gl.disable(gl.BLEND);
+			
+//		if(sky.gltexture){
+//		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+//		gl.viewport(0,0,720,480);
+//		Rastgl.copyframe(envtexes[envtexes.length-1],0,0,1,1,1);
+//		}
 
 		ono3d.clear()
+		gl.finish();
 
 
-		mseccount += (new Date() - nowTime)
+		mseccount += (Date.now() - nowTime)
 		framecount++
 		if(nowTime-oldTime > 1000){
 			var mspf=0;
@@ -291,16 +355,16 @@ var Test3d=(function(){
 
 	var div=document.createElement("div");
 	parentnode.appendChild(div);
-	canvas =document.createElement("canvas");
+	var canvas =document.createElement("canvas");
 	canvas.width=WIDTH;
 	canvas.height=HEIGHT;
 	parentnode.appendChild(canvas);
-	canvasgl =document.createElement("canvas");
+	var canvasgl =document.createElement("canvas");
 	canvasgl.width=WIDTH*2;
 	canvasgl.height=HEIGHT;
 	parentnode.appendChild(canvasgl);
-	ctx=canvas.getContext("2d");
-	var gl = canvasgl.getContext('webgl') || canvasgl.getContext('experimental-webgl');
+	var ctx=canvas.getContext("2d");
+	gl = canvasgl.getContext('webgl') || canvasgl.getContext('experimental-webgl');
 
 	Util.init(canvas,document.body);
 	var ono3d = new Ono3d()
@@ -317,8 +381,8 @@ var Test3d=(function(){
 
 
 	if(globalParam.enableGL){
-		Rastgl.init(gl);
-		canvas.style.display="none";
+		Rastgl.init(gl,ono3d);
+		canvas.style.width="0px";
 		canvasgl.style.display="inline";
 		Ono3d.setDrawMethod(3);
 	}else{
@@ -328,15 +392,63 @@ var Test3d=(function(){
 
 	gl.clearColor(1, 1, 1,1.0);
 
-	obj3d=O3o.load(globalParam.model);
+	obj3d=O3o.load(globalParam.model,function(){
+		var sceneSelect = document.getElementById("scene");
+		var option;
+		for(var i=0;i<obj3d.scenes.length;i++){
+			if(obj3d.scenes[i].name.indexOf("_",0)==0){
+				continue;
+			}
+			option = document.createElement('option');
+			option.setAttribute('value', i);
+			option.innerHTML = obj3d.scenes[i].name;
+			sceneSelect.appendChild(option);
+		}
+		document.getElementById("scene").selectedIndex=globalParam.scene;
+		Util.fireEvent(document.getElementById("scene"),"change");
+
+	});
+	sky = Util.loadImage("sky.png",1,function(image){
+		gl.bindTexture(gl.TEXTURE_2D, sky.gltexture);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+		var envs=[0.25,0.5,0.75,1.0];
+		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+		gl.viewport(0,0,256,128);
+		envtexes=[];
+		envtexes.push(image.gltexture);
+		for(var i=0;i<envs.length;i++){
+			var tex=Rastgl.createTexture(256,128);
+			Env.rough(image.gltexture,envs[i]);
+			gl.bindTexture(gl.TEXTURE_2D, tex);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+			gl.copyTexImage2D(gl.TEXTURE_2D,0,gl.RGBA,0,0,256,128,0);
+			envtexes.push(envs[i]);
+			envtexes.push(tex);
+		}
+		gl.bindTexture(gl.TEXTURE_2D, null);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+	    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+
+		Util.loadImage("skyr.jpg",1,function(image){
+			envtexes.push(1.0);
+			envtexes.push(image.gltexture);
+		});
+	});
 	
+	shadowTexture=Rastgl.createTexture(1024,1024);
+	gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
 	onoPhy = new OnoPhy();
 	Util.setFps(globalParam.fps,mainloop);
 	Util.fpsman();
 
 	var light = new ono3d.LightSource()
 	light.type =Ono3d.LT_DIRECTION
-	Vec3.set(light.angle,-0.3,-0.5,-0.5);
+	Vec3.set(light.angle,-1,-1,-1);
+	Vec3.set(light.pos,8,20,8);
 	light.power=1
 	light.color[0]=1
 	light.color[1]=1
@@ -350,33 +462,23 @@ var Test3d=(function(){
 	light.color[2]=0.2
 	ono3d.lightSources.push(light)
 	Vec3.set(camera.p,0,6,10)
-	Vec3.set(camera.a,0,Math.PI,0)
+	Vec3.set(camera.a,0,PI,0)
+	inittime=Date.now();
 
 	span=document.getElementById("cons");
-	ret.setPhysics=function(flg){
-		globalParam.physics=flg;
-//		if(globalParam.physics === flg){
-//			return;
-//		}
-//		if(flg && obj3d.scenes){
-//			var obj=mainObj;
-//			ono3d.setTargetMatrix(1)
-//			ono3d.loadIdentity()
-//			ono3d.setTargetMatrix(0)
-//			ono3d.loadIdentity()
-//			ono3d.rotate(-Math.PI*0.5,1,0,0)
-//			ono3d.scale(-1,1,1)
-//			O3o.initPhyObjs(obj3d.scenes[0],0,phyObjs);
-//		}
-
+	ret.changeScene=function(){
+		phyObjs=null;
+		globalParam.physics_=false;
 	}
 	var homingCamera=function(angle,target,camera){
 		var dx=target[0]-camera[0]
 		var dy=target[1]-camera[1]
 		var dz=target[2]-camera[2]
-		angle[0]=Math.atan2(dy,dz)+Math.PI;
+		angle[0]=-Math.atan2(dy,Math.sqrt(dz*dz+dx*dx));
 		angle[1]=Math.atan2(dx,dz);
 		angle[2]=0;
 	}
+	Shade.init();
+	Color.init();
 	return ret;
 })()
