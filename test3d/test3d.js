@@ -294,6 +294,7 @@ var Test3d=(function(){
 	gl.disable(gl.BLEND);
 	gl.depthMask(true);
 	gl.enable(gl.DEPTH_TEST);
+	gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
 	//edgeShader.draw(ono3d);
 	plainShader.draw(ono3d);
 	mainShader.draw(ono3d,shadowTexture);
@@ -304,9 +305,11 @@ var Test3d=(function(){
 	gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,720,480);
 
 	gl.clearColor(0.0,0.0,0.0,1.0);
-	gl.clear(gl.COLOR_BUFFER_BIT );
+	gl.clear(gl.COLOR_BUFFER_BIT);
 	gl.depthMask(false);
 	Rastgl.drawEmi(ono3d);
+	//gl.bindTexture(gl.TEXTURE_2D, Rastgl.fTexture);
+	//gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,720,480);
 
 	ono3d.framebuffer();
 
