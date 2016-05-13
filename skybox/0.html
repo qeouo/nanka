@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>boid</title>
+</head>
+<script type="text/javascript">
+"use strict"
+var ctx
+var onloadfunc=function(e){
+	var canvas =  document.getElementById('maincanvas')
+	ctx =  canvas.getContext('2d')
+	Util.init(canvas,document.getElementById('main'));
+	Util.loadImage("./skybox.png",0,function(img){
+		var imagedata= img.imagedata;
+		var dst = ctx.createImageData(512,512);
+		var data=dst.data;
+		var srcdata=imagedata.data;
+
+		var x,y,p,dstp;
+		p=0;
+		for(y=0;y<512;y++){
+			for(x=0;x<512;x++){
+				var yy=-Math.sin((y/512-0.5)*Math.PI);
+				var l=Math.sqrt(1-yy*yy);
+				var zz=Math.cos(-x/512*Math.PI*2)*l;
+				var xx=Math.sin(-x/512*Math.PI*2)*l;
+				var ax,ay;
+				
+				if(yy*yy>xx*xx && yy*yy>zz*zz){
+					xx/=Math.abs(yy);
+					zz/=Math.abs(yy);
+					if(yy>0){
+						ax=256+128-xx*128
+						ay=256+128+zz*128
+					}else{
+						ax=128-xx*128
+						ay=256+128-zz*128
+					}
+				}else{
+					if(xx*xx>zz*zz){
+						var orgzz=zz;
+						var orgyy=yy;
+						zz/=Math.abs(xx);
+						yy/=Math.abs(xx);
+						if(xx<0){
+							ax=256+128-zz*128
+							ay=128-yy*128
+						}else{
+							ax=256+512+128+zz*128
+							ay=128-yy*128
+						}
+					}else{
+						xx/=Math.abs(zz);
+						yy/=Math.abs(zz);
+						if(zz>0){
+							ax=128-xx*128
+							ay=128-yy*128
+						}else{
+							ax=512+128+xx*128
+							ay=128-yy*128
+						}
+					}
+				}
+				ax|=0
+				ay|=0
+				dstp=(ay*1024+ax)*4;
+
+				data[p]=srcdata[dstp];
+				data[p+1]=srcdata[dstp+1];
+				data[p+2]=srcdata[dstp+2];
+				data[p+3]=255;
+				p+=4;
+			}
+		}
+		ctx.putImageData(dst,0,0);
+		document.getElementById("i").src=canvas.toDataURL("image/png");
+		});
+67/130
+	0.69837613428
+
+}
+
+
+</script>
+
+<body onLoad="onloadfunc(event)">
+<script type="text/javascript" src="../lib/util.js"></script>
+<div id="main"><canvas id="maincanvas" width="512" height="512" style="border:solid 1px black;vertical-align:top;">
+</canvas>
+<img id="i">
+</body>
+</html>
+
