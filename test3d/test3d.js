@@ -10,14 +10,9 @@ var Test3d=(function(){
 	var onoPhy=null;
 	var objs=[];
 	var sky=null;
-<<<<<<< HEAD
-	var envtexes;
-	var phyObjs=null;
-=======
 	var envtexes=null;
 	var phyObjs=null;
 	var shadowTexture;
->>>>>>> master
 
 	var STAT_EMPTY=0
 		,STAT_ENABLE=1
@@ -275,36 +270,13 @@ var Test3d=(function(){
 
 		gl.depthMask(true);
 		Rastgl.renderShadowmap();
-<<<<<<< HEAD
-=======
 		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
 		gl.copyTexImage2D(gl.TEXTURE_2D,0,gl.RGBA,0,0,1024,1024,0);
->>>>>>> master
 		
 		globalParam.stereo=-globalParam.stereoscope * globalParam.stereomode*0.7;
 
 		ono3d.setPers(0.577,480/360);
 
-<<<<<<< HEAD
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		gl.clear(gl.DEPTH_BUFFER_BIT);
-		if(sky.gltexture){
-			ono3d.setPers(0.577,480/360);
-			gl.disable(gl.DEPTH_TEST);
-			gl.viewport(0,0,360,480);
-			Env.env(sky.gltexture);
-			gl.viewport(360,0,360,480);
-			Env.env(sky.gltexture);
-		}
-		ono3d.render(Util.ctx)
-
-		gl.depthMask(false);
-		ono3d.framebuffer();
-		if(sky.gltexture){
-			Env.drawMrr(ono3d,envtexes,camera.p);
-		}
-		gl.disable(gl.BLEND);
-=======
 		//gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
 		gl.clear(gl.DEPTH_BUFFER_BIT);
@@ -362,7 +334,6 @@ var Test3d=(function(){
 	Rastgl.copyframe(Rastgl.fTexture,0,0,720/1024,480/1024);
 	
 	gl.disable(gl.BLEND);
->>>>>>> master
 			
 //		if(sky.gltexture){
 //		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -448,20 +419,12 @@ var Test3d=(function(){
 		Util.fireEvent(document.getElementById("scene"),"change");
 
 	});
-<<<<<<< HEAD
-	sky = Util.loadImage("sky.png",1,function(image){
-		gl.bindTexture(gl.TEXTURE_2D, sky.gltexture);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-		var envs=[0.25,0.5,0.75,1.0];
-=======
 	sky = Util.loadImage("sky.png",1);
 	Util.loadImage("sky.jpg",1,function(image){
 		gl.bindTexture(gl.TEXTURE_2D, image.gltexture);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
 		var envs=[0.25,0.5,0.75];
->>>>>>> master
 		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
 		gl.viewport(0,0,256,128);
 		envtexes=[];
@@ -475,13 +438,6 @@ var Test3d=(function(){
 			envtexes.push(envs[i]);
 			envtexes.push(tex);
 		}
-<<<<<<< HEAD
-		gl.bindTexture(gl.TEXTURE_2D, null);
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-	    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-			
-
-=======
 		{
 			gl.viewport(0,0,1024,512);
 			var tex=Rastgl.createTexture(1024,512);
@@ -500,7 +456,6 @@ var Test3d=(function(){
 //			envtexes.push(1.0);
 //			envtexes.push(image.gltexture);
 //		});
->>>>>>> master
 	});
 	
 	shadowTexture=Rastgl.createTexture(1024,1024);

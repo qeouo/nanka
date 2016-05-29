@@ -7,11 +7,7 @@ Textures 3[
 Materials 3[
   name:"a"; r: 1.00000;g: 0.800000;b: 0.800000;a: 1.000000; dif: 1.00000; emt: 5.000000; mrr: 0.000000; ior: 1.000000; spc: 0.500000;spchard:50; tex:"sairiumutex"; action:sairiumuAction.001;
   name:"matbg"; r: 1.000000;g: 1.000000;b: 1.000000;a: 1.000000; dif: 1.00000; emt: 0.000000; mrr: 0.000000; ior: 1.000000; spc: 0.000000;spchard:50; tex:"bgtex";
-<<<<<<< HEAD
-  name:"Material"; r: 1.0;g: 1.000000;b: 1.000000;a: 1.000000; dif: 1.00000; emt: 0.000000; mrr: 0.000000; ior: 1.000000; spc: 0.000000;spchard:50; tex:"Texture.003";
-=======
 name:"Material"; r: 1.0;g: 1.000000;b: 1.000000;a: 1.000000; dif: 1.00000; emt: 0.000000; mrr: 0.000000; ior: 1.000000; spc: 0.000000;spchard:50; tex:"Texture.003";env:1;
->>>>>>> master
 ]
 Meshes 18[
   Mesh{

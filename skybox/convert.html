@@ -45,63 +45,26 @@ var onloadfunc=function(e){
 		toSelect.appendChild(option);
 	}
  
-<<<<<<< HEAD
-	canvas =  document.createElement('canvas')
-}
-
-var randvec=function(v,dst,r){
-=======
 	//canvas =  document.createElement('canvas')
 	canvas =  document.getElementById('c')
 }
 
 var randvec=function(v,vecn,vecs,vect,r){
->>>>>>> master
 	var r2=Math.random()*Math.PI*2;
 	var sx,sy,sz,tx,ty,tz;
 	var n=Math.cos(r);
 	var s=Math.sin(r);
 	var t=s*Math.cos(r2);
 	s=s*Math.sin(r2);
-<<<<<<< HEAD
-	var Vx=dst[0];
-	var Vy=dst[1];
-	var Vz=dst[2];
-
-	
-    if(Vy*Vy<0.25){
-		sx=Vz/Math.sqrt(Vx*Vx+Vz*Vz);
-		sy=0;
-		sz=-Vx/Math.sqrt(Vx*Vx+Vz*Vz);
-
-		tx=-sz*Vy;
-		ty=sz*Vx-sx*Vz;
-		tz=sx*Vy;
-	}else{
-		sx=0;
-		sy=-Vz/Math.sqrt(Vy*Vy+Vz*Vz);
-		sz=Vy/Math.sqrt(Vy*Vy+Vz*Vz);
-
-		tx=sy*Vz-sz*Vy;
-		ty=sz*Vx;
-		tz=-sy*Vx;
-	}
-	v[0]=n*Vx + s*sx + t*tx;
-	v[1]=n*Vy + s*sy + t*ty;
-	v[2]=n*Vz + s*sz + t*tz;
-=======
 
 	
 	v[0]=n*vecn[0] + s*vecs[0] + t*vect[0];
 	v[1]=n*vecn[1] + s*vecs[1] + t*vect[1];
 	v[2]=n*vecn[2] + s*vecs[2] + t*vect[2];
->>>>>>> master
 };
 var sqrt=Math.sqrt;
 var random=Math.random;
 var acos=Math.acos;
-<<<<<<< HEAD
-=======
 var a=1./0.9;
 var _255=1./256;
 var HtoL=function(src){
@@ -112,18 +75,14 @@ var HtoL=function(src){
 var LtoH=function(src){
 	return src*0.5;
 }
->>>>>>> master
 var convert=function(){
 	var srcImg = document.getElementById("srcImg");
 	canvas.width=srcImg.width;
 	canvas.height=srcImg.height;
 	ctx =  canvas.getContext('2d')
 	ctx.drawImage(srcImg,0,0,srcImg.width,srcImg.height,0,0,canvas.width,canvas.height);
-<<<<<<< HEAD
-=======
 	canvas.style.display='inline';
 	document.getElementById("dstImg").style.display='none';
->>>>>>> master
 
 	var srcimg=ctx.getImageData(0,0,canvas.width,canvas.height);
 	var srcwidth=srcimg.width;
@@ -146,11 +105,8 @@ var convert=function(){
 
 	var uv=new Vec2();
 	var angle=new Vec3();
-<<<<<<< HEAD
-=======
 	var vecs=new Vec3();
 	var vect=new Vec3();
->>>>>>> master
 	var angledef=new Vec3();
 	var u,v,x,y,i;
 	var srcidx;
@@ -173,10 +129,6 @@ var convert=function(){
 		loopmax=1;
 	}
 	var _loopmax = 1/loopmax;
-<<<<<<< HEAD
-	for(y=0;y<dstheight;y++){
-		for(x=0;x<dstwidth;x++){
-=======
 	var y=0,x=0;
 	var oldy=0;
 
@@ -187,15 +139,10 @@ var convert=function(){
 		var nowTime = Date.now();
 		while(1){
 			
->>>>>>> master
 			uv[0]=x*_dstwidth;
 			uv[1]=y*_dstheight;
 			R=0;G=0;B=0;A=0;
 			uv2angle(angledef,uv);
-<<<<<<< HEAD
-			for(i=0;i<loopmax;i++){
-				randvec(angle,angledef,acos(sqrt(1-random()*roughness)));
-=======
 			var rev=1.0/Math.sqrt(angledef[0]*angledef[0]+angledef[2]*angledef[2])
 			if(angledef[1]*angledef[1]>=1.0){
 				vecs[0]=1.0;
@@ -214,7 +161,6 @@ var convert=function(){
 			Vec3.cross(vect,angledef,vecs);
 			for(i=0;i<loopmax;i++){
 				randvec(angle,angledef,vecs,vect,acos(sqrt(1-random()*roughness)));
->>>>>>> master
 				angle2uv(uv,angle);
 
 				var u=uv[0]*srcwidth-0.5;
@@ -225,48 +171,6 @@ var convert=function(){
 				var u1=((u|0)+1)
 				if(v1>=srcheight)v1=0;
 				if(u1>=srcwidth)u1=0;
-<<<<<<< HEAD
-				srcidx=((uv[1]*srcheight|0)*srcwidth+(uv[0]*srcwidth|0))<<2;
-				srcidx=(v1*srcwidth+u1)<<2;
-				var ratio=uu*vv;
-				R+=srcdata[srcidx] * ratio
-				G+=srcdata[srcidx+1] * ratio
-				B+=srcdata[srcidx+2] * ratio
-				A+=srcdata[srcidx+3] * ratio
-
-				srcidx=(((v|0))*srcwidth+u1)<<2;
-				ratio=uu*(1-vv);
-				R+=srcdata[srcidx] * ratio
-				G+=srcdata[srcidx+1] * ratio
-				B+=srcdata[srcidx+2] * ratio
-				A+=srcdata[srcidx+3] * ratio
-				srcidx=(v1*srcwidth+((u|0)))<<2;
-				ratio=(1-uu)*vv;
-				R+=srcdata[srcidx] * ratio
-				G+=srcdata[srcidx+1] * ratio
-				B+=srcdata[srcidx+2] * ratio
-				A+=srcdata[srcidx+3] * ratio
-				srcidx=(((v|0))*srcwidth+((u|0)))<<2;
-				ratio=(1-uu)*(1-vv);
-				R+=srcdata[srcidx] * ratio
-				G+=srcdata[srcidx+1] * ratio
-				B+=srcdata[srcidx+2] * ratio
-				A+=srcdata[srcidx+3] * ratio
-			}
-			var dstidx=(y*dstwidth+x)<<2;
-			dstdata[dstidx  ]=R*_loopmax;
-			dstdata[dstidx+1]=G*_loopmax;
-			dstdata[dstidx+2]=B*_loopmax;
-			dstdata[dstidx+3]=A*_loopmax;
-		}
-	}
-
-	canvas.width=dstwidth;
-	canvas.height=dstheight;
-	ctx =  canvas.getContext('2d')
-	ctx.putImageData(dst,0,0);
-	document.getElementById("dstImg").src=canvas.toDataURL("image/png");
-=======
 				srcidx=(v1*srcwidth+u1)<<2;
 				var ratio=uu*vv;
 				R+=HtoL(srcdata[srcidx]) * ratio
@@ -324,7 +228,6 @@ var convert=function(){
 	func();
 	
 
->>>>>>> master
 }
 var atan2=Math.atan2;
 var asin=Math.asin;
@@ -582,10 +485,7 @@ To:<select id="totype">
 	<input type="button" value="convert" onclick="convert()"><br>
 
 <img src="" id="srcImg"/><br />
-<<<<<<< HEAD
-=======
 <canvas id="c" style="border:solid 1px;"></canvas><br />
->>>>>>> master
 <br />
 <img id="dstImg">
 </div>
