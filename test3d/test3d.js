@@ -10,7 +10,7 @@ var Test3d=(function(){
 	var onoPhy=null;
 	var objs=[];
 	var sky=null;
-	var envtexes;
+	var envtexes=null;
 	var phyObjs=null;
 	var shadowTexture;
 
@@ -147,7 +147,7 @@ var Test3d=(function(){
 		return defObj(obj,msg,param);
 	}
 		var url=location.search.substring(1,location.search.length)
-		globalParam.outlineWidth=2;
+		globalParam.outlineWidth=1;
 		globalParam.outlineColor="000000";
 		globalParam.lightcol1="ffffff";
 		globalParam.lightcol2="808080";
@@ -281,12 +281,19 @@ var Test3d=(function(){
 		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
 		gl.clear(gl.DEPTH_BUFFER_BIT);
 		if(sky.gltexture){
-			ono3d.setPers(0.577,480/360);
-			gl.disable(gl.DEPTH_TEST);
-			gl.viewport(0,0,360,480);
-			Env.env(sky.gltexture);
-			gl.viewport(360,0,360,480);
-			Env.env(sky.gltexture);
+			if(globalParam.stereo==0){
+				ono3d.setPers(0.577,480/720);
+				gl.disable(gl.DEPTH_TEST);
+				gl.viewport(0,0,720,480);
+				Env.env(sky.gltexture);
+			}else{
+				ono3d.setPers(0.577,480/360);
+				gl.disable(gl.DEPTH_TEST);
+				gl.viewport(0,0,360,480);
+				Env.env(sky.gltexture);
+				gl.viewport(360,0,360,480);
+				Env.env(sky.gltexture);
+			}
 		}
 //		ono3d.render(Util.ctx)
 	//plainShader.draw(ono3d);
@@ -300,9 +307,13 @@ var Test3d=(function(){
 	mainShader.draw(ono3d,shadowTexture);
 	//Shade.draw(ono3d,envtexes[envtexes.length-1],shadowTexture);
 	//gl.depthMask(false);
+	if(envtexes){
+		Env.drawMrr(ono3d,envtexes,camera.p);
+	}
 	//Color.draw(ono3d);
 	gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
 	gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,720,480);
+
 
 	gl.clearColor(0.0,0.0,0.0,1.0);
 	gl.clear(gl.COLOR_BUFFER_BIT);
@@ -322,9 +333,6 @@ var Test3d=(function(){
 
 	Rastgl.copyframe(Rastgl.fTexture,0,0,720/1024,480/1024);
 	
-	if(sky.gltexture){
-		//Env.drawMrr(ono3d,envtexes,camera.p);
-	}
 	gl.disable(gl.BLEND);
 			
 //		if(sky.gltexture){
@@ -411,11 +419,12 @@ var Test3d=(function(){
 		Util.fireEvent(document.getElementById("scene"),"change");
 
 	});
-	sky = Util.loadImage("sky.png",1,function(image){
-		gl.bindTexture(gl.TEXTURE_2D, sky.gltexture);
+	sky = Util.loadImage("sky.png",1);
+	Util.loadImage("sky.jpg",1,function(image){
+		gl.bindTexture(gl.TEXTURE_2D, image.gltexture);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-		var envs=[0.25,0.5,0.75,1.0];
+		var envs=[0.25,0.5,0.75];
 		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
 		gl.viewport(0,0,256,128);
 		envtexes=[];
@@ -429,14 +438,24 @@ var Test3d=(function(){
 			envtexes.push(envs[i]);
 			envtexes.push(tex);
 		}
+		{
+			gl.viewport(0,0,1024,512);
+			var tex=Rastgl.createTexture(1024,512);
+			Env.rough(image.gltexture,1.0);
+			gl.bindTexture(gl.TEXTURE_2D, tex);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+			gl.copyTexImage2D(gl.TEXTURE_2D,0,gl.RGBA,0,0,1024,512,0);
+			envtexes.push(1.0);
+			envtexes.push(tex);
+		}
 		gl.bindTexture(gl.TEXTURE_2D, null);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 	    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
 
-		Util.loadImage("skyr.jpg",1,function(image){
-			envtexes.push(1.0);
-			envtexes.push(image.gltexture);
-		});
+//		Util.loadImage("roughness.jpg",1,function(image){
+//			envtexes.push(1.0);
+//			envtexes.push(image.gltexture);
+//		});
 	});
 	
 	shadowTexture=Rastgl.createTexture(1024,1024);

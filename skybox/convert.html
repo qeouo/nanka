@@ -7,7 +7,6 @@
 <script type="text/javascript">
 "use strict"
 var ctx,canvas;
-var dt=16;
 var onloadfunc=function(e){
 
 	document.getElementById("selfile").addEventListener("change",function(evt){
@@ -66,12 +65,24 @@ var randvec=function(v,vecn,vecs,vect,r){
 var sqrt=Math.sqrt;
 var random=Math.random;
 var acos=Math.acos;
+var a=1./0.9;
+var _255=1./256;
+var HtoL=function(src){
+	src*=_255;
+	return src*2
+}
+
+var LtoH=function(src){
+	return src*0.5;
+}
 var convert=function(){
 	var srcImg = document.getElementById("srcImg");
 	canvas.width=srcImg.width;
 	canvas.height=srcImg.height;
 	ctx =  canvas.getContext('2d')
 	ctx.drawImage(srcImg,0,0,srcImg.width,srcImg.height,0,0,canvas.width,canvas.height);
+	canvas.style.display='inline';
+	document.getElementById("dstImg").style.display='none';
 
 	var srcimg=ctx.getImageData(0,0,canvas.width,canvas.height);
 	var srcwidth=srcimg.width;
@@ -119,6 +130,11 @@ var convert=function(){
 	}
 	var _loopmax = 1/loopmax;
 	var y=0,x=0;
+	var oldy=0;
+
+	canvas.width=dstwidth;
+	canvas.height=dstheight;
+	ctx =  canvas.getContext('2d')
 	var func=function(){
 		var nowTime = Date.now();
 		while(1){
@@ -128,7 +144,11 @@ var convert=function(){
 			R=0;G=0;B=0;A=0;
 			uv2angle(angledef,uv);
 			var rev=1.0/Math.sqrt(angledef[0]*angledef[0]+angledef[2]*angledef[2])
-			if(uv[1]*uv[1]<0.7){
+			if(angledef[1]*angledef[1]>=1.0){
+				vecs[0]=1.0;
+				vecs[1]=0;
+				vecs[2]=0;
+			}else if(angledef[1]*angledef[1]>=0.7){
 				vecs[0]=angledef[2]*rev;
 				vecs[1]=0;
 				vecs[2]=-angledef[0]*rev;
@@ -153,35 +173,35 @@ var convert=function(){
 				if(u1>=srcwidth)u1=0;
 				srcidx=(v1*srcwidth+u1)<<2;
 				var ratio=uu*vv;
-				R+=srcdata[srcidx] * ratio
-				G+=srcdata[srcidx+1] * ratio
-				B+=srcdata[srcidx+2] * ratio
-				A+=srcdata[srcidx+3] * ratio
+				R+=HtoL(srcdata[srcidx]) * ratio
+				G+=HtoL(srcdata[srcidx+1]) * ratio
+				B+=HtoL(srcdata[srcidx+2]) * ratio
+			//	A+=HtoL(srcdata[srcidx+3]) * ratio
 
 				srcidx=(((v|0))*srcwidth+u1)<<2;
 				ratio=uu*(1-vv);
-				R+=srcdata[srcidx] * ratio
-				G+=srcdata[srcidx+1] * ratio
-				B+=srcdata[srcidx+2] * ratio
-				A+=srcdata[srcidx+3] * ratio
+				R+=HtoL(srcdata[srcidx]) * ratio
+				G+=HtoL(srcdata[srcidx+1]) * ratio
+				B+=HtoL(srcdata[srcidx+2]) * ratio
+			//	A+=HtoL(srcdata[srcidx+3]) * ratio
 				srcidx=(v1*srcwidth+((u|0)))<<2;
 				ratio=(1-uu)*vv;
-				R+=srcdata[srcidx] * ratio
-				G+=srcdata[srcidx+1] * ratio
-				B+=srcdata[srcidx+2] * ratio
-				A+=srcdata[srcidx+3] * ratio
+				R+=HtoL(srcdata[srcidx]) * ratio
+				G+=HtoL(srcdata[srcidx+1]) * ratio
+				B+=HtoL(srcdata[srcidx+2]) * ratio
+			//	A+=HtoL(srcdata[srcidx+3]) * ratio
 				srcidx=(((v|0))*srcwidth+((u|0)))<<2;
 				ratio=(1-uu)*(1-vv);
-				R+=srcdata[srcidx] * ratio
-				G+=srcdata[srcidx+1] * ratio
-				B+=srcdata[srcidx+2] * ratio
-				A+=srcdata[srcidx+3] * ratio
+				R+=HtoL(srcdata[srcidx]) * ratio
+				G+=HtoL(srcdata[srcidx+1]) * ratio
+				B+=HtoL(srcdata[srcidx+2]) * ratio
+			//	A+=HtoL(srcdata[srcidx+3]) * ratio
 			}
 			var dstidx=(y*dstwidth+x)<<2;
-			dstdata[dstidx  ]=R*_loopmax;
-			dstdata[dstidx+1]=G*_loopmax;
-			dstdata[dstidx+2]=B*_loopmax;
-			dstdata[dstidx+3]=A*_loopmax;
+			dstdata[dstidx  ]=LtoH(R*_loopmax)*255;
+			dstdata[dstidx+1]=LtoH(G*_loopmax)*255;
+			dstdata[dstidx+2]=LtoH(B*_loopmax)*255;
+			dstdata[dstidx+3]=255;//A*_loopmax;
 			x++;
 
 			if(x>=dstwidth){
@@ -193,20 +213,21 @@ var convert=function(){
 			}
 		}
 		if(y<dstheight){
-			ctx.putImageData(dst,0,0,0,0,dstwidth,dstheight);
+			ctx.putImageData(dst,0,0,0,oldy,dstwidth,y-oldy+1);
+			oldy=y;
 			setTimeout(func,1);
 		}else{
+			//ctx.putImageData(dst,0,0,0,0,dstwidth,dstheight);
 			ctx.putImageData(dst,0,0,0,0,dstwidth,dstheight);
+			canvas.style.display='none';
+			document.getElementById("dstImg").src=canvas.toDataURL("image/png");
+			document.getElementById("dstImg").style.display='inline';
 		}
 	}
 		
-	
-	canvas.width=dstwidth;
-	canvas.height=dstheight;
-	ctx =  canvas.getContext('2d')
-
 	func();
-	//document.getElementById("dstImg").src=canvas.toDataURL("image/png");
+	
+
 }
 var atan2=Math.atan2;
 var asin=Math.asin;
@@ -464,7 +485,7 @@ To:<select id="totype">
 	<input type="button" value="convert" onclick="convert()"><br>
 
 <img src="" id="srcImg"/><br />
-<canvas id="c" ></canvas><br />
+<canvas id="c" style="border:solid 1px;"></canvas><br />
 <br />
 <img id="dstImg">
 </div>
