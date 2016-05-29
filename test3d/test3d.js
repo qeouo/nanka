@@ -281,7 +281,7 @@ var Test3d=(function(){
 		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
 		gl.clear(gl.DEPTH_BUFFER_BIT);
 		if(sky.gltexture){
-			if(globalParam.stereo==0){
+			if(globalParam.stereomode==0){
 				ono3d.setPers(0.577,480/720);
 				gl.disable(gl.DEPTH_TEST);
 				gl.viewport(0,0,720,480);
