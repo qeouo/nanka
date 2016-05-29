@@ -1,17 +1,8 @@
 Ono3dObject Version 0.1
-Textures 3[
-   name:"bgtex"; type:"IMAGE"; path:"//bg.jpg";
-   name:"sairiumutex"; type:"IMAGE"; path:"//rainbow.jpg";
-   name:"Texture.003"; type:"IMAGE"; path:"//raara.png";
-]
 Materials 3[
-  name:"a"; r: 1.00000;g: 0.800000;b: 0.800000;a: 1.000000; dif: 1.00000; emt: 5.000000; mrr: 0.000000; ior: 1.000000; spc: 0.500000;spchard:50; tex:"sairiumutex"; action:sairiumuAction.001;
-  name:"matbg"; r: 1.000000;g: 1.000000;b: 1.000000;a: 1.000000; dif: 1.00000; emt: 0.000000; mrr: 0.000000; ior: 1.000000; spc: 0.000000;spchard:50; tex:"bgtex";
-<<<<<<< HEAD
-  name:"Material"; r: 1.0;g: 1.000000;b: 1.000000;a: 1.000000; dif: 1.00000; emt: 0.000000; mrr: 0.000000; ior: 1.000000; spc: 0.000000;spchard:50; tex:"Texture.003";
-=======
-name:"Material"; r: 1.0;g: 1.000000;b: 1.000000;a: 1.000000; dif: 1.00000; emt: 0.000000; mrr: 0.000000; ior: 1.000000; spc: 0.000000;spchard:50; tex:"Texture.003";env:1;
->>>>>>> master
+  name:"a"; r: 1.00000;g: 0.800000;b: 0.800000;a: 1.000000; dif: 1.00000; emt: 5.000000; mrr: 0.000000; ior: 1.000000; spc: 0.500000;spchard:50;  action:sairiumuAction.001;
+  name:"matbg"; r: 1.000000;g: 1.000000;b: 1.000000;a: 1.000000; dif: 1.00000; emt: 0.000000; mrr: 0.000000; ior: 1.000000; spc: 0.000000;spchard:50; ;
+name:"Material"; r: 1.0;g: 1.000000;b: 1.000000;a: 1.000000; dif: 1.00000; emt: 0.000000; mrr: 0.000000; ior: 1.000000; spc: 0.000000;spchard:50;env:1;
 ]
 Meshes 18[
   Mesh{
@@ -3139,23 +3130,11 @@ Objects 48[
     ]
   ]
 ]
-Scenes 3[
-  Scene{
-    name:_default
-    frame_start:0
-    frame_end:140
-    Objects 23["bg","Camera","Area","armature","face","eye","hair2","ribbon","bonbon","mayu","leg","Cylinder2","Cylinder","hair","bodyNormal","sho","cyalume","ti","arm","ahogeFront","ahoge_L","ahoge_R","Sun"]
-  }
+Scenes 1[
   Scene{
     name:normal
     frame_start:0
     frame_end:140
-    Objects 22["bg.001","Camera.001","Area.002","armature.001","sho.001","face.001","eye.001","hair2.001","ribbon.001","bonbon.001","mayu.001","leg.001","Cylinder2.001","Cylinder.001","bodyNormal.001","hair.001","ti.001","arm.001","ahogeFront.001","ahoge_L.001","ahoge_R.001","Sun.002"]
-  }
-  Scene{
-    name:cylume
-    frame_start:0
-    frame_end:140
-    Objects 22["bg.001","Camera.001","Area.001","armature.001","sho.001","face.001","hair2.001","ribbon.001","bonbon.001","mayu.001","leg.001","Cylinder2.001","Cylinder.001","cyalume.001","hair.001","ti.001","arm.001","ahogeFront.001","ahoge_L.001","ahoge_R.001","eye.001","Sun.001"]
+    Objects 22["Camera.001","Area.002","armature.001","sho.001","face.001","eye.001","hair2.001","ribbon.001","bonbon.001","mayu.001","leg.001","Cylinder2.001","Cylinder.001","bodyNormal.001","hair.001","ti.001","arm.001","ahogeFront.001","ahoge_L.001","ahoge_R.001","Sun.002"]
   }
 ]

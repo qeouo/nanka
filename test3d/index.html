@@ -97,6 +97,7 @@ var pickerflg=false;
 輪郭線太さ<input class="slider" id="OutlineWidth" max="4" onchange="globalParam.outlineWidth=parseFloat(this.value)"/><br />
 輪郭線色<input class="colorpicker" id="outlineColor"  onchange="globalParam.outlineColor=this.value"/><br />
 立体度<input class="slider" id="Stereo" max="2" onchange="globalParam.stereoscope=parseFloat(this.value)"/><br />
+<label><input type="radio" id="notstereo" name="q1" value="0" onchange="globalParam.stereomode=parseFloat(this.value)"> 非立体視</label>
 <label><input type="radio" id="cross" name="q1" value="1" onchange="globalParam.stereomode=parseFloat(this.value)"> 交差法</label>
 <label><input type="radio" id="parallel" name="q1" value="-1" onchange="globalParam.stereomode=parseFloat(this.value)"> 平行法</label>
 </div>

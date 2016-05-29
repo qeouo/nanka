@@ -10,8 +10,14 @@ var Test3d=(function(){
 	var onoPhy=null;
 	var objs=[];
 	var sky=null;
+<<<<<<< HEAD
 	var envtexes;
 	var phyObjs=null;
+=======
+	var envtexes=null;
+	var phyObjs=null;
+	var shadowTexture;
+>>>>>>> master
 
 	var STAT_EMPTY=0
 		,STAT_ENABLE=1
@@ -146,7 +152,7 @@ var Test3d=(function(){
 		return defObj(obj,msg,param);
 	}
 		var url=location.search.substring(1,location.search.length)
-		globalParam.outlineWidth=2;
+		globalParam.outlineWidth=1;
 		globalParam.outlineColor="000000";
 		globalParam.lightcol1="ffffff";
 		globalParam.lightcol2="808080";
@@ -269,11 +275,17 @@ var Test3d=(function(){
 
 		gl.depthMask(true);
 		Rastgl.renderShadowmap();
+<<<<<<< HEAD
+=======
+		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
+		gl.copyTexImage2D(gl.TEXTURE_2D,0,gl.RGBA,0,0,1024,1024,0);
+>>>>>>> master
 		
 		globalParam.stereo=-globalParam.stereoscope * globalParam.stereomode*0.7;
 
 		ono3d.setPers(0.577,480/360);
 
+<<<<<<< HEAD
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.clear(gl.DEPTH_BUFFER_BIT);
 		if(sky.gltexture){
@@ -292,6 +304,65 @@ var Test3d=(function(){
 			Env.drawMrr(ono3d,envtexes,camera.p);
 		}
 		gl.disable(gl.BLEND);
+=======
+		//gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+		gl.clear(gl.DEPTH_BUFFER_BIT);
+		if(sky.gltexture){
+			if(globalParam.stereo==0){
+				ono3d.setPers(0.577,480/720);
+				gl.disable(gl.DEPTH_TEST);
+				gl.viewport(0,0,720,480);
+				Env.env(sky.gltexture);
+			}else{
+				ono3d.setPers(0.577,480/360);
+				gl.disable(gl.DEPTH_TEST);
+				gl.viewport(0,0,360,480);
+				Env.env(sky.gltexture);
+				gl.viewport(360,0,360,480);
+				Env.env(sky.gltexture);
+			}
+		}
+//		ono3d.render(Util.ctx)
+	//plainShader.draw(ono3d);
+	
+	gl.disable(gl.BLEND);
+	gl.depthMask(true);
+	gl.enable(gl.DEPTH_TEST);
+	gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+	//edgeShader.draw(ono3d);
+	plainShader.draw(ono3d);
+	mainShader.draw(ono3d,shadowTexture);
+	//Shade.draw(ono3d,envtexes[envtexes.length-1],shadowTexture);
+	//gl.depthMask(false);
+	if(envtexes){
+		Env.drawMrr(ono3d,envtexes,camera.p);
+	}
+	//Color.draw(ono3d);
+	gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
+	gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,720,480);
+
+
+	gl.clearColor(0.0,0.0,0.0,1.0);
+	gl.clear(gl.COLOR_BUFFER_BIT);
+	gl.depthMask(false);
+	Rastgl.drawEmi(ono3d);
+	//gl.bindTexture(gl.TEXTURE_2D, Rastgl.fTexture);
+	//gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,720,480);
+
+	ono3d.framebuffer();
+
+	gl.viewport(0,0,720,480);
+	gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+	gl.disable(gl.BLEND);
+	Rastgl.copyframe(shadowTexture,0,0,720/1024,480/1024);
+	gl.enable(gl.BLEND);
+	gl.blendFunc(gl.ONE,gl.ONE);
+
+	Rastgl.copyframe(Rastgl.fTexture,0,0,720/1024,480/1024);
+	
+	gl.disable(gl.BLEND);
+>>>>>>> master
 			
 //		if(sky.gltexture){
 //		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -377,11 +448,20 @@ var Test3d=(function(){
 		Util.fireEvent(document.getElementById("scene"),"change");
 
 	});
+<<<<<<< HEAD
 	sky = Util.loadImage("sky.png",1,function(image){
 		gl.bindTexture(gl.TEXTURE_2D, sky.gltexture);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
 		var envs=[0.25,0.5,0.75,1.0];
+=======
+	sky = Util.loadImage("sky.png",1);
+	Util.loadImage("sky.jpg",1,function(image){
+		gl.bindTexture(gl.TEXTURE_2D, image.gltexture);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+		var envs=[0.25,0.5,0.75];
+>>>>>>> master
 		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
 		gl.viewport(0,0,256,128);
 		envtexes=[];
@@ -395,13 +475,39 @@ var Test3d=(function(){
 			envtexes.push(envs[i]);
 			envtexes.push(tex);
 		}
+<<<<<<< HEAD
 		gl.bindTexture(gl.TEXTURE_2D, null);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 	    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
 			
 
+=======
+		{
+			gl.viewport(0,0,1024,512);
+			var tex=Rastgl.createTexture(1024,512);
+			Env.rough(image.gltexture,1.0);
+			gl.bindTexture(gl.TEXTURE_2D, tex);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+			gl.copyTexImage2D(gl.TEXTURE_2D,0,gl.RGBA,0,0,1024,512,0);
+			envtexes.push(1.0);
+			envtexes.push(tex);
+		}
+		gl.bindTexture(gl.TEXTURE_2D, null);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+	    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+
+//		Util.loadImage("roughness.jpg",1,function(image){
+//			envtexes.push(1.0);
+//			envtexes.push(image.gltexture);
+//		});
+>>>>>>> master
 	});
 	
+	shadowTexture=Rastgl.createTexture(1024,1024);
+	gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
 	onoPhy = new OnoPhy();
 	Util.setFps(globalParam.fps,mainloop);
 	Util.fpsman();
@@ -439,5 +545,7 @@ var Test3d=(function(){
 		angle[1]=Math.atan2(dx,dz);
 		angle[2]=0;
 	}
+	Shade.init();
+	Color.init();
 	return ret;
 })()
