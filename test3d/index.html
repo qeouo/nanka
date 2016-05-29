@@ -35,8 +35,10 @@ var pickerflg=false;
 		}
 		if(globalParam.stereomode==-1){
 			checkbox=document.getElementById("parallel");
-		}else{
+		}else if(globalParam.stereomode==1){
 			checkbox=document.getElementById("cross");
+		}else{
+			checkbox=document.getElementById("notstereo");
 		}
 		checkbox.checked=1;
 		if(globalParam.shadow){
