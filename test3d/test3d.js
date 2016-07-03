@@ -132,6 +132,7 @@ var Test3d=(function(){
 			ono3d.setTargetMatrix(0)
 			ono3d.loadIdentity()
 
+			//ono3d.rotate(obj.t*0.01,0,1,0)
 			ono3d.rotate(-PI*0.5,1,0,0)
 			if(obj3d){
 				if(obj3d.scenes.length>0){
@@ -304,12 +305,14 @@ var Test3d=(function(){
 	gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
 	//edgeShader.draw(ono3d);
 	plainShader.draw(ono3d);
-	mainShader.draw(ono3d,shadowTexture);
+	if(envtexes){
+		MainShader.draw(ono3d,shadowTexture,envtexes,camera.p);
+	}
 	//Shade.draw(ono3d,envtexes[envtexes.length-1],shadowTexture);
 	//gl.depthMask(false);
-	if(envtexes){
-		Env.drawMrr(ono3d,envtexes,camera.p);
-	}
+//	if(envtexes){
+//		Env.drawMrr(ono3d,envtexes,camera.p);
+//	}
 	//Color.draw(ono3d);
 	gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
 	gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,720,480);
@@ -334,6 +337,7 @@ var Test3d=(function(){
 	Rastgl.copyframe(Rastgl.fTexture,0,0,720/1024,480/1024);
 	
 	gl.disable(gl.BLEND);
+	//Rastgl.copyframe(obj3d.textures[1].image.gltexture,0,1,1,-1);
 			
 //		if(sky.gltexture){
 //		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -502,5 +506,32 @@ var Test3d=(function(){
 	}
 	Shade.init();
 	Color.init();
+
+var setNormalMap = function(s,t,p0,p1,p2,u0,v0,u1,v1,u2,v2){
+	var du1=u1-u0
+	var dv1=v1-v0
+	var du2=u2-u0
+	var dv2=v2-v0
+	var dx1=p1[0]-p0[0]
+	var dy1=p1[1]-p0[1]
+	var dz1=p1[2]-p0[2]
+	var dx2=p2[0]-p0[0]
+	var dy2=p2[1]-p0[1]
+	var dz2=p2[2]-p0[2]
+
+	var d,d2;
+	d2=1/(du1*dv2-du2*dv1)
+	s[0]=-(dv1*dx2-dv2*dx1)*d2
+	s[1]=-(dv1*dy2-dv2*dy1)*d2
+	s[2]=-(dv1*dz2-dv2*dz1)*d2
+	t[0]=(du1*dx2-du2*dx1)*d2
+	t[1]=(du1*dy2-du2*dy1)*d2
+	t[2]=(du1*dz2-du2*dz1)*d2
+		
+}
+var s=new Vec3();
+var t=new Vec3();
+	setNormalMap(s,t,[0,0,0],[2,0,0],[0,1,0],0,0,1,0,0,1);
+	console.log(s,t);
 	return ret;
 })()
