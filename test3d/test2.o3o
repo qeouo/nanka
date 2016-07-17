@@ -1,12 +1,12 @@
 {"format":"Ono3dObject Version 0.2"
 ,"textures":[
   {"name":"Tex","typ":"IMAGE","path":"//rainbow.jpg"}
-  ,{"name":"テクスチャ.001","typ":"IMAGE","path":"//bamp.png"}
-  ,{"name":"テクスチャ.002","typ":"IMAGE","path":"//bamp2.png"}
+  ,{"name":"テクスチャ.001","typ":"IMAGE","path":"//bamp2.png"}
+  ,{"name":"テクスチャ.002","typ":"IMAGE","path":"//bamp1.png"}
 ]
 ,"materials":[
-  {"name":"Material","r": 0.800000,"g": 0.800000,"b": 0.800000,"a": 1.000000,"dif": 0.800000,"emt": 0.000000,"mrr": 0.000000,"ior": 1.000000,"spc": 0.500000,"spchard":50,"texture_slots":[{"texture":"Tex","uv_layer":"UVマップ"},{"texture":"テクスチャ.002","normal": 1.000000,"uv_layer":"UVマップ"}]}
-  ,{"name":"マテリアル","r": 0.800000,"g": 0.800000,"b": 0.800000,"a": 1.000000,"dif": 0.800000,"emt": 0.000000,"mrr": 0.000000,"ior": 1.000000,"spc": 0.500000,"spchard":50,"texture_slots":[{"texture":"Tex","uv_layer":"UVマップ"},{"texture":"テクスチャ.001","normal": 1.000000,"uv_layer":"UVマップ"}]}
+  {"name":"Material","r": 0.800000,"g": 0.800000,"b": 0.800000,"a": 1.000000,"dif": 0.800000,"emt": 0.000000,"mrr": 0.100000,"ior": 1.000000,"spc": 0.500000,"spchard":50,"texture_slots":[{"texture":"Tex","uv_layer":"UVマップ"},{"texture":"テクスチャ.002","normal": 1.000000,"uv_layer":"UVマップ"}]}
+  ,{"name":"マテリアル","r": 0.800000,"g": 0.800000,"b": 0.800000,"a": 1.000000,"dif": 0.800000,"emt": 0.000000,"mrr": 0.100000,"ior": 1.000000,"spc": 0.500000,"spchard":50,"texture_slots":[{"texture":"Tex","uv_layer":"UVマップ"},{"texture":"テクスチャ.001","normal": 1.000000,"uv_layer":"UVマップ"}]}
 ]
 ,"meshes":[
   {
