@@ -1,7 +1,7 @@
 {"format":"Ono3dObject Version 0.2"
 ,"textures":[
   {"name":"Tex","typ":"IMAGE","path":"//rainbow.jpg"}
-  ,{"name":"テクスチャ.001","typ":"IMAGE","path":"//bamp2.png"}
+  ,{"name":"テクスチャ.001","typ":"IMAGE","path":"//bamp1.jpg"}
   ,{"name":"テクスチャ.002","typ":"IMAGE","path":"//bamp1.png"}
 ]
 ,"materials":[
