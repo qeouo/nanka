@@ -94,6 +94,7 @@ var Test3d=(function(){
 			}
 			var scene= obj3d.scenes[globalParam.scene];
 			if(phyObjs===null){
+			console.log("HOGE");
 				onoPhy.phyObjs = [];
 				if(obj3d.scenes.length>0){
 					phyObjs=new Array();
@@ -151,7 +152,7 @@ var Test3d=(function(){
 		globalParam.outlineWidth=1;
 		globalParam.outlineColor="000000";
 		globalParam.lightcol1="ffffff";
-		globalParam.lightcol2="808080";
+		globalParam.lightcol2="808080";;
 		globalParam.lightThreshold1=0.5;
 		globalParam.lightThreshold2=0.6;
 		globalParam.physics=1;
@@ -296,8 +297,7 @@ var Test3d=(function(){
 				Env.env(sky.gltexture);
 			}
 		}
-//		ono3d.render(Util.ctx)
-	//plainShader.draw(ono3d);
+	//		ono3d.render(Util.ctx)
 	
 	gl.disable(gl.BLEND);
 	gl.depthMask(true);
@@ -368,130 +368,138 @@ var Test3d=(function(){
 	}) (document.scripts || document.getElementsByTagName('script'));
 
 
-	var div=document.createElement("div");
-	parentnode.appendChild(div);
-	var canvas =document.createElement("canvas");
-	canvas.width=WIDTH;
-	canvas.height=HEIGHT;
-	parentnode.appendChild(canvas);
-	var canvasgl =document.createElement("canvas");
-	canvasgl.width=WIDTH*2;
-	canvasgl.height=HEIGHT;
-	parentnode.appendChild(canvasgl);
-	var ctx=canvas.getContext("2d");
-	gl = canvasgl.getContext('webgl') || canvasgl.getContext('experimental-webgl');
-
-	Util.init(canvas,document.body);
-	var ono3d = new Ono3d()
-	O3o.setOno3d(ono3d)
-	ono3d.init(canvas,ctx);
-
-	ono3d.rendercanvas=canvas;
-	if(gl){
-		globalParam.enableGL=true;
-	}else{
-		globalParam.enableGL=false;
-	}
-	globalParam.gl=gl;
-
-
-	if(globalParam.enableGL){
-		Rastgl.init(gl,ono3d);
-		canvas.style.width="0px";
-		canvasgl.style.display="inline";
-		Ono3d.setDrawMethod(3);
-	}else{
-		canvasgl.style.display="none";
-		canvas.style.display="inline";
-	}
-
-	gl.clearColor(1, 1, 1,1.0);
-
-	obj3d=O3o.load(globalParam.model,function(){
-		var sceneSelect = document.getElementById("scene");
-		var option;
-		for(var i=0;i<obj3d.scenes.length;i++){
-			if(obj3d.scenes[i].name.indexOf("_",0)==0){
-				continue;
+	ret.loadModel=function(path){
+		globalParam.model=path;
+		obj3d=O3o.load(globalParam.model,function(){
+			var sceneSelect = document.getElementById("scene");
+			var option;
+			for(var i=0;i<obj3d.scenes.length;i++){
+				if(obj3d.scenes[i].name.indexOf("_",0)==0){
+					continue;
+				}
+				option = document.createElement('option');
+				option.setAttribute('value', i);
+				option.innerHTML = obj3d.scenes[i].name;
+				sceneSelect.appendChild(option);
 			}
-			option = document.createElement('option');
-			option.setAttribute('value', i);
-			option.innerHTML = obj3d.scenes[i].name;
-			sceneSelect.appendChild(option);
-		}
-		document.getElementById("scene").selectedIndex=globalParam.scene;
-		Util.fireEvent(document.getElementById("scene"),"change");
+			document.getElementById("scene").selectedIndex=globalParam.scene;
+			Util.fireEvent(document.getElementById("scene"),"change");
 
-	});
-	sky = Util.loadImage("sky.png",1);
-	Util.loadImage("sky.jpg",1,function(image){
-		gl.bindTexture(gl.TEXTURE_2D, image.gltexture);
+		});
+		
+	}
+	ret.start = function(){
+		sky = Util.loadImage("sky.png",1);
+		Util.loadImage("sky.jpg",1,function(image){
+			gl.bindTexture(gl.TEXTURE_2D, image.gltexture);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+			var envs=[0.25,0.5,0.75];
+			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+			gl.viewport(0,0,256,128);
+			envtexes=[];
+			envtexes.push(image.gltexture);
+			for(var i=0;i<envs.length;i++){
+				var tex=Rastgl.createTexture(null,256,128);
+				Env.rough(image.gltexture,envs[i]);
+				gl.bindTexture(gl.TEXTURE_2D, tex);
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+				gl.copyTexImage2D(gl.TEXTURE_2D,0,gl.RGBA,0,0,256,128,0);
+				envtexes.push(envs[i]);
+				envtexes.push(tex);
+			}
+			{
+				gl.viewport(0,0,1024,512);
+				var tex=Rastgl.createTexture(null,1024,512);
+				Env.rough(image.gltexture,1.0);
+				gl.bindTexture(gl.TEXTURE_2D, tex);
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+				gl.copyTexImage2D(gl.TEXTURE_2D,0,gl.RGBA,0,0,1024,512,0);
+				envtexes.push(1.0);
+				envtexes.push(tex);
+			}
+			gl.bindTexture(gl.TEXTURE_2D, null);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+
+	//		Util.loadImage("roughness.jpg",1,function(image){
+	//			envtexes.push(1.0);
+	//			envtexes.push(image.gltexture);
+	//		});
+		});
+		
+		Util.setFps(globalParam.fps,mainloop);
+		Util.fpsman();
+
+	}
+		var div=document.createElement("div");
+		parentnode.appendChild(div);
+		var canvas =document.createElement("canvas");
+		canvas.width=WIDTH;
+		canvas.height=HEIGHT;
+		parentnode.appendChild(canvas);
+		var canvasgl =document.createElement("canvas");
+		canvasgl.width=WIDTH*2;
+		canvasgl.height=HEIGHT;
+		parentnode.appendChild(canvasgl);
+		var ctx=canvas.getContext("2d");
+		gl = canvasgl.getContext('webgl') || canvasgl.getContext('experimental-webgl');
+		console.log("test3dinit");
+
+		Util.init(canvas,document.body);
+		var ono3d = new Ono3d()
+		O3o.setOno3d(ono3d)
+		ono3d.init(canvas,ctx);
+
+		ono3d.rendercanvas=canvas;
+		if(gl){
+			globalParam.enableGL=true;
+		}else{
+			globalParam.enableGL=false;
+		}
+		globalParam.gl=gl;
+
+
+		if(globalParam.enableGL){
+			Rastgl.init(gl,ono3d);
+			canvas.style.width="0px";
+			canvasgl.style.display="inline";
+			Ono3d.setDrawMethod(3);
+		}else{
+			canvasgl.style.display="none";
+			canvas.style.display="inline";
+		}
+
+		gl.clearColor(1, 1, 1,1.0);
+
+		shadowTexture=Rastgl.createTexture(null,1024,1024);
+		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-		var envs=[0.25,0.5,0.75];
-		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-		gl.viewport(0,0,256,128);
-		envtexes=[];
-		envtexes.push(image.gltexture);
-		for(var i=0;i<envs.length;i++){
-			var tex=Rastgl.createTexture(null,256,128);
-			Env.rough(image.gltexture,envs[i]);
-			gl.bindTexture(gl.TEXTURE_2D, tex);
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-			gl.copyTexImage2D(gl.TEXTURE_2D,0,gl.RGBA,0,0,256,128,0);
-			envtexes.push(envs[i]);
-			envtexes.push(tex);
-		}
-		{
-			gl.viewport(0,0,1024,512);
-			var tex=Rastgl.createTexture(null,1024,512);
-			Env.rough(image.gltexture,1.0);
-			gl.bindTexture(gl.TEXTURE_2D, tex);
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-			gl.copyTexImage2D(gl.TEXTURE_2D,0,gl.RGBA,0,0,1024,512,0);
-			envtexes.push(1.0);
-			envtexes.push(tex);
-		}
-		gl.bindTexture(gl.TEXTURE_2D, null);
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-	    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+		onoPhy = new OnoPhy();
 
-//		Util.loadImage("roughness.jpg",1,function(image){
-//			envtexes.push(1.0);
-//			envtexes.push(image.gltexture);
-//		});
-	});
-	
-	shadowTexture=Rastgl.createTexture(null,1024,1024);
-	gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+		var light = new ono3d.LightSource()
+		light.type =Ono3d.LT_DIRECTION
+		Vec3.set(light.angle,-1,-1,-1);
+		Vec3.set(light.pos,8,20,8);
+		light.power=1
+		light.color[0]=1
+		light.color[1]=1
+		light.color[2]=1
+		Vec3.norm(light.angle)
+		ono3d.lightSources.push(light)
+		light = new ono3d.LightSource()
+		light.type =Ono3d.LT_AMBIENT
+		light.color[0]=0.2
+		light.color[1]=0.2
+		light.color[2]=0.2
+		ono3d.lightSources.push(light)
+		Vec3.set(camera.p,0,6,10)
+		Vec3.set(camera.a,0,PI,0)
+		inittime=Date.now();
 
-	onoPhy = new OnoPhy();
-	Util.setFps(globalParam.fps,mainloop);
-	Util.fpsman();
-
-	var light = new ono3d.LightSource()
-	light.type =Ono3d.LT_DIRECTION
-	Vec3.set(light.angle,-1,-1,-1);
-	Vec3.set(light.pos,8,20,8);
-	light.power=1
-	light.color[0]=1
-	light.color[1]=1
-	light.color[2]=1
-	Vec3.norm(light.angle)
-	ono3d.lightSources.push(light)
-	light = new ono3d.LightSource()
-	light.type =Ono3d.LT_AMBIENT
-	light.color[0]=0.2
-	light.color[1]=0.2
-	light.color[2]=0.2
-	ono3d.lightSources.push(light)
-	Vec3.set(camera.p,0,6,10)
-	Vec3.set(camera.a,0,PI,0)
-	inittime=Date.now();
-
-	span=document.getElementById("cons");
+		span=document.getElementById("cons");
 	ret.changeScene=function(){
 		phyObjs=null;
 		globalParam.physics_=false;
@@ -505,5 +513,7 @@ var Test3d=(function(){
 		angle[2]=0;
 	}
 
+	ret.loadModel(globalParam.model);
+	//ret.start();
 	return ret;
 })()
