@@ -94,7 +94,6 @@ var Test3d=(function(){
 			}
 			var scene= obj3d.scenes[globalParam.scene];
 			if(phyObjs===null){
-			console.log("HOGE");
 				onoPhy.phyObjs = [];
 				if(obj3d.scenes.length>0){
 					phyObjs=new Array();
@@ -133,7 +132,6 @@ var Test3d=(function(){
 			ono3d.setTargetMatrix(0)
 			ono3d.loadIdentity()
 
-			//ono3d.rotate(obj.t*0.01,0,1,0)
 			ono3d.rotate(-PI*0.5,1,0,0)
 			if(obj3d){
 				if(obj3d.scenes.length>0){
@@ -271,7 +269,9 @@ var Test3d=(function(){
 		}
 
 		gl.depthMask(true);
-		Rastgl.renderShadowmap();
+		//Rastgl.renderShadowmap();
+		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+		Shadow.draw(ono3d);
 		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
 		gl.copyTexImage2D(gl.TEXTURE_2D,0,gl.RGBA,0,0,1024,1024,0);
 		
@@ -304,7 +304,7 @@ var Test3d=(function(){
 	gl.enable(gl.DEPTH_TEST);
 	gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
 	//edgeShader.draw(ono3d);
-	plainShader.draw(ono3d);
+	Plain.draw(ono3d);
 	if(envtexes){
 		MainShader.draw(ono3d,shadowTexture,envtexes,camera.p);
 	}
@@ -317,14 +317,11 @@ var Test3d=(function(){
 	gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
 	gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,720,480);
 
-
+//emi
 	gl.clearColor(0.0,0.0,0.0,1.0);
 	gl.clear(gl.COLOR_BUFFER_BIT);
 	gl.depthMask(false);
-	Rastgl.drawEmi(ono3d);
-	//gl.bindTexture(gl.TEXTURE_2D, Rastgl.fTexture);
-	//gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,720,480);
-
+	EmiShader.draw(ono3d);
 	ono3d.framebuffer();
 
 	gl.viewport(0,0,720,480);
@@ -347,7 +344,6 @@ var Test3d=(function(){
 
 		ono3d.clear()
 		gl.finish();
-
 
 		mseccount += (Date.now() - nowTime)
 		framecount++
@@ -444,7 +440,6 @@ var Test3d=(function(){
 		parentnode.appendChild(canvasgl);
 		var ctx=canvas.getContext("2d");
 		gl = canvasgl.getContext('webgl') || canvasgl.getContext('experimental-webgl');
-		console.log("test3dinit");
 
 		Util.init(canvas,document.body);
 		var ono3d = new Ono3d()
