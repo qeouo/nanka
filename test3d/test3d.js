@@ -385,6 +385,7 @@ var Test3d=(function(){
 		
 	}
 	ret.start = function(){
+	alert("start");
 		sky = Util.loadImage("sky.png",1);
 		Util.loadImage("sky.jpg",1,function(image){
 			gl.bindTexture(gl.TEXTURE_2D, image.gltexture);
