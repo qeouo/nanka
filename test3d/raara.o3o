@@ -4,8 +4,8 @@
   ,{"name":"テクスチャ.001","typ":"IMAGE","path":"//rainbow.jpg"}
 ]
 ,"materials":[
-  {"name":"Material","r": 1.000000,"g": 1.000000,"b": 1.000000,"a": 1.000000,"dif": 1.000000,"emt": 0.000000,"mrr": 0.000000,"ior": 1.000000,"spc": 0.000000,"spchard":50,"texture_slots":[{"texture":"Texture.003","uv_layer":"UVMap"}]}
-  ,{"name":"マテリアル","r": 0.800000,"g": 0.800000,"b": 0.800000,"a": 1.000000,"dif": 0.800000,"emt": 4.000000,"mrr": 0.000000,"ior": 1.000000,"spc": 0.500000,"spchard":50,"texture_slots":[{"texture":"テクスチャ.001","uv_layer":"UVMap2"}],"action":"マテリアルAction"}
+    {"name": "Material", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 0.0, "rough": 0.0, "ior": 1.0, "texture_slots": [{"texture": "Texture.003", "uv_layer": "UVMap"}]}
+  ,  {"name": "マテリアル", "r": 0.800000011920929, "g": 0.800000011920929, "b": 0.800000011920929, "a": 1.0, "dif": 0.800000011920929, "emt": 4.0, "reflect": 0.0, "rough": 0.0, "ior": 1.0, "texture_slots": [{"texture": "テクスチャ.001", "uv_layer": "UVMap2", "action": "マテリアルAction"}]}
 ]
 ,"meshes":[
   {

@@ -14,6 +14,8 @@ scenesbl_info = {
 #g_version = "0.13"
 
 import math 
+import json
+import collections
 
 import os
 from math import radians
@@ -235,36 +237,37 @@ def WriteTexture(Texture=None):
 
 def WriteMaterial( Material=None):
     if Material is None :return
-        
-    fileout2('{')
-    fileout2('"name":\"{}\"'.format(Material.name))
+    dict = collections.OrderedDict()
+    
+    dict["name"] = Material.name
     lst = list(Material.diffuse_color)
-    fileout2(',"r":{:9f},"g":{:9f},"b":{:9f},"a":{:9f}'.format( lst[0],lst[1],lst[2],Material.alpha))
-    fileout2(',"dif":{:9f}'.format( Material.diffuse_intensity))
-    fileout2(',"emt":{:9f}'.format(Material.emit))
-    lst = list(Material.mirror_color)
+    dict["r"] = lst[0]
+    dict["g"] = lst[1]
+    dict["b"] = lst[2]
+    dict["a"] = Material.alpha
+    dict["dif"] = Material.diffuse_intensity
+    dict["emt"] = Material.emit
     if(Material.raytrace_mirror):
-        fileout2(',"mrr":{:9f}'.format(Material.raytrace_mirror.reflect_factor))
+        lst = list(Material.mirror_color)
+        dict["reflect"] = Material.raytrace_mirror.reflect_factor
+        dict["rough"] = (1.0-Material.raytrace_mirror.gloss_factor)*2.0
     if(Material.raytrace_transparency):
-        fileout2(',"ior":{:9f}'.format(Material.raytrace_transparency.ior))
-    fileout2(',"spc":{:9f},"spchard":{}'.format(Material.specular_intensity,Material.specular_hardness))
-    fileout2(',"texture_slots":[');
+        dict["ior"] = Material.raytrace_transparency.ior
+    dict["texture_slots"] = []
     for texture_slot in Material.texture_slots:
         if(texture_slot is None):continue
-        if(texture_slot != Material.texture_slots[0]):fileout2(',')
-        fileout2('{')
-        fileout2('"texture":"{}"'.format(texture_slot.texture.name))
+        texture = {}
+        dict["texture_slots"].append(texture)
+        texture["texture"] = texture_slot.texture.name
         if(texture_slot.use_map_normal):
-            fileout2(',"normal":{:9f}'.format(texture_slot.normal_factor))
+            texture["normal"] = texture_slot.normal_factor
         if(texture_slot.uv_layer):
-            fileout2(',"uv_layer":"{}"'.format(texture_slot.uv_layer))
-        fileout2('}')
-    fileout2(']');
+            texture["uv_layer"] = texture_slot.uv_layer
     if(Material.animation_data):
         if(Material.animation_data.action):
-            fileout2(',"action":"{}"'.format(Material.animation_data.action.name))
-
-    fileout2('}\n')
+            texture["action"] = Material.animation_data.action.name
+    fileout(json.dumps(dict,ensure_ascii=False))
+    fileout2('\n')
 
 
 def WriteArmatureBones(Armature):

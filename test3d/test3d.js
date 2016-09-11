@@ -341,6 +341,7 @@ var Test3d=(function(){
 //		gl.viewport(0,0,720,480);
 //		Rastgl.copyframe(envtexes[envtexes.length-1],0,0,1,1,1);
 //		}
+//		Rastgl.copyframe(envtexes[envtexes.length-1],0,0,1,1,1);
 
 		ono3d.clear()
 		gl.finish();
@@ -394,10 +395,11 @@ var Test3d=(function(){
 			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
 			gl.viewport(0,0,256,128);
 			envtexes=[];
+			envtexes.push(0);
 			envtexes.push(image.gltexture);
 			for(var i=0;i<envs.length;i++){
 				var tex=Rastgl.createTexture(null,256,128);
-				Env.rough(image.gltexture,envs[i]);
+				Env.rough(image.gltexture,envs[i],tex,256,128);
 				gl.bindTexture(gl.TEXTURE_2D, tex);
 				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 				gl.copyTexImage2D(gl.TEXTURE_2D,0,gl.RGBA,0,0,256,128,0);
@@ -407,11 +409,11 @@ var Test3d=(function(){
 			{
 				gl.viewport(0,0,1024,512);
 				var tex=Rastgl.createTexture(null,1024,512);
-				Env.rough(image.gltexture,1.0);
+				Env.rough(image.gltexture,1.0,tex,1024,512);
 				gl.bindTexture(gl.TEXTURE_2D, tex);
 				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 				gl.copyTexImage2D(gl.TEXTURE_2D,0,gl.RGBA,0,0,1024,512,0);
-				envtexes.push(1.0);
+				envtexes.push(1.1);
 				envtexes.push(tex);
 			}
 			gl.bindTexture(gl.TEXTURE_2D, null);
