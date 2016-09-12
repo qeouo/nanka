@@ -341,7 +341,7 @@ var Test3d=(function(){
 //		gl.viewport(0,0,720,480);
 //		Rastgl.copyframe(envtexes[envtexes.length-1],0,0,1,1,1);
 //		}
-//		Rastgl.copyframe(envtexes[envtexes.length-1],0,0,1,1,1);
+	//	Rastgl.copyframe(envtexes[3],0,0,1,1,1);
 
 		ono3d.clear()
 		gl.finish();
