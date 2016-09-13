@@ -334,14 +334,7 @@ var Test3d=(function(){
 	Rastgl.copyframe(Rastgl.fTexture,0,0,720/1024,480/1024);
 	
 	gl.disable(gl.BLEND);
-	//Rastgl.copyframe(obj3d.textures[1].image.gltexture,0,1,1,-1);
-			
-//		if(sky.gltexture){
-//		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-//		gl.viewport(0,0,720,480);
 //		Rastgl.copyframe(envtexes[envtexes.length-1],0,0,1,1,1);
-//		}
-	//	Rastgl.copyframe(envtexes[3],0,0,1,1,1);
 
 		ono3d.clear()
 		gl.finish();
