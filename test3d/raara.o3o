@@ -4,7 +4,7 @@
   ,{"name":"テクスチャ.001","typ":"IMAGE","path":"//rainbow.jpg"}
 ]
 ,"materials":[
-    {"name": "Material", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 1.0, "rough": 1.0, "ior": 1.0, "texture_slots": [{"texture": "Texture.003", "uv_layer": "UVMap"}]}
+    {"name": "Material", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 0.0, "rough": 1.0, "ior": 1.0, "texture_slots": [{"texture": "Texture.003", "uv_layer": "UVMap"}]}
   ,  {"name": "マテリアル", "r": 0.800000011920929, "g": 0.800000011920929, "b": 0.800000011920929, "a": 1.0, "dif": 0.800000011920929, "emt": 4.0, "reflect": 0.0, "rough": 0.0, "ior": 1.0, "texture_slots": [{"texture": "テクスチャ.001", "uv_layer": "UVMap2", "action": "マテリアルAction"}]}
 ]
 ,"meshes":[
