@@ -1,24 +1,23 @@
 {"format":"Ono3dObject Version 0.2"
 ,"textures":[
-  {"name":"テクスチャ","typ":"IMAGE","path":"//sky.png"}
 ]
 ,"materials":[
-    {"name": "mat000", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 1.0, "rough": 1.0, "ior": 1.0, "texture_slots": [{"texture": "テクスチャ"}]}
-  ,  {"name": "mat000.001", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 0.5, "rough": 1.0, "ior": 1.0, "texture_slots": [{"texture": "テクスチャ"}]}
-  ,  {"name": "mat000.002", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 0.75, "rough": 1.0, "ior": 1.0, "texture_slots": [{"texture": "テクスチャ"}]}
-  ,  {"name": "mat000.003", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 0.25, "rough": 1.0, "ior": 1.0, "texture_slots": [{"texture": "テクスチャ"}]}
-  ,  {"name": "mat025", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 1.0, "rough": 0.3999999761581421, "ior": 1.0, "texture_slots": [{"texture": "テクスチャ"}]}
-  ,  {"name": "mat025.001", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 0.75, "rough": 0.3999999761581421, "ior": 1.0, "texture_slots": [{"texture": "テクスチャ"}]}
-  ,  {"name": "mat025.002", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 0.5, "rough": 0.3999999761581421, "ior": 1.0, "texture_slots": [{"texture": "テクスチャ"}]}
-  ,  {"name": "mat025.003", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 0.25, "rough": 0.3999999761581421, "ior": 1.0, "texture_slots": [{"texture": "テクスチャ"}]}
-  ,  {"name": "mat075", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 1.0, "rough": 0.20000004768371582, "ior": 1.0, "texture_slots": [{"texture": "テクスチャ"}]}
-  ,  {"name": "mat075.001", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 0.75, "rough": 0.20000004768371582, "ior": 1.0, "texture_slots": [{"texture": "テクスチャ"}]}
-  ,  {"name": "mat075.002", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 0.5, "rough": 0.20000004768371582, "ior": 1.0, "texture_slots": [{"texture": "テクスチャ"}]}
-  ,  {"name": "mat075.003", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 0.25, "rough": 0.20000004768371582, "ior": 1.0, "texture_slots": [{"texture": "テクスチャ"}]}
-  ,  {"name": "mat100", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 1.0, "rough": 0.0, "ior": 1.0, "texture_slots": [{"texture": "テクスチャ"}]}
-  ,  {"name": "mat100.001", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 0.75, "rough": 0.0, "ior": 1.0, "texture_slots": [{"texture": "テクスチャ"}]}
-  ,  {"name": "mat100.002", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 0.5, "rough": 0.0, "ior": 1.0, "texture_slots": [{"texture": "テクスチャ"}]}
-  ,  {"name": "mat100.003", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 0.25, "rough": 0.0, "ior": 1.0, "texture_slots": [{"texture": "テクスチャ"}]}
+    {"name": "mat000", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 1.0, "rough": 1.0, "ior": 1.0, "texture_slots": []}
+  ,  {"name": "mat000.001", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 0.5, "rough": 1.0, "ior": 1.0, "texture_slots": []}
+  ,  {"name": "mat000.002", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 0.75, "rough": 1.0, "ior": 1.0, "texture_slots": []}
+  ,  {"name": "mat000.003", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 0.25, "rough": 1.0, "ior": 1.0, "texture_slots": []}
+  ,  {"name": "mat025", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 1.0, "rough": 0.3999999761581421, "ior": 1.0, "texture_slots": []}
+  ,  {"name": "mat025.001", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 0.75, "rough": 0.3999999761581421, "ior": 1.0, "texture_slots": []}
+  ,  {"name": "mat025.002", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 0.5, "rough": 0.3999999761581421, "ior": 1.0, "texture_slots": []}
+  ,  {"name": "mat025.003", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 0.25, "rough": 0.3999999761581421, "ior": 1.0, "texture_slots": []}
+  ,  {"name": "mat075", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 1.0, "rough": 0.20000004768371582, "ior": 1.0, "texture_slots": []}
+  ,  {"name": "mat075.001", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 0.75, "rough": 0.20000004768371582, "ior": 1.0, "texture_slots": []}
+  ,  {"name": "mat075.002", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 0.5, "rough": 0.20000004768371582, "ior": 1.0, "texture_slots": []}
+  ,  {"name": "mat075.003", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 0.25, "rough": 0.20000004768371582, "ior": 1.0, "texture_slots": []}
+  ,  {"name": "mat100", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 1.0, "rough": 0.0, "ior": 1.0, "texture_slots": []}
+  ,  {"name": "mat100.001", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 0.75, "rough": 0.0, "ior": 1.0, "texture_slots": []}
+  ,  {"name": "mat100.002", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 0.5, "rough": 0.0, "ior": 1.0, "texture_slots": []}
+  ,  {"name": "mat100.003", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 0.25, "rough": 0.0, "ior": 1.0, "texture_slots": []}
 ]
 ,"meshes":[
   {
@@ -284,26 +283,26 @@
       ,{"pos":[ 0.000000, 0.000000, 1.000000]}
     ]
     ,"faces":[
-      {"idx":[0,1,2],"mat":9}
-      ,{"idx":[1,0,5],"mat":9}
-      ,{"idx":[0,2,3],"mat":9}
-      ,{"idx":[0,3,4],"mat":9}
-      ,{"idx":[0,4,5],"mat":9}
-      ,{"idx":[1,5,10],"mat":9}
-      ,{"idx":[2,1,6],"mat":9}
-      ,{"idx":[3,2,7],"mat":9}
-      ,{"idx":[4,3,8],"mat":9}
-      ,{"idx":[5,4,9],"mat":9}
-      ,{"idx":[1,10,6],"mat":9}
-      ,{"idx":[2,6,7],"mat":9}
-      ,{"idx":[3,7,8],"mat":9}
-      ,{"idx":[4,8,9],"mat":9}
-      ,{"idx":[5,9,10],"mat":9}
-      ,{"idx":[6,10,11],"mat":9}
-      ,{"idx":[7,6,11],"mat":9}
-      ,{"idx":[8,7,11],"mat":9}
-      ,{"idx":[9,8,11],"mat":9}
-      ,{"idx":[10,9,11],"mat":9}
+      {"idx":[0,1,2],"mat":0}
+      ,{"idx":[1,0,5],"mat":0}
+      ,{"idx":[0,2,3],"mat":0}
+      ,{"idx":[0,3,4],"mat":0}
+      ,{"idx":[0,4,5],"mat":0}
+      ,{"idx":[1,5,10],"mat":0}
+      ,{"idx":[2,1,6],"mat":0}
+      ,{"idx":[3,2,7],"mat":0}
+      ,{"idx":[4,3,8],"mat":0}
+      ,{"idx":[5,4,9],"mat":0}
+      ,{"idx":[1,10,6],"mat":0}
+      ,{"idx":[2,6,7],"mat":0}
+      ,{"idx":[3,7,8],"mat":0}
+      ,{"idx":[4,8,9],"mat":0}
+      ,{"idx":[5,9,10],"mat":0}
+      ,{"idx":[6,10,11],"mat":0}
+      ,{"idx":[7,6,11],"mat":0}
+      ,{"idx":[8,7,11],"mat":0}
+      ,{"idx":[9,8,11],"mat":0}
+      ,{"idx":[10,9,11],"mat":0}
     ]
     ,"uv_layers":[
     ]
