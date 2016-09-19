@@ -379,36 +379,63 @@ var Test3d=(function(){
 		
 	}
 	ret.start = function(){
-		sky = Util.loadImage("sky.png",1);
-		Util.loadImage("sky.jpg",1,function(image){
-			gl.bindTexture(gl.TEXTURE_2D, image.gltexture);
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+		//sky = Rastgl.loadTexture("sky.png");
+		sky = Ono3d.loadCubemap("skybox.png",function(image){
+			var envsize=64;
 
-			var envs=[0.25,0.5,0.75];
+			var envs=[0.0,0.25,0.5,0.75,1.0];
 			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-			gl.viewport(0,0,256,128);
+			gl.viewport(0,0,envsize,envsize);
 			envtexes=[];
-			envtexes.push(0);
-			envtexes.push(image.gltexture);
+//			envtexes.push(0);
+//			envtexes.push(image.gltexture);
+			var targets=[
+				gl.TEXTURE_CUBE_MAP_POSITIVE_Z
+				,gl.TEXTURE_CUBE_MAP_POSITIVE_X
+				,gl.TEXTURE_CUBE_MAP_NEGATIVE_Z
+				,gl.TEXTURE_CUBE_MAP_NEGATIVE_X
+				,gl.TEXTURE_CUBE_MAP_POSITIVE_Y
+				,gl.TEXTURE_CUBE_MAP_NEGATIVE_Y
+			];
+			var matrixes=[
+				[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]
+				,[0,0,-1,0,0,1,0,0,1,0,0,0,0,0,0,1]
+				,[-1,0,0,0,0,1,0,0,0,0,-1,0,0,0,0,1]
+				,[0,0,1,0,0,1,0,0,-1,0,0,0,0,0,0,1]
+				,[1,0,0,0,0,0, 1,0,0,-1,0,0,0,0,0,1]
+				,[1,0,0,0,0,0,-1,0,0, 1,0,0,0,0,0,1]
+				];
 			for(var i=0;i<envs.length;i++){
-				var tex=Rastgl.createTexture(null,256,128);
-				Env.rough(image.gltexture,envs[i],tex,256,128);
-				gl.bindTexture(gl.TEXTURE_2D, tex);
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-				gl.copyTexImage2D(gl.TEXTURE_2D,0,gl.RGBA,0,0,256,128,0);
+				var tex = gl.createTexture();
+				gl.bindTexture(gl.TEXTURE_CUBE_MAP,tex);
+				var ii;
+				for(ii=0;ii<6;ii++){
+					gl.texImage2D(targets[ii], 0, gl.RGBA, envsize, envsize, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+				}
+				gl.generateMipmap(gl.TEXTURE_CUBE_MAP);
+				gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+				gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+				gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+				gl.texParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+				gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+				for(ii=0;ii<6;ii++){
+					Env.rough(image.gltexture,envs[i],tex,envsize,envsize,matrixes[ii],targets[ii]);
+					//gl.copyTexImage2D(targets[ii],0,gl.RGBA,0,0,64,64,0);
+				}
 				envtexes.push(envs[i]);
 				envtexes.push(tex);
 			}
-			{
-				gl.viewport(0,0,1024,512);
-				var tex=Rastgl.createTexture(null,1024,512);
-				Env.rough(image.gltexture,1.0,tex,1024,512);
-				gl.bindTexture(gl.TEXTURE_2D, tex);
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-				gl.copyTexImage2D(gl.TEXTURE_2D,0,gl.RGBA,0,0,1024,512,0);
-				envtexes.push(1.1);
-				envtexes.push(tex);
-			}
+
+//			{
+//				gl.viewport(0,0,1024,512);
+//				var tex=Rastgl.createTexture(null,1024,512);
+//				Env.rough(image.gltexture,1.0,tex,1024,512);
+//				gl.bindTexture(gl.TEXTURE_2D, tex);
+//				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+//				gl.copyTexImage2D(gl.TEXTURE_2D,0,gl.RGBA,0,0,1024,512,0);
+//				envtexes.push(1.1);
+//				envtexes.push(tex);
+//			}
 			gl.bindTexture(gl.TEXTURE_2D, null);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 			gl.bindRenderbuffer(gl.RENDERBUFFER, null);
