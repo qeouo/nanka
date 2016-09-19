@@ -161,6 +161,12 @@ var pickerflg=false;
 <label><input type="checkbox" id="shadow" onchange="globalParam.shadow=(this.checked);"/>影</label><br />
 
 </div>
+<div style="float:left;margin:10px;border:solid 1px black;"> 
+<label><input type="checkbox" id="chkMaterial" onchange="globalParam.materialMode=(this.checked);"/>カスタムマテリアル</label><br />
+色<input class="colorpicker" id="materialColor" onchange="globalParam.customMaterial.diffuse=this.value"/><br />
+反射率<input class="slider" id="materialReflect" onchange="globalParam.customMaterial.reflect=this.value"/><br />
+粗さ<input class="slider" id="materialRough" onchange="globalParam.customMaterial.rough=this.value"/><br />
+</div>
 </div>
 <div style="clear:both;left:0;right:0;margin:0 auto;width:720px;height:720px;">
 <script type="text/javascript" src="./test3d.js"> </script>

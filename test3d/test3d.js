@@ -162,6 +162,8 @@ var Test3d=(function(){
 		globalParam.scene=0;
 		globalParam.shadow=1;
 		globalParam.model="./raara.o3o";
+		globalParam.customMaterial=O3o.customMaterial;
+		globalParam.materialMode = false;
 
 		var args=url.split("&")
 
@@ -257,6 +259,14 @@ var Test3d=(function(){
 
 		ono3d.lightThreshold1=globalParam.lightThreshold1;
 		ono3d.lightThreshold2=globalParam.lightThreshold2;
+		
+		var a=new Vec3();
+		Util.hex2rgb(a,globalParam.customMaterial.diffuse);
+		O3o.customMaterial.r=a[0];
+		O3o.customMaterial.g=a[1];
+		O3o.customMaterial.b=a[2];
+
+		O3o.useCustomMaterial = globalParam.materialMode;
 
 		for(i=0;i<OBJSLENGTH;i++){
 			if(objs[i].stat!==STAT_ENABLE)continue;
