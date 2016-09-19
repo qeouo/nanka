@@ -380,7 +380,7 @@ var Test3d=(function(){
 	}
 	ret.start = function(){
 		//sky = Rastgl.loadTexture("sky.png");
-		sky = Ono3d.loadCubemap("skybox.png",function(image){
+		sky = Ono3d.loadCubemap("skybox.jpg",function(image){
 			var envsize=64;
 
 			var envs=[0.0,0.25,0.5,0.75,1.0];
