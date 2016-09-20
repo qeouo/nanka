@@ -103,6 +103,10 @@ var pickerflg=false;
 		document.getElementById("txtlightThreshold2").value=globalParam.lightThreshold2;
 		document.getElementById("txtStereo").value=globalParam.stereoscope;
 		document.getElementById("scene").value=globalParam.scene;
+		document.getElementById("customColor").value=globalParam.customColor;
+		document.getElementById("txtcustomReflection").value=globalParam.customReflection;
+		document.getElementById("customReflectionColor").value=globalParam.customReflectionColor;
+		document.getElementById("txtcustomRoughness").value=globalParam.customRoughness;
 
 		Util.fireEvent(document.getElementById("chkPhy"),"change");
 		Util.fireEvent(document.getElementById("txtSmoothing"),"change");
@@ -115,6 +119,10 @@ var pickerflg=false;
 		Util.fireEvent(document.getElementById("txtlightThreshold2"),"change");
 		Util.fireEvent(document.getElementById("scene"),"change");
 		Util.fireEvent(document.getElementById("shadow"),"change");
+		Util.fireEvent(document.getElementById("customColor"),"change");
+		Util.fireEvent(document.getElementById("txtcustomReflection"),"change");
+		Util.fireEvent(document.getElementById("customReflectionColor"),"change");
+		Util.fireEvent(document.getElementById("txtcustomRoughness"),"change");
 
 		var userAgent = window.navigator.userAgent.toLowerCase();
 		if (navigator.platform.indexOf("Win") != -1) {
@@ -163,9 +171,10 @@ var pickerflg=false;
 </div>
 <div style="float:left;margin:10px;border:solid 1px black;"> 
 <label><input type="checkbox" id="chkMaterial" onchange="globalParam.materialMode=(this.checked);"/>カスタムマテリアル</label><br />
-色<input class="colorpicker" id="materialColor" onchange="globalParam.customMaterial.diffuse=this.value"/><br />
-反射率<input class="slider" id="materialReflect" onchange="globalParam.customMaterial.reflect=this.value"/><br />
-粗さ<input class="slider" id="materialRough" onchange="globalParam.customMaterial.rough=this.value"/><br />
+拡散色<input class="colorpicker" id="customColor" onchange="globalParam.customColor=this.value"/><br />
+反射率<input class="slider" id="customReflection" onchange="globalParam.customReflection=this.value"/><br />
+反射色<input class="colorpicker" id="customReflectionColor" onchange="globalParam.customReflectionColor=this.value"/><br />
+粗さ<input class="slider" id="customRoughness" onchange="globalParam.customRoughness=this.value"/><br />
 </div>
 </div>
 <div style="clear:both;left:0;right:0;margin:0 auto;width:720px;height:720px;">

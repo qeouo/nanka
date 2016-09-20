@@ -162,8 +162,11 @@ var Test3d=(function(){
 		globalParam.scene=0;
 		globalParam.shadow=1;
 		globalParam.model="./raara.o3o";
-		globalParam.customMaterial=O3o.customMaterial;
 		globalParam.materialMode = false;
+		globalParam.customColor= "ffffff";
+		globalParam.customReflection= 0;
+		globalParam.customReflectionColor= "ffffff";
+		globalParam.customRoughness= 0;
 
 		var args=url.split("&")
 
@@ -261,10 +264,13 @@ var Test3d=(function(){
 		ono3d.lightThreshold2=globalParam.lightThreshold2;
 		
 		var a=new Vec3();
-		Util.hex2rgb(a,globalParam.customMaterial.diffuse);
+		Util.hex2rgb(a,globalParam.customColor);
 		O3o.customMaterial.r=a[0];
 		O3o.customMaterial.g=a[1];
 		O3o.customMaterial.b=a[2];
+		O3o.customMaterial.reflect=globalParam.customReflection;
+		O3o.customMaterial.rough=globalParam.customRoughness;
+		Util.hex2rgb(O3o.customMaterial.reflectionColor,globalParam.customReflectionColor);
 
 		O3o.useCustomMaterial = globalParam.materialMode;
 
