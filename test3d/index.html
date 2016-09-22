@@ -107,6 +107,7 @@ var pickerflg=false;
 		document.getElementById("txtcustomReflection").value=globalParam.customReflection;
 		document.getElementById("customReflectionColor").value=globalParam.customReflectionColor;
 		document.getElementById("txtcustomRoughness").value=globalParam.customRoughness;
+		document.getElementById("txtfrenel").value=globalParam.frenel;
 
 		Util.fireEvent(document.getElementById("chkPhy"),"change");
 		Util.fireEvent(document.getElementById("txtSmoothing"),"change");
@@ -123,6 +124,7 @@ var pickerflg=false;
 		Util.fireEvent(document.getElementById("txtcustomReflection"),"change");
 		Util.fireEvent(document.getElementById("customReflectionColor"),"change");
 		Util.fireEvent(document.getElementById("txtcustomRoughness"),"change");
+		Util.fireEvent(document.getElementById("txtfrenel"),"change");
 
 		var userAgent = window.navigator.userAgent.toLowerCase();
 		if (navigator.platform.indexOf("Win") != -1) {
@@ -139,8 +141,7 @@ var pickerflg=false;
 
 </head>
 <body onload="onl();" style="height:100%;">
-<input type="file" id="files" name="upfile[]" multiple  /><br />
-<div style="width:100%;height:100%;">
+<input type="file" id="files" name="upfile[]" multiple  style="display:none;" /><br />
 <span id="cons"></span>
 
 <pre>
@@ -167,6 +168,7 @@ var pickerflg=false;
 シーン(衣装)<select id="scene"  onchange="globalParam.scene=parseInt(this.value);Test3d.changeScene();">
 </select><br />
 <label><input type="checkbox" id="shadow" onchange="globalParam.shadow=(this.checked);"/>影</label><br />
+フレネル反射率<input class="slider" id="frenel" onchange="globalParam.frenel=this.value"/><br />
 
 </div>
 <div style="float:left;margin:10px;border:solid 1px black;"> 
@@ -175,11 +177,16 @@ var pickerflg=false;
 反射率<input class="slider" id="customReflection" onchange="globalParam.customReflection=this.value"/><br />
 反射色<input class="colorpicker" id="customReflectionColor" onchange="globalParam.customReflectionColor=this.value"/><br />
 粗さ<input class="slider" id="customRoughness" onchange="globalParam.customRoughness=this.value"/><br />
+テクスチャマップ<select id="customTexture" onchange="globalParam.customTexture=parseInt(this.value);">
+<option value="-1">-</option>
+</select><br />
+ハイトマップ<select id="customHeight" onchange="globalParam.customHeight=parseInt(this.value);">
+<option value="-1">-</option>
+</select><br />
 </div>
 </div>
 <div style="clear:both;left:0;right:0;margin:0 auto;width:720px;height:720px;">
 <script type="text/javascript" src="./test3d.js"> </script>
-</div>
 </div>
 </body>
 </html>

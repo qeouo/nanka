@@ -13,6 +13,8 @@ var Test3d=(function(){
 	var envtexes=null;
 	var phyObjs=null;
 	var shadowTexture;
+	var customTextures=[];
+	var customHeights=[];
 
 	var STAT_EMPTY=0
 		,STAT_ENABLE=1
@@ -95,6 +97,8 @@ var Test3d=(function(){
 			var scene= obj3d.scenes[globalParam.scene];
 			if(phyObjs===null){
 				onoPhy.phyObjs = [];
+
+
 				if(obj3d.scenes.length>0){
 					phyObjs=new Array();
 					for(i=0;i<scene.objects.length;i++){
@@ -167,6 +171,7 @@ var Test3d=(function(){
 		globalParam.customReflection= 0;
 		globalParam.customReflectionColor= "ffffff";
 		globalParam.customRoughness= 0;
+		globalParam.frenel = 0;
 
 		var args=url.split("&")
 
@@ -262,15 +267,32 @@ var Test3d=(function(){
 
 		ono3d.lightThreshold1=globalParam.lightThreshold1;
 		ono3d.lightThreshold2=globalParam.lightThreshold2;
-		
+
+	
+		var cMat = O3o.customMaterial;
 		var a=new Vec3();
 		Util.hex2rgb(a,globalParam.customColor);
-		O3o.customMaterial.r=a[0];
-		O3o.customMaterial.g=a[1];
-		O3o.customMaterial.b=a[2];
-		O3o.customMaterial.reflect=globalParam.customReflection;
-		O3o.customMaterial.rough=globalParam.customRoughness;
-		Util.hex2rgb(O3o.customMaterial.reflectionColor,globalParam.customReflectionColor);
+		cMat.r=a[0];
+		cMat.g=a[1];
+		cMat.b=a[2];
+		cMat.reflect=globalParam.customReflection;
+		cMat.rough=globalParam.customRoughness;
+		Util.hex2rgb(cMat.reflectionColor,globalParam.customReflectionColor);
+		cMat.texture=globalParam.customRoughness;
+		cMat.texture_slots=[];
+		if(globalParam.customTexture>=0){
+			var texture_slot = new O3o.Texture_slot();
+
+			cMat.texture_slots.push(texture_slot);
+			texture_slot.texture = customTextures[globalParam.customTexture];
+		}
+		if(globalParam.customHeight>=0){
+			var texture_slot = new O3o.Texture_slot();
+
+			cMat.texture_slots.push(texture_slot);
+			texture_slot.texture = customHeights[globalParam.customHeight];
+			texture_slot.normal= 1.0;
+		}
 
 		O3o.useCustomMaterial = globalParam.materialMode;
 
@@ -322,7 +344,7 @@ var Test3d=(function(){
 	//edgeShader.draw(ono3d);
 	Plain.draw(ono3d);
 	if(envtexes){
-		MainShader.draw(ono3d,shadowTexture,envtexes,camera.p);
+		MainShader.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
 	}
 	//Shade.draw(ono3d,envtexes[envtexes.length-1],shadowTexture);
 	//gl.depthMask(false);
@@ -396,6 +418,35 @@ var Test3d=(function(){
 	}
 	ret.start = function(){
 		//sky = Rastgl.loadTexture("sky.png");
+		var texes = ["tex1.jpg","tex2.jpg"];
+		var select = document.getElementById("customTexture");
+		var option;
+		for(i=0;i<texes.length;i++){
+			var texture = new O3o.Texture();
+	
+			texture.image = Ono3d.loadTexture(texes[i]);
+			customTextures.push(texture);
+
+			option = document.createElement('option');
+			option.setAttribute('value', i);
+			option.innerHTML = texes[i];
+			select.appendChild(option);
+		}
+		document.getElementById("scene").selectedIndex=globalParam.scene;
+		Util.fireEvent(document.getElementById("scene"),"change");
+		texes = ["bump1.png"];
+		select = document.getElementById("customHeight");
+		for(i=0;i<texes.length;i++){
+			var texture = new O3o.Texture();
+	
+			texture.image = Ono3d.loadBumpTexture(texes[i]);
+			customHeights.push(texture);
+
+			option = document.createElement('option');
+			option.setAttribute('value', i);
+			option.innerHTML = texes[i];
+			select.appendChild(option);
+		}
 		sky = Ono3d.loadCubemap("skybox.jpg",function(image){
 			var envsize=64;
 

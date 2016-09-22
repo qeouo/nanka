@@ -2,11 +2,11 @@
 ,"textures":[
   {"name":"Tex","typ":"IMAGE","path":"//rainbow.jpg"}
   ,{"name":"テクスチャ.001","typ":"IMAGE","path":"//bamp1.png"}
-  ,{"name":"テクスチャ.002","typ":"IMAGE","path":"//bamp2.png"}
+  ,{"name":"テクスチャ.002","typ":"IMAGE","path":"//bamp1.png"}
 ]
 ,"materials":[
-    {"name": "Material", "r": 0.800000011920929, "g": 0.800000011920929, "b": 0.800000011920929, "a": 1.0, "dif": 0.800000011920929, "emt": 0.0, "reflect": 0.10000000149011612, "rough": 0.0, "ior": 1.0, "texture_slots": [{"texture": "Tex", "uv_layer": "UVマップ"}, {"texture": "テクスチャ.002", "uv_layer": "UVマップ", "normal": 10.0}]}
-  ,  {"name": "マテリアル", "r": 0.800000011920929, "g": 0.800000011920929, "b": 0.800000011920929, "a": 1.0, "dif": 0.800000011920929, "emt": 0.0, "reflect": 1.00000000149011612, "rough": 0.0, "ior": 1.0, "texture_slots": [{"texture": "Tex", "uv_layer": "UVマップ"}, {"texture": "テクスチャ.001", "uv_layer": "UVマップ", "normal": 1.0}]}
+    {"name": "Material", "r": 0.800000011920929, "g": 0.800000011920929, "b": 0.800000011920929, "a": 1.0, "dif": 0.800000011920929, "emt": 0.0, "reflect": 0.0, "rough": 0.0, "ior": 1.0, "texture_slots": [{"uv_layer": "UVマップ", "texture": "Tex"}, {"normal": 2.0, "texture": "テクスチャ.002", "uv_layer": "UVマップ"}]}
+  ,  {"name": "マテリアル", "r": 0.800000011920929, "g": 0.800000011920929, "b": 0.800000011920929, "a": 1.0, "dif": 0.800000011920929, "emt": 0.0, "reflect": 0.10000000149011612, "rough": 0.0, "ior": 1.0, "texture_slots": [{"uv_layer": "UVマップ", "texture": "Tex"}, {"normal": 1.0, "texture": "テクスチャ.001", "uv_layer": "UVマップ"}]}
 ]
 ,"meshes":[
   {
