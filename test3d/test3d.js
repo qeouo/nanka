@@ -382,6 +382,7 @@ var Test3d=(function(){
 	
 	gl.disable(gl.BLEND);
 //		Rastgl.copyframe(envtexes[envtexes.length-1],0,0,1,1,1);
+//		Rastgl.copyframe(customBumps[0].image.gltexture,0,0,1,1,1);
 
 		ono3d.clear()
 		gl.finish();
@@ -457,7 +458,7 @@ var Test3d=(function(){
 			select.appendChild(option);
 		}
 		sky = Ono3d.loadCubemap("skybox.jpg",function(image){
-			var envsize=128;
+			var envsize=32;
 
 			var envs=[0.0,0.2,0.4,0.6,1.0];
 			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);

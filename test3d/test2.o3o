@@ -2,7 +2,7 @@
 ,"textures":[
   {"name":"Tex","typ":"IMAGE","path":"//rainbow.jpg"}
   ,{"name":"テクスチャ.001","typ":"IMAGE","path":"//bamp1.png"}
-  ,{"name":"テクスチャ.002","typ":"IMAGE","path":"//bamp1.png"}
+  ,{"name":"テクスチャ.002","typ":"IMAGE","path":"//bump1.png"}
 ]
 ,"materials":[
     {"name": "Material", "r": 0.800000011920929, "g": 0.800000011920929, "b": 0.800000011920929, "a": 1.0, "dif": 0.800000011920929, "emt": 0.0, "reflect": 0.0, "rough": 0.0, "ior": 1.0, "texture_slots": [{"uv_layer": "UVマップ", "texture": "Tex"}, {"normal": 2.0, "texture": "テクスチャ.002", "uv_layer": "UVマップ"}]}
