@@ -458,7 +458,7 @@ var Test3d=(function(){
 			select.appendChild(option);
 		}
 		sky = Ono3d.loadCubemap("skybox.jpg",function(image){
-			var envsize=32;
+			var envsize=128;
 
 			var envs=[0.0,0.2,0.4,0.6,1.0];
 			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
