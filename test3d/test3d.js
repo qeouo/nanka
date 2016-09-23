@@ -14,7 +14,7 @@ var Test3d=(function(){
 	var phyObjs=null;
 	var shadowTexture;
 	var customTextures=[];
-	var customHeights=[];
+	var customBumps=[];
 
 	var STAT_EMPTY=0
 		,STAT_ENABLE=1
@@ -151,27 +151,29 @@ var Test3d=(function(){
 		return defObj(obj,msg,param);
 	}
 		var url=location.search.substring(1,location.search.length)
-		globalParam.outlineWidth=1;
+		globalParam.outlineWidth=0;
 		globalParam.outlineColor="000000";
-		globalParam.lightcol1="ffffff";
-		globalParam.lightcol2="808080";;
+		globalParam.lightColor1="ffffff";
+		globalParam.lightColor2="808080";;
 		globalParam.lightThreshold1=0.5;
 		globalParam.lightThreshold2=0.6;
 		globalParam.physics=1;
 		globalParam.smoothing=1;
-		globalParam.stereomode=1;
-		globalParam.stereoscope=1;
+		globalParam.stereomode=0;
+		globalParam.stereoVolume=1;
 		globalParam.step2=1;
 		globalParam.fps=30;
 		globalParam.scene=0;
-		globalParam.shadow=1;
+		globalParam.shadow=0;
 		globalParam.model="./raara.o3o";
 		globalParam.materialMode = false;
-		globalParam.customColor= "ffffff";
-		globalParam.customReflection= 0;
-		globalParam.customReflectionColor= "ffffff";
-		globalParam.customRoughness= 0;
+		globalParam.cColor= "ffffff";
+		globalParam.cReflection= 0;
+		globalParam.cReflectionColor= "ffffff";
+		globalParam.cRoughness= 0;
 		globalParam.frenel = 0;
+		globalParam.cAlpha= 1.0;
+		globalParam.cRefraction = 1.1;
 
 		var args=url.split("&")
 
@@ -179,7 +181,11 @@ var Test3d=(function(){
 			var arg=args[i].split("=")
 			if(arg.length >1){
 				if(!isNaN(arg[1]) && arg[1]!=""){
-					globalParam[arg[0]] = +arg[1]
+					if(arg[1].length>1 && arg[1].indexOf(0) =="0"){
+						globalParam[arg[0]] = arg[1]
+					}else{
+						globalParam[arg[0]] = +arg[1]
+					}
 				}else{
 					globalParam[arg[0]] = arg[1]
 				}
@@ -252,6 +258,7 @@ var Test3d=(function(){
 		ono3d.translate(-camera.p[0],-camera.p[1],-camera.p[2])
 
 		ono3d.rf=0;
+		ono3d.lineWidth=1.0;
 		if(globalParam.outlineWidth>0.){
 			ono3d.lineWidth=globalParam.outlineWidth;
 			ono3d.rf=Ono3d.RF_OUTLINE;
@@ -260,10 +267,10 @@ var Test3d=(function(){
 		ono3d.smoothing=globalParam.smoothing;
 
 		var light=ono3d.lightSources[0];
-		Util.hex2rgb(light.color,globalParam.lightcol1);
+		Util.hex2rgb(light.color,globalParam.lightColor1);
 
 		light=ono3d.lightSources[1];
-		Util.hex2rgb(light.color,globalParam.lightcol2);
+		Util.hex2rgb(light.color,globalParam.lightColor2);
 
 		ono3d.lightThreshold1=globalParam.lightThreshold1;
 		ono3d.lightThreshold2=globalParam.lightThreshold2;
@@ -271,30 +278,32 @@ var Test3d=(function(){
 	
 		var cMat = O3o.customMaterial;
 		var a=new Vec3();
-		Util.hex2rgb(a,globalParam.customColor);
+		Util.hex2rgb(a,globalParam.cColor);
 		cMat.r=a[0];
 		cMat.g=a[1];
 		cMat.b=a[2];
-		cMat.reflect=globalParam.customReflection;
-		cMat.rough=globalParam.customRoughness;
-		Util.hex2rgb(cMat.reflectionColor,globalParam.customReflectionColor);
-		cMat.texture=globalParam.customRoughness;
+		cMat.a=globalParam.cAlpha;
+		cMat.reflect=globalParam.cReflection;
+		cMat.refract=globalParam.cRefraction;
+		cMat.rough=globalParam.cRoughness;
+		Util.hex2rgb(cMat.reflectionColor,globalParam.cReflectionColor);
+		cMat.texture=globalParam.cRoughness;
 		cMat.texture_slots=[];
-		if(globalParam.customTexture>=0){
+		if(globalParam.cTexture>=0){
 			var texture_slot = new O3o.Texture_slot();
 
 			cMat.texture_slots.push(texture_slot);
-			texture_slot.texture = customTextures[globalParam.customTexture];
+			texture_slot.texture = customTextures[globalParam.cTexture];
 		}
-		if(globalParam.customHeight>=0){
+		if(globalParam.cBump>=0){
 			var texture_slot = new O3o.Texture_slot();
 
 			cMat.texture_slots.push(texture_slot);
-			texture_slot.texture = customHeights[globalParam.customHeight];
+			texture_slot.texture = customBumps[globalParam.cBump];
 			texture_slot.normal= 1.0;
 		}
 
-		O3o.useCustomMaterial = globalParam.materialMode;
+		O3o.useCustomMaterial = globalParam.cMaterial;
 
 		for(i=0;i<OBJSLENGTH;i++){
 			if(objs[i].stat!==STAT_ENABLE)continue;
@@ -313,7 +322,7 @@ var Test3d=(function(){
 		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
 		gl.copyTexImage2D(gl.TEXTURE_2D,0,gl.RGBA,0,0,1024,1024,0);
 		
-		globalParam.stereo=-globalParam.stereoscope * globalParam.stereomode*0.7;
+		globalParam.stereo=-globalParam.stereoVolume * globalParam.stereomode*0.7;
 
 		ono3d.setPers(0.577,480/360);
 
@@ -419,7 +428,7 @@ var Test3d=(function(){
 	ret.start = function(){
 		//sky = Rastgl.loadTexture("sky.png");
 		var texes = ["tex1.jpg","tex2.jpg"];
-		var select = document.getElementById("customTexture");
+		var select = document.getElementById("cTexture");
 		var option;
 		for(i=0;i<texes.length;i++){
 			var texture = new O3o.Texture();
@@ -435,12 +444,12 @@ var Test3d=(function(){
 		document.getElementById("scene").selectedIndex=globalParam.scene;
 		Util.fireEvent(document.getElementById("scene"),"change");
 		texes = ["bump1.png"];
-		select = document.getElementById("customHeight");
+		select = document.getElementById("cBump");
 		for(i=0;i<texes.length;i++){
 			var texture = new O3o.Texture();
 	
 			texture.image = Ono3d.loadBumpTexture(texes[i]);
-			customHeights.push(texture);
+			customBumps.push(texture);
 
 			option = document.createElement('option');
 			option.setAttribute('value', i);
@@ -448,9 +457,9 @@ var Test3d=(function(){
 			select.appendChild(option);
 		}
 		sky = Ono3d.loadCubemap("skybox.jpg",function(image){
-			var envsize=64;
+			var envsize=128;
 
-			var envs=[0.0,0.25,0.5,0.75,1.0];
+			var envs=[0.0,0.2,0.4,0.6,1.0];
 			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
 			gl.viewport(0,0,envsize,envsize);
 			envtexes=[];

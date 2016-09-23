@@ -24,6 +24,8 @@
 <script type="text/javascript" src="../lib/colorpicker.js"></script>
 <style type="text/css">
 html,body { height:100%;margin:0; }
+.js-slider{ width:50px;}
+input.colorpicker{width:50px;}
 </style>
 <script type="text/javascript">
 var handleFileSelect = function(evt) {
@@ -76,11 +78,8 @@ var handleFileSelect = function(evt) {
 }
 var pickerflg=false;
 	var onl=function(){
-		if(globalParam.physics){
-			globalParam.physics=false;
-			checkbox=document.getElementById("chkPhy");
-			checkbox.checked=true;
-		}
+		Test3d.start();
+
 		if(globalParam.stereomode==-1){
 			checkbox=document.getElementById("parallel");
 		}else if(globalParam.stereomode==1){
@@ -89,42 +88,49 @@ var pickerflg=false;
 			checkbox=document.getElementById("notstereo");
 		}
 		checkbox.checked=1;
-		if(globalParam.shadow){
-			document.getElementById("shadow").checked=true;
-		}
 			
 
-		document.getElementById("txtSmoothing").value=globalParam.smoothing;
-		document.getElementById("txtOutlineWidth").value=globalParam.outlineWidth;
-		document.getElementById("outlineColor").value=globalParam.outlineColor;
-		document.getElementById("lightcol1").value=globalParam.lightcol1;
-		document.getElementById("lightcol2").value=globalParam.lightcol2;
-		document.getElementById("txtlightThreshold1").value=globalParam.lightThreshold1;
-		document.getElementById("txtlightThreshold2").value=globalParam.lightThreshold2;
-		document.getElementById("txtStereo").value=globalParam.stereoscope;
 		document.getElementById("scene").value=globalParam.scene;
-		document.getElementById("customColor").value=globalParam.customColor;
-		document.getElementById("txtcustomReflection").value=globalParam.customReflection;
-		document.getElementById("customReflectionColor").value=globalParam.customReflectionColor;
-		document.getElementById("txtcustomRoughness").value=globalParam.customRoughness;
-		document.getElementById("txtfrenel").value=globalParam.frenel;
 
-		Util.fireEvent(document.getElementById("chkPhy"),"change");
-		Util.fireEvent(document.getElementById("txtSmoothing"),"change");
-		Util.fireEvent(document.getElementById("txtOutlineWidth"),"change");
-		Util.fireEvent(document.getElementById("outlineColor"),"change");
-		Util.fireEvent(document.getElementById("txtStereo"),"change");
-		Util.fireEvent(document.getElementById("lightcol1"),"change");
-		Util.fireEvent(document.getElementById("lightcol2"),"change");
-		Util.fireEvent(document.getElementById("txtlightThreshold1"),"change");
-		Util.fireEvent(document.getElementById("txtlightThreshold2"),"change");
+		var tags=["smoothing"
+			,"lightColor1"
+			,"lightColor2"
+			,"lightThreshold1"
+			,"lightThreshold2"
+			,"physics"
+			,"outlineWidth"
+			,"outlineColor"
+			,"stereoVolume"
+			,"shadow"
+			,"frenel"
+			,"cMaterial"
+			,"cColor"
+			,"cAlpha"
+			,"cRefraction"
+			,"cReflection"
+			,"cReflectionColor"
+			,"cRoughness"
+			,"cTexture"
+			,"cBump"
+
+		];
+		for(var i=0;i<tags.length;i++){
+			(function(tag){
+				var element = document.getElementById(tag);
+				if(element.className=="colorpicker"){
+					element.value=globalParam[tag];
+					element.addEventListener("change",function(evt){globalParam[tag] = this.value},false);
+				}else if(element.type=="checkbox"){
+					element.checked=Boolean(globalParam[tag]);
+					element.addEventListener("change",function(evt){globalParam[tag] = this.checked},false);
+				}else{
+					element.value=globalParam[tag];
+					element.addEventListener("change",function(evt){globalParam[tag] = parseFloat(this.value)},false);
+				}
+				Util.fireEvent(element,"change");
+			})(tags[i]);
+		}
 		Util.fireEvent(document.getElementById("scene"),"change");
-		Util.fireEvent(document.getElementById("shadow"),"change");
-		Util.fireEvent(document.getElementById("customColor"),"change");
-		Util.fireEvent(document.getElementById("txtcustomReflection"),"change");
-		Util.fireEvent(document.getElementById("customReflectionColor"),"change");
-		Util.fireEvent(document.getElementById("txtcustomRoughness"),"change");
-		Util.fireEvent(document.getElementById("txtfrenel"),"change");
 
 		var userAgent = window.navigator.userAgent.toLowerCase();
 		if (navigator.platform.indexOf("Win") != -1) {
@@ -134,53 +140,49 @@ var pickerflg=false;
 		}
 
 		document.getElementById('files').addEventListener('change', handleFileSelect, false);
-		Test3d.start();
 	}
 
 </script>
 
 </head>
 <body onload="onl();" style="height:100%;">
-<input type="file" id="files" name="upfile[]" multiple  style="display:none;" /><br />
-<span id="cons"></span>
-
-<pre>
-＜説明が入る＞
-</pre>
-<div  id="control" style="float:left;" >
-<div style="float:left;margin:10px;"> 
-法線補間<input class="slider" id="Smoothing" onchange="globalParam.smoothing=parseFloat(this.value)"/><br />
-光源色1<input class="colorpicker" id="lightcol1" onchange="globalParam.lightcol1=this.value"/><br />
-光源色2<input class="colorpicker" id="lightcol2"  onchange="globalParam.lightcol2=this.value"/><br />
-セル塗り閾値1<input class="slider" id="lightThreshold1"  onchange="globalParam.lightThreshold1=parseFloat(this.value)"/><br />
-セル塗り閾値2<input class="slider" id="lightThreshold2" onchange="globalParam.lightThreshold2=parseFloat(this.value)"/><br />
+<input type="file" id="files" name="upfile[]" multiple  style="display:none;" />
+<span id="cons" ></span><br />
+<div id="control" style="float:left;">
+<div style="float:left;margin-right:10px;">
+法線補間<input class="slider" id="smoothing"/><br />
+光源色1<input class="colorpicker" id="lightColor1" /><br />
+光源色2<input class="colorpicker" id="lightColor2" /><br />
+陰閾値1<input class="slider" id="lightThreshold1" /><br />
+陰閾値2<input class="slider" id="lightThreshold2" /><br />
 </div>
-<div style="float:left;">
-<label><input type="checkbox" id="chkPhy" onchange="globalParam.physics=(this.checked);"/>物理シミュ</label><br />
-輪郭線太さ<input class="slider" id="OutlineWidth" max="4" onchange="globalParam.outlineWidth=parseFloat(this.value)"/><br />
-輪郭線色<input class="colorpicker" id="outlineColor"  onchange="globalParam.outlineColor=this.value"/><br />
-立体度<input class="slider" id="Stereo" max="2" onchange="globalParam.stereoscope=parseFloat(this.value)"/><br />
-<label><input type="radio" id="notstereo" name="q1" value="0" onchange="globalParam.stereomode=parseFloat(this.value)"> 非立体視</label>
-<label><input type="radio" id="cross" name="q1" value="1" onchange="globalParam.stereomode=parseFloat(this.value)"> 交差法</label>
-<label><input type="radio" id="parallel" name="q1" value="-1" onchange="globalParam.stereomode=parseFloat(this.value)"> 平行法</label>
+<div style="float:left;margin-right:10px;">
+<label><input type="checkbox" id="physics" />物理シミュ</label><br />
+輪郭線太さ<input class="slider" id="outlineWidth" max="4"/><br />
+輪郭線色<input class="colorpicker" id="outlineColor"/><br />
+立体度<input class="slider" id="stereoVolume" max="2"/><br />
+<label><input type="radio" id="notstereo" name="q1" value="0" onchange="globalParam.stereomode=parseFloat(this.value)">無効</label>
+<label><input type="radio" id="cross" name="q1" value="1" onchange="globalParam.stereomode=parseFloat(this.value)">交差</label>
+<label><input type="radio" id="parallel" name="q1" value="-1" onchange="globalParam.stereomode=parseFloat(this.value)">平行</label>
 </div>
-<div style="float:left;">
+<div style="float:left;margin-right:10px;">
 シーン(衣装)<select id="scene"  onchange="globalParam.scene=parseInt(this.value);Test3d.changeScene();">
 </select><br />
-<label><input type="checkbox" id="shadow" onchange="globalParam.shadow=(this.checked);"/>影</label><br />
-フレネル反射率<input class="slider" id="frenel" onchange="globalParam.frenel=this.value"/><br />
-
+<label><input type="checkbox" id="shadow"/>影</label><br />
+フレネル反射<input class="slider" id="frenel"/><br />
 </div>
-<div style="float:left;margin:10px;border:solid 1px black;"> 
-<label><input type="checkbox" id="chkMaterial" onchange="globalParam.materialMode=(this.checked);"/>カスタムマテリアル</label><br />
-拡散色<input class="colorpicker" id="customColor" onchange="globalParam.customColor=this.value"/><br />
-反射率<input class="slider" id="customReflection" onchange="globalParam.customReflection=this.value"/><br />
-反射色<input class="colorpicker" id="customReflectionColor" onchange="globalParam.customReflectionColor=this.value"/><br />
-粗さ<input class="slider" id="customRoughness" onchange="globalParam.customRoughness=this.value"/><br />
-テクスチャマップ<select id="customTexture" onchange="globalParam.customTexture=parseInt(this.value);">
+<div style="float:left;border:solid 1px black;"> 
+<label><input type="checkbox" id="cMaterial"/>カスタムマテリアル</label><br />
+拡散色<input class="colorpicker" id="cColor"/><br />
+不透明度<input class="slider" id="cAlpha"/><br />
+屈折率<input class="slider" min ="1.0" max="2.0" id="cRefraction"/><br />
+反射率<input class="slider" id="cReflection"/><br />
+反射色<input class="colorpicker" id="cReflectionColor"/><br />
+粗さ<input class="slider" id="cRoughness"/><br />
+テクスチャ<select id="cTexture">
 <option value="-1">-</option>
 </select><br />
-ハイトマップ<select id="customHeight" onchange="globalParam.customHeight=parseInt(this.value);">
+バンプマップ<select id="cBump">
 <option value="-1">-</option>
 </select><br />
 </div>
