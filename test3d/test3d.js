@@ -174,6 +174,7 @@ var Test3d=(function(){
 		globalParam.frenel = 0;
 		globalParam.cAlpha= 1.0;
 		globalParam.cRefraction = 1.1;
+		globalParam.cNormal= 1.0;
 
 		var args=url.split("&")
 
@@ -300,7 +301,7 @@ var Test3d=(function(){
 
 			cMat.texture_slots.push(texture_slot);
 			texture_slot.texture = customBumps[globalParam.cBump];
-			texture_slot.normal= 1.0;
+			texture_slot.normal= globalParam.cNormal;
 		}
 
 		O3o.useCustomMaterial = globalParam.cMaterial;

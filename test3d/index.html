@@ -23,7 +23,7 @@
 <script type="text/javascript" src="../lib/slider.js"></script>
 <script type="text/javascript" src="../lib/colorpicker.js"></script>
 <style type="text/css">
-html,body { height:100%;margin:0; }
+html,body { height:100%;margin:0;font-size:small; }
 .js-slider{ width:50px;}
 input.colorpicker{width:50px;}
 </style>
@@ -112,6 +112,7 @@ var pickerflg=false;
 			,"cRoughness"
 			,"cTexture"
 			,"cBump"
+			,"cNormal"
 
 		];
 		for(var i=0;i<tags.length;i++){
@@ -146,7 +147,7 @@ var pickerflg=false;
 
 </head>
 <body onload="onl();" style="height:100%;">
-<input type="file" id="files" name="upfile[]" multiple  style="display:none;" />
+<input type="file" id="files" name="upfile[]" multiple  style="display:none;text-align:center;" />
 <span id="cons" ></span><br />
 <div id="control" style="float:left;">
 <div style="float:left;margin-right:10px;">
@@ -185,9 +186,11 @@ var pickerflg=false;
 バンプマップ<select id="cBump">
 <option value="-1">-</option>
 </select><br />
+影響度合<input class="slider"  max="10.0" id="cNormal"/><br />
 </div>
 </div>
 <div style="clear:both;left:0;right:0;margin:0 auto;width:720px;height:720px;">
+<br>
 <script type="text/javascript" src="./test3d.js"> </script>
 </div>
 </body>
