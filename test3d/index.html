@@ -79,68 +79,8 @@ var handleFileSelect = function(evt) {
 var pickerflg=false;
 	var onl=function(){
 		Test3d.start();
-
-		if(globalParam.stereomode==-1){
-			checkbox=document.getElementById("parallel");
-		}else if(globalParam.stereomode==1){
-			checkbox=document.getElementById("cross");
-		}else{
-			checkbox=document.getElementById("notstereo");
-		}
-		checkbox.checked=1;
 			
 
-		document.getElementById("scene").value=globalParam.scene;
-
-		var tags=["smoothing"
-			,"lightColor1"
-			,"lightColor2"
-			,"lightThreshold1"
-			,"lightThreshold2"
-			,"physics"
-			,"outlineWidth"
-			,"outlineColor"
-			,"stereoVolume"
-			,"shadow"
-			,"frenel"
-			,"cMaterial"
-			,"cColor"
-			,"cAlpha"
-			,"cRefraction"
-			,"cReflection"
-			,"cReflectionColor"
-			,"cRoughness"
-			,"cTexture"
-			,"cBump"
-			,"cNormal"
-
-		];
-		for(var i=0;i<tags.length;i++){
-			(function(tag){
-				var element = document.getElementById(tag);
-				if(element.className=="colorpicker"){
-					element.value=globalParam[tag];
-					element.addEventListener("change",function(evt){globalParam[tag] = this.value},false);
-				}else if(element.type=="checkbox"){
-					element.checked=Boolean(globalParam[tag]);
-					element.addEventListener("change",function(evt){globalParam[tag] = this.checked},false);
-				}else{
-					element.value=globalParam[tag];
-					element.addEventListener("change",function(evt){globalParam[tag] = parseFloat(this.value)},false);
-				}
-				Util.fireEvent(element,"change");
-			})(tags[i]);
-		}
-		Util.fireEvent(document.getElementById("scene"),"change");
-
-		var userAgent = window.navigator.userAgent.toLowerCase();
-		if (navigator.platform.indexOf("Win") != -1) {
-			globalParam.windows=true;
-		}else{
-			globalParam.windows=false;
-		}
-
-		document.getElementById('files').addEventListener('change', handleFileSelect, false);
 	}
 
 </script>
@@ -175,6 +115,7 @@ var pickerflg=false;
 <div style="float:left;border:solid 1px black;"> 
 <label><input type="checkbox" id="cMaterial"/>カスタムマテリアル</label><br />
 拡散色<input class="colorpicker" id="cColor"/><br />
+自己発光<input class="slider" max="2.0" id="cEmi"/><br />
 不透明度<input class="slider" id="cAlpha"/><br />
 屈折率<input class="slider" min ="1.0" max="2.0" id="cRefraction"/><br />
 反射率<input class="slider" id="cReflection"/><br />
