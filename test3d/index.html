@@ -22,6 +22,7 @@
 <script type="text/javascript" src="../lib/rastgl.js"></script>
 <script type="text/javascript" src="../lib/slider.js"></script>
 <script type="text/javascript" src="../lib/colorpicker.js"></script>
+<script type="text/javascript" src="../lib/Bdf.js"></script>
 <style type="text/css">
 html,body { height:100%;margin:0;font-size:small; }
 .js-slider{ width:50px;}
@@ -76,11 +77,9 @@ var handleFileSelect = function(evt) {
 	}
 	Test3d.start();
 }
-var pickerflg=false;
 	var onl=function(){
+		Test3d.loadModel();
 		Test3d.start();
-			
-
 	}
 
 </script>

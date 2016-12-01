@@ -10,12 +10,13 @@ var Test3d=(function(){
 	var onoPhy=null;
 	var objs=[];
 	var sky=null;
-	var testimage={};
 	var envtexes=null;
 	var phyObjs=null;
 	var shadowTexture;
 	var customTextures=[];
 	var customBumps=[];
+	var bdf;
+	var bdfimage=null;
 
 	var STAT_EMPTY=0
 		,STAT_ENABLE=1
@@ -154,7 +155,7 @@ var Test3d=(function(){
 		var url=location.search.substring(1,location.search.length)
 		globalParam.outlineWidth=0;
 		globalParam.outlineColor="000000";
-		globalParam.lightColor1="ffffff";
+		globalParam.lightColor1="808080";
 		globalParam.lightColor2="808080";;
 		globalParam.lightThreshold1=0.5;
 		globalParam.lightThreshold2=0.6;
@@ -213,6 +214,9 @@ var Test3d=(function(){
 		
 		var obj;
 
+		if(obj3d == null){
+			return;
+		}
 		if(obj3d.objects.length<=0){
 			return;
 		}
@@ -321,75 +325,82 @@ var Test3d=(function(){
 
 		gl.depthMask(true);
 		//Rastgl.renderShadowmap();
-		gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+		gl.bindFramebuffer(gl.FRAMEBUFFER,Rastgl.frameBuffer);
+		gl.viewport(0,0,1024,1024);
 		Shadow.draw(ono3d);
 		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
-		gl.copyTexImage2D(gl.TEXTURE_2D,0,gl.RGBA,0,0,1024,1024,0);
+		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1024,1024);
 		
 		globalParam.stereo=-globalParam.stereoVolume * globalParam.stereomode*0.7;
 
 		ono3d.setPers(0.577,480/360);
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-		gl.clear(gl.DEPTH_BUFFER_BIT);
+		gl.disable(gl.DEPTH_TEST);
+		gl.disable(gl.BLEND);
+		gl.depthMask(true);
+		gl.viewport(0,0,1024,1024);
+		gl.clearColor(0.0,0.0,0.0,1.0);
+		gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
+		gl.depthMask(false);
 		if(sky.gltexture){
 			if(globalParam.stereomode==0){
 				ono3d.setPers(0.577,480/720);
-				gl.disable(gl.DEPTH_TEST);
 				gl.viewport(0,0,720,480);
-				//Env.env(sky.gltexture);
 				Env.env(envtexes[1]);
 			}else{
 				ono3d.setPers(0.577,480/360);
-				gl.disable(gl.DEPTH_TEST);
 				gl.viewport(0,0,360,480);
-				//Env.env(sky.gltexture);
 				Env.env(envtexes[1]);
 				gl.viewport(360,0,360,480);
-				//Env.env(sky.gltexture);
 				Env.env(envtexes[1]);
+				
 			}
 		}
-			//ono3d.render(Util.ctx)
 	
-	gl.disable(gl.BLEND);
-	gl.depthMask(true);
-	gl.enable(gl.DEPTH_TEST);
+		gl.depthMask(true);
+		gl.enable(gl.DEPTH_TEST);
 
-	Plain.draw(ono3d);
-	if(envtexes){
-		MainShader.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
-	}
-	//gl.depthMask(false);
-
-	gl.colorMask(true,true,true,false);
-	gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-				gl.viewport(0,0,720,480);
-	Rastgl.copyframe(Rastgl.fTexture,0,0,720/1024,480/1024);
-	gl.colorMask(true,true,true,true);
-	gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-
+		Plain.draw(ono3d);
+		if(envtexes){
+			MainShader.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
+		}
+		gl.finish();
+		
+		gl.depthMask(false);
+		gl.disable(gl.DEPTH_TEST);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.viewport(0,0,720,480);
+		gl.clear(gl.COLOR_BUFFER_BIT);
+		gl.colorMask(true,true,true,false);
+		Rastgl.copyframe(Rastgl.fTexture,0,0,720/1024,480/1024);
+		gl.colorMask(true,true,true,true);
 
 //emi
-	gl.depthMask(false);
-	//EmiShader.draw(ono3d);
-	gl.disable(gl.DEPTH_TEST);
-	
-	gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+		gl.viewport(0,0,719,480);
+		gl.depthMask(false);
+		gl.disable(gl.DEPTH_TEST);
+		gl.enable(gl.BLEND);
+		gl.blendFunc(gl.CONSTANT_ALPHA,gl.DST_ALPHA);
+		gl.blendColor(0,0,0,0.7);
+		Rastgl.copyframe(Rastgl.fTexture2,0,0,720/1024,480/1024);
+		gl.disable(gl.BLEND);
+		gl.bindTexture(gl.TEXTURE_2D, Rastgl.fTexture2);
+		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,720,480);
+		Gauss.filter(Rastgl.frameBuffer,Rastgl.fTexture2,100,2.0/1024,1.0/1024.0);
 
-	ono3d.framebuffer();
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.enable(gl.BLEND);
+		gl.blendFunc(gl.ONE,gl.ONE);
 
-	gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-	gl.disable(gl.BLEND);
-	//Rastgl.copyframe(shadowTexture,0,0,720/1024,480/1024);
-	gl.enable(gl.BLEND);
-	gl.blendFunc(gl.ONE,gl.ONE);
+		Rastgl.copyframe(Rastgl.fTexture,0,0,720/1024,480/1024);
 
-	Rastgl.copyframe(Rastgl.fTexture,0,0,720/1024,480/1024);
-	
-	gl.disable(gl.BLEND);
-//		Rastgl.copyframe(customBumps[0].image.gltexture,0,0,1,1);
-
+		gl.enable(gl.BLEND);
+		gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
+		if(bdfimage){
+		//	Rastgl.copyframe(bdfimage.gltexture,0,0.1,0.1,-0.1);
+		}
 		ono3d.clear()
 		gl.finish();
 
@@ -412,8 +423,7 @@ var Test3d=(function(){
 	}) (document.scripts || document.getElementsByTagName('script'));
 
 
-	ret.loadModel=function(path){
-		globalParam.model=path;
+	ret.loadModel=function(){
 		obj3d=O3o.load(globalParam.model,function(){
 			var sceneSelect = document.getElementById("scene");
 			var option;
@@ -431,6 +441,10 @@ var Test3d=(function(){
 
 		});
 		
+	}
+	ret.changeScene=function(){
+		phyObjs=null;
+		globalParam.physics_=false;
 	}
 	ret.start = function(){
 		//sky = Rastgl.loadTexture("sky.png");
@@ -463,11 +477,10 @@ var Test3d=(function(){
 			option.innerHTML = texes[i];
 			select.appendChild(option);
 		}
-		testimage = Rastgl.createTexture(null,256,256)
 		sky = Ono3d.loadCubemap("skybox.jpg",function(image){
 			var envsize=256;
 
-			var envs=[0.025,0.05,0.1,0.2,0.4,1.0];
+			var envs=[0.05,0.1,0.2,0.5,1.0];
 			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
 			gl.viewport(0,0,envsize,envsize);
 			envtexes=[];
@@ -504,7 +517,10 @@ var Test3d=(function(){
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 			gl.bindRenderbuffer(gl.RENDERBUFFER, null);
 
-
+			bdf = Bdf.load("../lib/k8x12.bdf",null,function(){
+				bdfimage = Bdf.render("hogeHOGE",bdf,false);
+				bdfimage.gltexture = Rastgl.createTexture(bdfimage);
+			});
 		});
 		
 		Util.setFps(globalParam.fps,mainloop);
@@ -561,7 +577,6 @@ var Test3d=(function(){
 				Util.fireEvent(element,"change");
 			})(tags[i]);
 		}
-		Util.fireEvent(document.getElementById("scene"),"change");
 
 		var userAgent = window.navigator.userAgent.toLowerCase();
 		if (navigator.platform.indexOf("Win") != -1) {
@@ -640,10 +655,6 @@ var Test3d=(function(){
 		inittime=Date.now();
 
 		span=document.getElementById("cons");
-	ret.changeScene=function(){
-		phyObjs=null;
-		globalParam.physics_=false;
-	}
 	var homingCamera=function(angle,target,camera){
 		var dx=target[0]-camera[0]
 		var dy=target[1]-camera[1]
@@ -652,8 +663,6 @@ var Test3d=(function(){
 		angle[1]=Math.atan2(dx,dz);
 		angle[2]=0;
 	}
-	
-	ret.loadModel(globalParam.model);
-//	ret.start();
+
 	return ret;
 })()
