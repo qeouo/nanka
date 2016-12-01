@@ -13,6 +13,10 @@ var Test3d=(function(){
 	var envtexes=null;
 	var phyObjs=null;
 	var shadowTexture;
+	var customTextures=[];
+	var customBumps=[];
+	var bdf;
+	var bdfimage=null;
 
 	var STAT_EMPTY=0
 		,STAT_ENABLE=1
@@ -95,6 +99,8 @@ var Test3d=(function(){
 			var scene= obj3d.scenes[globalParam.scene];
 			if(phyObjs===null){
 				onoPhy.phyObjs = [];
+
+
 				if(obj3d.scenes.length>0){
 					phyObjs=new Array();
 					for(i=0;i<scene.objects.length;i++){
@@ -147,21 +153,31 @@ var Test3d=(function(){
 		return defObj(obj,msg,param);
 	}
 		var url=location.search.substring(1,location.search.length)
-		globalParam.outlineWidth=1;
+		globalParam.outlineWidth=0;
 		globalParam.outlineColor="000000";
-		globalParam.lightcol1="ffffff";
-		globalParam.lightcol2="808080";
+		globalParam.lightColor1="808080";
+		globalParam.lightColor2="808080";;
 		globalParam.lightThreshold1=0.5;
 		globalParam.lightThreshold2=0.6;
 		globalParam.physics=1;
 		globalParam.smoothing=1;
-		globalParam.stereomode=1;
-		globalParam.stereoscope=1;
+		globalParam.stereomode=0;
+		globalParam.stereoVolume=1;
 		globalParam.step2=1;
 		globalParam.fps=30;
 		globalParam.scene=0;
-		globalParam.shadow=1;
+		globalParam.shadow=0;
 		globalParam.model="./raara.o3o";
+		globalParam.materialMode = false;
+		globalParam.cColor= "ffffff";
+		globalParam.cReflection= 0;
+		globalParam.cReflectionColor= "ffffff";
+		globalParam.cRoughness= 0;
+		globalParam.frenel = 0;
+		globalParam.cAlpha= 1.0;
+		globalParam.cRefraction = 1.1;
+		globalParam.cNormal= 1.0;
+		globalParam.cEmi= 0.0;
 
 		var args=url.split("&")
 
@@ -169,7 +185,11 @@ var Test3d=(function(){
 			var arg=args[i].split("=")
 			if(arg.length >1){
 				if(!isNaN(arg[1]) && arg[1]!=""){
-					globalParam[arg[0]] = +arg[1]
+					if(arg[1].length>1 && arg[1].indexOf(0) =="0"){
+						globalParam[arg[0]] = arg[1]
+					}else{
+						globalParam[arg[0]] = +arg[1]
+					}
 				}else{
 					globalParam[arg[0]] = arg[1]
 				}
@@ -194,6 +214,9 @@ var Test3d=(function(){
 		
 		var obj;
 
+		if(obj3d == null){
+			return;
+		}
 		if(obj3d.objects.length<=0){
 			return;
 		}
@@ -242,6 +265,7 @@ var Test3d=(function(){
 		ono3d.translate(-camera.p[0],-camera.p[1],-camera.p[2])
 
 		ono3d.rf=0;
+		ono3d.lineWidth=1.0;
 		if(globalParam.outlineWidth>0.){
 			ono3d.lineWidth=globalParam.outlineWidth;
 			ono3d.rf=Ono3d.RF_OUTLINE;
@@ -250,13 +274,44 @@ var Test3d=(function(){
 		ono3d.smoothing=globalParam.smoothing;
 
 		var light=ono3d.lightSources[0];
-		Util.hex2rgb(light.color,globalParam.lightcol1);
+		Util.hex2rgb(light.color,globalParam.lightColor1);
 
 		light=ono3d.lightSources[1];
-		Util.hex2rgb(light.color,globalParam.lightcol2);
+		Util.hex2rgb(light.color,globalParam.lightColor2);
 
 		ono3d.lightThreshold1=globalParam.lightThreshold1;
 		ono3d.lightThreshold2=globalParam.lightThreshold2;
+
+	
+		var cMat = O3o.customMaterial;
+		var a=new Vec3();
+		Util.hex2rgb(a,globalParam.cColor);
+		cMat.r=a[0];
+		cMat.g=a[1];
+		cMat.b=a[2];
+		cMat.a=globalParam.cAlpha;
+		cMat.emt=globalParam.cEmi;
+		cMat.reflect=globalParam.cReflection;
+		cMat.refract=globalParam.cRefraction;
+		cMat.rough=globalParam.cRoughness;
+		Util.hex2rgb(cMat.reflectionColor,globalParam.cReflectionColor);
+		cMat.texture=globalParam.cRoughness;
+		cMat.texture_slots=[];
+		if(globalParam.cTexture>=0){
+			var texture_slot = new O3o.Texture_slot();
+
+			cMat.texture_slots.push(texture_slot);
+			texture_slot.texture = customTextures[globalParam.cTexture];
+		}
+		if(globalParam.cBump>=0){
+			var texture_slot = new O3o.Texture_slot();
+
+			cMat.texture_slots.push(texture_slot);
+			texture_slot.texture = customBumps[globalParam.cBump];
+			texture_slot.normal= globalParam.cNormal;
+		}
+
+		O3o.useCustomMaterial = globalParam.cMaterial;
 
 		for(i=0;i<OBJSLENGTH;i++){
 			if(objs[i].stat!==STAT_ENABLE)continue;
@@ -269,81 +324,85 @@ var Test3d=(function(){
 		}
 
 		gl.depthMask(true);
-		Rastgl.renderShadowmap();
+		//Rastgl.renderShadowmap();
+		gl.bindFramebuffer(gl.FRAMEBUFFER,Rastgl.frameBuffer);
+		gl.viewport(0,0,1024,1024);
+		Shadow.draw(ono3d);
 		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
-		gl.copyTexImage2D(gl.TEXTURE_2D,0,gl.RGBA,0,0,1024,1024,0);
+		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1024,1024);
 		
-		globalParam.stereo=-globalParam.stereoscope * globalParam.stereomode*0.7;
+		globalParam.stereo=-globalParam.stereoVolume * globalParam.stereomode*0.7;
 
 		ono3d.setPers(0.577,480/360);
 
-		//gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-		gl.clear(gl.DEPTH_BUFFER_BIT);
+		gl.disable(gl.DEPTH_TEST);
+		gl.disable(gl.BLEND);
+		gl.depthMask(true);
+		gl.viewport(0,0,1024,1024);
+		gl.clearColor(0.0,0.0,0.0,1.0);
+		gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
+		gl.depthMask(false);
 		if(sky.gltexture){
-			if(globalParam.stereo==0){
+			if(globalParam.stereomode==0){
 				ono3d.setPers(0.577,480/720);
-				gl.disable(gl.DEPTH_TEST);
 				gl.viewport(0,0,720,480);
-				Env.env(sky.gltexture);
+				Env.env(envtexes[1]);
 			}else{
 				ono3d.setPers(0.577,480/360);
-				gl.disable(gl.DEPTH_TEST);
 				gl.viewport(0,0,360,480);
-				Env.env(sky.gltexture);
+				Env.env(envtexes[1]);
 				gl.viewport(360,0,360,480);
-				Env.env(sky.gltexture);
+				Env.env(envtexes[1]);
+				
 			}
 		}
-//		ono3d.render(Util.ctx)
-	//plainShader.draw(ono3d);
 	
-	gl.disable(gl.BLEND);
-	gl.depthMask(true);
-	gl.enable(gl.DEPTH_TEST);
-	gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-	//edgeShader.draw(ono3d);
-	plainShader.draw(ono3d);
-	mainShader.draw(ono3d,shadowTexture);
-	//Shade.draw(ono3d,envtexes[envtexes.length-1],shadowTexture);
-	//gl.depthMask(false);
-	if(envtexes){
-		Env.drawMrr(ono3d,envtexes,camera.p);
-	}
-	//Color.draw(ono3d);
-	gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
-	gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,720,480);
+		gl.depthMask(true);
+		gl.enable(gl.DEPTH_TEST);
 
+		Plain.draw(ono3d);
+		if(envtexes){
+			MainShader.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
+		}
+		gl.finish();
+		
+		gl.depthMask(false);
+		gl.disable(gl.DEPTH_TEST);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.viewport(0,0,720,480);
+		gl.clear(gl.COLOR_BUFFER_BIT);
+		gl.colorMask(true,true,true,false);
+		Rastgl.copyframe(Rastgl.fTexture,0,0,720/1024,480/1024);
+		gl.colorMask(true,true,true,true);
 
-	gl.clearColor(0.0,0.0,0.0,1.0);
-	gl.clear(gl.COLOR_BUFFER_BIT);
-	gl.depthMask(false);
-	Rastgl.drawEmi(ono3d);
-	//gl.bindTexture(gl.TEXTURE_2D, Rastgl.fTexture);
-	//gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,720,480);
+//emi
+		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+		gl.viewport(0,0,719,480);
+		gl.depthMask(false);
+		gl.disable(gl.DEPTH_TEST);
+		gl.enable(gl.BLEND);
+		gl.blendFunc(gl.CONSTANT_ALPHA,gl.DST_ALPHA);
+		gl.blendColor(0,0,0,0.7);
+		Rastgl.copyframe(Rastgl.fTexture2,0,0,720/1024,480/1024);
+		gl.disable(gl.BLEND);
+		gl.bindTexture(gl.TEXTURE_2D, Rastgl.fTexture2);
+		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,720,480);
+		Gauss.filter(Rastgl.frameBuffer,Rastgl.fTexture2,100,2.0/1024,1.0/1024.0);
 
-	ono3d.framebuffer();
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.enable(gl.BLEND);
+		gl.blendFunc(gl.ONE,gl.ONE);
 
-	gl.viewport(0,0,720,480);
-	gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-	gl.disable(gl.BLEND);
-	Rastgl.copyframe(shadowTexture,0,0,720/1024,480/1024);
-	gl.enable(gl.BLEND);
-	gl.blendFunc(gl.ONE,gl.ONE);
+		Rastgl.copyframe(Rastgl.fTexture,0,0,720/1024,480/1024);
 
-	Rastgl.copyframe(Rastgl.fTexture,0,0,720/1024,480/1024);
-	
-	gl.disable(gl.BLEND);
-			
-//		if(sky.gltexture){
-//		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-//		gl.viewport(0,0,720,480);
-//		Rastgl.copyframe(envtexes[envtexes.length-1],0,0,1,1,1);
-//		}
-
+		gl.enable(gl.BLEND);
+		gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
+		if(bdfimage){
+			Rastgl.copyframe(bdfimage.gltexture,0,0.1,0.1,-0.1);
+		}
 		ono3d.clear()
 		gl.finish();
-
 
 		mseccount += (Date.now() - nowTime)
 		framecount++
@@ -364,134 +423,238 @@ var Test3d=(function(){
 	}) (document.scripts || document.getElementsByTagName('script'));
 
 
-	var div=document.createElement("div");
-	parentnode.appendChild(div);
-	var canvas =document.createElement("canvas");
-	canvas.width=WIDTH;
-	canvas.height=HEIGHT;
-	parentnode.appendChild(canvas);
-	var canvasgl =document.createElement("canvas");
-	canvasgl.width=WIDTH*2;
-	canvasgl.height=HEIGHT;
-	parentnode.appendChild(canvasgl);
-	var ctx=canvas.getContext("2d");
-	gl = canvasgl.getContext('webgl') || canvasgl.getContext('experimental-webgl');
-
-	Util.init(canvas,document.body);
-	var ono3d = new Ono3d()
-	O3o.setOno3d(ono3d)
-	ono3d.init(canvas,ctx);
-
-	ono3d.rendercanvas=canvas;
-	if(gl){
-		globalParam.enableGL=true;
-	}else{
-		globalParam.enableGL=false;
-	}
-	globalParam.gl=gl;
-
-
-	if(globalParam.enableGL){
-		Rastgl.init(gl,ono3d);
-		canvas.style.width="0px";
-		canvasgl.style.display="inline";
-		Ono3d.setDrawMethod(3);
-	}else{
-		canvasgl.style.display="none";
-		canvas.style.display="inline";
-	}
-
-	gl.clearColor(1, 1, 1,1.0);
-
-	obj3d=O3o.load(globalParam.model,function(){
-		var sceneSelect = document.getElementById("scene");
-		var option;
-		for(var i=0;i<obj3d.scenes.length;i++){
-			if(obj3d.scenes[i].name.indexOf("_",0)==0){
-				continue;
+	ret.loadModel=function(){
+		obj3d=O3o.load(globalParam.model,function(){
+			var sceneSelect = document.getElementById("scene");
+			var option;
+			for(var i=0;i<obj3d.scenes.length;i++){
+				if(obj3d.scenes[i].name.indexOf("_",0)==0){
+					continue;
+				}
+				option = document.createElement('option');
+				option.setAttribute('value', i);
+				option.innerHTML = obj3d.scenes[i].name;
+				sceneSelect.appendChild(option);
 			}
-			option = document.createElement('option');
-			option.setAttribute('value', i);
-			option.innerHTML = obj3d.scenes[i].name;
-			sceneSelect.appendChild(option);
-		}
-		document.getElementById("scene").selectedIndex=globalParam.scene;
-		Util.fireEvent(document.getElementById("scene"),"change");
+			document.getElementById("scene").selectedIndex=globalParam.scene;
+			Util.fireEvent(document.getElementById("scene"),"change");
 
-	});
-	sky = Util.loadImage("sky.png",1);
-	Util.loadImage("sky.jpg",1,function(image){
-		gl.bindTexture(gl.TEXTURE_2D, image.gltexture);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-		var envs=[0.25,0.5,0.75];
-		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-		gl.viewport(0,0,256,128);
-		envtexes=[];
-		envtexes.push(image.gltexture);
-		for(var i=0;i<envs.length;i++){
-			var tex=Rastgl.createTexture(256,128);
-			Env.rough(image.gltexture,envs[i]);
-			gl.bindTexture(gl.TEXTURE_2D, tex);
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-			gl.copyTexImage2D(gl.TEXTURE_2D,0,gl.RGBA,0,0,256,128,0);
-			envtexes.push(envs[i]);
-			envtexes.push(tex);
-		}
-		{
-			gl.viewport(0,0,1024,512);
-			var tex=Rastgl.createTexture(1024,512);
-			Env.rough(image.gltexture,1.0);
-			gl.bindTexture(gl.TEXTURE_2D, tex);
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-			gl.copyTexImage2D(gl.TEXTURE_2D,0,gl.RGBA,0,0,1024,512,0);
-			envtexes.push(1.0);
-			envtexes.push(tex);
-		}
-		gl.bindTexture(gl.TEXTURE_2D, null);
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-	    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-
-//		Util.loadImage("roughness.jpg",1,function(image){
-//			envtexes.push(1.0);
-//			envtexes.push(image.gltexture);
-//		});
-	});
-	
-	shadowTexture=Rastgl.createTexture(1024,1024);
-	gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-	onoPhy = new OnoPhy();
-	Util.setFps(globalParam.fps,mainloop);
-	Util.fpsman();
-
-	var light = new ono3d.LightSource()
-	light.type =Ono3d.LT_DIRECTION
-	Vec3.set(light.angle,-1,-1,-1);
-	Vec3.set(light.pos,8,20,8);
-	light.power=1
-	light.color[0]=1
-	light.color[1]=1
-	light.color[2]=1
-	Vec3.norm(light.angle)
-	ono3d.lightSources.push(light)
-	light = new ono3d.LightSource()
-	light.type =Ono3d.LT_AMBIENT
-	light.color[0]=0.2
-	light.color[1]=0.2
-	light.color[2]=0.2
-	ono3d.lightSources.push(light)
-	Vec3.set(camera.p,0,6,10)
-	Vec3.set(camera.a,0,PI,0)
-	inittime=Date.now();
-
-	span=document.getElementById("cons");
+		});
+		
+	}
 	ret.changeScene=function(){
 		phyObjs=null;
 		globalParam.physics_=false;
 	}
+	ret.start = function(){
+		//sky = Rastgl.loadTexture("sky.png");
+		var texes = ["tex1.jpg","tex2.jpg"];
+		var select = document.getElementById("cTexture");
+		var option;
+		for(i=0;i<texes.length;i++){
+			var texture = new O3o.Texture();
+	
+			texture.image = Ono3d.loadTexture(texes[i]);
+			customTextures.push(texture);
+
+			option = document.createElement('option');
+			option.setAttribute('value', i);
+			option.innerHTML = texes[i];
+			select.appendChild(option);
+		}
+		document.getElementById("scene").selectedIndex=globalParam.scene;
+		Util.fireEvent(document.getElementById("scene"),"change");
+		texes = ["bump1.png"];
+		select = document.getElementById("cBump");
+		for(i=0;i<texes.length;i++){
+			var texture = new O3o.Texture();
+	
+			texture.image = Ono3d.loadBumpTexture(texes[i]);
+			customBumps.push(texture);
+
+			option = document.createElement('option');
+			option.setAttribute('value', i);
+			option.innerHTML = texes[i];
+			select.appendChild(option);
+		}
+		sky = Ono3d.loadCubemap("skybox.jpg",function(image){
+			var envsize=256;
+
+			var envs=[0.05,0.1,0.2,0.5,1.0];
+			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+			gl.viewport(0,0,envsize,envsize);
+			envtexes=[];
+			envtexes.push(0);
+			envtexes.push(image.gltexture);
+			
+
+			for(var i=0;i<envs.length;i++){
+				var tex = gl.createTexture();
+				gl.bindTexture(gl.TEXTURE_CUBE_MAP,tex);
+			
+
+				Rough.draw(tex,image.gltexture,envs[i],envsize,envsize);
+				var tex2 = gl.createTexture();
+				gl.bindTexture(gl.TEXTURE_CUBE_MAP,tex2);
+				Rough.draw(tex2,tex,0.01,envsize,envsize);
+				envtexes.push(envs[i]);
+				envtexes.push(tex2);
+				gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
+
+			}
+			
+//			{
+//				gl.viewport(0,0,1024,512);
+//				var tex=Rastgl.createTexture(null,1024,512);
+//				Env.rough(image.gltexture,1.0,tex,1024,512);
+//				gl.bindTexture(gl.TEXTURE_2D, tex);
+//				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+//				gl.copyTexImage2D(gl.TEXTURE_2D,0,gl.RGBA,0,0,1024,512,0);
+//				envtexes.push(1.1);
+//				envtexes.push(tex);
+//			}
+			gl.bindTexture(gl.TEXTURE_2D, null);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+
+			bdf = Bdf.load("../lib/k8x12.bdf",null,function(){
+				bdfimage = Bdf.render("hogeHOGE",bdf,false);
+				bdfimage.gltexture = Rastgl.createTexture(bdfimage);
+			});
+		});
+		
+		Util.setFps(globalParam.fps,mainloop);
+		Util.fpsman();
+	
+		var checkbox=document.getElementById("notstereo");
+		if(globalParam.stereomode==-1){
+			checkbox=document.getElementById("parallel");
+		}else if(globalParam.stereomode==1){
+			checkbox=document.getElementById("cross");
+		}
+		checkbox.checked=1;
+			
+
+		document.getElementById("scene").value=globalParam.scene;
+
+		var tags=["smoothing"
+			,"lightColor1"
+			,"lightColor2"
+			,"lightThreshold1"
+			,"lightThreshold2"
+			,"physics"
+			,"outlineWidth"
+			,"outlineColor"
+			,"stereoVolume"
+			,"shadow"
+			,"frenel"
+			,"cMaterial"
+			,"cColor"
+			,"cAlpha"
+			,"cEmi"
+			,"cRefraction"
+			,"cReflection"
+			,"cReflectionColor"
+			,"cRoughness"
+			,"cTexture"
+			,"cBump"
+			,"cNormal"
+
+		];
+		for(var i=0;i<tags.length;i++){
+			(function(tag){
+				var element = document.getElementById(tag);
+				if(element.className=="colorpicker"){
+					element.value=globalParam[tag];
+					element.addEventListener("change",function(evt){globalParam[tag] = this.value},false);
+				}else if(element.type=="checkbox"){
+					element.checked=Boolean(globalParam[tag]);
+					element.addEventListener("change",function(evt){globalParam[tag] = this.checked},false);
+				}else{
+					element.value=globalParam[tag];
+					element.addEventListener("change",function(evt){globalParam[tag] = parseFloat(this.value)},false);
+				}
+				Util.fireEvent(element,"change");
+			})(tags[i]);
+		}
+
+		var userAgent = window.navigator.userAgent.toLowerCase();
+		if (navigator.platform.indexOf("Win") != -1) {
+			globalParam.windows=true;
+		}else{
+			globalParam.windows=false;
+		}
+
+	}
+		var div=document.createElement("div");
+		parentnode.appendChild(div);
+		var canvas =document.createElement("canvas");
+		canvas.width=WIDTH;
+		canvas.height=HEIGHT;
+		parentnode.appendChild(canvas);
+		var canvasgl =document.createElement("canvas");
+		canvasgl.width=WIDTH*2;
+		canvasgl.height=HEIGHT;
+		parentnode.appendChild(canvasgl);
+		var ctx=canvas.getContext("2d");
+		gl = canvasgl.getContext('webgl') || canvasgl.getContext('experimental-webgl');
+
+		Util.init(canvas,document.body);
+		var ono3d = new Ono3d()
+		O3o.setOno3d(ono3d)
+		ono3d.init(canvas,ctx);
+
+		ono3d.rendercanvas=canvas;
+		if(gl){
+			globalParam.enableGL=true;
+		}else{
+			globalParam.enableGL=false;
+		}
+		globalParam.gl=gl;
+
+
+		if(globalParam.enableGL){
+			Rastgl.init(gl,ono3d);
+			canvas.style.width="0px";
+			canvasgl.style.display="inline";
+			Ono3d.setDrawMethod(3);
+		}else{
+			canvasgl.style.display="none";
+			canvas.style.display="inline";
+		}
+
+		gl.clearColor(1, 1, 1,1.0);
+		gl.clearColor(0.0,0.0,0.0,1.0);
+		gl.clear(gl.COLOR_BUFFER_BIT);
+	
+		shadowTexture=Rastgl.createTexture(null,1024,1024);
+		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+		onoPhy = new OnoPhy();
+
+		var light = new ono3d.LightSource()
+		light.type =Ono3d.LT_DIRECTION
+		Vec3.set(light.angle,-1,-1,-1);
+		Vec3.set(light.pos,8,20,8);
+		light.power=1
+		light.color[0]=1
+		light.color[1]=1
+		light.color[2]=1
+		Vec3.norm(light.angle)
+		ono3d.lightSources.push(light)
+		light = new ono3d.LightSource()
+		light.type =Ono3d.LT_AMBIENT
+		light.color[0]=0.2
+		light.color[1]=0.2
+		light.color[2]=0.2
+		ono3d.lightSources.push(light)
+		Vec3.set(camera.p,0,6,10)
+		Vec3.set(camera.a,0,PI,0)
+		inittime=Date.now();
+
+		span=document.getElementById("cons");
 	var homingCamera=function(angle,target,camera){
 		var dx=target[0]-camera[0]
 		var dy=target[1]-camera[1]
@@ -500,7 +663,6 @@ var Test3d=(function(){
 		angle[1]=Math.atan2(dx,dz);
 		angle[2]=0;
 	}
-	Shade.init();
-	Color.init();
+
 	return ret;
 })()
