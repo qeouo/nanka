@@ -13,6 +13,7 @@ var Test3d=(function(){
 	var envtexes=null;
 	var phyObjs=null;
 	var shadowTexture;
+	var emiTexture;
 	var customTextures=[];
 	var customBumps=[];
 	var bdf;
@@ -340,7 +341,7 @@ var Test3d=(function(){
 		gl.disable(gl.BLEND);
 		gl.depthMask(true);
 		gl.viewport(0,0,1024,1024);
-		gl.clearColor(0.0,0.0,0.0,1.0);
+		gl.clearColor(0.0,0.0,0.0,0.0);
 		gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
 		gl.depthMask(false);
 		if(sky.gltexture){
@@ -382,13 +383,13 @@ var Test3d=(function(){
 		gl.depthMask(false);
 		gl.disable(gl.DEPTH_TEST);
 		gl.enable(gl.BLEND);
-		gl.blendFunc(gl.CONSTANT_ALPHA,gl.DST_ALPHA);
+		gl.blendFuncSeparate(gl.CONSTANT_ALPHA,gl.DST_ALPHA,gl.ONE,gl.ONE);
 		gl.blendColor(0,0,0,0.7);
-		Rastgl.copyframe(Rastgl.fTexture2,0,0,720/1024,480/1024);
+		Rastgl.copyframe(emiTexture,0,0,720/1024,480/1024);
 		gl.disable(gl.BLEND);
-		gl.bindTexture(gl.TEXTURE_2D, Rastgl.fTexture2);
+		gl.bindTexture(gl.TEXTURE_2D, emiTexture);
 		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,720,480);
-		Gauss.filter(Rastgl.frameBuffer,Rastgl.fTexture2,100,2.0/1024,1.0/1024.0);
+		Gauss.filter(Rastgl.frameBuffer,emiTexture,100,2.0/1024,1024.0);
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.enable(gl.BLEND);
@@ -399,7 +400,7 @@ var Test3d=(function(){
 		gl.enable(gl.BLEND);
 		gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
 		if(bdfimage){
-			Rastgl.copyframe(bdfimage.gltexture,0,0.1,0.1,-0.1);
+			Rastgl.copyframe(bdfimage.gltexture,0,480/512,720/512,-(480/512));
 		}
 		ono3d.clear()
 		gl.finish();
@@ -515,11 +516,41 @@ var Test3d=(function(){
 //			}
 			gl.bindTexture(gl.TEXTURE_2D, null);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-			gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+			emiTexture = Rastgl.createTexture(null,1024,1024);
 
 			bdf = Bdf.load("../lib/k8x12.bdf",null,function(){
-				bdfimage = Bdf.render("hogeHOGE",bdf,false);
+				bdfimage = Bdf.render("abcABC!?",bdf,false);
 				bdfimage.gltexture = Rastgl.createTexture(bdfimage);
+
+				gl.bindTexture(gl.TEXTURE_2D,bdfimage.gltexture);
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+				gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+				gl.viewport(0,0,1024,1024);
+				gl.clearColor(.8,0.2,0.6,0.0);
+				gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
+				gl.viewport(0,0,512,512);
+				gl.enable(gl.BLEND);
+				gl.blendFuncSeparate(gl.ZERO,gl.ONE,gl.ONE,gl.ONE);
+				Rastgl.copyframe(bdfimage.gltexture,0,0,1/8,1/8);
+				Rastgl.copyframe(bdfimage.gltexture,-2/512,0,1/8,1/8);
+				Rastgl.copyframe(bdfimage.gltexture,-1/512,1/512,1/8,1/8);
+				Rastgl.copyframe(bdfimage.gltexture,-0/512,1/512,1/8,1/8);
+				Rastgl.copyframe(bdfimage.gltexture,-2/512,1/512,1/8,1/8);
+				Rastgl.copyframe(bdfimage.gltexture,0/512,-1/512,1/8,1/8);
+				Rastgl.copyframe(bdfimage.gltexture,-2/512,-1/512,1/8,1/8);
+				Rastgl.copyframe(bdfimage.gltexture,-1/512,-1/512,1/8,1/8);
+				Rastgl.copyframe(bdfimage.gltexture,-1/512,0,1/8,1/8);
+				gl.bindTexture(gl.TEXTURE_2D,Rastgl.fTexture2);
+				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1024,1024);
+				gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
+				Gauss.filter(Rastgl.frameBuffer,Rastgl.fTexture2,100,1.0/1024,1024.0);
+				gl.enable(gl.BLEND);
+				gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
+				Rastgl.copyframe(bdfimage.gltexture,-1/512,0,1/8,1/8);
+				gl.bindTexture(gl.TEXTURE_2D,bdfimage.gltexture);
+				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,512,512);
+
 			});
 		});
 		
