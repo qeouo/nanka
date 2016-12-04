@@ -344,6 +344,8 @@ var Test3d=(function(){
 		gl.clearColor(0.0,0.0,0.0,0.0);
 		gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
 		gl.depthMask(false);
+		gl.colorMask(true,true,true,true);
+		gl.disable(gl.BLEND);
 		if(sky.gltexture){
 			if(globalParam.stereomode==0){
 				ono3d.setPers(0.577,480/720);
@@ -372,6 +374,7 @@ var Test3d=(function(){
 		gl.disable(gl.DEPTH_TEST);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.viewport(0,0,720,480);
+		gl.clearColor(0.0,0.0,0.0,1.0);
 		gl.clear(gl.COLOR_BUFFER_BIT);
 		gl.colorMask(true,true,true,false);
 		Rastgl.copyframe(Rastgl.fTexture,0,0,720/1024,480/1024);
