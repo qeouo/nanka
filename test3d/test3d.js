@@ -409,10 +409,14 @@ var Test3d=(function(){
 				Vec4.set(vec,0,9,0,1);
 				Mat44.dotMat44Vec4(vec,ono3d.projectionMat,vec);
 				Rastgl.copyframe(bdfimage.gltexture,vec[0]/vec[3],vec[1]/vec[3],0.3,-0.3*ono3d.persx/ono3d.persy,0,0,0.6,0.6);
-				console.log(ono3d.projectionMat);
 			});
 		}
 
+		if(envtexes){
+			Rastgl.stereoDraw(ono3d,function(){
+				Shadow.draw2(ono3d);
+			});
+		}
 		gl.finish();
 
 		mseccount += (Date.now() - nowTime)
