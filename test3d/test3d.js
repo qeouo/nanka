@@ -200,7 +200,7 @@ var Test3d=(function(){
 	var mainObj=createObj(mainObj);
 	var camera=createObj(defObj);
 	var camera2=createObj(defObj);
-	var camerazoom=1;
+	var camerazoom=1.;
 	var viewMatrix=new Mat44();
 	var span;
 	var oldTime = 0;
@@ -258,8 +258,9 @@ var Test3d=(function(){
 
 		ono3d.setTargetMatrix(1)
 		ono3d.loadIdentity()
-		ono3d.scale(camerazoom,camerazoom,camerazoom)
+		
 
+		ono3d.scale(camerazoom,camerazoom,1)
 		ono3d.rotate(-camera.a[2],0,0,1)
 		ono3d.rotate(-camera.a[0],1,0,0)
 		ono3d.rotate(-camera.a[1],0,1,0)
@@ -368,6 +369,7 @@ var Test3d=(function(){
 		if(envtexes){
 			MainShader.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
 		}
+		ono3d.clear()
 		gl.finish();
 		
 		gl.depthMask(false);
@@ -382,7 +384,7 @@ var Test3d=(function(){
 
 //emi
 		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-		gl.viewport(0,0,719,480);
+		gl.viewport(0,0,721,480);
 		gl.depthMask(false);
 		gl.disable(gl.DEPTH_TEST);
 		gl.enable(gl.BLEND);
@@ -397,15 +399,20 @@ var Test3d=(function(){
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.enable(gl.BLEND);
 		gl.blendFunc(gl.ONE,gl.ONE);
+		Rastgl.copyframe(emiTexture,0,0,720/1024,480/1024);
 
-		Rastgl.copyframe(Rastgl.fTexture,0,0,720/1024,480/1024);
-
-		gl.enable(gl.BLEND);
-		gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
 		if(bdfimage){
-			Rastgl.copyframe(bdfimage.gltexture,0,480/512,720/512,-(480/512));
+			gl.enable(gl.BLEND);
+			gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
+			Rastgl.stereoDraw(ono3d,function(){
+				var vec = new Vec4();
+				Vec4.set(vec,0,9,0,1);
+				Mat44.dotMat44Vec4(vec,ono3d.projectionMat,vec);
+				Rastgl.copyframe(bdfimage.gltexture,vec[0]/vec[3],vec[1]/vec[3],0.3,-0.3*ono3d.persx/ono3d.persy,0,0,0.6,0.6);
+				console.log(ono3d.projectionMat);
+			});
 		}
-		ono3d.clear()
+
 		gl.finish();
 
 		mseccount += (Date.now() - nowTime)
@@ -553,6 +560,8 @@ var Test3d=(function(){
 				Rastgl.copyframe(bdfimage.gltexture,-1/512,0,1/8,1/8);
 				gl.bindTexture(gl.TEXTURE_2D,bdfimage.gltexture);
 				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,512,512);
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 
 			});
 		});
