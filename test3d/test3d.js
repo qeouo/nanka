@@ -263,7 +263,7 @@ var Test3d=(function(){
 		ono3d.scale(camerazoom,camerazoom,1)
 		ono3d.rotate(-camera.a[2],0,0,1)
 		ono3d.rotate(-camera.a[0],1,0,0)
-		ono3d.rotate(-camera.a[1],0,1,0)
+		ono3d.rotate(-camera.a[1]+Math.PI,0,1,0)
 		ono3d.translate(-camera.p[0],-camera.p[1],-camera.p[2])
 
 		ono3d.rf=0;
@@ -325,11 +325,16 @@ var Test3d=(function(){
 			ono3d.pop();
 		}
 
-		gl.depthMask(true);
-		//Rastgl.renderShadowmap();
+		
 		gl.bindFramebuffer(gl.FRAMEBUFFER,Rastgl.frameBuffer);
 		gl.viewport(0,0,1024,1024);
-		Shadow.draw(ono3d);
+		gl.clearColor(1., 1., 1.,1.0);
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		if(globalParam.shadow){
+			
+			
+			Shadow.draw(ono3d);
+		}
 		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
 		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1024,1024);
 		
@@ -349,7 +354,7 @@ var Test3d=(function(){
 		gl.disable(gl.BLEND);
 		if(sky.gltexture){
 			if(globalParam.stereomode==0){
-				ono3d.setPers(0.577,480/720);
+				ono3d.setPers(0.577,480/720,1,80);
 				gl.viewport(0,0,720,480);
 				Env.env(envtexes[1]);
 			}else{
@@ -369,7 +374,6 @@ var Test3d=(function(){
 		if(envtexes){
 			MainShader.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
 		}
-		ono3d.clear()
 		gl.finish();
 		
 		gl.depthMask(false);
@@ -411,12 +415,16 @@ var Test3d=(function(){
 				Rastgl.copyframe(bdfimage.gltexture,vec[0]/vec[3],vec[1]/vec[3],0.3,-0.3*ono3d.persx/ono3d.persy,0,0,0.6,0.6);
 			});
 		}
-
-		if(envtexes){
-			Rastgl.stereoDraw(ono3d,function(){
-				Shadow.draw2(ono3d);
-			});
-		}
+//		if(envtexes){
+//		
+//			gl.viewport(0,0,720,480);
+//			Rastgl.stereoDraw(ono3d,function(){
+//				Shadow.draw2(ono3d);
+//			});
+//		}
+		
+		
+		ono3d.clear();
 		gl.finish();
 
 		mseccount += (Date.now() - nowTime)
@@ -706,7 +714,7 @@ var Test3d=(function(){
 		var dx=target[0]-camera[0]
 		var dy=target[1]-camera[1]
 		var dz=target[2]-camera[2]
-		angle[0]=-Math.atan2(dy,Math.sqrt(dz*dz+dx*dx));
+		angle[0]=Math.atan2(dy,Math.sqrt(dz*dz+dx*dx));
 		angle[1]=Math.atan2(dx,dz);
 		angle[2]=0;
 	}

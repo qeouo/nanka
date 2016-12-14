@@ -71,22 +71,24 @@ var handleFileSelect = function(evt) {
 //				image.src=buf
 //			}
 //			reader.readAsDataURL(f)
-		}else{
-			Test3d.loadModel(f);
+		}else if(f.name.indexOf('.o3o')>=0){
+			globalParam.model = f.name;
 		}
 	}
+			Test3d.loadModel();
 	Test3d.start();
 }
 	var onl=function(){
-		Test3d.loadModel();
-		Test3d.start();
+	document.getElementById('files').addEventListener('change', handleFileSelect, false);
+		//Test3d.loadModel();
+		//Test3d.start();
 	}
 
 </script>
 
 </head>
 <body onload="onl();" style="height:100%;">
-<input type="file" id="files" name="upfile[]" multiple  style="display:none;text-align:center;" />
+<input type="file" id="files" name="upfile[]" multiple  style="text-align:center;" />
 <span id="cons" ></span><br />
 <div id="control" style="float:left;">
 <div style="float:left;margin-right:10px;">
