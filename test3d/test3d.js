@@ -13,6 +13,7 @@ var Test3d=(function(){
 	var envtexes=null;
 	var phyObjs=null;
 	var shadowTexture;
+	var bufTexture;
 	var emiTexture;
 	var customTextures=[];
 	var customBumps=[];
@@ -200,7 +201,7 @@ var Test3d=(function(){
 	var mainObj=createObj(mainObj);
 	var camera=createObj(defObj);
 	var camera2=createObj(defObj);
-	var camerazoom=1.;
+	var camerazoom=0.5;
 	var viewMatrix=new Mat44();
 	var span;
 	var oldTime = 0;
@@ -405,6 +406,47 @@ var Test3d=(function(){
 		gl.blendFunc(gl.ONE,gl.ONE);
 		Rastgl.copyframe(emiTexture,0,0,720/1024,480/1024);
 
+
+		if(envtexes){
+			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+			//gl.viewport(0,0,721,480);
+			gl.viewport(0,0,720,480);
+			gl.clearColor(1.0,1.0,1.0,.0);
+			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+			Rastgl.stereoDraw(ono3d,function(){
+				Shadow.draw2(ono3d);
+			});
+			
+			gl.viewport(0,0,1024,1024);
+			gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1024,1024);
+			gl.bindTexture(gl.TEXTURE_2D, bufTexture);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1024,1024);
+			Gauss.filter(Rastgl.frameBuffer,bufTexture,10,2.0/1024,1024.0);
+			
+			gl.enable(gl.BLEND);
+			gl.blendFuncSeparate(gl.SRC_ALPHA,gl.SRC_ALPHA,gl.ONE,gl.ONE);
+			gl.blendEquationSeparate(gl.FUNC_SUBTRACT,gl.FUNC_ADD);
+			Rastgl.copyframe(shadowTexture,0,0,1,1);
+			gl.bindTexture(gl.TEXTURE_2D, bufTexture);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1024,1024);
+			
+			gl.blendEquation(gl.FUNC_ADD);
+			Rastgl.copyframe(bufTexture,0,0,1,1);
+			Rastgl.copyframe(bufTexture,0,0,1,1);
+			Rastgl.copyframe(bufTexture,0,0,1,1);
+			Rastgl.copyframe(bufTexture,0,0,1,1);
+			Rastgl.copyframe(bufTexture,0,0,1,1);
+			
+			gl.blendEquationSeparate(gl.FUNC_REVERSE_SUBTRACT,gl.FUNC_ADD);
+			gl.blendFuncSeparate(gl.SRC_ALPHA,gl.DST_ALPHA,gl.ONE,gl.ONE);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			Rastgl.copyframe(Rastgl.fTexture,0,0,720/1024,480/1024);
+		
+		
+			gl.blendEquation(gl.FUNC_ADD);
+			gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);	
+		}
 		if(bdfimage){
 			gl.enable(gl.BLEND);
 			gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
@@ -415,15 +457,6 @@ var Test3d=(function(){
 				Rastgl.copyframe(bdfimage.gltexture,vec[0]/vec[3],vec[1]/vec[3],0.3,-0.3*ono3d.persx/ono3d.persy,0,0,0.6,0.6);
 			});
 		}
-//		if(envtexes){
-//		
-//			gl.viewport(0,0,720,480);
-//			Rastgl.stereoDraw(ono3d,function(){
-//				Shadow.draw2(ono3d);
-//			});
-//		}
-		
-		
 		ono3d.clear();
 		gl.finish();
 
@@ -687,6 +720,11 @@ var Test3d=(function(){
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
+		bufTexture=Rastgl.createTexture(null,1024,1024);
+		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+		
 		onoPhy = new OnoPhy();
 
 		var light = new ono3d.LightSource()
