@@ -201,7 +201,7 @@ var Test3d=(function(){
 	var mainObj=createObj(mainObj);
 	var camera=createObj(defObj);
 	var camera2=createObj(defObj);
-	var camerazoom=0.5;
+	var camerazoom=1;
 	var viewMatrix=new Mat44();
 	var span;
 	var oldTime = 0;
@@ -409,19 +409,19 @@ var Test3d=(function(){
 
 		if(envtexes){
 			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-			//gl.viewport(0,0,721,480);
 			gl.viewport(0,0,720,480);
 			gl.clearColor(1.0,1.0,1.0,.0);
 			gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 			Rastgl.stereoDraw(ono3d,function(){
 				Shadow.draw2(ono3d);
 			});
+
 			
 			gl.viewport(0,0,1024,1024);
 			gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
-			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1024,1024);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,720,480);
 			gl.bindTexture(gl.TEXTURE_2D, bufTexture);
-			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1024,1024);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,720,480);
 			Gauss.filter(Rastgl.frameBuffer,bufTexture,10,2.0/1024,1024.0);
 			
 			gl.enable(gl.BLEND);
@@ -441,6 +441,7 @@ var Test3d=(function(){
 			gl.blendEquationSeparate(gl.FUNC_REVERSE_SUBTRACT,gl.FUNC_ADD);
 			gl.blendFuncSeparate(gl.SRC_ALPHA,gl.DST_ALPHA,gl.ONE,gl.ONE);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			gl.viewport(0,0,720,480);
 			Rastgl.copyframe(Rastgl.fTexture,0,0,720/1024,480/1024);
 		
 		
@@ -534,41 +535,49 @@ var Test3d=(function(){
 			select.appendChild(option);
 		}
 		sky = Ono3d.loadCubemap("skybox.jpg",function(image){
-			var envsize=256;
+			var envsize=16;
 
-			var envs=[0.05,0.1,0.2,0.5,1.0];
+			var envs=[0.02,0.1,0.2,0.5,0.8];
 			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-			gl.viewport(0,0,envsize,envsize);
 			envtexes=[];
 			envtexes.push(0);
 			envtexes.push(image.gltexture);
 			
 
+			envsize=image.images[0].width;
+			envsize=128;
+			var envsizeorg=envsize;
+			var ii=1;
+			var fazy=Math.atan2(envsizeorg/envsize,envsizeorg*0.5)/(Math.PI*0.5)*2.0;
 			for(var i=0;i<envs.length;i++){
+				//envsize=envsize>>1;
 				var tex = gl.createTexture();
 				gl.bindTexture(gl.TEXTURE_CUBE_MAP,tex);
 			
+				//envs[i]=Math.atan2(ii,envsizeorg*0.5)/(Math.PI*0.5);
+				ii*=2;
+				console.log(envs[i]);
 
-				Rough.draw(tex,image.gltexture,envs[i],envsize,envsize);
+				Rough.draw(tex,image.gltexture,envs[i],envsizeorg,envsizeorg);
 				var tex2 = gl.createTexture();
 				gl.bindTexture(gl.TEXTURE_CUBE_MAP,tex2);
-				Rough.draw(tex2,tex,0.01,envsize,envsize);
+				Rough.draw(tex2,tex,fazy,envsize,envsize);
 				envtexes.push(envs[i]);
 				envtexes.push(tex2);
-				gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
 
 			}
+			{
+				var tex = gl.createTexture();
+				gl.bindTexture(gl.TEXTURE_CUBE_MAP,tex);
 			
-//			{
-//				gl.viewport(0,0,1024,512);
-//				var tex=Rastgl.createTexture(null,1024,512);
-//				Env.rough(image.gltexture,1.0,tex,1024,512);
-//				gl.bindTexture(gl.TEXTURE_2D, tex);
-//				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-//				gl.copyTexImage2D(gl.TEXTURE_2D,0,gl.RGBA,0,0,1024,512,0);
-//				envtexes.push(1.1);
-//				envtexes.push(tex);
-//			}
+				Rough.draw(tex,image.gltexture,1.0,envsizeorg,envsizeorg);
+				var tex2 = gl.createTexture();
+				gl.bindTexture(gl.TEXTURE_CUBE_MAP,tex2);
+				Rough.draw(tex2,tex,fazy,envsize,envsize);
+				envtexes.push(1.0);
+				envtexes.push(tex2);
+			}
+			
 			gl.bindTexture(gl.TEXTURE_2D, null);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 			emiTexture = Rastgl.createTexture(null,1024,1024);
