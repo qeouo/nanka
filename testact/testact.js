@@ -561,18 +561,17 @@ var Testact=(function(){
 		
 	}
 	ret.changeScene=function(){
-	
-		onoPhy.phyObjs = [];
-		for(var i=0;i<phyObjs;i++){
-			for(var j=0;j<onoPhp.phyObjs;j++){
-				if(onoPhy.phyObjs[j]===phyObjs[i]){
-					onoPhy.phyObjs[j].splice(j,1);
-					break;
-				}
-			}
-		}
-		phyObjs=null;
-		globalParam.physics_=false;
+		//onoPhy.phyObjs = [];
+		//for(var i=0;i<phyObjs;i++){
+		//	for(var j=0;j<onoPhp.phyObjs;j++){
+		//		if(onoPhy.phyObjs[j]===phyObjs[i]){
+		//			onoPhy.phyObjs[j].splice(j,1);
+		//			break;
+		//		}
+		//	}
+		//}
+		//phyObjs=null;
+		//globalParam.physics_=false;
 	}
 	ret.start = function(){
 		//sky = Rastgl.loadTexture("sky.png");
@@ -618,6 +617,7 @@ var Testact=(function(){
 				if(phyobj){
 					O3o.movePhyObj(scene,phyobj);
 					fieldphyobj=phyobj
+					
 				}
 			}
 		});
