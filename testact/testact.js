@@ -129,9 +129,9 @@ var Testact=(function(){
 			ono3d.setTargetMatrix(0)
 			ono3d.loadIdentity()
 
-			ono3d.transmat(fieldphyobj.matrix);
-			ono3d.scale(1/4,1/4,1/4);
-			//ono3d.rotate(-PI*0.5,1,0,0)
+			//ono3d.transmat(fieldphyobj.matrix);
+			//ono3d.scale(1/4,1/4,1/4);
+			ono3d.rotate(-PI*0.5,1,0,0)
 			if(obj3d){
 				if(obj3d.scenes.length>0){
 //					if(globalParam.physics){
@@ -229,7 +229,8 @@ var Testact=(function(){
 //			phyObjs[0].v[0]=(Util.keyflag[2]-Util.keyflag[0])*10;
 //			phyObjs[0].v[2]=(Util.keyflag[3]-Util.keyflag[1])*10;
 			if(Util.keyflag[4] &&  !Util.keyflagOld[4]){
-				phyObjs[0].v[1]=5;
+				phyObjs[0].v[1]=8;
+				phyObjs[0].matrix[13]+=0.1;
 			
 			}
 			
@@ -347,7 +348,7 @@ var Testact=(function(){
 		vec3[1]=mainObj.p[1];
 		vec3[2]=mainObj.p[2]
 		camera2.p[0]=0;
-		camera2.p[1]=5;
+		camera2.p[1]=20;
 		camera2.p[2]=10;
 		camera.p[0]+=(camera2.p[0]-camera.p[0])*0.1
 		camera.p[1]+=(camera2.p[1]-camera.p[1])*0.1
@@ -616,8 +617,8 @@ var Testact=(function(){
 				var phyobj=O3o.createPhyObjs(scene.objects[i],onoPhy);
 				if(phyobj){
 					O3o.movePhyObj(scene,phyobj);
+						
 					fieldphyobj=phyobj
-					
 				}
 			}
 		});
