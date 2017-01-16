@@ -113,8 +113,6 @@ var Test3d=(function(){
 					}
 				}
 			}
-			//O3o.setFrame(obj3d,scene,(obj.t+1)*24/30);
-			O3o.setFrame(obj3d,scene,timer/1000.0*24);
 			if(phyObjs && globalParam.physics){
 				ono3d.setTargetMatrix(1)
 				ono3d.loadIdentity()
@@ -128,8 +126,12 @@ var Test3d=(function(){
 					globalParam.physics_=true;
 				}
 				globalParam.physics_=globalParam.physics;
-
-				O3o.movePhyObjs(scene,(obj.t+1)*24/globalParam.fps,phyObjs)
+				
+				O3o.setFrame(obj3d,scene,(obj.t+1)*24/globalParam.fps);
+				for(var i=0;i<phyObjs.length;i++){
+					O3o.movePhyObj(scene,phyObjs[i])
+				}
+				//O3o.movePhyObjs(scene,(obj.t+1)*24/globalParam.fps,phyObjs)
 			}else{
 				globalParam.physics_=false;
 			}
@@ -556,7 +558,6 @@ var Test3d=(function(){
 			
 				//envs[i]=Math.atan2(ii,envsizeorg*0.5)/(Math.PI*0.5);
 				ii*=2;
-				console.log(envs[i]);
 
 				Rough.draw(tex,image.gltexture,envs[i],envsizeorg,envsizeorg);
 				var tex2 = gl.createTexture();
