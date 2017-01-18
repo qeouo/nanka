@@ -619,6 +619,7 @@ var Testact=(function(){
 					O3o.movePhyObj(scene,phyobj);
 						
 					fieldphyobj=phyobj
+					phyobj.fix=1;
 				}
 			}
 		});
