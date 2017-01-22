@@ -261,9 +261,9 @@ var Testact=(function(){
 	var mobj=createObj(mainObj);
 	mobj.id=0;
 
-	var mobj2=createObj(mainObj);
-	mobj2.id=1;
-	mobj2.p[0]=-4;
+	//var mobj2=createObj(mainObj);
+	//mobj2.id=1;
+	//mobj2.p[0]=-4;
 	
 	var fieldObj=createObj(fieldObj);
 	var camera=createObj(defObj);
@@ -506,7 +506,7 @@ var Testact=(function(){
 
 
 	ret.loadModel=function(){
-		obj3d=O3o.load(globalParam.model,function(){
+		obj3d=O3o.load("cuboid.o3o",function(){
 			var sceneSelect = document.getElementById("scene");
 			var option;
 			for(var i=0;i<obj3d.scenes.length;i++){
