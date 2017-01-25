@@ -348,7 +348,7 @@
     "name":"Scene"
     ,"frame_start":1
     ,"frame_end":250
-    ,"objects":["CUBOIDリフト","平面","Lamp","Camera"]
+    ,"objects":["平面","Lamp","Camera"]
   }
 ]
 }

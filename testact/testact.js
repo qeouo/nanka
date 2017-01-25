@@ -144,9 +144,17 @@ var Testact=(function(){
 				if(obj3d.scenes.length>0){
 					phyObjs=new Array();
 					obj.phyObjs= phyObjs;
+					ono3d.setTargetMatrix(1)
+					ono3d.loadIdentity()
+					ono3d.setTargetMatrix(0)
+					ono3d.loadIdentity()
+					ono3d.rotate(-PI*0.5,1,0,0);
+					O3o.setFrame(obj3d,scene,0);
 					for(i=0;i<scene.objects.length;i++){
 						var phyobj=O3o.createPhyObjs(scene.objects[i],onoPhy);
 						if(phyobj){
+						
+							O3o.movePhyObj(scene,phyobj);
 							phyobj.fix=0;
 							phyobj.matrix[12]=obj.p[0];
 							phyobj.matrix[13]=obj.p[1];
