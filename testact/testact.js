@@ -192,9 +192,10 @@ var Testact=(function(){
 			
 			phyObjs[0].a[0]+=(Util.keyflag[2+obj.id*8]-Util.keyflag[0+obj.id*8])*10;
 			phyObjs[0].a[2]+=(Util.keyflag[3+obj.id*8]-Util.keyflag[1+obj.id*8])*10;
-
+			
+			
 			if(Util.keyflag[4+obj.id*8] &&  !Util.keyflagOld[4+obj.id*8]){
-				phyObjs[0].v[1]=8;
+				phyObjs[0].v[1]=2;
 				phyObjs[0].matrix[13]+=0.1;
 			
 			}
