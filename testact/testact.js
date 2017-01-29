@@ -156,9 +156,10 @@ var Testact=(function(){
 						
 							O3o.movePhyObj(scene,phyobj);
 							phyobj.fix=0;
-							phyobj.matrix[12]=obj.p[0];
-							phyobj.matrix[13]=obj.p[1];
-							phyobj.matrix[14]=obj.p[2];
+							Vec3.copy(phyobj.location,obj.p);
+
+							//Vec3.set(phyobj.moment,0,1,0);
+
 							phyObjs.push(phyobj);
 							
 						}
@@ -196,7 +197,7 @@ var Testact=(function(){
 			
 			if(Util.keyflag[4+obj.id*8] &&  !Util.keyflagOld[4+obj.id*8]){
 				phyObjs[0].v[1]=2;
-				phyObjs[0].matrix[13]+=0.1;
+				phyObjs[0].location[1]+=0.04;
 			
 			}
 			
@@ -208,8 +209,12 @@ var Testact=(function(){
 		case MSG_DRAW:
 			ono3d.setTargetMatrix(0)
 			ono3d.loadIdentity()
-			ono3d.translate(obj.p[0],obj.p[1],obj.p[2]);
-			ono3d.rotate(-PI*0.5,1,0,0)
+			//ono3d.translate(obj.p[0],obj.p[1],obj.p[2]);
+			//ono3d.rotate(-PI*0.5,1,0,0)
+			Vec3.set(obj3d.objects[1].location,0,0,0);
+			Vec3.set(obj3d.objects[1].rotation,0,0,0);
+			Vec3.set(obj3d.objects[1].scale,1,1,1);
+			ono3d.transmat(phyObjs[0].matrix);
 			if(obj3d){
 				if(obj3d.scenes.length>0){
 					if(globalParam.physics){
@@ -320,8 +325,8 @@ var Testact=(function(){
 		vec3[1]=mobj.p[1];
 		vec3[2]=mobj.p[2]
 		camera2.p[0]=0;
-		camera2.p[1]=20;
-		camera2.p[2]=10;
+		camera2.p[1]=5;
+		camera2.p[2]=5;
 		camera.p[0]+=(camera2.p[0]-camera.p[0])*0.1
 		camera.p[1]+=(camera2.p[1]-camera.p[1])*0.1
 		camera.p[2]+=(camera2.p[2]-camera.p[2])*0.1
