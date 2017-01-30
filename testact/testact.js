@@ -159,7 +159,8 @@ var Testact=(function(){
 							Vec3.copy(phyobj.location,obj.p);
 
 							//Vec3.set(phyobj.moment,0,1,0);
-
+							phyobj.mass=1;
+							phyobj.damper=20;
 							phyObjs.push(phyobj);
 							
 						}
@@ -191,8 +192,8 @@ var Testact=(function(){
 			
 
 			
-			phyObjs[0].a[0]+=(Util.keyflag[2+obj.id*8]-Util.keyflag[0+obj.id*8])*10;
-			phyObjs[0].a[2]+=(Util.keyflag[3+obj.id*8]-Util.keyflag[1+obj.id*8])*10;
+			phyObjs[0].a[0]+=(Util.keyflag[2+obj.id*8]-Util.keyflag[0+obj.id*8])*phyObjs[0].mass*4;
+			phyObjs[0].a[2]+=(Util.keyflag[3+obj.id*8]-Util.keyflag[1+obj.id*8])*phyObjs[0].mass*4;
 			
 			
 			if(Util.keyflag[4+obj.id*8] &&  !Util.keyflagOld[4+obj.id*8]){
@@ -313,12 +314,14 @@ var Testact=(function(){
 			}
 		}
 
-		for(i=0;i<OBJSLENGTH;i++){
-			if(objs[i].stat!==STAT_ENABLE)continue;
-			objs[i].func(objs[i],MSG_MOVE,0);
-		}
-		if(globalParam.physics){
-			onoPhy.calc(1.0/globalParam.fps,globalParam.step2);
+		for(var j=0;j<globalParam.step2;j++){
+			for(i=0;i<OBJSLENGTH;i++){
+				if(objs[i].stat!==STAT_ENABLE)continue;
+				objs[i].func(objs[i],MSG_MOVE,0);
+			}
+			if(globalParam.physics){
+				onoPhy.calc(1.0/globalParam.fps/globalParam.step2,1);
+			}
 		}
 
 		vec3[0]=mobj.p[0]
