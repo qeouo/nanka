@@ -160,7 +160,7 @@ var Testact=(function(){
 
 							//Vec3.set(phyobj.moment,0,1,0);
 							phyobj.mass=1;
-							phyobj.damper=20;
+							phyobj.damper=40;
 							phyObjs.push(phyobj);
 							
 						}
