@@ -64,26 +64,13 @@ var handleFileSelect = function(evt) {
 //				var buf=e.target.result
 //				var image = new Image()
 //				image.onload=function(e){
-<<<<<<< HEAD
-//					if(image.width>256 || image.width>256){
-=======
 //					if(image.width>256 || image.height>256){
->>>>>>> master
 //						alert("画像の縦横のサイズが256を超えています:"+name)
 //					}
 //				}
 //				image.src=buf
 //			}
 //			reader.readAsDataURL(f)
-<<<<<<< HEAD
-		}else{
-			Test3d.loadModel(f);
-		}
-	}
-	Test3d.start();
-}
-	var onl=function(){
-=======
 		}else if(f.name.indexOf('.o3o')>=0){
 			globalParam.model = f.name;
 		}
@@ -93,7 +80,6 @@ var handleFileSelect = function(evt) {
 }
 	var onl=function(){
 	document.getElementById('files').addEventListener('change', handleFileSelect, false);
->>>>>>> master
 		Test3d.loadModel();
 		Test3d.start();
 	}
@@ -102,11 +88,7 @@ var handleFileSelect = function(evt) {
 
 </head>
 <body onload="onl();" style="height:100%;">
-<<<<<<< HEAD
-<input type="file" id="files" name="upfile[]" multiple  style="display:none;text-align:center;" />
-=======
 <input type="file" id="files" name="upfile[]" multiple  style="text-align:center;" />
->>>>>>> master
 <span id="cons" ></span><br />
 <div id="control" style="float:left;">
 <div style="float:left;margin-right:10px;">
@@ -133,14 +115,6 @@ var handleFileSelect = function(evt) {
 </div>
 <div style="float:left;border:solid 1px black;"> 
 <label><input type="checkbox" id="cMaterial"/>カスタムマテリアル</label><br />
-<<<<<<< HEAD
-拡散色<input class="colorpicker" id="cColor"/><br />
-自己発光<input class="slider" max="2.0" id="cEmi"/><br />
-不透明度<input class="slider" id="cAlpha"/><br />
-屈折率<input class="slider" min ="1.0" max="2.0" id="cRefraction"/><br />
-反射率<input class="slider" id="cReflection"/><br />
-反射色<input class="colorpicker" id="cReflectionColor"/><br />
-=======
 <div style="float:left;margin-right:10px;">
 拡散色<input class="colorpicker" id="cColor"/><br />
 自己発光<input class="slider" max="2.0" id="cEmi"/><br />
@@ -152,7 +126,6 @@ var handleFileSelect = function(evt) {
 反射色<input class="colorpicker" id="cReflectionColor"/><br />
 </div>
 <div style="float:left;margin-right:10px;">
->>>>>>> master
 粗さ<input class="slider" id="cRoughness"/><br />
 テクスチャ<select id="cTexture">
 <option value="-1">-</option>

@@ -13,11 +13,8 @@ var Test3d=(function(){
 	var envtexes=null;
 	var phyObjs=null;
 	var shadowTexture;
-<<<<<<< HEAD
-=======
 	var bufTexture;
 	var emiTexture;
->>>>>>> master
 	var customTextures=[];
 	var customBumps=[];
 	var bdf;
@@ -332,13 +329,6 @@ var Test3d=(function(){
 			ono3d.pop();
 		}
 
-<<<<<<< HEAD
-		gl.depthMask(true);
-		//Rastgl.renderShadowmap();
-		gl.bindFramebuffer(gl.FRAMEBUFFER,Rastgl.frameBuffer);
-		gl.viewport(0,0,1024,1024);
-		Shadow.draw(ono3d);
-=======
 		
 		gl.bindFramebuffer(gl.FRAMEBUFFER,Rastgl.frameBuffer);
 		gl.viewport(0,0,1024,1024);
@@ -349,7 +339,6 @@ var Test3d=(function(){
 			
 			Shadow.draw(ono3d);
 		}
->>>>>>> master
 		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
 		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1024,1024);
 		
@@ -362,14 +351,6 @@ var Test3d=(function(){
 		gl.disable(gl.BLEND);
 		gl.depthMask(true);
 		gl.viewport(0,0,1024,1024);
-<<<<<<< HEAD
-		gl.clearColor(0.0,0.0,0.0,1.0);
-		gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
-		gl.depthMask(false);
-		if(sky.gltexture){
-			if(globalParam.stereomode==0){
-				ono3d.setPers(0.577,480/720);
-=======
 		gl.clearColor(0.0,0.0,0.0,0.0);
 		gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
 		gl.depthMask(false);
@@ -378,7 +359,6 @@ var Test3d=(function(){
 		if(sky.gltexture){
 			if(globalParam.stereomode==0){
 				ono3d.setPers(0.577,480/720,1,80);
->>>>>>> master
 				gl.viewport(0,0,720,480);
 				Env.env(envtexes[1]);
 			}else{
@@ -393,50 +373,6 @@ var Test3d=(function(){
 	
 		gl.depthMask(true);
 		gl.enable(gl.DEPTH_TEST);
-<<<<<<< HEAD
-
-		Plain.draw(ono3d);
-		if(envtexes){
-			MainShader.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
-		}
-		gl.finish();
-		
-		gl.depthMask(false);
-		gl.disable(gl.DEPTH_TEST);
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		gl.viewport(0,0,720,480);
-		gl.clear(gl.COLOR_BUFFER_BIT);
-		gl.colorMask(true,true,true,false);
-		Rastgl.copyframe(Rastgl.fTexture,0,0,720/1024,480/1024);
-		gl.colorMask(true,true,true,true);
-
-//emi
-		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-		gl.viewport(0,0,719,480);
-		gl.depthMask(false);
-		gl.disable(gl.DEPTH_TEST);
-		gl.enable(gl.BLEND);
-		gl.blendFunc(gl.CONSTANT_ALPHA,gl.DST_ALPHA);
-		gl.blendColor(0,0,0,0.7);
-		Rastgl.copyframe(Rastgl.fTexture2,0,0,720/1024,480/1024);
-		gl.disable(gl.BLEND);
-		gl.bindTexture(gl.TEXTURE_2D, Rastgl.fTexture2);
-		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,720,480);
-		Gauss.filter(Rastgl.frameBuffer,Rastgl.fTexture2,100,2.0/1024,1.0/1024.0);
-
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		gl.enable(gl.BLEND);
-		gl.blendFunc(gl.ONE,gl.ONE);
-
-		Rastgl.copyframe(Rastgl.fTexture,0,0,720/1024,480/1024);
-
-		gl.enable(gl.BLEND);
-		gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
-		if(bdfimage){
-		//	Rastgl.copyframe(bdfimage.gltexture,0,0.1,0.1,-0.1);
-		}
-		ono3d.clear()
-=======
 
 		Plain.draw(ono3d);
 		if(envtexes){
@@ -526,7 +462,6 @@ var Test3d=(function(){
 			});
 		}
 		ono3d.clear();
->>>>>>> master
 		gl.finish();
 
 		mseccount += (Date.now() - nowTime)
@@ -603,58 +538,15 @@ var Test3d=(function(){
 			select.appendChild(option);
 		}
 		sky = Ono3d.loadCubemap("skybox.jpg",function(image){
-<<<<<<< HEAD
-			var envsize=256;
-
-			var envs=[0.05,0.1,0.2,0.5,1.0];
-			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-			gl.viewport(0,0,envsize,envsize);
-=======
 			var envsize=16;
 
 			var envs=[0.02,0.1,0.2,0.5,0.8];
 			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
->>>>>>> master
 			envtexes=[];
 			envtexes.push(0);
 			envtexes.push(image.gltexture);
 			
 
-<<<<<<< HEAD
-			for(var i=0;i<envs.length;i++){
-				var tex = gl.createTexture();
-				gl.bindTexture(gl.TEXTURE_CUBE_MAP,tex);
-			
-
-				Rough.draw(tex,image.gltexture,envs[i],envsize,envsize);
-				var tex2 = gl.createTexture();
-				gl.bindTexture(gl.TEXTURE_CUBE_MAP,tex2);
-				Rough.draw(tex2,tex,0.01,envsize,envsize);
-				envtexes.push(envs[i]);
-				envtexes.push(tex2);
-				gl.bindTexture(gl.TEXTURE_CUBE_MAP, null);
-
-			}
-			
-//			{
-//				gl.viewport(0,0,1024,512);
-//				var tex=Rastgl.createTexture(null,1024,512);
-//				Env.rough(image.gltexture,1.0,tex,1024,512);
-//				gl.bindTexture(gl.TEXTURE_2D, tex);
-//				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-//				gl.copyTexImage2D(gl.TEXTURE_2D,0,gl.RGBA,0,0,1024,512,0);
-//				envtexes.push(1.1);
-//				envtexes.push(tex);
-//			}
-			gl.bindTexture(gl.TEXTURE_2D, null);
-			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-			gl.bindRenderbuffer(gl.RENDERBUFFER, null);
-
-			bdf = Bdf.load("../lib/k8x12.bdf",null,function(){
-				bdfimage = Bdf.render("hogeHOGE",bdf,false);
-				bdfimage.gltexture = Rastgl.createTexture(bdfimage);
-			});
-=======
 			envsize=image.images[0].width;
 			envsize=128;
 			var envsizeorg=envsize;
@@ -728,7 +620,6 @@ var Test3d=(function(){
 //				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 //
 //			});
->>>>>>> master
 		});
 		
 		Util.setFps(globalParam.fps,mainloop);
@@ -840,14 +731,11 @@ var Test3d=(function(){
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-<<<<<<< HEAD
-=======
 		bufTexture=Rastgl.createTexture(null,1024,1024);
 		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 		
->>>>>>> master
 		onoPhy = new OnoPhy();
 
 		var light = new ono3d.LightSource()
