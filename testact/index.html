@@ -64,49 +64,32 @@ var handleFileSelect = function(evt) {
 //				var buf=e.target.result
 //				var image = new Image()
 //				image.onload=function(e){
-<<<<<<< HEAD
-//					if(image.width>256 || image.width>256){
-=======
 //					if(image.width>256 || image.height>256){
->>>>>>> master
 //						alert("画像の縦横のサイズが256を超えています:"+name)
 //					}
 //				}
 //				image.src=buf
 //			}
 //			reader.readAsDataURL(f)
-<<<<<<< HEAD
-		}else{
-			Test3d.loadModel(f);
-		}
-	}
-	Test3d.start();
-}
-	var onl=function(){
-=======
 		}else if(f.name.indexOf('.o3o')>=0){
 			globalParam.model = f.name;
 		}
 	}
-			Test3d.loadModel();
-	Test3d.start();
+			Testact.loadModel();
+	Testact.start();
 }
 	var onl=function(){
 	document.getElementById('files').addEventListener('change', handleFileSelect, false);
->>>>>>> master
-		Test3d.loadModel();
-		Test3d.start();
+		Testact.loadModel();
+		Testact.start();
 	}
 
 </script>
 
 </head>
 <body onload="onl();" style="height:100%;">
-<<<<<<< HEAD
-<input type="file" id="files" name="upfile[]" multiple  style="display:none;text-align:center;" />
-=======
-<input type="file" id="files" name="upfile[]" multiple  style="text-align:center;" />
->>>>>>> master
+<div>
+<input type="file" id="files" name="upfile[]"  multiple  style="text-align:center;" />
 <span id="cons" ></span><br />
 <div id="control" style="float:left;">
 <div style="float:left;margin-right:10px;">
@@ -126,21 +109,13 @@ var handleFileSelect = function(evt) {
 <label><input type="radio" id="parallel" name="q1" value="-1" onchange="globalParam.stereomode=parseFloat(this.value)">平行</label>
 </div>
 <div style="float:left;margin-right:10px;">
-シーン<select id="scene"  onchange="globalParam.scene=parseInt(this.value);Test3d.changeScene();">
+シーン<select id="scene"  onchange="globalParam.scene=parseInt(this.value);Testact.changeScene();">
 </select><br />
 <label><input type="checkbox" id="shadow"/>影</label><br />
 フレネル反射<input class="slider" id="frenel"/><br />
 </div>
 <div style="float:left;border:solid 1px black;"> 
 <label><input type="checkbox" id="cMaterial"/>カスタムマテリアル</label><br />
-<<<<<<< HEAD
-拡散色<input class="colorpicker" id="cColor"/><br />
-自己発光<input class="slider" max="2.0" id="cEmi"/><br />
-不透明度<input class="slider" id="cAlpha"/><br />
-屈折率<input class="slider" min ="1.0" max="2.0" id="cRefraction"/><br />
-反射率<input class="slider" id="cReflection"/><br />
-反射色<input class="colorpicker" id="cReflectionColor"/><br />
-=======
 <div style="float:left;margin-right:10px;">
 拡散色<input class="colorpicker" id="cColor"/><br />
 自己発光<input class="slider" max="2.0" id="cEmi"/><br />
@@ -152,7 +127,6 @@ var handleFileSelect = function(evt) {
 反射色<input class="colorpicker" id="cReflectionColor"/><br />
 </div>
 <div style="float:left;margin-right:10px;">
->>>>>>> master
 粗さ<input class="slider" id="cRoughness"/><br />
 テクスチャ<select id="cTexture">
 <option value="-1">-</option>
@@ -163,9 +137,10 @@ var handleFileSelect = function(evt) {
 影響度合<input class="slider"  max="10.0" id="cNormal"/><br />
 </div>
 </div>
-<div style="clear:both;left:0;right:0;margin:0 auto;width:720px;height:720px;">
+</div>
+<div style="clear:both;left:0;right:0;margin:0 auto;width:720px;">
 <br>
-<script type="text/javascript" src="./test3d.js"> </script>
+<script type="text/javascript" src="./testact.js"> </script>
 </div>
 </body>
 </html>
