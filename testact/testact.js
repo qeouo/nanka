@@ -219,7 +219,8 @@ var Testact=(function(){
 						,0.1+Math.random()*2
 						);
 				phyobj.mass=phyobj.scale[0]* phyobj.scale[1]* phyobj.scale[2]*10;
-				phyobj.imoment=phyobj.mass*0.1;
+				phyobj.imoment=phyobj.mass*1;
+				phyobj.penalty=phyobj.mass*100;
 
 				Vec3.set(phyobj.v,0,0,0);
 			}
