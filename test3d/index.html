@@ -115,12 +115,17 @@ var handleFileSelect = function(evt) {
 </div>
 <div style="float:left;border:solid 1px black;"> 
 <label><input type="checkbox" id="cMaterial"/>カスタムマテリアル</label><br />
+<div style="float:left;margin-right:10px;">
 拡散色<input class="colorpicker" id="cColor"/><br />
 自己発光<input class="slider" max="2.0" id="cEmi"/><br />
 不透明度<input class="slider" id="cAlpha"/><br />
+</div>
+<div style="float:left;margin-right:10px;">
 屈折率<input class="slider" min ="1.0" max="2.0" id="cRefraction"/><br />
 反射率<input class="slider" id="cReflection"/><br />
 反射色<input class="colorpicker" id="cReflectionColor"/><br />
+</div>
+<div style="float:left;margin-right:10px;">
 粗さ<input class="slider" id="cRoughness"/><br />
 テクスチャ<select id="cTexture">
 <option value="-1">-</option>

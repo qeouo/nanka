@@ -126,10 +126,8 @@ var Testact=(function(){
 		var phyObjs = obj.phyObjs;
 		switch(msg){
 		case MSG_CREATE:
-			obj.p[0]=0;
-			obj.p[1]=4;
-			obj.p[2]=0;
 			obj.phyObjs= null;
+			Vec3.set(obj.p,0,15,-9);
 			break;
 		case MSG_MOVE:
 		
@@ -158,11 +156,18 @@ var Testact=(function(){
 							phyobj.fix=0;
 							Vec3.copy(phyobj.location,obj.p);
 
-							//Vec3.set(phyobj.moment,0,1,0);
-							phyobj.mass=1;
-							phyobj.damper=40;
 							phyObjs.push(phyobj);
 							
+							
+							Vec3.set(phyobj.location,0,15,-9);
+							Vec3.set(phyobj.scale,0.1+Math.random()*2
+									,0.1+Math.random()*2
+									,0.1+Math.random()*2
+									);
+							phyobj.mass=phyobj.scale[0]* phyobj.scale[1]* phyobj.scale[2]*10;
+							phyobj.imoment=phyobj.mass*0.1;
+
+							Vec3.set(phyobj.v,0,0,0);
 						}
 					}
 				}
@@ -205,6 +210,19 @@ var Testact=(function(){
 			obj.p[0] = phyObjs[0].matrix[12];
 			obj.p[1] = phyObjs[0].matrix[13];
 			obj.p[2] = phyObjs[0].matrix[14];
+			if(phyObjs[0].location[1]<-10){
+				var phyobj=phyObjs[0];
+
+				Vec3.set(phyobj.location,0,15,-9);
+				Vec3.set(phyobj.scale,0.1+Math.random()*2
+						,0.1+Math.random()*2
+						,0.1+Math.random()*2
+						);
+				phyobj.mass=phyobj.scale[0]* phyobj.scale[1]* phyobj.scale[2]*10;
+				phyobj.imoment=phyobj.mass*0.1;
+
+				Vec3.set(phyobj.v,0,0,0);
+			}
 			break;
 
 		case MSG_DRAW:
@@ -240,7 +258,7 @@ var Testact=(function(){
 		globalParam.smoothing=0;
 		globalParam.stereomode=0;
 		globalParam.stereoVolume=1;
-		globalParam.step2=1;
+		globalParam.step2=2;
 		globalParam.fps=30;
 		globalParam.scene=0;
 		globalParam.shadow=1;
@@ -327,9 +345,15 @@ var Testact=(function(){
 		vec3[0]=mobj.p[0]
 		vec3[1]=mobj.p[1];
 		vec3[2]=mobj.p[2]
+		vec3[0]=0
+		vec3[1]=5
+		vec3[2]=0
 		camera2.p[0]=0;
-		camera2.p[1]=5;
-		camera2.p[2]=5;
+		camera2.p[1]=15;
+		camera2.p[2]=15;
+		camera2.p[0]=(Util.cursorX-WIDTH)/WIDTH*8;
+		camera2.p[1]=-(Util.cursorY-HEIGHT)/HEIGHT*6;
+		camera2.p[2]=20-Math.pow((Util.cursorX-WIDTH)/WIDTH,2)*2;
 		camera.p[0]+=(camera2.p[0]-camera.p[0])*0.1
 		camera.p[1]+=(camera2.p[1]-camera.p[1])*0.1
 		camera.p[2]+=(camera2.p[2]-camera.p[2])*0.1
@@ -490,16 +514,16 @@ var Testact=(function(){
 		gl.blendFunc(gl.ONE,gl.ONE);
 		Rastgl.copyframe(emiTexture,0,0,720/1024,480/1024);
 
-		if(bdfimage){
-			gl.enable(gl.BLEND);
-			gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
-			Rastgl.stereoDraw(ono3d,function(){
-				var vec = new Vec4();
-				Vec4.set(vec,0,9,0,1);
-				Mat44.dotMat44Vec4(vec,ono3d.projectionMat,vec);
-				Rastgl.copyframe(bdfimage.gltexture,vec[0]/vec[3],vec[1]/vec[3],0.3,-0.3*ono3d.persx/ono3d.persy,0,0,0.6,0.6);
-			});
-		}
+//		if(bdfimage){
+//			gl.enable(gl.BLEND);
+//			gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
+//			Rastgl.stereoDraw(ono3d,function(){
+//				var vec = new Vec4();
+//				Vec4.set(vec,0,9,0,1);
+//				Mat44.dotMat44Vec4(vec,ono3d.projectionMat,vec);
+//				Rastgl.copyframe(bdfimage.gltexture,vec[0]/vec[3],vec[1]/vec[3],0.3,-0.3*ono3d.persx/ono3d.persy,0,0,0.6,0.6);
+//			});
+//		}
 		ono3d.clear();
 		gl.finish();
 
