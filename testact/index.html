@@ -89,7 +89,7 @@ var handleFileSelect = function(evt) {
 </head>
 <body onload="onl();" style="height:100%;">
 <div>
-<input type="file" id="files" name="upfile[]"  multiple  style="text-align:center;" />
+<input type="file" id="files" name="upfile[]"  multiple  style="text-align:center;display:none;" />
 <span id="cons" ></span><br />
 <div id="control" style="float:left;">
 <div style="float:left;margin-right:10px;">
@@ -114,7 +114,7 @@ var handleFileSelect = function(evt) {
 <label><input type="checkbox" id="shadow"/>影</label><br />
 フレネル反射<input class="slider" id="frenel"/><br />
 </div>
-<div style="float:left;border:solid 1px black;"> 
+<div style="float:left;border:solid 1px black;display:none;"> 
 <label><input type="checkbox" id="cMaterial"/>カスタムマテリアル</label><br />
 <div style="float:left;margin-right:10px;">
 拡散色<input class="colorpicker" id="cColor"/><br />
