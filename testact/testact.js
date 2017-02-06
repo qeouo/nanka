@@ -159,14 +159,15 @@ var Testact=(function(){
 							phyObjs.push(phyobj);
 							
 							
-							Vec3.set(phyobj.location,0,15,-9);
-							Vec3.set(phyobj.scale,0.1+Math.random()*2
-									,0.1+Math.random()*2
-									,0.1+Math.random()*2
-									);
+							//Vec3.set(phyobj.location,0,15,-9);
+							//Vec3.set(phyobj.scale,0.1+Math.random()*2
+							//		,0.1+Math.random()*2
+							//		,0.1+Math.random()*2
+							//		);
 							phyobj.mass=phyobj.scale[0]* phyobj.scale[1]* phyobj.scale[2]*10;
-							phyobj.imoment=phyobj.mass*0.1;
-
+							phyobj.imoment=phyobj.mass*0.4;
+							phyobj.damper=20;
+							phyobj.penalty=phyobj.mass*400;
 							Vec3.set(phyobj.v,0,0,0);
 						}
 					}
