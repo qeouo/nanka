@@ -153,7 +153,6 @@ var Testact=(function(){
 						if(phyobj){
 						
 							O3o.movePhyObj(scene,phyobj);
-							phyobj.fix=0;
 							Vec3.copy(phyobj.location,obj.p);
 
 							phyObjs.push(phyobj);
@@ -625,7 +624,6 @@ var Testact=(function(){
 					O3o.movePhyObj(scene,phyobj);
 						
 					fieldphyobj=phyobj
-					phyobj.fix=1;
 				}
 			}
 		});

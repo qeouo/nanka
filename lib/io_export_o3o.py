@@ -164,6 +164,18 @@ def ExportOno3dObject():
         if(obj.animation_data):
             if(obj.animation_data.action):
                fileout(',"action":"{}"\n'.format(obj.animation_data.action.name))
+        if(obj.rigid_body):
+            fileout(',"rigid_body":')
+            fileoutMu()
+            fileout('"type":\"{}\"\n'.format(obj.rigid_body.type))
+            fileout(',"mass":{}\n'.format(obj.rigid_body.mass))
+            fileout(',"colligion_shape":\"{}\"\n'.format(obj.rigid_body.collision_shape))
+            fileout(',"friction":{:9f}\n'.format(obj.rigid_body.friction))
+            fileout(',"restitution":{:9f}\n'.format(obj.rigid_body.restitution))
+            fileoutMd()
+        b = obj.bound_box
+        fileout(',"bound_box":[{:9f},{:9f},{:9f},{:9f},{:9f},{:9f}]\n'.format(b[0][0],b[0][1],b[0][2],b[6][0],b[6][1],b[6][2]))
+
         fileout(',"modifiers":')
         fileoutLu()
         for group in obj.modifiers:
