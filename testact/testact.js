@@ -231,9 +231,9 @@ var Testact=(function(){
 			ono3d.loadIdentity()
 			//ono3d.translate(obj.p[0],obj.p[1],obj.p[2]);
 			//ono3d.rotate(-PI*0.5,1,0,0)
-			Vec3.set(obj3d.objects[1].location,0,0,0);
-			Vec3.set(obj3d.objects[1].rotation,0,0,0);
-			Vec3.set(obj3d.objects[1].scale,1,1,1);
+			Vec3.set(obj3d.objects[0].location,0,0,0);
+			Vec3.set(obj3d.objects[0].rotation,0,0,0);
+			Vec3.set(obj3d.objects[0].scale,1,1,1);
 			ono3d.transmat(phyObjs[0].matrix);
 			if(obj3d){
 				if(obj3d.scenes.length>0){
