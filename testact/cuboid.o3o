@@ -36,7 +36,7 @@
 ]
 ,"objects":[
   {
-    "name":"aaa立方体"
+    "name":"立方体"
     ,"groups":[]
     ,"location":[ 0.000000, 0.000000, 0.000000]
     ,"rotation":[ 0.000000, 0.000000, 0.000000]
@@ -62,7 +62,7 @@
     "name":"Scene"
     ,"frame_start":1
     ,"frame_end":250
-    ,"objects":["aaa立方体"]
+    ,"objects":["立方体"]
   }
 ]
 }
