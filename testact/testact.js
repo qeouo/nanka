@@ -157,6 +157,7 @@ var Testact=(function(){
 
 							phyObjs.push(phyobj);
 							
+							console.log(phyobj.location);
 							
 							//Vec3.set(phyobj.location,0,15,-9);
 							//Vec3.set(phyobj.scale,0.1+Math.random()*2
@@ -267,7 +268,7 @@ var Testact=(function(){
 		globalParam.fps=30;
 		globalParam.scene=0;
 		globalParam.shadow=1;
-		globalParam.model="./monkey.o3o";
+		globalParam.model="./sphere.o3o";
 		globalParam.materialMode = false;
 		globalParam.cColor= "ffffff";
 		globalParam.cReflection= 0;
@@ -552,7 +553,7 @@ var Testact=(function(){
 
 
 	ret.loadModel=function(){
-		obj3d=O3o.load("cuboid.o3o",function(){
+		obj3d=O3o.load(globalParam.model,function(){
 			var sceneSelect = document.getElementById("scene");
 			var option;
 			for(var i=0;i<obj3d.scenes.length;i++){
