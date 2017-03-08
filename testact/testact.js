@@ -157,7 +157,6 @@ var Testact=(function(){
 
 							phyObjs.push(phyobj);
 							
-							console.log(phyobj.location);
 							
 							//Vec3.set(phyobj.location,0,15,-9);
 							//Vec3.set(phyobj.scale,0.1+Math.random()*2
