@@ -626,7 +626,7 @@ var Testact=(function(){
 				var phyobj=O3o.createPhyObjs(scene.objects[i],onoPhy);
 				if(phyobj){
 					O3o.movePhyObj(scene,phyobj);
-						
+					
 					fieldphyobj=phyobj
 				}
 			}
