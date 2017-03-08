@@ -166,7 +166,7 @@ var Testact=(function(){
 							//		);
 							phyobj.mass=phyobj.scale[0]* phyobj.scale[1]* phyobj.scale[2]*10;
 							phyobj.imoment=phyobj.mass*0.4;
-							phyobj.damper=20;
+							phyobj.damper=0.5;
 							phyobj.penalty=phyobj.mass*400;
 							Vec3.set(phyobj.v,0,0,0);
 						}
@@ -300,9 +300,9 @@ var Testact=(function(){
 	var mobj=createObj(mainObj);
 	mobj.id=0;
 
-	//var mobj2=createObj(mainObj);
-	//mobj2.id=1;
-	//mobj2.p[0]=-4;
+	var mobj2=createObj(mainObj);
+	mobj2.id=1;
+	mobj2.p[0]=-4;
 	
 	var fieldObj=createObj(fieldObj);
 	var camera=createObj(defObj);
