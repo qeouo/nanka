@@ -223,6 +223,7 @@ var Testact=(function(){
 				phyobj.penalty=phyobj.mass*100;
 
 				Vec3.set(phyobj.v,0,0,0);
+				OnoPhy.calcObj(phyobj);
 			}
 			break;
 
