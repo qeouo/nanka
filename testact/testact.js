@@ -164,8 +164,9 @@ var Testact=(function(){
 							phyobj.penalty=phyobj.mass*200;
 							Vec3.set(phyobj.v,0,0,0);
 							Vec3.set(phyobj.location,-4,6,0);
-							phyobj.dfriction=0.1;
-							Vec3.set(phyobj.av,0,0,20);
+							phyobj.dfriction=0.2;
+							phyobj.sfriction=0.3;
+							//Vec3.set(phyobj.av,0,0,20);
 						}
 					}
 				}
