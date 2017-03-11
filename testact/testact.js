@@ -158,16 +158,14 @@ var Testact=(function(){
 							phyObjs.push(phyobj);
 							
 							
-							//Vec3.set(phyobj.location,0,15,-9);
-							//Vec3.set(phyobj.scale,0.1+Math.random()*2
-							//		,0.1+Math.random()*2
-							//		,0.1+Math.random()*2
-							//		);
 							phyobj.mass=phyobj.scale[0]* phyobj.scale[1]* phyobj.scale[2]*10;
 							phyobj.imoment=phyobj.mass*0.4;
-							phyobj.damper=0.5;
-							phyobj.penalty=phyobj.mass*400;
+							phyobj.damper=20*phyobj.mass;
+							phyobj.penalty=phyobj.mass*200;
 							Vec3.set(phyobj.v,0,0,0);
+							Vec3.set(phyobj.location,-4,6,0);
+							phyobj.dfriction=0.1;
+							Vec3.set(phyobj.av,0,0,20);
 						}
 					}
 				}
@@ -219,10 +217,11 @@ var Testact=(function(){
 						,0.1+Math.random()*2
 						);
 				phyobj.mass=phyobj.scale[0]* phyobj.scale[1]* phyobj.scale[2]*10;
-				phyobj.imoment=phyobj.mass*1;
-				phyobj.penalty=phyobj.mass*100;
-
+				phyobj.imoment=phyobj.mass*0.4;
+				phyobj.damper=20*phyobj.mass;
+				phyobj.penalty=phyobj.mass*200;
 				Vec3.set(phyobj.v,0,0,0);
+
 				OnoPhy.calcObj(phyobj);
 			}
 			break;
