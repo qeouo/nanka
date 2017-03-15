@@ -161,13 +161,13 @@ var Testact=(function(){
 							phyobj.mass=phyobj.scale[0]* phyobj.scale[1]* phyobj.scale[2]*1;
 							phyobj.imoment=phyobj.mass*0.4;
 							phyobj.damper=10*phyobj.mass;
-							phyobj.adamper=20*phyobj.mass*0.4;
-							phyobj.penalty=phyobj.mass*200;
+							phyobj.adamper=10*phyobj.imoment;
+							phyobj.penalty=phyobj.mass*100;
 							Vec3.set(phyobj.v,0,0,0);
 							Vec3.set(phyobj.location,-4,6,0);
-							phyobj.dfriction=0.4;
+							phyobj.dfriction=0.7;
 							phyobj.sfriction=phyobj.dfriction*1.1;
-							Vec3.set(phyobj.av,10,0,0);
+							//Vec3.set(phyobj.av,10,0,0);
 						}
 					}
 				}
