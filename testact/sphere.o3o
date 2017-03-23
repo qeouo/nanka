@@ -68,7 +68,7 @@
     ]
   }
   ,{
-    "name":"ICO球"
+    "name":"ICO"
     ,"groups":[]
     ,"location":[ 0.000000, 0.000000, 0.000000]
     ,"rotation":[ 0.000000, 0.000000, 0.000000]
@@ -108,7 +108,7 @@
     "name":"Scene"
     ,"frame_start":1
     ,"frame_end":250
-    ,"objects":["ICO球","Lamp","Camera"]
+    ,"objects":["ICO","Lamp","Camera"]
   }
 ]
 }
