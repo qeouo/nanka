@@ -160,12 +160,12 @@ var Testact=(function(){
 							
 							phyobj.mass=phyobj.scale[0]* phyobj.scale[1]* phyobj.scale[2]*1;
 							phyobj.imoment=phyobj.mass*2/5*1*1;
-							phyobj.damper=10*phyobj.mass*1.5;
+							phyobj.damper=10*phyobj.mass;
 							phyobj.adamper=10*phyobj.imoment;
 							phyobj.penalty=phyobj.mass*100;
 							Vec3.set(phyobj.v,0,0,0);
 							Vec3.set(phyobj.location,-4,6,0);
-							phyobj.dfriction=0.8;
+							phyobj.dfriction=0.6;
 							phyobj.sfriction=phyobj.dfriction*1.1;
 							//Vec3.set(phyobj.av,10,0,0);
 						}
