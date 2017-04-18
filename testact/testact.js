@@ -159,7 +159,7 @@ var Testact=(function(){
 							
 							
 							phyobj.mass=phyobj.scale[0]* phyobj.scale[1]* phyobj.scale[2]*1;
-							phyobj.imoment=phyobj.mass*2/5*1*1;
+							phyobj.imoment=phyobj.mass*2/5*Vec3.dot(phyobj.scale,phyobj.scale);
 							phyobj.damper=10*phyobj.mass;
 							phyobj.adamper=10*phyobj.imoment;
 							phyobj.penalty=phyobj.mass*100;
