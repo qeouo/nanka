@@ -19,6 +19,7 @@ var Testact=(function(){
 	var bdf;
 	var bdfimage=null;
 	var o3oField,fieldphyobj;
+	var iroiro;
 
 	var STAT_EMPTY=0
 		,STAT_ENABLE=1
@@ -304,8 +305,10 @@ var Testact=(function(){
 	var mseccount=0;
 	var framecount=0;
 	var vec3=new Vec3();
+	var vec4=new Vec4();
 	var inittime=0;
 	var timer=0;
+	var mat44 = new Mat44;
 	var mainloop=function(){
 		var nowTime = Date.now()
 		timer=nowTime-inittime;
@@ -338,21 +341,40 @@ var Testact=(function(){
 			}
 		}
 
-		vec3[0]=mobj.p[0]
-		vec3[1]=mobj.p[1];
-		vec3[2]=mobj.p[2]
-		vec3[0]=0
-		vec3[1]=5
-		vec3[2]=0
-		camera2.p[0]=0;
-		camera2.p[1]=15;
-		camera2.p[2]=15;
-		camera2.p[0]=(Util.cursorX-WIDTH)/WIDTH*8;
-		camera2.p[1]=-(Util.cursorY-HEIGHT)/HEIGHT*6;
-		camera2.p[2]=40-Math.pow((Util.cursorX-WIDTH)/WIDTH,2)*2;
+		//camera2.p[0]=0;
+		//camera2.p[1]=15;
+		//camera2.p[2]=15;
+		//camera2.p[0]=(Util.cursorX-WIDTH)/WIDTH*8;
+		//camera2.p[1]=-(Util.cursorY-HEIGHT)/HEIGHT*6;
+		//camera2.p[2]=40-Math.pow((Util.cursorX-WIDTH)/WIDTH,2)*2;
+
+		iroiro="";
+
+		Mat44.getInv(mat44,ono3d.projectionMat);
+		Vec4.set(vec4,Util.cursorX/WIDTH*2-1,Util.cursorY/HEIGHT*2-1,0,1);
+		Vec4.set(vec4,0,0,-1,1);
+		Mat44.dotMat44Vec4(vec4,mat44,vec4);
+			iroiro=vec4[0]+","+vec4[1]+","+vec4[2];
+		if(Util.pressOn){
+				
+			camera2.a[1]+=(-(Util.cursorX-Util.oldcursorX)/WIDTH);
+			camera2.a[0]+=((Util.cursorY-Util.oldcursorY)/HEIGHT);
+
+		}
+		camera2.a[0] =Math.min(camera2.a[0],Math.PI/2);
+		camera2.a[0] =Math.max(camera2.a[0],-Math.PI/2);
+		camera2.p[2]=Math.cos(camera2.a[0]);
+		camera2.p[1]=Math.sin(camera2.a[0]);
+		camera2.p[0]=Math.sin(camera2.a[1])*camera2.p[2];
+		camera2.p[2]=Math.cos(camera2.a[1])*camera2.p[2];
+		Vec3.mul(camera2.p,camera2.p,30);
+
 		camera.p[0]+=(camera2.p[0]-camera.p[0])*0.1
 		camera.p[1]+=(camera2.p[1]-camera.p[1])*0.1
 		camera.p[2]+=(camera2.p[2]-camera.p[2])*0.1
+		vec3[0]=0
+		vec3[1]=0
+		vec3[2]=0
 		homingCamera(camera.a,vec3,camera.p);
 
 		for(i=0;i<OBJSLENGTH;i++){
@@ -530,7 +552,7 @@ var Testact=(function(){
 			var fps = framecount*1000/(nowTime-oldTime)
 			if(framecount!==0)mspf = mseccount/framecount
 			
-			Util.setText(span,fps.toFixed(2) + "fps " + mspf.toFixed(2) + "msec")
+			Util.setText(span,fps.toFixed(2) + "fps " + mspf.toFixed(2) + "msec" +"," +iroiro)
 	
 			framecount = 0
 			mseccount=0
