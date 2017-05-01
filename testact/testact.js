@@ -351,13 +351,29 @@ var Testact=(function(){
 		iroiro="";
 
 		Mat44.getInv(mat44,ono3d.projectionMat);
-		Vec4.set(vec4,Util.cursorX/WIDTH*2-1,Util.cursorY/HEIGHT*2-1,0,1);
-		Vec4.set(vec4,0,0,-1,1);
+		Vec4.set(vec4,Util.cursorX/(WIDTH*2)*2-1,-(Util.cursorY/HEIGHT*2-1),-1,1);
 		Mat44.dotMat44Vec4(vec4,mat44,vec4);
-			iroiro=vec4[0]+","+vec4[1]+","+vec4[2];
+		var p0 =new Vec3();
+		var p1 =new Vec3();
+		Vec3.set(p0,vec4[0],vec4[1],vec4[2]);
+		Vec4.set(vec4,Util.cursorX/(WIDTH*2)*2-1,-(Util.cursorY/HEIGHT*2-1),1,1);
+		Mat44.dotMat44Vec4(vec4,mat44,vec4);
+		Vec3.set(p1,vec4[0],vec4[1],vec4[2]);
+		Vec3.sub(vec3,p1,p0);
 		if(Util.pressOn){
-				
-			camera2.a[1]+=(-(Util.cursorX-Util.oldcursorX)/WIDTH);
+			for(var i=0;i<onoPhy.phyObjs.length;i++){
+				var phyObj = onoPhy.phyObjs[i];
+				if(phyObj.type==OnoPhy.CUBOID){
+					var bM = phyObj.matrix;
+					dVec[0]= bM[12] - p0[0];
+					dVec[1]= bM[13] - p0[1];
+					dVec[2]= bM[14] - p0[2];
+
+				}
+			}
+		}
+		if(Util.pressOn){
+			camera2.a[1]+=(-(Util.cursorX-Util.oldcursorX)/(WIDTH*2))*2;
 			camera2.a[0]+=((Util.cursorY-Util.oldcursorY)/HEIGHT);
 
 		}
@@ -368,12 +384,13 @@ var Testact=(function(){
 		camera2.p[0]=Math.sin(camera2.a[1])*camera2.p[2];
 		camera2.p[2]=Math.cos(camera2.a[1])*camera2.p[2];
 		Vec3.mul(camera2.p,camera2.p,30);
+		camera2.p[1]+=5;
 
 		camera.p[0]+=(camera2.p[0]-camera.p[0])*0.1
 		camera.p[1]+=(camera2.p[1]-camera.p[1])*0.1
 		camera.p[2]+=(camera2.p[2]-camera.p[2])*0.1
 		vec3[0]=0
-		vec3[1]=0
+		vec3[1]=5
 		vec3[2]=0
 		homingCamera(camera.a,vec3,camera.p);
 
