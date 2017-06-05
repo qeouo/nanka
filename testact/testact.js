@@ -349,29 +349,6 @@ var Testact=(function(){
 		//camera2.p[2]=40-Math.pow((Util.cursorX-WIDTH)/WIDTH,2)*2;
 
 		iroiro="";
-
-		Mat44.getInv(mat44,ono3d.projectionMat);
-		Vec4.set(vec4,Util.cursorX/(WIDTH*2)*2-1,-(Util.cursorY/HEIGHT*2-1),-1,1);
-		Mat44.dotMat44Vec4(vec4,mat44,vec4);
-		var p0 =new Vec3();
-		var p1 =new Vec3();
-		Vec3.set(p0,vec4[0],vec4[1],vec4[2]);
-		Vec4.set(vec4,Util.cursorX/(WIDTH*2)*2-1,-(Util.cursorY/HEIGHT*2-1),1,1);
-		Mat44.dotMat44Vec4(vec4,mat44,vec4);
-		Vec3.set(p1,vec4[0],vec4[1],vec4[2]);
-		Vec3.sub(vec3,p1,p0);
-		if(Util.pressOn){
-			for(var i=0;i<onoPhy.phyObjs.length;i++){
-				var phyObj = onoPhy.phyObjs[i];
-				if(phyObj.type==OnoPhy.CUBOID){
-					var bM = phyObj.matrix;
-					dVec[0]= bM[12] - p0[0];
-					dVec[1]= bM[13] - p0[1];
-					dVec[2]= bM[14] - p0[2];
-
-				}
-			}
-		}
 		if(Util.pressOn){
 			camera2.a[1]+=(-(Util.cursorX-Util.oldcursorX)/(WIDTH*2))*2;
 			camera2.a[0]+=((Util.cursorY-Util.oldcursorY)/HEIGHT);
@@ -409,6 +386,32 @@ var Testact=(function(){
 		ono3d.rotate(-camera.a[0],1,0,0)
 		ono3d.rotate(-camera.a[1]+Math.PI,0,1,0)
 		ono3d.translate(-camera.p[0],-camera.p[1],-camera.p[2])
+
+		if(Util.pressOn){
+		ono3d.setPers(0.577,HEIGHT/(WIDTH*2),1,80)
+		Mat44.dotMat44Mat43(ono3d.projectionMat,ono3d.projectionMat,ono3d.viewMatrix);
+
+		Mat44.getInv(mat44,ono3d.projectionMat);
+		Vec4.set(vec4,Util.cursorX/(WIDTH*2)*2-1,-(Util.cursorY/HEIGHT*2-1),-1,1);
+		Mat44.dotMat44Vec4(vec4,mat44,vec4);
+		var p0 =new Vec3();
+		var p1 =new Vec3();
+		Vec3.set(p0,vec4[0],vec4[1],vec4[2]);
+		Vec4.set(vec4,Util.cursorX/(WIDTH*2)*2-1,-(Util.cursorY/HEIGHT*2-1),1,1);
+		Vec4.mul(vec4,vec4,80);
+		Mat44.dotMat44Vec4(vec4,mat44,vec4);
+		Vec3.set(p1,vec4[0],vec4[1],vec4[2]);
+		console.log(Util.cursorX,Util.cursorY);
+			for(var i=0;i<onoPhy.phyObjs.length;i++){
+				var phyObj = onoPhy.phyObjs[i];
+				if(phyObj.type==OnoPhy.CUBOID && !phyObj.fix){
+					if(OnoPhy.CUBOID_LINE(p0,p1,phyObj)){
+						console.log("HOGE");
+					}
+
+				}
+			}
+		}
 
 		ono3d.rf=0;
 		ono3d.lineWidth=1.0;
