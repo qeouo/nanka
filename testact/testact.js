@@ -20,6 +20,8 @@ var Testact=(function(){
 	var bdfimage=null;
 	var o3oField,fieldphyobj;
 	var iroiro;
+	var tsukamiTarget= null;
+	var tsukamiZ= -1;
 
 	var STAT_EMPTY=0
 		,STAT_ENABLE=1
@@ -349,7 +351,7 @@ var Testact=(function(){
 		//camera2.p[2]=40-Math.pow((Util.cursorX-WIDTH)/WIDTH,2)*2;
 
 		iroiro="";
-		if(Util.pressOn){
+		if(Util.pressOn && !tsukamiTarget){
 			camera2.a[1]+=(-(Util.cursorX-Util.oldcursorX)/(WIDTH*2))*2;
 			camera2.a[0]+=((Util.cursorY-Util.oldcursorY)/HEIGHT);
 
@@ -387,30 +389,44 @@ var Testact=(function(){
 		ono3d.rotate(-camera.a[1]+Math.PI,0,1,0)
 		ono3d.translate(-camera.p[0],-camera.p[1],-camera.p[2])
 
-		if(Util.pressOn){
-		ono3d.setPers(0.577,HEIGHT/(WIDTH*2),1,80)
-		Mat44.dotMat44Mat43(ono3d.projectionMat,ono3d.projectionMat,ono3d.viewMatrix);
+		if(Util.pressCount == 1){
+		//	ono3d.setPers(0.577,HEIGHT/(WIDTH*2),1,80)
+		//	Mat44.dotMat44Mat43(ono3d.projectionMat,ono3d.projectionMat,ono3d.viewMatrix);
 
-		Mat44.getInv(mat44,ono3d.projectionMat);
-		Vec4.set(vec4,Util.cursorX/(WIDTH*2)*2-1,-(Util.cursorY/HEIGHT*2-1),-1,1);
-		Mat44.dotMat44Vec4(vec4,mat44,vec4);
-		var p0 =new Vec3();
-		var p1 =new Vec3();
-		Vec3.set(p0,vec4[0],vec4[1],vec4[2]);
-		Vec4.set(vec4,Util.cursorX/(WIDTH*2)*2-1,-(Util.cursorY/HEIGHT*2-1),1,1);
-		Vec4.mul(vec4,vec4,80);
-		Mat44.dotMat44Vec4(vec4,mat44,vec4);
-		Vec3.set(p1,vec4[0],vec4[1],vec4[2]);
-		console.log(Util.cursorX,Util.cursorY);
+			Mat44.getInv(mat44,ono3d.projectionMat);
+			Vec4.set(vec4,Util.cursorX/(WIDTH*2)*2-1,-(Util.cursorY/HEIGHT*2-1),-1,1);
+			Mat44.dotMat44Vec4(vec4,mat44,vec4);
+			var p0 =new Vec3();
+			var p1 =new Vec3();
+			Vec3.set(p0,vec4[0],vec4[1],vec4[2]);
+			Vec4.set(vec4,Util.cursorX/(WIDTH*2)*2-1,-(Util.cursorY/HEIGHT*2-1),1,1);
+			Vec4.mul(vec4,vec4,80);
+			Mat44.dotMat44Vec4(vec4,mat44,vec4);
+			Vec3.set(p1,vec4[0],vec4[1],vec4[2]);
+			tsukamiTarget = null;
+			console.log(p0,p1,vec4);
 			for(var i=0;i<onoPhy.phyObjs.length;i++){
 				var phyObj = onoPhy.phyObjs[i];
 				if(phyObj.type==OnoPhy.CUBOID && !phyObj.fix){
 					if(OnoPhy.CUBOID_LINE(p0,p1,phyObj)){
-						console.log("HOGE");
+						tsukamiTarget = phyObj;
+						tsukamiZ = OnoPhy.result;
 					}
 
 				}
 			}
+		}
+		if(Util.pressOn && tsukamiTarget){
+			Mat44.dotMat44Mat43(ono3d.projectionMat,ono3d.projectionMat,ono3d.viewMatrix);
+			Mat44.getInv(mat44,ono3d.projectionMat);
+			Vec4.set(vec4,Util.cursorX/(WIDTH*2)*2-1,-(Util.cursorY/HEIGHT*2-1),tsukamiZ*2-1,1);
+			Vec4.mul(vec4,vec4,tsukamiZ*79+1);
+			Mat44.dotMat44Vec4(vec4,mat44,vec4);
+			console.log(vec4,tsukamiZ);
+			Vec3.sub(vec4,vec4,tsukamiTarget.location);
+			Vec3.mul(vec4,vec4,0.1);
+			Vec3.add(tsukamiTarget.a,tsukamiTarget.a,vec4);
+			
 		}
 
 		ono3d.rf=0;
