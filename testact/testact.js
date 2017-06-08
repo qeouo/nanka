@@ -388,24 +388,21 @@ var Testact=(function(){
 		ono3d.rotate(-camera.a[0],1,0,0)
 		ono3d.rotate(-camera.a[1]+Math.PI,0,1,0)
 		ono3d.translate(-camera.p[0],-camera.p[1],-camera.p[2])
-		//ono3d.translate(0,0,-30);
 
 		if(Util.pressCount == 1){
-		//	ono3d.setPers(0.577,HEIGHT/(WIDTH*2),1,80)
-		//	Mat44.dotMat44Mat43(ono3d.projectionMat,ono3d.projectionMat,ono3d.viewMatrix);
-
-			Mat44.getInv(mat44,ono3d.projectionMat);
-			Vec4.set(vec4,Util.cursorX/(WIDTH*2)*2-1,-(Util.cursorY/HEIGHT*2-1),-1,1);
-			Mat44.dotMat44Vec4(vec4,mat44,vec4);
-			console.log(vec4);
 			var p0 =new Vec3();
 			var p1 =new Vec3();
+
+			Mat44.getInv(mat44,ono3d.pvMat);
+			Vec4.set(vec4,Util.cursorX/(WIDTH*2)*2-1,-(Util.cursorY/HEIGHT*2-1),-1,1);
+			Mat44.dotMat44Vec4(vec4,mat44,vec4);
 			Vec3.set(p0,vec4[0],vec4[1],vec4[2]);
+
 			Vec4.set(vec4,Util.cursorX/(WIDTH*2)*2-1,-(Util.cursorY/HEIGHT*2-1),1,1);
 			Vec4.mul(vec4,vec4,80);
 			Mat44.dotMat44Vec4(vec4,mat44,vec4);
-			console.log(vec4);
 			Vec3.set(p1,vec4[0],vec4[1],vec4[2]);
+
 			tsukamiTarget = null;
 			for(var i=0;i<onoPhy.phyObjs.length;i++){
 				var phyObj = onoPhy.phyObjs[i];
@@ -414,23 +411,18 @@ var Testact=(function(){
 						tsukamiTarget = phyObj;
 						tsukamiZ = OnoPhy.result;
 					}
-
 				}
 			}
 		}
+
 		if(Util.pressOn && tsukamiTarget){
-			//Mat44.dotMat44Mat43(ono3d.projectionMat,ono3d.projectionMat,ono3d.viewMatrix);
-			//Mat44.getInv(mat44,ono3d.projectionMat);
-			Mat44.getInv(mat44,ono3d.projectionMat);
+			Mat44.getInv(mat44,ono3d.pvMat);
 	
-			var z =  -(tsukamiZ*79+1)*(-(1+80)/(80-1)) + (-2*1*80/(80-1))
-			z/=(tsukamiZ*79+1);
+			var w=(tsukamiZ*79+1);
+			var z =  -ono3d.projectionMat[10] + ono3d.projectionMat[14]/w;
 			Vec4.set(vec4,Util.cursorX/(WIDTH*2)*2-1,-(Util.cursorY/HEIGHT*2-1),z,1);
-			//console.log(vec4);
-			Vec4.mul(vec4,vec4,tsukamiZ*79+1);
-			//console.log(vec4);
+			Vec4.mul(vec4,vec4,w);
 			Mat44.dotMat44Vec4(vec4,mat44,vec4);
-			console.log(vec4,tsukamiZ);
 			Vec3.sub(vec4,vec4,tsukamiTarget.location);
 			Vec3.mul(vec4,vec4,40);
 			Vec3.add(tsukamiTarget.a,tsukamiTarget.a,vec4);
@@ -503,6 +495,17 @@ var Testact=(function(){
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 		if(globalParam.shadow){
 			
+			ono3d.setOrtho(20.0,20.0,1.0,100.0)
+			var lightSource = ono3d.lightSources[0]
+			Mat43.setInit(lightSource.matrix);
+			Mat43.getRotVector(lightSource.matrix,lightSource.angle);
+			Mat43.setInit(mat44);
+			mat44[12]=-lightSource.pos[0]
+			mat44[13]=-lightSource.pos[1]
+			mat44[14]=-lightSource.pos[2]
+
+			Mat43.dot(lightSource.matrix,lightSource.matrix,mat44);
+			Mat44.dotMat44Mat43(ono3d.pvMat,ono3d.projectionMat,lightSource.matrix);
 			
 			Shadow.draw(ono3d);
 		}
