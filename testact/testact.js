@@ -152,7 +152,7 @@ var Testact=(function(){
 					ono3d.rotate(-PI*0.5,1,0,0);
 					O3o.setFrame(obj3d,scene,0);
 					for(i=0;i<scene.objects.length;i++){
-						var phyobj=O3o.createPhyObjs(scene.objects[i],onoPhy);
+						var phyobj=O3o.createPhyObj(scene.objects[i],onoPhy);
 						if(phyobj){
 						
 							O3o.movePhyObj(scene,phyobj);
@@ -220,11 +220,15 @@ var Testact=(function(){
 						,0.1+Math.random()*2
 						,0.1+Math.random()*2
 						);
-				phyobj.mass=phyobj.scale[0]* phyobj.scale[1]* phyobj.scale[2]*10;
-				phyobj.imoment=phyobj.mass*0.4;
-				phyobj.damper=20*phyobj.mass;
-				phyobj.penalty=phyobj.mass*200;
+				phyobj.mass=phyobj.scale[0]* phyobj.scale[1]* phyobj.scale[2]*1;
+				phyobj.imoment=phyobj.mass*2/5*Vec3.dot(phyobj.scale,phyobj.scale);
+				phyobj.damper=10*phyobj.mass;
+				phyobj.adamper=10*phyobj.imoment;
+				phyobj.penalty=phyobj.mass*100;
 				Vec3.set(phyobj.v,0,0,0);
+				Vec3.set(phyobj.location,-4,6,0);
+				phyobj.dfriction=0.7;
+				phyobj.sfriction=phyobj.dfriction*1.1;
 
 				OnoPhy.calcObj(phyobj);
 			}
@@ -408,7 +412,8 @@ var Testact=(function(){
 				var phyObj = onoPhy.phyObjs[i];
 				if(phyObj.type==OnoPhy.CUBOID && !phyObj.fix){
 					if(OnoPhy.CUBOID_LINE(p0,p1,phyObj)){
-						tsukamiTarget = phyObj;
+						tsukamiTarget = onoPhy.createCollision(OnoPhy.SPRING);
+						po.con2 = phyObj;
 						tsukamiZ = OnoPhy.result;
 					}
 				}
@@ -683,7 +688,7 @@ var Testact=(function(){
 			ono3d.rotate(-PI*0.5,1,0,0);
 			O3o.setFrame(o3o,scene,0);
 			for(i=0;i<scene.objects.length;i++){
-				var phyobj=O3o.createPhyObjs(scene.objects[i],onoPhy);
+				var phyobj=O3o.createPhyObj(scene.objects[i],onoPhy);
 				if(phyobj){
 					O3o.movePhyObj(scene,phyobj);
 					
