@@ -413,24 +413,40 @@ var Testact=(function(){
 				if(phyObj.type==OnoPhy.CUBOID && !phyObj.fix){
 					if(OnoPhy.CUBOID_LINE(p0,p1,phyObj)){
 						tsukamiTarget = onoPhy.createCollision(OnoPhy.SPRING);
-						po.con2 = phyObj;
+						tsukamiTarget.con1 = null;
+						tsukamiTarget.con2 = phyObj;
 						tsukamiZ = OnoPhy.result;
+						tsukamiTarget.size[0]=1;
+						tsukamiTarget.scale[0]=0;
+						tsukamiTarget.penalty=40;
+
+						Vec3.sub(p1,p1,p0);
+						Vec3.muladd(p1,p0,p1,tsukamiZ);
+						Mat44.Mat44Vec3(tsukamiTarget.con2Pos,phyObj.imatrix,p1);
+						break;
 					}
 				}
 			}
 		}
 
-		if(Util.pressOn && tsukamiTarget){
-			Mat44.getInv(mat44,ono3d.pvMat);
-	
-			var w=(tsukamiZ*79+1);
-			var z =  -ono3d.projectionMat[10] + ono3d.projectionMat[14]/w;
-			Vec4.set(vec4,Util.cursorX/(WIDTH*2)*2-1,-(Util.cursorY/HEIGHT*2-1),z,1);
-			Vec4.mul(vec4,vec4,w);
-			Mat44.dotMat44Vec4(vec4,mat44,vec4);
-			Vec3.sub(vec4,vec4,tsukamiTarget.location);
-			Vec3.mul(vec4,vec4,40);
-			Vec3.add(tsukamiTarget.a,tsukamiTarget.a,vec4);
+		if(tsukamiTarget){
+			if(!Util.pressOn){
+				deletePhyObject(tsukamiTarget);
+				tsukamiTarget = null;
+
+			}else{
+				Mat44.getInv(mat44,ono3d.pvMat);
+		
+				var w=(tsukamiZ*79+1);
+				var z =  -ono3d.projectionMat[10] + ono3d.projectionMat[14]/w;
+				Vec4.set(vec4,Util.cursorX/(WIDTH*2)*2-1,-(Util.cursorY/HEIGHT*2-1),z,1);
+				Vec4.mul(vec4,vec4,w);
+				Mat44.dotMat44Vec3(tsukamiTarget.con1Pos,mat44,vec4);
+				
+	//			Vec3.sub(vec4,vec4,tsukamiTarget.location);
+	//			Vec3.mul(vec4,vec4,40);
+	//			Vec3.add(tsukamiTarget.a,tsukamiTarget.a,vec4);
+			}
 			
 		}
 
