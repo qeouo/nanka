@@ -412,7 +412,7 @@ var Testact=(function(){
 				var phyObj = onoPhy.phyObjs[i];
 				if(phyObj.type==OnoPhy.CUBOID && !phyObj.fix){
 					if(OnoPhy.CUBOID_LINE(p0,p1,phyObj)){
-						tsukamiTarget = onoPhy.createCollision(OnoPhy.SPRING);
+						tsukamiTarget = onoPhy.createSpring();
 						tsukamiTarget.con1 = null;
 						tsukamiTarget.con2 = phyObj;
 						tsukamiZ = OnoPhy.result;
@@ -422,7 +422,7 @@ var Testact=(function(){
 
 						Vec3.sub(p1,p1,p0);
 						Vec3.muladd(p1,p0,p1,tsukamiZ);
-						Mat44.Mat44Vec3(tsukamiTarget.con2Pos,phyObj.imatrix,p1);
+						Mat43.dotMat43Vec3(tsukamiTarget.con2Pos,phyObj.imatrix,p1);
 						break;
 					}
 				}
