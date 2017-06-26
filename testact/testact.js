@@ -419,6 +419,7 @@ var Testact=(function(){
 						tsukamiTarget.size[0]=1;
 						tsukamiTarget.scale[0]=0;
 						tsukamiTarget.penalty=40;
+						tsukamiTarget.damper=40;
 
 						Vec3.sub(p1,p1,p0);
 						Vec3.muladd(p1,p0,p1,tsukamiZ);
@@ -431,7 +432,7 @@ var Testact=(function(){
 
 		if(tsukamiTarget){
 			if(!Util.pressOn){
-				deletePhyObject(tsukamiTarget);
+				onoPhy.deletePhyObject(tsukamiTarget);
 				tsukamiTarget = null;
 
 			}else{
@@ -441,7 +442,8 @@ var Testact=(function(){
 				var z =  -ono3d.projectionMat[10] + ono3d.projectionMat[14]/w;
 				Vec4.set(vec4,Util.cursorX/(WIDTH*2)*2-1,-(Util.cursorY/HEIGHT*2-1),z,1);
 				Vec4.mul(vec4,vec4,w);
-				Mat44.dotMat44Vec3(tsukamiTarget.con1Pos,mat44,vec4);
+				Mat44.dotMat44Vec4(vec4,mat44,vec4);
+				Vec3.copy(tsukamiTarget.p0,vec4);
 				
 	//			Vec3.sub(vec4,vec4,tsukamiTarget.location);
 	//			Vec3.mul(vec4,vec4,40);
