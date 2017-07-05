@@ -410,22 +410,36 @@ var Testact=(function(){
 			tsukamiTarget = null;
 			for(var i=0;i<onoPhy.phyObjs.length;i++){
 				var phyObj = onoPhy.phyObjs[i];
-				if(phyObj.type==OnoPhy.CUBOID && !phyObj.fix){
+				if(phyObj.fix){
+					continue;
+				}
+				var flg = false;
+				switch (phyObj.type){
+				case OnoPhy.CUBOID:
 					if(OnoPhy.CUBOID_LINE(p0,p1,phyObj)){
-						tsukamiTarget = onoPhy.createSpring();
-						tsukamiTarget.con1 = null;
-						tsukamiTarget.con2 = phyObj;
-						tsukamiZ = OnoPhy.result;
-						tsukamiTarget.size[0]=1;
-						tsukamiTarget.scale[0]=0;
-						tsukamiTarget.penalty=40;
-						tsukamiTarget.damper=40;
-
-						Vec3.sub(p1,p1,p0);
-						Vec3.muladd(p1,p0,p1,tsukamiZ);
-						Mat43.dotMat43Vec3(tsukamiTarget.con2Pos,phyObj.imatrix,p1);
-						break;
+						flg=true;
+					}	
+					break;
+				case OnoPhy.SPHERE:
+					if(OnoPhy.SPHERE_LINE(p0,p1,phyObj)){
+						flg=true;
 					}
+					break;
+				}
+				if(flg){
+					tsukamiTarget = onoPhy.createSpring();
+					tsukamiTarget.con1 = null;
+					tsukamiTarget.con2 = phyObj;
+					tsukamiZ = OnoPhy.result;
+					tsukamiTarget.size[0]=1;
+					tsukamiTarget.scale[0]=0;
+					tsukamiTarget.penalty=40;
+					tsukamiTarget.damper=40;
+
+					Vec3.sub(p1,p1,p0);
+					Vec3.muladd(p1,p0,p1,tsukamiZ);
+					Mat43.dotMat43Vec3(tsukamiTarget.con2Pos,phyObj.imatrix,p1);
+					break;
 				}
 			}
 		}
