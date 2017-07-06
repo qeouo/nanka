@@ -235,6 +235,19 @@ var Testact=(function(){
 			break;
 
 		case MSG_DRAW:
+			ono3d.rf=0;
+			if(globalParam.outlineWidth>0.){
+				ono3d.lineWidth=globalParam.outlineWidth;
+				ono3d.rf=Ono3d.RF_OUTLINE;
+				Util.hex2rgb(ono3d.outlineColor,globalParam.outlineColor);
+			}
+			if(tsukamiTarget){
+				if(tsukamiTarget.con2 == obj.phyObjs[0]){
+					ono3d.lineWidth=1;
+					ono3d.rf=Ono3d.RF_OUTLINE;
+					Vec4.set(ono3d.outlineColor,1,4,2,1);
+				}
+			}
 			ono3d.setTargetMatrix(0)
 			ono3d.loadIdentity()
 			if(obj3d){
@@ -468,11 +481,11 @@ var Testact=(function(){
 
 		ono3d.rf=0;
 		ono3d.lineWidth=1.0;
-		if(globalParam.outlineWidth>0.){
-			ono3d.lineWidth=globalParam.outlineWidth;
-			ono3d.rf=Ono3d.RF_OUTLINE;
-			Util.hex2rgb(ono3d.outlineColor,globalParam.outlineColor);
-		}
+//		if(globalParam.outlineWidth>0.){
+//			ono3d.lineWidth=globalParam.outlineWidth;
+//			ono3d.rf=Ono3d.RF_OUTLINE;
+//			Util.hex2rgb(ono3d.outlineColor,globalParam.outlineColor);
+//		}
 		ono3d.smoothing=globalParam.smoothing;
 
 		var light=ono3d.lightSources[0];
@@ -520,6 +533,7 @@ var Testact=(function(){
 			ono3d.push();
 			ono3d.setTargetMatrix(0)
 			ono3d.loadIdentity()
+			ono3d.rf=0;
 			objs[i].func(objs[i],MSG_DRAW,0);
 			ono3d.setTargetMatrix(1)
 			ono3d.pop();

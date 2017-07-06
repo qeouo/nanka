@@ -106,7 +106,7 @@ var Test3d=(function(){
 				if(obj3d.scenes.length>0){
 					phyObjs=new Array();
 					for(i=0;i<scene.objects.length;i++){
-						var phyobj=O3o.createPhyObjs(scene.objects[i],onoPhy);
+						var phyobj=O3o.createPhyObj(scene.objects[i],onoPhy);
 						if(phyobj){
 							phyObjs.push(phyobj);
 						}
