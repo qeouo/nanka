@@ -162,13 +162,13 @@ var Testact=(function(){
 							
 							
 							phyobj.mass=phyobj.scale[0]* phyobj.scale[1]* phyobj.scale[2]*1;
-							phyobj.imoment=phyobj.mass*2/5*Vec3.dot(phyobj.scale,phyobj.scale);
-							phyobj.damper=10*phyobj.mass;
+							phyobj.imoment=phyobj.mass*2/5*Vec3.dot(phyobj.scale,phyobj.scale)/3;
+							phyobj.damper=20*phyobj.mass;
 							phyobj.adamper=10*phyobj.imoment;
 							phyobj.penalty=phyobj.mass*100;
 							Vec3.set(phyobj.v,0,0,0);
 							Vec3.set(phyobj.location,-4,6,0);
-							phyobj.dfriction=0.7;
+							phyobj.dfriction=0.5;
 							phyobj.sfriction=phyobj.dfriction*1.1;
 						}
 					}
@@ -379,14 +379,14 @@ var Testact=(function(){
 		camera2.p[1]=Math.sin(camera2.a[0]);
 		camera2.p[0]=Math.sin(camera2.a[1])*camera2.p[2];
 		camera2.p[2]=Math.cos(camera2.a[1])*camera2.p[2];
-		Vec3.mul(camera2.p,camera2.p,30);
-		camera2.p[1]+=5;
+		Vec3.mul(camera2.p,camera2.p,10);
+		camera2.p[1]+=2;
 
 		camera.p[0]+=(camera2.p[0]-camera.p[0])*0.1
 		camera.p[1]+=(camera2.p[1]-camera.p[1])*0.1
 		camera.p[2]+=(camera2.p[2]-camera.p[2])*0.1
 		vec3[0]=0
-		vec3[1]=5
+		vec3[1]=2
 		vec3[2]=0
 		homingCamera(camera.a,vec3,camera.p);
 
