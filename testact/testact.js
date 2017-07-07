@@ -159,17 +159,12 @@ var Testact=(function(){
 							Vec3.copy(phyobj.location,obj.p);
 
 							phyObjs.push(phyobj);
-							
-							
-							phyobj.mass=phyobj.scale[0]* phyobj.scale[1]* phyobj.scale[2]*1;
-							phyobj.imoment=phyobj.mass*2/5*Vec3.dot(phyobj.scale,phyobj.scale)/3;
-							phyobj.damper=20*phyobj.mass;
-							phyobj.adamper=10*phyobj.imoment;
-							phyobj.penalty=phyobj.mass*100;
+							phyobj.mass*=phyobj.scale[0]* phyobj.scale[1]* phyobj.scale[2];
+							phyobj.dfriction=0.5;
 							Vec3.set(phyobj.v,0,0,0);
 							Vec3.set(phyobj.location,-4,6,0);
-							phyobj.dfriction=0.5;
-							phyobj.sfriction=phyobj.dfriction*1.1;
+
+							OnoPhy.setPhyObjData(phyobj);
 						}
 					}
 				}
@@ -246,6 +241,7 @@ var Testact=(function(){
 					ono3d.lineWidth=1;
 					ono3d.rf=Ono3d.RF_OUTLINE;
 					Vec4.set(ono3d.outlineColor,1,4,2,1);
+					Vec4.set(ono3d.outlineColor,1.,2,1.,0.4);
 				}
 			}
 			ono3d.setTargetMatrix(0)
@@ -595,11 +591,12 @@ var Testact=(function(){
 		gl.depthMask(true);
 		gl.enable(gl.DEPTH_TEST);
 
-		Plain.draw(ono3d);
 		if(envtexes){
 			MainShader.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
 		}
+		Plain.draw(ono3d);
 		gl.finish();
+		gl.disable(gl.BLEND);
 		
 		gl.depthMask(false);
 		gl.disable(gl.DEPTH_TEST);
