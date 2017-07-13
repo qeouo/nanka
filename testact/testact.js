@@ -1,7 +1,7 @@
 "use strict"
 var Testact=(function(){
 	var ret={};
-	var HEIGHT=480,WIDTH=360
+	var HEIGHT=480,WIDTH=720;
 	var obj3d;
 	var PI=Math.PI;
 	var OBJSLENGTH=1024;
@@ -313,7 +313,7 @@ var Testact=(function(){
 	var fieldObj=createObj(fieldObj);
 	var camera=createObj(defObj);
 	var camera2=createObj(defObj);
-	var camerazoom=1;
+	var camerazoom=0.577;
 	var viewMatrix=new Mat44();
 	var span;
 	var oldTime = 0;
@@ -356,7 +356,7 @@ var Testact=(function(){
 			}
 		}
 
-		//camera2.p[0]=0;
+		//camera3.p[0]=0;
 		//camera2.p[1]=15;
 		//camera2.p[2]=15;
 		//camera2.p[0]=(Util.cursorX-WIDTH)/WIDTH*8;
@@ -365,7 +365,7 @@ var Testact=(function(){
 
 		iroiro="";
 		if(Util.pressOn && !tsukamiTarget){
-			camera2.a[1]+=(-(Util.cursorX-Util.oldcursorX)/(WIDTH*2))*2;
+			camera2.a[1]+=(-(Util.cursorX-Util.oldcursorX)/WIDTH);
 			camera2.a[0]+=((Util.cursorY-Util.oldcursorY)/HEIGHT);
 
 		}
@@ -396,22 +396,34 @@ var Testact=(function(){
 		ono3d.loadIdentity()
 		
 
-		ono3d.scale(camerazoom,camerazoom,1)
+		//ono3d.scale(camerazoom,camerazoom,1)
 		ono3d.rotate(-camera.a[2],0,0,1)
 		ono3d.rotate(-camera.a[0],1,0,0)
 		ono3d.rotate(-camera.a[1]+Math.PI,0,1,0)
 		ono3d.translate(-camera.p[0],-camera.p[1],-camera.p[2])
+		ono3d.setAov(camerazoom);
 
+		var cursorr = new Vec2();
+		cursorr[0] =Util.cursorX/WIDTH*2-1;
+		cursorr[1] =Util.cursorY/HEIGHT*2-1;
+		if(globalParam.stereomode!=0){
+			cursorr[0]*=2;
+			if(cursorr[0]<0){
+				cursorr[0]+=1;
+			}else{
+				cursorr[0]-=1;
+			}
+		}
 		if(Util.pressCount == 1){
 			var p0 =new Vec3();
 			var p1 =new Vec3();
 
 			Mat44.getInv(mat44,ono3d.pvMat);
-			Vec4.set(vec4,Util.cursorX/(WIDTH*2)*2-1,-(Util.cursorY/HEIGHT*2-1),-1,1);
+			Vec4.set(vec4,cursorr[0],-cursorr[1],-1,1);
 			Mat44.dotMat44Vec4(vec4,mat44,vec4);
 			Vec3.set(p0,vec4[0],vec4[1],vec4[2]);
 
-			Vec4.set(vec4,Util.cursorX/(WIDTH*2)*2-1,-(Util.cursorY/HEIGHT*2-1),1,1);
+			Vec4.set(vec4,cursorr[0],-cursorr[1],1,1);
 			Vec4.mul(vec4,vec4,80);
 			Mat44.dotMat44Vec4(vec4,mat44,vec4);
 			Vec3.set(p1,vec4[0],vec4[1],vec4[2]);
@@ -463,7 +475,7 @@ var Testact=(function(){
 		
 				var w=(tsukamiZ*79+1);
 				var z =  -ono3d.projectionMat[10] + ono3d.projectionMat[14]/w;
-				Vec4.set(vec4,Util.cursorX/(WIDTH*2)*2-1,-(Util.cursorY/HEIGHT*2-1),z,1);
+				Vec4.set(vec4,cursorr[0],-cursorr[1],z,1);
 				Vec4.mul(vec4,vec4,w);
 				Mat44.dotMat44Vec4(vec4,mat44,vec4);
 				Vec3.copy(tsukamiTarget.p0,vec4);
@@ -561,7 +573,6 @@ var Testact=(function(){
 		
 		globalParam.stereo=-globalParam.stereoVolume * globalParam.stereomode*0.7;
 
-		ono3d.setPers(0.577,480/360);
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
 		gl.disable(gl.DEPTH_TEST);
@@ -575,14 +586,14 @@ var Testact=(function(){
 		gl.disable(gl.BLEND);
 		if(sky.gltexture){
 			if(globalParam.stereomode==0){
-				ono3d.setPers(0.577,480/720,1,80);
-				gl.viewport(0,0,720,480);
+				ono3d.setPers(camerazoom,HEIGHT/WIDTH);
+				gl.viewport(0,0,WIDTH,HEIGHT);
 				Env.env(envtexes[1]);
 			}else{
-				ono3d.setPers(0.577,480/360);
-				gl.viewport(0,0,360,480);
+				ono3d.setPers(camerazoom,HEIGHT/(WIDTH/2));
+				gl.viewport(0,0,(WIDTH/2),HEIGHT);
 				Env.env(envtexes[1]);
-				gl.viewport(360,0,360,480);
+				gl.viewport((WIDTH/2),0,(WIDTH/2),HEIGHT);
 				Env.env(envtexes[1]);
 				
 			}
@@ -590,6 +601,8 @@ var Testact=(function(){
 	
 		gl.depthMask(true);
 		gl.enable(gl.DEPTH_TEST);
+
+		ono3d.setViewport(0,0,WIDTH,HEIGHT);
 
 		if(envtexes){
 			MainShader.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
@@ -601,31 +614,31 @@ var Testact=(function(){
 		gl.depthMask(false);
 		gl.disable(gl.DEPTH_TEST);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		gl.viewport(0,0,720,480);
+		gl.viewport(0,0,WIDTH,HEIGHT);
 		gl.clearColor(0.0,0.0,0.0,1.0);
 		gl.clear(gl.COLOR_BUFFER_BIT);
 		gl.colorMask(true,true,true,false);
-		Rastgl.copyframe(Rastgl.fTexture,0,0,720/1024,480/1024);
+		Rastgl.copyframe(Rastgl.fTexture,0,0,WIDTH/1024,HEIGHT/1024);
 		gl.colorMask(true,true,true,true);
 
 //emi
 		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-		gl.viewport(0,0,721,480);
+		gl.viewport(0,0,721,HEIGHT);
 		gl.depthMask(false);
 		gl.disable(gl.DEPTH_TEST);
 		gl.enable(gl.BLEND);
 		gl.blendFuncSeparate(gl.CONSTANT_ALPHA,gl.DST_ALPHA,gl.ONE,gl.ONE);
 		gl.blendColor(0,0,0,0.7);
-		Rastgl.copyframe(emiTexture,0,0,720/1024,480/1024);
+		Rastgl.copyframe(emiTexture,0,0,WIDTH/1024,HEIGHT/1024);
 		gl.disable(gl.BLEND);
 		gl.bindTexture(gl.TEXTURE_2D, emiTexture);
-		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,720,480);
+		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
 		Gauss.filter(Rastgl.frameBuffer,emiTexture,100,2.0/1024,1024.0);
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.enable(gl.BLEND);
 		gl.blendFunc(gl.ONE,gl.ONE);
-		Rastgl.copyframe(emiTexture,0,0,720/1024,480/1024);
+		Rastgl.copyframe(emiTexture,0,0,WIDTH/1024,HEIGHT/1024);
 
 //		if(bdfimage){
 //			gl.enable(gl.BLEND);
@@ -894,7 +907,7 @@ var Testact=(function(){
 		canvas.height=HEIGHT;
 		parentnode.appendChild(canvas);
 		var canvasgl =document.createElement("canvas");
-		canvasgl.width=WIDTH*2;
+		canvasgl.width=WIDTH;
 		canvasgl.height=HEIGHT;
 		parentnode.appendChild(canvasgl);
 		var ctx=canvas.getContext("2d");

@@ -269,6 +269,7 @@ var Test3d=(function(){
 		ono3d.rotate(-camera.a[0],1,0,0)
 		ono3d.rotate(-camera.a[1]+Math.PI,0,1,0)
 		ono3d.translate(-camera.p[0],-camera.p[1],-camera.p[2])
+		ono3d.setAov(0.577);
 
 		ono3d.rf=0;
 		ono3d.lineWidth=1.0;
@@ -373,12 +374,14 @@ var Test3d=(function(){
 	
 		gl.depthMask(true);
 		gl.enable(gl.DEPTH_TEST);
+		ono3d.setViewport(0,0,720,480);
 
 		if(envtexes){
 			MainShader.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
 		}
 		Plain.draw(ono3d);
 		gl.finish();
+		gl.disable(gl.BLEND);
 		
 		gl.depthMask(false);
 		gl.disable(gl.DEPTH_TEST);
