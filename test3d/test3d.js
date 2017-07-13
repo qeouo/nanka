@@ -374,10 +374,10 @@ var Test3d=(function(){
 		gl.depthMask(true);
 		gl.enable(gl.DEPTH_TEST);
 
-		Plain.draw(ono3d);
 		if(envtexes){
 			MainShader.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
 		}
+		Plain.draw(ono3d);
 		gl.finish();
 		
 		gl.depthMask(false);
