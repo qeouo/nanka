@@ -276,7 +276,7 @@ var Test3d=(function(){
 		if(globalParam.outlineWidth>0.){
 			ono3d.lineWidth=globalParam.outlineWidth;
 			ono3d.rf=Ono3d.RF_OUTLINE;
-			Util.hex2rgb(ono3d.outlineColor,globalParam.outlineColor);
+			Util.hex2rgb(ono3d.lineColor,globalParam.outlineColor);
 		}
 		ono3d.smoothing=globalParam.smoothing;
 

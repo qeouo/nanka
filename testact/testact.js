@@ -234,13 +234,13 @@ var Testact=(function(){
 			if(globalParam.outlineWidth>0.){
 				ono3d.lineWidth=globalParam.outlineWidth;
 				ono3d.rf=Ono3d.RF_OUTLINE;
-				Util.hex2rgb(ono3d.outlineColor,globalParam.outlineColor);
+				Util.hex2rgb(ono3d.lineColor,globalParam.outlineColor);
 			}
 			if(tsukamiTarget){
 				if(tsukamiTarget.con2 == obj.phyObjs[0]){
 					ono3d.lineWidth=1;
 					ono3d.rf=Ono3d.RF_OUTLINE;
-					Vec4.set(ono3d.outlineColor,1,4,1,0);
+					Vec4.set(ono3d.lineColor,1,4,1,0);
 				}
 			}
 			ono3d.setTargetMatrix(0)
