@@ -313,7 +313,6 @@ var Testact=(function(){
 	var camera=createObj(defObj);
 	var camera2=createObj(defObj);
 	var camerazoom=0.577;
-	var viewMatrix=new Mat44();
 	var span;
 	var oldTime = 0;
 	var mseccount=0;
@@ -631,19 +630,20 @@ var Testact=(function(){
 
 //ã^éóHDRÇ⁄Ç©Çµ
 		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-		gl.viewport(0,0,721,HEIGHT);
+		gl.viewport(0,0,WIDTH+1.0,HEIGHT);
 		gl.depthMask(false);
 		gl.disable(gl.DEPTH_TEST);
 		gl.enable(gl.BLEND);
-		gl.blendFuncSeparate(gl.CONSTANT_ALPHA,gl.DST_ALPHA,gl.ONE,gl.ONE);
+		gl.blendFuncSeparate(gl.CONSTANT_ALPHA,gl.DST_ALPHA,gl.ZERO,gl.ZERO);
 		gl.blendColor(0,0,0,0.7);
 		Rastgl.copyframe(emiTexture,0,0,WIDTH/1024,HEIGHT/1024);
 		gl.disable(gl.BLEND);
 		gl.bindTexture(gl.TEXTURE_2D, emiTexture);
 		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
-		Gauss.filter(Rastgl.frameBuffer,emiTexture,100,2.0/1024,1024.0);
+		Gauss.filter(emiTexture,emiTexture,100,2.0/1024,1024.0);
 //ï\âÊñ Ç…çáê¨
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.viewport(0,0,WIDTH,HEIGHT);
 		gl.enable(gl.BLEND);
 		gl.blendFunc(gl.ONE,gl.ONE);
 		Rastgl.copyframe(emiTexture,0,0,WIDTH/1024,HEIGHT/1024);
@@ -763,7 +763,7 @@ var Testact=(function(){
 		sky = Ono3d.loadCubemap("skybox.jpg",function(image){
 			var envsize=16;
 
-			var envs=[0.02,0.1,0.2,0.5,0.8];
+			var envs=[0.1,0.2,0.4,0.8,1.0];
 			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
 			envtexes=[];
 			envtexes.push(0);
@@ -781,7 +781,7 @@ var Testact=(function(){
 				gl.bindTexture(gl.TEXTURE_CUBE_MAP,tex);
 			
 				//envs[i]=Math.atan2(ii,envsizeorg*0.5)/(Math.PI*0.5);
-				ii*=2;
+				//ii*=2;
 
 				Rough.draw(tex,image.gltexture,envs[i],envsizeorg,envsizeorg);
 				var tex2 = gl.createTexture();
@@ -790,17 +790,6 @@ var Testact=(function(){
 				envtexes.push(envs[i]);
 				envtexes.push(tex2);
 
-			}
-			{
-				var tex = gl.createTexture();
-				gl.bindTexture(gl.TEXTURE_CUBE_MAP,tex);
-			
-				Rough.draw(tex,image.gltexture,1.0,envsizeorg,envsizeorg);
-				var tex2 = gl.createTexture();
-				gl.bindTexture(gl.TEXTURE_CUBE_MAP,tex2);
-				Rough.draw(tex2,tex,fazy,envsize,envsize);
-				envtexes.push(1.0);
-				envtexes.push(tex2);
 			}
 			
 			gl.bindTexture(gl.TEXTURE_2D, null);
