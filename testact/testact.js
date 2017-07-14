@@ -240,8 +240,7 @@ var Testact=(function(){
 				if(tsukamiTarget.con2 == obj.phyObjs[0]){
 					ono3d.lineWidth=1;
 					ono3d.rf=Ono3d.RF_OUTLINE;
-					Vec4.set(ono3d.outlineColor,1,4,2,1);
-					Vec4.set(ono3d.outlineColor,1.,2,1.,0.4);
+					Vec4.set(ono3d.outlineColor,1,4,1,0);
 				}
 			}
 			ono3d.setTargetMatrix(0)
@@ -547,12 +546,14 @@ var Testact=(function(){
 			ono3d.pop();
 		}
 
-		
+//シャドウマップ描画
 		gl.bindFramebuffer(gl.FRAMEBUFFER,Rastgl.frameBuffer);
 		gl.viewport(0,0,1024,1024);
+		gl.depthMask(true);
 		gl.clearColor(1., 1., 1.,1.0);
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 		if(globalParam.shadow){
+			gl.enable(gl.DEPTH_TEST);
 			
 			ono3d.setOrtho(20.0,20.0,1.0,100.0)
 			var lightSource = ono3d.lightSources[0]
@@ -573,8 +574,8 @@ var Testact=(function(){
 		
 		globalParam.stereo=-globalParam.stereoVolume * globalParam.stereomode*0.7;
 
-
-		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+//遠景描画
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.disable(gl.DEPTH_TEST);
 		gl.disable(gl.BLEND);
 		gl.depthMask(true);
@@ -586,22 +587,23 @@ var Testact=(function(){
 		gl.disable(gl.BLEND);
 		if(sky.gltexture){
 			if(globalParam.stereomode==0){
-				ono3d.setPers(camerazoom,HEIGHT/WIDTH);
+				ono3d.setPers(0.577,HEIGHT/WIDTH);
 				gl.viewport(0,0,WIDTH,HEIGHT);
 				Env.env(envtexes[1]);
 			}else{
-				ono3d.setPers(camerazoom,HEIGHT/(WIDTH/2));
-				gl.viewport(0,0,(WIDTH/2),HEIGHT);
+				ono3d.setPers(0.577,HEIGHT/WIDTH*2);
+				gl.viewport(0,0,WIDTH/2,HEIGHT);
 				Env.env(envtexes[1]);
-				gl.viewport((WIDTH/2),0,(WIDTH/2),HEIGHT);
+				gl.viewport(WIDTH/2,0,WIDTH/2,HEIGHT);
 				Env.env(envtexes[1]);
 				
 			}
 		}
-	
+
+		gl.viewport(0,0,WIDTH,HEIGHT);
+//オブジェクト描画
 		gl.depthMask(true);
 		gl.enable(gl.DEPTH_TEST);
-
 		ono3d.setViewport(0,0,WIDTH,HEIGHT);
 
 		if(envtexes){
@@ -609,19 +611,25 @@ var Testact=(function(){
 		}
 		Plain.draw(ono3d);
 		gl.finish();
-		gl.disable(gl.BLEND);
 		
+//描画結果を別フレームバッファにコピー
 		gl.depthMask(false);
 		gl.disable(gl.DEPTH_TEST);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+		gl.clearColor(0.0,0.0,0.0,0.0);
+		gl.clear(gl.COLOR_BUFFER_BIT);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.bindTexture(gl.TEXTURE_2D, Rastgl.fTexture);
+		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
+
+//メインのバッファのアルファ値を1にする
 		gl.viewport(0,0,WIDTH,HEIGHT);
+		gl.colorMask(false,false,false,true);
 		gl.clearColor(0.0,0.0,0.0,1.0);
 		gl.clear(gl.COLOR_BUFFER_BIT);
-		gl.colorMask(true,true,true,false);
-		Rastgl.copyframe(Rastgl.fTexture,0,0,WIDTH/1024,HEIGHT/1024);
 		gl.colorMask(true,true,true,true);
 
-//emi
+//疑似HDRぼかし
 		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
 		gl.viewport(0,0,721,HEIGHT);
 		gl.depthMask(false);
@@ -634,7 +642,7 @@ var Testact=(function(){
 		gl.bindTexture(gl.TEXTURE_2D, emiTexture);
 		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
 		Gauss.filter(Rastgl.frameBuffer,emiTexture,100,2.0/1024,1024.0);
-
+//表画面に合成
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.enable(gl.BLEND);
 		gl.blendFunc(gl.ONE,gl.ONE);
