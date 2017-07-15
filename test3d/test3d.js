@@ -113,14 +113,14 @@ var Test3d=(function(){
 					}
 				}
 			}
-			if(phyObjs && globalParam.physics){
-				ono3d.setTargetMatrix(1)
-				ono3d.loadIdentity()
-				ono3d.setTargetMatrix(0)
-				ono3d.loadIdentity()
-				ono3d.rotate(-PI*0.5,1,0,0)
+			ono3d.setTargetMatrix(1)
+			ono3d.loadIdentity()
+			ono3d.setTargetMatrix(0)
+			ono3d.loadIdentity()
+			ono3d.rotate(-PI*0.5,1,0,0)
 
-				O3o.setFrame(obj3d,scene,(obj.t+1)*24/globalParam.fps);
+			O3o.setFrame(obj3d,scene,(obj.t+1)*24/globalParam.fps);
+			if(phyObjs && globalParam.physics){
 
 				if(!globalParam.physics_){
 					
@@ -129,7 +129,6 @@ var Test3d=(function(){
 				}
 				globalParam.physics_=globalParam.physics;
 				
-				//O3o.setFrame(obj3d,scene,(obj.t+1)*24/globalParam.fps);
 				for(var i=0;i<phyObjs.length;i++){
 					O3o.movePhyObj(scene,phyObjs[i])
 				}
@@ -432,7 +431,7 @@ var Test3d=(function(){
 		gl.viewport(0,0,WIDTH,HEIGHT);
 		gl.enable(gl.BLEND);
 		gl.blendFunc(gl.ONE,gl.ONE);
-	//	Rastgl.copyframe(emiTexture,0,0,WIDTH/1024,HEIGHT/1024);
+		Rastgl.copyframe(emiTexture,0,0,WIDTH/1024,HEIGHT/1024);
 
 		if(false){
 			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
