@@ -99,39 +99,39 @@ var Test3d=(function(){
 				break;
 			}
 			var scene= obj3d.scenes[globalParam.scene];
-			if(phyObjs===null){
-				onoPhy.phyObjs = [];
 
-
-				if(obj3d.scenes.length>0){
-					phyObjs=new Array();
-					for(i=0;i<scene.objects.length;i++){
-						var phyobj=O3o.createPhyObj(scene.objects[i],onoPhy);
-						if(phyobj){
-							phyObjs.push(phyobj);
-						}
-					}
-				}
-			}
 			ono3d.setTargetMatrix(1)
 			ono3d.loadIdentity()
 			ono3d.setTargetMatrix(0)
 			ono3d.loadIdentity()
 			ono3d.rotate(-PI*0.5,1,0,0)
 
-			O3o.setFrame(obj3d,scene,(obj.t+1)*24/globalParam.fps);
+			O3o.setFrame(obj3d,scene,obj.t*24/globalParam.fps);
+
+			if(phyObjs===null){
+				onoPhy.phyObjs = [];
+
+				phyObjs=new Array();
+				for(i=0;i<scene.objects.length;i++){
+					var phyobj=O3o.createPhyObj(scene.objects[i],onoPhy);
+					if(phyobj){
+						phyObjs.push(phyobj);
+					}
+				}
+			}
 			if(phyObjs && globalParam.physics){
 
 				if(!globalParam.physics_){
-					
-					O3o.initPhyObjs(scene,phyObjs);
+					for(var i=0;i<phyObjs.length;i++){
+						O3o.movePhyObj(scene,phyObjs[i],1)
+					}
 					globalParam.physics_=true;
+				}else{
+					for(var i=0;i<phyObjs.length;i++){
+						O3o.movePhyObj(scene,phyObjs[i],0)
+					}
 				}
-				globalParam.physics_=globalParam.physics;
 				
-				for(var i=0;i<phyObjs.length;i++){
-					O3o.movePhyObj(scene,phyObjs[i])
-				}
 			}else{
 				globalParam.physics_=false;
 			}

@@ -155,7 +155,7 @@ var Testact=(function(){
 						var phyobj=O3o.createPhyObj(scene.objects[i],onoPhy);
 						if(phyobj){
 						
-							O3o.movePhyObj(scene,phyobj);
+							O3o.movePhyObj(scene,phyobj,1);
 							Vec3.copy(phyobj.location,obj.p);
 
 							phyObjs.push(phyobj);
@@ -170,24 +170,26 @@ var Testact=(function(){
 				}
 			}
 			//O3o.setFrame(obj3d,scene,(obj.t+1)*24/30);
+			ono3d.setTargetMatrix(1)
+			ono3d.loadIdentity()
+			ono3d.setTargetMatrix(0)
+			ono3d.loadIdentity();
+			ono3d.translate(obj.p[0],obj.p[1],obj.p[2]);
+			ono3d.rotate(-PI*0.5,1,0,0)
 			O3o.setFrame(obj3d,scene,timer/1000.0*24);
 			if(phyObjs && globalParam.physics){
-				ono3d.setTargetMatrix(1)
-				ono3d.loadIdentity()
-				ono3d.setTargetMatrix(0)
-				ono3d.loadIdentity();
-				ono3d.translate(obj.p[0],obj.p[1],obj.p[2]);
-				ono3d.rotate(-PI*0.5,1,0,0)
 				
-
 				if(!globalParam.physics_){
-					
-					O3o.initPhyObjs(scene,phyObjs);
+					for(var i=0;i<phyObjs.length;i++){
+						O3o.movePhyObj(scene,phyObjs[i],1)
+					}
 					globalParam.physics_=true;
+				}else{
+					for(var i=0;i<phyObjs.length;i++){
+						O3o.movePhyObj(scene,phyObjs[i],0)
+					}
 				}
-				globalParam.physics_=globalParam.physics;
 
-				O3o.movePhyObjs(scene,(obj.t+1)*24/globalParam.fps,phyObjs)
 			}else{
 				globalParam.physics_=false;
 			}
@@ -822,7 +824,7 @@ var Testact=(function(){
 				gl.bindTexture(gl.TEXTURE_2D,Rastgl.fTexture2);
 				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1024,1024);
 				gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
-				Gauss.filter(Rastgl.frameBuffer,Rastgl.fTexture2,100,1.0/1024,1024.0);
+				Gauss.filter(Rastgl.fTexture2,Rastgl.fTexture2,100,1.0/1024,1024.0);
 				gl.enable(gl.BLEND);
 				gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
 				Rastgl.copyframe(bdfimage.gltexture,-1/512,0,1/8,1/8);
