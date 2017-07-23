@@ -155,9 +155,9 @@ def ExportOno3dObject():
             fileout(',"matrix":{}\n'.format(stringMatrix(obj.matrix_basis)))
         if(obj.parent):
             fileout(',"parent":"{}"\n'.format(obj.parent.name))
-        if(obj.parent_bone):
-            fileout(',"parent_bone":"{}"\n'.format(obj.parent_bone))
-        fileout(',"iparentmatrix":{}\n'.format(stringMatrix(obj.matrix_parent_inverse)))
+            if(obj.parent_bone):
+                fileout(',"parent_bone":"{}"\n'.format(obj.parent_bone))
+            fileout(',"iparentmatrix":{}\n'.format(stringMatrix(obj.matrix_parent_inverse)))
         fileout(',"type":"{}"\n'.format(obj.type))
         if(obj.data):
             fileout(',"data":"{}"\n'.format(obj.data.name))
@@ -197,12 +197,15 @@ def ExportOno3dObject():
                 fileout2(',"air_damping":{}'.format(group.settings.air_damping))
                 fileout2(',"vel_damping":{}'.format(group.settings.vel_damping))
             elif(group.type=="SOFT_BODY" ):
-                fileout2(',"pin":\"{}\"'.format(group.settings.vertex_group_goal))
-                fileout2(',"mass":{:9f}'.format(group.settings.mass))
                 fileout2(',"friction":{:9f}'.format(group.settings.friction))
+                fileout2(',"mass":{:9f}'.format(group.settings.mass))
                 fileout2(',"speed":{:9f}'.format(group.settings.speed))
                 fileout2(',"goalDefault":{:9f}'.format(group.settings.goal_default))
-#fileout2(',"goal_spring":{:9f}'.format(group.settings.goal_spring))
+                fileout2(',"goalMin":{:9f}'.format(group.settings.goal_min))
+                fileout2(',"goalMax":{:9f}'.format(group.settings.goal_max))
+                fileout2(',"goalSpring":{:9f}'.format(group.settings.goal_spring))
+                fileout2(',"goalFriction":{:9f}'.format(group.settings.goal_friction))
+                fileout2(',"pin":\"{}\"'.format(group.settings.vertex_group_goal))
                 fileout2(',"edgePull":{:9f}'.format(group.settings.pull))
                 fileout2(',"edgePush":{:9f}'.format(group.settings.push))
                 fileout2(',"edgeDamping":{:9f}'.format(group.settings.damping))
@@ -360,12 +363,13 @@ def WriteMesh(mesh):
                 Index+=1
             fileout2(']')
             Index=0
-            fileout2(',"groupratios":[')
-            for group in Vertex.groups:
-                if(group != Vertex.groups[0]):fileout2(',')
-                fileout2('{:9f}'.format(group.weight/weightmax))
-                Index+=1
-            fileout2(']')
+            if(len(Vertex.groups)> 1):
+                fileout2(',"groupratios":[')
+                for group in Vertex.groups:
+                    if(group != Vertex.groups[0]):fileout2(',')
+                    fileout2('{:9f}'.format(group.weight/weightmax))
+                    Index+=1
+                fileout2(']')
         fileout2('}\n')
     fileoutLd()
 
