@@ -2329,7 +2329,7 @@
     ,"data":"平面.002"
     ,"modifiers":[
       {"name":"アーマチュア","type":"ARMATURE","object":"Armature.001","vertex_group":""}
-      ,{"name":"ソフトボディ","type":"SOFT_BODY","pin":"pin","mass": 0.100000,"friction":10.000000,"speed": 1.000000,"goalDefault": 0.700000,"edgePull": 0.500000,"edgePush": 0.500000,"edgeDamping": 0.500000}
+      ,{"name":"ソフトボディ","type":"SOFT_BODY","pin":"pin","mass": 0.100000,"friction":10.000000,"speed": 1.000000,"goalDefault": 0.700000,"edgePull": 0.500000,"edgePush": 0.500000,"edgeDamping": 1.000000}
     ]
   }
   ,{
@@ -2345,7 +2345,7 @@
     ,"data":"平面.002"
     ,"modifiers":[
       {"name":"アーマチュア","type":"ARMATURE","object":"Armature.003","vertex_group":""}
-      ,{"name":"ソフトボディ","type":"SOFT_BODY","pin":"pin","mass": 0.100000,"friction":10.000000,"speed": 1.000000,"goalDefault": 1.000000,"edgePull": 0.500000,"edgePush": 0.500000,"edgeDamping": 0.500000}
+      ,{"name":"ソフトボディ","type":"SOFT_BODY","pin":"pin","mass": 0.100000,"friction":10.000000,"speed": 1.000000,"goalDefault": 1.000000,"edgePull": 0.500000,"edgePush": 0.500000,"edgeDamping": 1.000000}
     ]
   }
   ,{
