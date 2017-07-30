@@ -4,7 +4,7 @@
   ,{"name":"Texture.003","typ":"IMAGE","path":"//raara.png"}
 ]
 ,"materials":[
-    {"name": "a", "r": 0.800000011920929, "g": 0.800000011920929, "b": 0.800000011920929, "a": 1.0, "dif": 0.800000011920929, "emt": 5.0, "reflect": 0.0, "rough": 0.0, "ior": 1.0, "texture_slots": [{"texture": "sairiumutex", "action": "sairiumuAction.001", "uv_layer": "sairiumu0"}]}
+    {"name": "a", "r": 0.800000011920929, "g": 0.800000011920929, "b": 0.800000011920929, "a": 1.0, "dif": 0.800000011920929, "emt": 5.0, "reflect": 0.0, "rough": 0.0, "ior": 1.0, "texture_slots": [{"action": "sairiumuAction.001", "texture": "sairiumutex", "uv_layer": "sairiumu0"}]}
   ,  {"name": "Material", "r": 0.9998787045478821, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "reflect": 0.0, "rough": 0.0, "ior": 1.0, "texture_slots": [{"texture": "Texture.003"}]}
   ,  {"name": "マテリアル", "r": 0.800000011920929, "g": 0.800000011920929, "b": 0.800000011920929, "a": 1.0, "dif": 0.800000011920929, "emt": 0.0, "reflect": 0.0, "rough": 0.0, "ior": 1.0, "texture_slots": []}
   ,  {"name": "マテリアル.001", "r": 0.0, "g": 0.0, "b": 0.0, "a": 1.0, "dif": 0.800000011920929, "emt": 0.0, "reflect": 0.0, "rough": 0.0, "ior": 1.0, "texture_slots": []}
@@ -3521,7 +3521,7 @@
     ,"iparentmatrix":[ 0.999999, 0.001460, 0.000000, 0.000000,-0.001460, 0.999999, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000]
     ,"type":"MESH"
     ,"data":"meshAhoge_L"
-    ,"bound_box":[ 0.553438,-0.975683, 3.109636, 1.199815,-0.793737, 3.659086]
+    ,"bound_box":[ 0.553438,-0.975683, 3.109454, 1.200063,-0.793722, 3.658827]
     ,"modifiers":[
       {"name":"ソフトボディ","type":"SOFT_BODY","friction":50.000000,"mass": 1.000000,"speed": 1.000000,"goalDefault": 1.000000,"goalMin": 0.700000,"goalMax": 1.000000,"goalSpring": 0.700000,"goalFriction": 4.000000,"pin":"pin","edgePull": 0.300000,"edgePush": 0.300000,"edgeDamping": 0.500000}
       ,{"name":"アーマチュア","type":"ARMATURE","object":"armature.002","vertex_group":""}
@@ -3555,7 +3555,7 @@
     ,"iparentmatrix":[ 0.999999, 0.001460, 0.000000, 0.000000,-0.001460, 0.999999, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000]
     ,"type":"MESH"
     ,"data":"meshAhoge_R"
-    ,"bound_box":[-0.435042, 0.046382,-0.531895, 0.034589, 0.324181, 0.080026]
+    ,"bound_box":[-0.433126, 0.046382,-0.444288, 0.034589, 0.343864, 0.168529]
     ,"modifiers":[
       {"name":"アーマチュア","type":"ARMATURE","object":"armature.002","vertex_group":""}
       ,{"name":"ソフトボディ","type":"SOFT_BODY","friction": 0.000000,"mass": 1.000000,"speed": 1.000000,"goalDefault": 1.000000,"goalMin": 0.700000,"goalMax": 1.000000,"goalSpring": 0.700000,"goalFriction": 4.000000,"pin":"pin","edgePull": 0.300000,"edgePush": 0.300000,"edgeDamping": 0.500000}
@@ -3589,7 +3589,7 @@
     ,"iparentmatrix":[ 0.999999, 0.001460, 0.000000, 0.000000,-0.001460, 0.999999, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000]
     ,"type":"MESH"
     ,"data":"meshAhogeFront"
-    ,"bound_box":[-0.302950,-0.037684,-0.029078, 0.214663, 0.261813, 0.501218]
+    ,"bound_box":[-0.266268,-0.057799,-0.029078, 0.198916, 0.248350, 0.532269]
     ,"modifiers":[
       {"name":"アーマチュア","type":"ARMATURE","object":"armature.002","vertex_group":""}
       ,{"name":"ソフトボディ","type":"SOFT_BODY","friction": 0.000000,"mass": 1.000000,"speed": 1.000000,"goalDefault": 1.000000,"goalMin": 0.700000,"goalMax": 1.000000,"goalSpring": 0.800000,"goalFriction": 4.000000,"pin":"pin","edgePull": 0.300000,"edgePush": 0.300000,"edgeDamping": 0.000000}
@@ -3861,7 +3861,7 @@
     ,"iparentmatrix":[ 0.999999, 0.001460, 0.000000, 0.000000,-0.001460, 0.999999, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000]
     ,"type":"MESH"
     ,"data":"meshBodyNormal"
-    ,"bound_box":[-1.243539,-0.838689,-1.462547, 1.296102, 0.958597, 2.553140]
+    ,"bound_box":[-1.589323,-1.119792,-1.430889, 1.296102, 0.283385, 2.553140]
     ,"modifiers":[
       {"name":"Mirror","type":"MIRROR","use_x":1,"use_y":0,"use_z":0}
       ,{"name":"Armature","type":"ARMATURE","object":"armature.002","vertex_group":""}
@@ -3959,7 +3959,7 @@
     ,"iparentmatrix":[ 0.999999, 0.001460, 0.000000, 0.000000,-0.001460, 0.999999, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000]
     ,"type":"MESH"
     ,"data":"Cyalume"
-    ,"bound_box":[-1.075036,-0.650273,-1.447956, 1.108323, 0.657817, 2.553140]
+    ,"bound_box":[-1.244855,-0.650273,-1.445695, 1.108323, 0.654512, 2.553140]
     ,"modifiers":[
       {"name":"Mirror","type":"MIRROR","use_x":1,"use_y":0,"use_z":0}
       ,{"name":"Cloth","type":"CLOTH","pin":"clothpin","mass":1.0,"structural":0.10000000149011612,"bending_stiffness":1.0,"spring_damping":1.0,"air_damping":5.0,"vel_damping":1.0}
@@ -4111,9 +4111,9 @@
     ,"iparentmatrix":[ 0.999999, 0.001460, 0.000000, 0.000000,-0.001460, 0.999999, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000]
     ,"type":"MESH"
     ,"data":"meshHair"
-    ,"bound_box":[-4.427617,-3.599809, 8.469731, 3.839205, 1.764202,14.402400]
+    ,"bound_box":[-4.429070,-3.612372, 8.499459, 3.836560, 1.782407,14.402400]
     ,"modifiers":[
-      {"name":"ソフトボディ","type":"SOFT_BODY","friction": 0.000000,"mass": 1.000000,"speed": 1.000000,"goalDefault": 1.000000,"goalMin": 0.700000,"goalMax": 1.000000,"goalSpring": 0.5000,"goalFriction": 0.500000,"pin":"pin","edgePull": 0.500000,"edgePush": 0.500000,"edgeDamping": 0.300000}
+      {"name":"ソフトボディ","type":"SOFT_BODY","friction": 0.000000,"mass": 1.000000,"speed": 1.000000,"goalDefault": 1.000000,"goalMin": 0.700000,"goalMax": 1.000000,"goalSpring": 0.999000,"goalFriction": 0.000000,"pin":"pin","edgePull": 0.500000,"edgePush": 0.500000,"edgeDamping": 0.300000}
       ,{"name":"arm","type":"ARMATURE","object":"armature.002","vertex_group":""}
     ]
   }
@@ -4428,7 +4428,7 @@
     ,"iparentmatrix":[ 0.999999, 0.001460, 0.000000, 0.000000,-0.001460, 0.999999, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000, 0.000000, 0.000000, 1.000000]
     ,"type":"MESH"
     ,"data":"meshTi"
-    ,"bound_box":[-0.232271,-0.681817, 0.766998, 0.232271,-0.662090, 1.338105]
+    ,"bound_box":[-0.222081,-0.683766, 0.741726, 0.222081,-0.663544, 1.338105]
     ,"modifiers":[
       {"name":"アーマチュア","type":"ARMATURE","object":"armature.002","vertex_group":""}
       ,{"name":"ソフトボディ","type":"SOFT_BODY","friction": 0.000000,"mass": 1.000000,"speed": 1.000000,"goalDefault": 1.000000,"goalMin": 0.700000,"goalMax": 1.000000,"goalSpring": 0.999000,"goalFriction": 0.000000,"pin":"pin","edgePull": 0.500000,"edgePush": 0.500000,"edgeDamping": 0.000000}
