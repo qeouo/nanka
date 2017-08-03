@@ -18,7 +18,7 @@ var Testact=(function(){
 	var customBumps=[];
 	var bdf;
 	var bdfimage=null;
-	var o3oField,fieldphyobj;
+	var o3oField;
 	var iroiro;
 	var tsukamiTarget= null;
 	var tsukamiZ= -1;
@@ -111,8 +111,6 @@ var Testact=(function(){
 			ono3d.setTargetMatrix(0)
 			ono3d.loadIdentity()
 
-			//ono3d.transmat(fieldphyobj.matrix);
-			//ono3d.scale(1/4,1/4,1/4);
 			ono3d.rotate(-PI*0.5,1,0,0)
 			if(obj3d){
 				if(obj3d.scenes.length>0){
@@ -155,7 +153,7 @@ var Testact=(function(){
 						var phyobj=O3o.createPhyObj(scene.objects[i],onoPhy);
 						if(phyobj){
 						
-							O3o.movePhyObj(scene,phyobj,1);
+							//O3o.movePhyObj(scene,phyobj,1);
 							Vec3.copy(phyobj.location,obj.p);
 
 							phyObjs.push(phyobj);
@@ -167,6 +165,7 @@ var Testact=(function(){
 							OnoPhy.setPhyObjData(phyobj);
 						}
 					}
+					globalParam.physics_=true;
 				}
 			}
 			//O3o.setFrame(obj3d,scene,(obj.t+1)*24/30);
@@ -178,15 +177,20 @@ var Testact=(function(){
 			ono3d.rotate(-PI*0.5,1,0,0)
 			O3o.setFrame(obj3d,scene,timer/1000.0*24);
 			if(phyObjs && globalParam.physics){
-				
+				var objects = scene.objects;
+				var flg = 0;
+
 				if(!globalParam.physics_){
-					for(var i=0;i<phyObjs.length;i++){
-						O3o.movePhyObj(scene,phyObjs[i],1)
-					}
+					flg = 1;
 					globalParam.physics_=true;
-				}else{
-					for(var i=0;i<phyObjs.length;i++){
-						O3o.movePhyObj(scene,phyObjs[i],0)
+				}
+				for(var i=0;i<phyObjs.length;i++){
+					var phyName=phyObjs[i].name;
+					for(var j=0;j<objects.length;j++){
+						if(phyName===objects[j].name){
+							O3o.movePhyObj(objects[j],phyObjs[i],flg);
+							break;
+						}
 					}
 				}
 
@@ -754,12 +758,7 @@ var Testact=(function(){
 			ono3d.rotate(-PI*0.5,1,0,0);
 			O3o.setFrame(o3o,scene,0);
 			for(i=0;i<scene.objects.length;i++){
-				var phyobj=O3o.createPhyObj(scene.objects[i],onoPhy);
-				if(phyobj){
-					O3o.movePhyObj(scene,phyobj);
-					
-					fieldphyobj=phyobj
-				}
+				O3o.createPhyObj(scene.objects[i],onoPhy);
 			}
 		});
 		sky = Ono3d.loadCubemap("skybox.jpg",function(image){

@@ -120,18 +120,23 @@ var Test3d=(function(){
 				}
 			}
 			if(phyObjs && globalParam.physics){
+				var objects = scene.objects;
+				var flg = 0;
 
 				if(!globalParam.physics_){
-					for(var i=0;i<phyObjs.length;i++){
-						O3o.movePhyObj(scene,phyObjs[i],1)
-					}
+					flg = 1;
 					globalParam.physics_=true;
-				}else{
-					for(var i=0;i<phyObjs.length;i++){
-						O3o.movePhyObj(scene,phyObjs[i],0)
+				}
+				for(var i=0;i<phyObjs.length;i++){
+					var phyName=phyObjs[i].name;
+					for(var j=0;j<objects.length;j++){
+						if(phyName===objects[j].name){
+							O3o.movePhyObj(objects[j],phyObjs[i],flg);
+							break;
+						}
 					}
 				}
-				
+
 			}else{
 				globalParam.physics_=false;
 			}
@@ -247,7 +252,7 @@ var Test3d=(function(){
 		vec3[2]=mainObj.p[2]
 		camera2.p[0]=(Util.cursorX/(WIDTH/2)-1.0)*8;
 		camera2.p[1]=-(Util.cursorY/(HEIGHT/2)-1.0)*8;
-		camera2.p[2]=10-Math.pow((Util.cursorX-WIDTH)/WIDTH,2)*10+30;
+		camera2.p[2]=10-Math.pow((Util.cursorX-WIDTH)/WIDTH,2)*10+10;
 		camera.p[0]+=(camera2.p[0]-camera.p[0])*0.1
 		camera.p[1]+=(camera2.p[1]-camera.p[1])*0.1
 		camera.p[2]+=(camera2.p[2]-camera.p[2])*0.1
@@ -526,8 +531,11 @@ var Test3d=(function(){
 		
 	}
 	ret.changeScene=function(){
+		for(var i=0;i<phyObjs.length;i++){
+			onoPhy.deletePhyObject(phyObjs[i]);
+		}
 		phyObjs=null;
-		globalParam.physics_=false;
+		//globalParam.physics_=false;
 	}
 	ret.start = function(){
 		//sky = Rastgl.loadTexture("sky.png");
