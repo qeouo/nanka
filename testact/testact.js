@@ -22,6 +22,7 @@ var Testact=(function(){
 	var iroiro;
 	var tsukamiTarget= null;
 	var tsukamiZ= -1;
+	var soundbuffer=null;
 
 	var STAT_EMPTY=0
 		,STAT_ENABLE=1
@@ -421,6 +422,7 @@ var Testact=(function(){
 		if(Util.pressCount == 1){
 			var p0 =new Vec3();
 			var p1 =new Vec3();
+			WebAudio.playSound(soundbuffer);
 
 			Mat44.getInv(mat44,ono3d.pvMat);
 			Vec4.set(vec4,cursorr[0],-cursorr[1],-1,1);
@@ -761,6 +763,7 @@ var Testact=(function(){
 				O3o.createPhyObj(scene.objects[i],onoPhy);
 			}
 		});
+		soundbuffer = WebAudio.loadSound('se.mp3');
 		sky = Ono3d.loadCubemap("skybox.jpg",function(image){
 			var envsize=16;
 
