@@ -265,7 +265,7 @@ def WriteMaterial( Material=None):
     if(Material.raytrace_mirror):
         lst = list(Material.mirror_color)
         dict["reflect"] = Material.raytrace_mirror.reflect_factor
-        dict["rough"] = (1.0-Material.raytrace_mirror.gloss_factor)*2.0
+        dict["rough"] = (1.0-Material.raytrace_mirror.gloss_factor)
     if(Material.raytrace_transparency):
         dict["ior"] = Material.raytrace_transparency.ior
     dict["texture_slots"] = []

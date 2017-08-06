@@ -18,7 +18,6 @@ var Testact=(function(){
 	var customBumps=[];
 	var bdf;
 	var bdfimage=null;
-	var o3oField;
 	var iroiro;
 	var tsukamiTarget= null;
 	var tsukamiZ= -1;
@@ -96,34 +95,6 @@ var Testact=(function(){
 		}
 		return;
 	}
-	var fieldObj=function(obj,msg,param){
-		var obj3d=o3oField;
-		switch(msg){
-		case MSG_MOVE:
-			if(obj3d.scenes.length===0){
-				break;
-			}
-			var scene=obj3d.scenes[0];
-
-
-			break;
-
-		case MSG_DRAW:
-			ono3d.setTargetMatrix(0)
-			ono3d.loadIdentity()
-
-			ono3d.rotate(-PI*0.5,1,0,0)
-			if(obj3d){
-				if(obj3d.scenes.length>0){
-
-					O3o.drawScene(obj3d,0,obj.t*24/globalParam.fps,null);
-
-				}
-			}
-			break;
-		}
-		return defObj(obj,msg,param);
-	}
 	var mainObj=function(obj,msg,param){
 		var phyObjs = obj.phyObjs;
 		switch(msg){
@@ -153,15 +124,18 @@ var Testact=(function(){
 					for(i=0;i<scene.objects.length;i++){
 						var phyobj=O3o.createPhyObj(scene.objects[i],onoPhy);
 						if(phyobj){
-						
-							//O3o.movePhyObj(scene,phyobj,1);
 							Vec3.copy(phyobj.location,obj.p);
 
 							phyObjs.push(phyobj);
-							phyobj.mass*=phyobj.scale[0]* phyobj.scale[1]* phyobj.scale[2];
-							phyobj.dfriction=0.5;
+							O3o.movePhyObj(scene.objects[i],phyobj,1);
+						
+							if(phyobj.type == OnoPhy.MESH){
+								continue
+							}
+							phyobj.mass*=phyobj.scale[0]* phyobj.scale[1]* phyobj.scale[2]*phyobj.size[0]*phyobj.size[1]*phyobj.size[2];
+							phyobj.dfriction=0.3;
 							Vec3.set(phyobj.v,0,0,0);
-							Vec3.set(phyobj.location,-4,6,0);
+							//Vec3.set(phyobj.location,-4,6,0);
 
 							OnoPhy.setPhyObjData(phyobj);
 						}
@@ -174,7 +148,7 @@ var Testact=(function(){
 			ono3d.loadIdentity()
 			ono3d.setTargetMatrix(0)
 			ono3d.loadIdentity();
-			ono3d.translate(obj.p[0],obj.p[1],obj.p[2]);
+			//ono3d.translate(obj.p[0],obj.p[1],obj.p[2]);
 			ono3d.rotate(-PI*0.5,1,0,0)
 			O3o.setFrame(obj3d,scene,timer/1000.0*24);
 			if(phyObjs && globalParam.physics){
@@ -187,6 +161,9 @@ var Testact=(function(){
 				}
 				for(var i=0;i<phyObjs.length;i++){
 					var phyName=phyObjs[i].name;
+					if(phyObjs[i].type == OnoPhy.MESH){
+						continue;
+					}
 					for(var j=0;j<objects.length;j++){
 						if(phyName===objects[j].name){
 							O3o.movePhyObj(objects[j],phyObjs[i],flg);
@@ -201,38 +178,32 @@ var Testact=(function(){
 			
 
 			
-			phyObjs[0].a[0]+=(Util.keyflag[2+obj.id*8]-Util.keyflag[0+obj.id*8])*phyObjs[0].mass*4;
-			phyObjs[0].a[2]+=(Util.keyflag[3+obj.id*8]-Util.keyflag[1+obj.id*8])*phyObjs[0].mass*4;
+//			phyObjs[0].a[0]+=(Util.keyflag[2+obj.id*8]-Util.keyflag[0+obj.id*8])*phyObjs[0].mass*4;
+//			phyObjs[0].a[2]+=(Util.keyflag[3+obj.id*8]-Util.keyflag[1+obj.id*8])*phyObjs[0].mass*4;
 			
 			
-			if(Util.keyflag[4+obj.id*8] &&  !Util.keyflagOld[4+obj.id*8]){
-				phyObjs[0].v[1]=2;
-				phyObjs[0].location[1]+=0.04;
+//			if(Util.keyflag[4+obj.id*8] &&  !Util.keyflagOld[4+obj.id*8]){
+//				phyObjs[0].v[1]=2;
+//				phyObjs[0].location[1]+=0.04;
+//			
+//			}
 			
-			}
-			
-			obj.p[0] = phyObjs[0].matrix[12];
-			obj.p[1] = phyObjs[0].matrix[13];
-			obj.p[2] = phyObjs[0].matrix[14];
-			if(phyObjs[0].location[1]<-10){
-				var phyobj=phyObjs[0];
-
-				Vec3.set(phyobj.location,0,15,-9);
-				Vec3.set(phyobj.scale,0.1+Math.random()*2
-						,0.1+Math.random()*2
-						,0.1+Math.random()*2
-						);
-				phyobj.mass=phyobj.scale[0]* phyobj.scale[1]* phyobj.scale[2]*1;
-				phyobj.imoment=phyobj.mass*2/5*Vec3.dot(phyobj.scale,phyobj.scale);
-				phyobj.damper=10*phyobj.mass;
-				phyobj.adamper=10*phyobj.imoment;
-				phyobj.penalty=phyobj.mass*100;
-				Vec3.set(phyobj.v,0,0,0);
-				Vec3.set(phyobj.location,-4,6,0);
-				phyobj.dfriction=0.7;
-				phyobj.sfriction=phyobj.dfriction*1.1;
-
-				OnoPhy.calcObj(phyobj);
+//			obj.p[0] = phyObjs[0].matrix[12];
+//			obj.p[1] = phyObjs[0].matrix[13];
+//			obj.p[2] = phyObjs[0].matrix[14];
+			objects = scene.objects;
+			for(var i=0;i<phyObjs.length;i++){
+				var phyObj = phyObjs[i];
+				if(phyObj.location[1]<-10){
+					for(var j=0;j<objects.length;j++){
+						if(objects[j].name == phyObj.name){
+							O3o.movePhyObj(objects[j],phyObj,1);
+							Vec3.set(phyObj.v,0,0,0);
+							Vec3.set(phyObj.av,0,0,0);
+							break;
+						}
+					}
+				}
 			}
 			break;
 
@@ -243,21 +214,26 @@ var Testact=(function(){
 				ono3d.rf=Ono3d.RF_OUTLINE;
 				Util.hex2rgb(ono3d.lineColor,globalParam.outlineColor);
 			}
-			if(tsukamiTarget){
-				if(tsukamiTarget.con2 == obj.phyObjs[0]){
-					ono3d.lineWidth=1;
-					ono3d.rf=Ono3d.RF_OUTLINE;
-					Vec4.set(ono3d.lineColor,1,4,1,0);
-				}
-			}
 			ono3d.setTargetMatrix(0)
 			ono3d.loadIdentity()
 			if(obj3d){
 				if(obj3d.scenes.length>0){
-					if(globalParam.physics){
-						O3o.drawScene(obj3d,globalParam.scene,obj.t*24/globalParam.fps,phyObjs);
-					}else{
-						O3o.drawScene(obj3d,globalParam.scene,obj.t*24/globalParam.fps,null);
+					var objects = obj3d.scenes[globalParam.scene].objects;
+					for(var i=0;i<objects.length;i++){
+						ono3d.lineWidth=1;
+						ono3d.rf&=~Ono3d.RF_OUTLINE;
+						if(tsukamiTarget){
+							if(tsukamiTarget.con2.name == objects[i].name){
+								ono3d.lineWidth=1;
+								ono3d.rf=Ono3d.RF_OUTLINE;
+								Vec4.set(ono3d.lineColor,1,4,1,0);
+							}
+						}
+						if(globalParam.physics){
+							O3o.drawScene(obj3d,globalParam.scene,obj.t*24/globalParam.fps,phyObjs,objects[i]);
+						}else{
+							O3o.drawScene(obj3d,globalParam.scene,obj.t*24/globalParam.fps,null,objects[i]);
+						}
 					}
 				}
 			}
@@ -280,7 +256,7 @@ var Testact=(function(){
 		globalParam.fps=30;
 		globalParam.scene=0;
 		globalParam.shadow=1;
-		globalParam.model="./sphere.o3o";
+		globalParam.model="./field.o3o";
 		globalParam.materialMode = false;
 		globalParam.cColor= "ffffff";
 		globalParam.cReflection= 0;
@@ -312,11 +288,7 @@ var Testact=(function(){
 	var mobj=createObj(mainObj);
 	mobj.id=0;
 
-//	var mobj2=createObj(mainObj);
-//	mobj2.id=1;
-//	mobj2.p[0]=-4;
 	
-	var fieldObj=createObj(fieldObj);
 	var camera=createObj(defObj);
 	var camera2=createObj(defObj);
 	var camerazoom=0.577;
@@ -380,8 +352,8 @@ var Testact=(function(){
 		camera2.p[1]=Math.sin(camera2.a[0]);
 		camera2.p[0]=Math.sin(camera2.a[1])*camera2.p[2];
 		camera2.p[2]=Math.cos(camera2.a[1])*camera2.p[2];
-		Vec3.mul(camera2.p,camera2.p,10);
-		camera2.p[1]+=2;
+		Vec3.mul(camera2.p,camera2.p,30);
+		camera2.p[1]+=10;
 
 		camera.p[0]+=(camera2.p[0]-camera.p[0])*0.1
 		camera.p[1]+=(camera2.p[1]-camera.p[1])*0.1
@@ -422,7 +394,6 @@ var Testact=(function(){
 		if(Util.pressCount == 1){
 			var p0 =new Vec3();
 			var p1 =new Vec3();
-			WebAudio.playSound(soundbuffer);
 
 			Mat44.getInv(mat44,ono3d.pvMat);
 			Vec4.set(vec4,cursorr[0],-cursorr[1],-1,1);
@@ -452,6 +423,11 @@ var Testact=(function(){
 						flg=true;
 					}
 					break;
+				case OnoPhy.CAPSULE:
+					if(OnoPhy.CAPSULE_LINE(p0,p1,phyObj)){
+						flg=true;
+					}
+					break;
 				}
 				if(flg){
 					tsukamiTarget = onoPhy.createSpring();
@@ -460,8 +436,8 @@ var Testact=(function(){
 					tsukamiZ = OnoPhy.result;
 					tsukamiTarget.size[0]=1;
 					tsukamiTarget.scale[0]=0;
-					tsukamiTarget.penalty=40;
-					tsukamiTarget.damper=40;
+					tsukamiTarget.penalty=100;
+					tsukamiTarget.damper=100;
 
 					Vec3.sub(p1,p1,p0);
 					Vec3.muladd(p1,p0,p1,tsukamiZ);
@@ -751,18 +727,6 @@ var Testact=(function(){
 			option.innerHTML = texes[i];
 			select.appendChild(option);
 		}
-		o3oField=O3o.load("field.o3o",function(o3o){
-			var scene=o3o.scenes[0];
-			ono3d.setTargetMatrix(1)
-			ono3d.loadIdentity()
-			ono3d.setTargetMatrix(0)
-			ono3d.loadIdentity()
-			ono3d.rotate(-PI*0.5,1,0,0);
-			O3o.setFrame(o3o,scene,0);
-			for(i=0;i<scene.objects.length;i++){
-				O3o.createPhyObj(scene.objects[i],onoPhy);
-			}
-		});
 		soundbuffer = WebAudio.loadSound('se.mp3');
 		sky = Ono3d.loadCubemap("skybox.jpg",function(image){
 			var envsize=16;
