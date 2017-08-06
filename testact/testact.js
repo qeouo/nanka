@@ -133,7 +133,6 @@ var Testact=(function(){
 								continue
 							}
 							phyobj.mass*=phyobj.scale[0]* phyobj.scale[1]* phyobj.scale[2]*phyobj.size[0]*phyobj.size[1]*phyobj.size[2];
-							phyobj.dfriction=0.3;
 							Vec3.set(phyobj.v,0,0,0);
 							//Vec3.set(phyobj.location,-4,6,0);
 
@@ -352,7 +351,7 @@ var Testact=(function(){
 		camera2.p[1]=Math.sin(camera2.a[0]);
 		camera2.p[0]=Math.sin(camera2.a[1])*camera2.p[2];
 		camera2.p[2]=Math.cos(camera2.a[1])*camera2.p[2];
-		Vec3.mul(camera2.p,camera2.p,30);
+		Vec3.mul(camera2.p,camera2.p,15);
 		camera2.p[1]+=10;
 
 		camera.p[0]+=(camera2.p[0]-camera.p[0])*0.1
@@ -436,8 +435,8 @@ var Testact=(function(){
 					tsukamiZ = OnoPhy.result;
 					tsukamiTarget.size[0]=1;
 					tsukamiTarget.scale[0]=0;
-					tsukamiTarget.penalty=100;
-					tsukamiTarget.damper=100;
+					tsukamiTarget.penalty=40;
+					tsukamiTarget.damper=40;
 
 					Vec3.sub(p1,p1,p0);
 					Vec3.muladd(p1,p0,p1,tsukamiZ);
