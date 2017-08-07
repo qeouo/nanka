@@ -740,7 +740,7 @@ var Testact=(function(){
 			option.innerHTML = texes[i];
 			select.appendChild(option);
 		}
-		soundbuffer = WebAudio.loadSound('se.mp3');
+		//soundbuffer = WebAudio.loadSound('se.mp3');
 		sky = Ono3d.loadCubemap("skybox.jpg",function(image){
 			var envsize=16;
 
