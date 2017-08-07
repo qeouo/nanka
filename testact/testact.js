@@ -19,9 +19,12 @@ var Testact=(function(){
 	var bdf;
 	var bdfimage=null;
 	var iroiro;
-	var tsukamiTarget= null;
-	var tsukamiZ= -1;
+	var bane= null;
 	var soundbuffer=null;
+	var tsukamiZ=100;
+	var bV0 = new Vec3();
+	var bV1 = new Vec3();
+	var bV2 = new Vec3();
 
 	var STAT_EMPTY=0
 		,STAT_ENABLE=1
@@ -207,22 +210,24 @@ var Testact=(function(){
 			break;
 
 		case MSG_DRAW:
+			ono3d.setTargetMatrix(0)
+			ono3d.loadIdentity();
+			ono3d.rotate(-PI*0.5,1,0,0)
+
 			ono3d.rf=0;
 			if(globalParam.outlineWidth>0.){
 				ono3d.lineWidth=globalParam.outlineWidth;
 				ono3d.rf=Ono3d.RF_OUTLINE;
 				Util.hex2rgb(ono3d.lineColor,globalParam.outlineColor);
 			}
-			ono3d.setTargetMatrix(0)
-			ono3d.loadIdentity()
 			if(obj3d){
 				if(obj3d.scenes.length>0){
 					var objects = obj3d.scenes[globalParam.scene].objects;
 					for(var i=0;i<objects.length;i++){
 						ono3d.lineWidth=1;
 						ono3d.rf&=~Ono3d.RF_OUTLINE;
-						if(tsukamiTarget){
-							if(tsukamiTarget.con2.name == objects[i].name){
+						if(bane){
+							if(bane.con2.name == objects[i].name){
 								ono3d.lineWidth=1;
 								ono3d.rf=Ono3d.RF_OUTLINE;
 								Vec4.set(ono3d.lineColor,1,4,1,0);
@@ -251,7 +256,8 @@ var Testact=(function(){
 		globalParam.smoothing=0;
 		globalParam.stereomode=0;
 		globalParam.stereoVolume=1;
-		globalParam.step2=2;
+		globalParam.step=2;
+		globalParam.step2=1;
 		globalParam.fps=30;
 		globalParam.scene=0;
 		globalParam.shadow=1;
@@ -328,7 +334,7 @@ var Testact=(function(){
 				objs[i].func(objs[i],MSG_MOVE,0);
 			}
 			if(globalParam.physics){
-				onoPhy.calc(1.0/globalParam.fps/globalParam.step2,1);
+				onoPhy.calc(1.0/globalParam.fps/globalParam.step2,globalParam.step);
 			}
 		}
 
@@ -340,7 +346,7 @@ var Testact=(function(){
 		//camera2.p[2]=40-Math.pow((Util.cursorX-WIDTH)/WIDTH,2)*2;
 
 		iroiro="";
-		if(Util.pressOn && !tsukamiTarget){
+		if(Util.pressOn && !bane){
 			camera2.a[1]+=(-(Util.cursorX-Util.oldcursorX)/WIDTH);
 			camera2.a[0]+=((Util.cursorY-Util.oldcursorY)/HEIGHT);
 
@@ -391,8 +397,8 @@ var Testact=(function(){
 			}
 		}
 		if(Util.pressCount == 1){
-			var p0 =new Vec3();
-			var p1 =new Vec3();
+			var p0 =bV0;
+			var p1 =bV1;
 
 			Mat44.getInv(mat44,ono3d.pvMat);
 			Vec4.set(vec4,cursorr[0],-cursorr[1],-1,1);
@@ -404,7 +410,9 @@ var Testact=(function(){
 			Mat44.dotMat44Vec4(vec4,mat44,vec4);
 			Vec3.set(p1,vec4[0],vec4[1],vec4[2]);
 
-			tsukamiTarget = null;
+			bane= null;
+			tsukamiZ= 100;
+			var targetPhyObj = null;
 			for(var i=0;i<onoPhy.phyObjs.length;i++){
 				var phyObj = onoPhy.phyObjs[i];
 				if(phyObj.fix){
@@ -429,27 +437,32 @@ var Testact=(function(){
 					break;
 				}
 				if(flg){
-					tsukamiTarget = onoPhy.createSpring();
-					tsukamiTarget.con1 = null;
-					tsukamiTarget.con2 = phyObj;
-					tsukamiZ = OnoPhy.result;
-					tsukamiTarget.size[0]=1;
-					tsukamiTarget.scale[0]=0;
-					tsukamiTarget.penalty=40;
-					tsukamiTarget.damper=40;
-
-					Vec3.sub(p1,p1,p0);
-					Vec3.muladd(p1,p0,p1,tsukamiZ);
-					Mat43.dotMat43Vec3(tsukamiTarget.con2Pos,phyObj.imatrix,p1);
-					break;
+					if(OnoPhy.result<tsukamiZ){
+						tsukamiZ = OnoPhy.result;
+						targetPhyObj = phyObj;
+						continue;
+					}
 				}
+			}
+			if(targetPhyObj){
+				bane = onoPhy.createSpring();
+				bane.con1 = null;
+				bane.con2 = targetPhyObj;
+				bane.size[0]=1;
+				bane.scale[0]=0;
+				bane.penalty=40;
+				bane.damper=40;
+
+				Vec3.sub(bV2,p1,p0);
+				Vec3.muladd(bV2,p0,bV2,tsukamiZ);
+				Mat43.dotMat43Vec3(bane.con2Pos,targetPhyObj.imatrix,bV2);
 			}
 		}
 
-		if(tsukamiTarget){
+		if(bane){
 			if(!Util.pressOn){
-				onoPhy.deletePhyObject(tsukamiTarget);
-				tsukamiTarget = null;
+				onoPhy.deletePhyObject(bane);
+				bane= null;
 
 			}else{
 				Mat44.getInv(mat44,ono3d.pvMat);
@@ -459,7 +472,7 @@ var Testact=(function(){
 				Vec4.set(vec4,cursorr[0],-cursorr[1],z,1);
 				Vec4.mul(vec4,vec4,w);
 				Mat44.dotMat44Vec4(vec4,mat44,vec4);
-				Vec3.copy(tsukamiTarget.p0,vec4);
+				Vec3.copy(bane.p0,vec4);
 				
 	//			Vec3.sub(vec4,vec4,tsukamiTarget.location);
 	//			Vec3.mul(vec4,vec4,40);
@@ -537,7 +550,7 @@ var Testact=(function(){
 		if(globalParam.shadow){
 			gl.enable(gl.DEPTH_TEST);
 			
-			ono3d.setOrtho(20.0,20.0,1.0,100.0)
+			ono3d.setOrtho(10.0,10.0,1.0,20.0)
 			var lightSource = ono3d.lightSources[0]
 			Mat43.setInit(lightSource.matrix);
 			Mat43.getRotVector(lightSource.matrix,lightSource.angle);
@@ -548,6 +561,7 @@ var Testact=(function(){
 
 			Mat43.dot(lightSource.matrix,lightSource.matrix,mat44);
 			Mat44.dotMat44Mat43(ono3d.pvMat,ono3d.projectionMat,lightSource.matrix);
+			Mat44.copy(lightSource.matrix,ono3d.pvMat);
 			
 			Shadow.draw(ono3d);
 		}
@@ -821,6 +835,7 @@ var Testact=(function(){
 			,"lightThreshold1"
 			,"lightThreshold2"
 			,"physics"
+			,"step"
 			,"outlineWidth"
 			,"outlineColor"
 			,"stereoVolume"
@@ -920,7 +935,7 @@ var Testact=(function(){
 		var light = new ono3d.LightSource()
 		light.type =Ono3d.LT_DIRECTION
 		Vec3.set(light.angle,-1,-1,-1);
-		Vec3.set(light.pos,8,20,8);
+		Vec3.set(light.pos,10,10,10);
 		light.power=1
 		light.color[0]=1
 		light.color[1]=1
