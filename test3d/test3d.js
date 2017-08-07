@@ -176,7 +176,7 @@ var Test3d=(function(){
 		globalParam.fps=30;
 		globalParam.scene=0;
 		globalParam.shadow=0;
-		globalParam.model="./raara.o3o";
+		globalParam.model="./monkey.o3o";
 		globalParam.materialMode = false;
 		globalParam.cColor= "ffffff";
 		globalParam.cReflection= 0;
@@ -248,7 +248,7 @@ var Test3d=(function(){
 		}
 
 		vec3[0]=mainObj.p[0]
-		vec3[1]=10;//mainObj.p[1];
+		vec3[1]=6;//mainObj.p[1];
 		vec3[2]=mainObj.p[2]
 		camera2.p[0]=(Util.cursorX/(WIDTH/2)-1.0)*8;
 		camera2.p[1]=-(Util.cursorY/(HEIGHT/2)-1.0)*8;

@@ -215,21 +215,21 @@ var Testact=(function(){
 			ono3d.rotate(-PI*0.5,1,0,0)
 
 			ono3d.rf=0;
-			if(globalParam.outlineWidth>0.){
-				ono3d.lineWidth=globalParam.outlineWidth;
-				ono3d.rf=Ono3d.RF_OUTLINE;
-				Util.hex2rgb(ono3d.lineColor,globalParam.outlineColor);
-			}
 			if(obj3d){
 				if(obj3d.scenes.length>0){
 					var objects = obj3d.scenes[globalParam.scene].objects;
 					for(var i=0;i<objects.length;i++){
 						ono3d.lineWidth=1;
 						ono3d.rf&=~Ono3d.RF_OUTLINE;
+						if(globalParam.outlineWidth>0.){
+							ono3d.lineWidth=globalParam.outlineWidth;
+							ono3d.rf|=Ono3d.RF_OUTLINE;
+							Util.hex2rgb(ono3d.lineColor,globalParam.outlineColor);
+						}
 						if(bane){
 							if(bane.con2.name == objects[i].name){
 								ono3d.lineWidth=1;
-								ono3d.rf=Ono3d.RF_OUTLINE;
+								ono3d.rf|=Ono3d.RF_OUTLINE;
 								Vec4.set(ono3d.lineColor,1,4,1,0);
 							}
 						}
@@ -550,7 +550,7 @@ var Testact=(function(){
 		if(globalParam.shadow){
 			gl.enable(gl.DEPTH_TEST);
 			
-			ono3d.setOrtho(10.0,10.0,1.0,20.0)
+			ono3d.setOrtho(10.0,10.0,1.0,30.0)
 			var lightSource = ono3d.lightSources[0]
 			Mat43.setInit(lightSource.matrix);
 			Mat43.getRotVector(lightSource.matrix,lightSource.angle);
@@ -665,7 +665,7 @@ var Testact=(function(){
 			var fps = framecount*1000/(nowTime-oldTime)
 			if(framecount!==0)mspf = mseccount/framecount
 			
-			Util.setText(span,fps.toFixed(2) + "fps " + mspf.toFixed(2) + "msec" +"," +iroiro)
+			Util.setText(span,fps.toFixed(2) + "fps " + mspf.toFixed(2) + "msec/f" +"," +iroiro)
 	
 			framecount = 0
 			mseccount=0
@@ -935,7 +935,7 @@ var Testact=(function(){
 		var light = new ono3d.LightSource()
 		light.type =Ono3d.LT_DIRECTION
 		Vec3.set(light.angle,-1,-1,-1);
-		Vec3.set(light.pos,10,10,10);
+		Vec3.set(light.pos,10,15,10);
 		light.power=1
 		light.color[0]=1
 		light.color[1]=1
