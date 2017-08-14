@@ -303,7 +303,7 @@ var Test3d=(function(){
 		cMat.a=globalParam.cAlpha;
 		cMat.emt=globalParam.cEmi;
 		cMat.reflect=globalParam.cReflection;
-		cMat.refract=globalParam.cRefraction;
+		cMat.ior =globalParam.cRefraction;
 		cMat.rough=globalParam.cRoughness;
 		Util.hex2rgb(cMat.reflectionColor,globalParam.cReflectionColor);
 		cMat.texture=globalParam.cRoughness;
@@ -499,7 +499,8 @@ var Test3d=(function(){
 			var fps = framecount*1000/(nowTime-oldTime)
 			if(framecount!==0)mspf = mseccount/framecount
 			
-			Util.setText(span,fps.toFixed(2) + "fps " + mspf.toFixed(2) + "msec")
+			//Util.setText(span,fps.toFixed(2) + "fps " + mspf.toFixed(2) + "msec")
+			Util.setText(span,Util.cursorX+","+Util.cursorY)
 	
 			framecount = 0
 			mseccount=0
@@ -716,8 +717,8 @@ var Test3d=(function(){
 		}
 
 	}
-		var div=document.createElement("div");
-		parentnode.appendChild(div);
+		//var div=document.createElement("div");
+		//parentnode.appendChild(div);
 		var canvas =document.createElement("canvas");
 		canvas.width=WIDTH;
 		canvas.height=HEIGHT;
