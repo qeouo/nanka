@@ -499,8 +499,8 @@ var Test3d=(function(){
 			var fps = framecount*1000/(nowTime-oldTime)
 			if(framecount!==0)mspf = mseccount/framecount
 			
-			//Util.setText(span,fps.toFixed(2) + "fps " + mspf.toFixed(2) + "msec")
-			Util.setText(span,Util.cursorX+","+Util.cursorY)
+			Util.setText(span,fps.toFixed(2) + "fps " + mspf.toFixed(2) + "msec")
+			//Util.setText(span,Util.cursorX+","+Util.cursorY)
 	
 			framecount = 0
 			mseccount=0
