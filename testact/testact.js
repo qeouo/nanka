@@ -879,8 +879,8 @@ var Testact=(function(){
 		}
 
 	}
-		var div=document.createElement("div");
-		parentnode.appendChild(div);
+//		var div=document.createElement("div");
+//		parentnode.appendChild(div);
 		var canvas =document.createElement("canvas");
 		canvas.width=WIDTH;
 		canvas.height=HEIGHT;
