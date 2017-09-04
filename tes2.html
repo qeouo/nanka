@@ -18,13 +18,20 @@ var sub=function(a,b,c){a[0]=b[0]-c[0];a[1]=b[1]-c[1];}
 var mul=function(a,b,c){a[0]=b[0]*c;a[1]=b[1]*c;}
 var muladd=function(a,b,c,d){a[0]=b[0]+c[0]*d;a[1]=b[1]+c[1]*d;}
 var dot = function(a,b){return a[0]*b[0]+a[1]*b[1];}
+var end=0;
 
+var idcount=0;
 var Obj=function(){
 	this.p=new Vec2();
 	this.v=new Vec2();
+	this._v=new Vec2();
 	this.f=new Vec2();
+	this._f=new Vec2();
 	this.m=0.01;
-	this.size=0.1;
+	this._m=1.0/this.m;
+	this.size=0.05;
+	this.id=idcount;
+	idcount++;
 }
 var HitData=function(){
 	this.a = null;
@@ -32,16 +39,20 @@ var HitData=function(){
 	this.ap = new Vec2();
 	this.bp = new Vec2();
 	this.n = new Vec2();
+	this.m = 0;
+	this.f = new Vec2();
 }
-var MAX=40;
+var MAX=100;
 var hitDatas =[];
+var hitlist=[];
 for(var i=MAX*(MAX+1)/2;i--;){
 	hitDatas.push(new HitData());
 }
 var STEP=4;
-var PENA =2*STEP;
+var PENA =3*STEP;
 var SOL = 100;
 var G = 9.8;
+var _dt;
 var obj= [];
 for(var i=0;i<MAX;i++){
 	var o = new Obj();
@@ -72,54 +83,122 @@ var dv_ = new Array(2);
 var dv = new Array(2);
 var n = new Array(2);
 var fo = new Array(2);
-var f = function(dt){
-	for(var i=0;i<MAX;i++){
-		var o = obj[i];
-		o.f[1] = G*o.m;
-		if(o.m>9999){continue;}
-		muladd(o.v,o.v,o.f,dt/o.m);
-		
-	}
-	var hitCount=0;
-	for(var i=0;i<MAX;i++){
-		var o = obj[i];
-		for(var j=i+1;j<MAX;j++){
-			var o2 = obj[j];
+var grids=[];
+
+var hitCount;
+var funchit=function(grid0,grid1){
+	if(!grid1){grid1=grid0;}
+	for(var i=0;grid0[i];i++){
+		var o = grid0[i];
+		var j=i+1;
+		if(grid0!=grid1){
+			j=0;
+		}
+		for(;grid1[j];j++){
+			var o2 = grid1[j];
 			sub(dp,o.p,o2.p);
 			
+			var idx0=o.id;
+			var idx1=o2.id;
+			if(o.id>o2.id){
+				idx0=o2.id;
+				idx1=o.id;
+			}
+			var idx = ((MAX*(MAX-1)-(MAX-idx0)*(MAX-idx0-1))>>1) +(idx1-idx0-1);
+			var hitData =hitDatas[idx];
 			if(dp[0]*dp[0]+dp[1]*dp[1]<(o.size+o2.size)*(o.size+o2.size)){
-				var hitData =hitDatas[hitCount];
 				hitData.a=o;
 				hitData.b=o2;
 				var d = Math.sqrt(dp[0]*dp[0]+dp[1]*dp[1])
 				mul(hitData.n,dp,1/d);
 				muladd(hitData.ap,o.p,hitData.n,-o.size);
 				muladd(hitData.bp,o2.p,hitData.n,o2.size);
-				hitCount++;
+				var m = o.m*o2.m/(o.m+o2.m);
+				var e=0;
+				hitData.m = -(e+1.0)*m*_dt;
+				hitlist.push(hitData);
+
+			}else{
+				hitData.f[0]=0;
+				hitData.f[1]=0;
 			}
 		}
 	}
-	hitDatas[hitCount].a=null;
-	for(var k=0;k<SOL;k++){
-		for(var i=0;i<MAX;i++){
-			var o = obj[i];
-			mul(o.f,o.f,0);
+}
+var f = function(dt){
+	_dt=1.0/dt;
+	var re=1/(256*0.01)*8;
+	grids=[];
+	var gridetc=[];
+	for(i=8*8;i--;){
+		grids.push([]);
+	}
+	for(var i=0;i<MAX;i++){
+		var o = obj[i];
+
+		var x = o.p[0]*re|0;
+		var y = o.p[1]*re|0;
+		if(x<0)x=0;
+		if(x>=8)x=7;
+		if(y<0)y=0;
+		if(y>=8)y=7;
+
+		o.f[1] += G*o.m;
+		if(o.m>9999){
+			gridetc.push(o);
+			continue;
 		}
-		for(var i=hitCount;i--;){
-			var hitData = hitDatas[i];
+		grids[0].push(o);
+		muladd(o.v,o.v,o.f,dt*o._m);
+		
+	}
+	for(i=8*8;i--;){
+		grids[i].push(null);
+	}
+	hitlist=[];
+	for(var x=0;x<8;x++){
+		for(var y=0;y<8;y++){
+			var grid = grids[x+y*8];
+			funchit(grid);
+			if(x!=7) funchit(grid,grids[(x+1)+y*8]);
+			if(y!=7) funchit(grid,grids[(x)+(y+1)*8]);
+			if(y!=7 && x!=7) funchit(grid,grids[(x+1)+(y+1)*8]);
+			funchit(grid,gridetc);
+		}
+	}
+	var k=0;
+
+	for(var i=0;i<MAX;i++){
+		var o = obj[i];
+		mul(o.f,o.f,0);
+	}
+	for(var i=hitlist.length;i--;){
+		var hitData = hitlist[i];
+		var o = hitData.a;
+		var o2 = hitData.b;
+		muladd(o.v,o.v,hitData.f,dt*o._m);
+		muladd(o2.v,o2.v,hitData.f,-dt*o._m);
+	}
+	for(k;k<SOL;k++){
+//		for(var i=0;i<MAX;i++){
+//			var o = obj[i];
+//			mul(o.f,o.f,0);
+//		}
+		for(var i=hitlist.length;i--;){
+			var hitData = hitlist[i];
 			var o= hitData.a;
 			var o2= hitData.b;
 			var n = hitData.n;
 
 			sub(dv_,o.v,o2.v);
+			var c = dot(dv_,n);
 			
-			if(dot(dv_,n)<0){
-				mul(dv,hitData.n,dot(dv_,n));
-				var m = o.m*o2.m/(o.m+o2.m);
-				var e=0.0;
-				mul(fo,dv,-(e+1.0)*m/dt);
+			if(c<0){
+				mul(dv,n,c);
+				mul(fo,dv,hitData.m);
 				add(o.f,o.f,fo);
 				muladd(o2.f,o2.f,fo,-1);
+				add(hitData.f,hitData.f,fo);
 			}
 		}
 		var hoge=0;
@@ -127,16 +206,17 @@ var f = function(dt){
 			var o = obj[i];
 			if(o.m>9999){continue;}
 			hoge+=o.f[0]*o.f[0]+o.f[1]*o.f[1];
-			muladd(o.v,o.v,o.f,dt/o.m);
+			muladd(o.v,o.v,o.f,dt*o._m);
+			mul(o.f,o.f,0);
 		}
 		if(hoge<0.0001){
-			//console.log("HOGE",k);
 			break;
 		}
 	}
+	end=k;
 
-	for(var i=hitCount;i--;){
-		var hitData = hitDatas[i];
+	for(var i=hitlist.length;i--;){
+		var hitData = hitlist[i];
 		var o= hitData.a;
 		var o2= hitData.b;
 		var n = hitData.n;
@@ -150,17 +230,10 @@ var f = function(dt){
 	for(var i=0;i<MAX;i++){
 		var o = obj[i];
 		if(o.m>9999){continue;}
-		muladd(o.v,o.v,o.f,dt/o.m);
-	}
-
-	for(var i=0;i<MAX;i++){
-		var o = obj[i];
-	//	if(o.v[0]*o.v[0] + o.v[1]*o.v[1]<0.0001){
-	//		o.v[0]=0;
-	//		o.v[1]=0;
-	//	}
+		muladd(o.v,o.v,o.f,dt*o._m);
 		muladd(o.p,o.p,o.v,dt);
 	}
+
 }
 var timesum=0;
 var framecount=0;
@@ -180,6 +253,7 @@ var ml= function(){
 		var size = o.size*100;
 		ctx.beginPath();
 		ctx.arc(o.p[0]*100,o.p[1]*100,size,Math.PI*2,false);
+		//ctx.fillRect(o.p[0]*100+size*0.5,o.p[1]*100+size*0.5,size,size);
 		ctx.closePath();
 		ctx.stroke();
 	}
@@ -187,13 +261,15 @@ var ml= function(){
 	framecount++;
 	if(framecount==30){
 		fps=timesum/30.0;
+		fps=(fps*1000|0)/1000
 		framecount=0;
 		timesum=0;
 	}
-	document.getElementById("hoge").innerHTML = fps;
+	document.getElementById("hoge").innerHTML = fps+":"+end;
 	setTimeout(ml,33);
 }
 
 ml();
+
 
 </script>
