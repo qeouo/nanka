@@ -42,14 +42,15 @@ var HitData=function(){
 	this.m = 0;
 	this.f = new Vec2();
 }
-var MAX=100;
+var MAX=6;
 var hitDatas =[];
 var hitlist=[];
 for(var i=MAX*(MAX+1)/2;i--;){
 	hitDatas.push(new HitData());
 }
-var STEP=4;
-var PENA =3*STEP;
+var STEP=2;
+var PENA =0*STEP;
+var E=0;
 var SOL = 100;
 var G = 9.8;
 var _dt;
@@ -114,8 +115,7 @@ var funchit=function(grid0,grid1){
 				muladd(hitData.ap,o.p,hitData.n,-o.size);
 				muladd(hitData.bp,o2.p,hitData.n,o2.size);
 				var m = o.m*o2.m/(o.m+o2.m);
-				var e=0;
-				hitData.m = -(e+1.0)*m*_dt;
+				hitData.m = -(E+1.0)*m*_dt;
 				hitlist.push(hitData);
 
 			}else{
@@ -171,13 +171,14 @@ var f = function(dt){
 	for(var i=0;i<MAX;i++){
 		var o = obj[i];
 		mul(o.f,o.f,0);
+		mul(o._v,o.v,1);
 	}
 	for(var i=hitlist.length;i--;){
 		var hitData = hitlist[i];
 		var o = hitData.a;
 		var o2 = hitData.b;
-		muladd(o.v,o.v,hitData.f,dt*o._m);
-		muladd(o2.v,o2.v,hitData.f,-dt*o._m);
+//		muladd(o.v,o.v,hitData.f,dt*o._m);
+//		muladd(o2.v,o2.v,hitData.f,-dt*o._m);
 	}
 	for(k;k<SOL;k++){
 //		for(var i=0;i<MAX;i++){
@@ -190,7 +191,7 @@ var f = function(dt){
 			var o2= hitData.b;
 			var n = hitData.n;
 
-			sub(dv_,o.v,o2.v);
+			sub(dv_,o._v,o2._v);
 			var c = dot(dv_,n);
 			
 			if(c<0){
@@ -206,12 +207,12 @@ var f = function(dt){
 			var o = obj[i];
 			if(o.m>9999){continue;}
 			hoge+=o.f[0]*o.f[0]+o.f[1]*o.f[1];
-			muladd(o.v,o.v,o.f,dt*o._m);
-			mul(o.f,o.f,0);
+			muladd(o._v,o.v,o.f,dt*o._m);
+			//mul(o.f,o.f,0);
 		}
-		if(hoge<0.0001){
-			break;
-		}
+//		if(hoge<0.0001){
+//			break;
+//		}
 	}
 	end=k;
 
