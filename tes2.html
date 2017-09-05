@@ -4,9 +4,9 @@
 <meta http-equiv="X-UA-Compatible" content="IE=Edge"/>
 <meta charset="utf-8">
 </head>
-<body >
+<body style="opacity:0.1;">
 	<div id="hoge"></div>
-	<canvas id="c" width=256 height=256 style="border:solid 1px black;"></canvas>
+	<canvas id="c" width=256 height=256 style="border:solid 1px black;" ></canvas>
 </body>
 <script type="text/javascript">
 var Vec2 = function(){
@@ -42,16 +42,16 @@ var HitData=function(){
 	this.m = 0;
 	this.f = new Vec2();
 }
-var MAX=6;
+var MAX=5;
 var hitDatas =[];
 var hitlist=[];
 for(var i=MAX*(MAX+1)/2;i--;){
 	hitDatas.push(new HitData());
 }
 var STEP=2;
-var PENA =0*STEP;
+var PENA =1*STEP;
 var E=0;
-var SOL = 100;
+var SOL = 1;
 var G = 9.8;
 var _dt;
 var obj= [];
@@ -59,21 +59,25 @@ for(var i=0;i<MAX;i++){
 	var o = new Obj();
 	obj.push(o);
 	o.p[0] = 128*0.01+((Math.random()-0.5)*1);
-	o.p[1] = 128*0.01 - i*0.3;
+	o.p[1] = 168*0.01 - i*0.3;
 }
 obj[0].m=99999;
+obj[0]._m=0;
 obj[0].p[0]=0*0.01;
 obj[0].p[1]=300*0.01;
 obj[0].size=150*0.01;
 obj[1].m=99999;
+obj[1]._m=0;
 obj[1].p[0]=256*0.01;
 obj[1].p[1]=300*0.01;
 obj[1].size=150*0.01;
 obj[2].m=99999;
+obj[2]._m=0;
 obj[2].p[0]=0*0.01;
 obj[2].p[1]=100*0.01;
 obj[2].size=50*0.01;
 obj[3].m=99999;
+obj[3]._m=0;
 obj[3].p[0]=256*0.01;
 obj[3].p[1]=100*0.01;
 obj[3].size=50*0.01;
@@ -143,13 +147,11 @@ var f = function(dt){
 		if(y<0)y=0;
 		if(y>=8)y=7;
 
-		o.f[1] += G*o.m;
 		if(o.m>9999){
 			gridetc.push(o);
 			continue;
 		}
 		grids[0].push(o);
-		muladd(o.v,o.v,o.f,dt*o._m);
 		
 	}
 	for(i=8*8;i--;){
@@ -170,13 +172,25 @@ var f = function(dt){
 
 	for(var i=0;i<MAX;i++){
 		var o = obj[i];
-		mul(o.f,o.f,0);
+		o.f[1] += G*o.m;
+		//muladd(o.v,o.v,o.f,dt*o._m);
+		//mul(o.f,o.f,0);
 		mul(o._v,o.v,1);
 	}
 	for(var i=hitlist.length;i--;){
 		var hitData = hitlist[i];
 		var o = hitData.a;
 		var o2 = hitData.b;
+		var n = hitData.n;
+
+		sub(dv_,o.v,o2.v);
+		var c = dot(dv_,n);
+		
+//		if(c<0){
+		muladd(o.f,o.f,hitData.f,1);
+		muladd(o2.f,o2.f,hitData.f,-1);
+//		}
+		mul(hitData.f,hitData.f,0);
 //		muladd(o.v,o.v,hitData.f,dt*o._m);
 //		muladd(o2.v,o2.v,hitData.f,-dt*o._m);
 	}
@@ -208,11 +222,12 @@ var f = function(dt){
 			if(o.m>9999){continue;}
 			hoge+=o.f[0]*o.f[0]+o.f[1]*o.f[1];
 			muladd(o._v,o.v,o.f,dt*o._m);
-			//mul(o.f,o.f,0);
+			muladd(o.v,o.v,o.f,dt*o._m);
+			mul(o.f,o.f,0);
 		}
-//		if(hoge<0.0001){
-//			break;
-//		}
+		if(hoge<0.0001){
+			break;
+		}
 	}
 	end=k;
 
@@ -232,6 +247,7 @@ var f = function(dt){
 		var o = obj[i];
 		if(o.m>9999){continue;}
 		muladd(o.v,o.v,o.f,dt*o._m);
+		mul(o.f,o.f,0);
 		muladd(o.p,o.p,o.v,dt);
 	}
 
