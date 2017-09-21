@@ -42,7 +42,7 @@ var HitData=function(){
 	this.m = 0;
 	this.f = new Vec2();
 }
-var MAX=5;
+var MAX=4+3;
 var hitDatas =[];
 var hitlist=[];
 for(var i=MAX*(MAX+1)/2;i--;){
@@ -51,7 +51,7 @@ for(var i=MAX*(MAX+1)/2;i--;){
 var STEP=2;
 var PENA =1*STEP;
 var E=0;
-var SOL = 1;
+var SOL = 100;
 var G = 9.8;
 var _dt;
 var obj= [];
@@ -115,7 +115,11 @@ var funchit=function(grid0,grid1){
 				hitData.a=o;
 				hitData.b=o2;
 				var d = Math.sqrt(dp[0]*dp[0]+dp[1]*dp[1])
-				mul(hitData.n,dp,1/d);
+				if(d!=0){
+					mul(hitData.n,dp,1/d);
+				}else{
+					mul(hitData.n,dp,0);
+				}
 				muladd(hitData.ap,o.p,hitData.n,-o.size);
 				muladd(hitData.bp,o2.p,hitData.n,o2.size);
 				var m = o.m*o2.m/(o.m+o2.m);
@@ -172,6 +176,8 @@ var f = function(dt){
 
 	for(var i=0;i<MAX;i++){
 		var o = obj[i];
+		o.f[0] = 0;
+		o.f[1] = 0;
 		o.f[1] += G*o.m;
 		//muladd(o.v,o.v,o.f,dt*o._m);
 		//mul(o.f,o.f,0);
@@ -186,19 +192,23 @@ var f = function(dt){
 		sub(dv_,o.v,o2.v);
 		var c = dot(dv_,n);
 		
+		mul(hitData.f,hitData.f,0);
 //		if(c<0){
 		muladd(o.f,o.f,hitData.f,1);
 		muladd(o2.f,o2.f,hitData.f,-1);
 //		}
-		mul(hitData.f,hitData.f,0);
-//		muladd(o.v,o.v,hitData.f,dt*o._m);
-//		muladd(o2.v,o2.v,hitData.f,-dt*o._m);
+	//	muladd(o.v,o.v,hitData.f,dt*o._m);
+	//	muladd(o2.v,o2.v,hitData.f,-dt*o._m);
 	}
+
+		for(var i=0;i<MAX;i++){
+			var o = obj[i];
+			if(o.m>9999){continue;}
+			muladd(o._v,o.v,o.f,dt*o._m);
+	//		muladd(o.v,o.v,o.f,dt*o._m);
+	//		mul(o.f,o.f,0);
+		}
 	for(k;k<SOL;k++){
-//		for(var i=0;i<MAX;i++){
-//			var o = obj[i];
-//			mul(o.f,o.f,0);
-//		}
 		for(var i=hitlist.length;i--;){
 			var hitData = hitlist[i];
 			var o= hitData.a;
@@ -222,8 +232,8 @@ var f = function(dt){
 			if(o.m>9999){continue;}
 			hoge+=o.f[0]*o.f[0]+o.f[1]*o.f[1];
 			muladd(o._v,o.v,o.f,dt*o._m);
-			muladd(o.v,o.v,o.f,dt*o._m);
-			mul(o.f,o.f,0);
+			//muladd(o.v,o.v,o.f,dt*o._m);
+			//mul(o.f,o.f,0);
 		}
 		if(hoge<0.0001){
 			break;
@@ -239,6 +249,7 @@ var f = function(dt){
 
 		sub(dp,hitData.ap,hitData.bp);
 		mul(fo,dp,-PENA);
+//		add(hitData.f,hitData.f,fo);
 
 		add(o.f,o.f,fo);
 		muladd(o2.f,o2.f,fo,-1);
