@@ -4,7 +4,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=Edge"/>
 <meta charset="utf-8">
 </head>
-<body style="opacity:0.1;">
+<body>
 	<div id="hoge"></div>
 	<canvas id="c" width=256 height=256 style="border:solid 1px black;" ></canvas>
 </body>
@@ -19,6 +19,7 @@ var mul=function(a,b,c){a[0]=b[0]*c;a[1]=b[1]*c;}
 var muladd=function(a,b,c,d){a[0]=b[0]+c[0]*d;a[1]=b[1]+c[1]*d;}
 var dot = function(a,b){return a[0]*b[0]+a[1]*b[1];}
 var end=0;
+var buf=new Vec2();
 
 var idcount=0;
 var Obj=function(){
@@ -42,14 +43,14 @@ var HitData=function(){
 	this.m = 0;
 	this.f = new Vec2();
 }
-var MAX=4+3;
+var MAX=4+50;
 var hitDatas =[];
 var hitlist=[];
 for(var i=MAX*(MAX+1)/2;i--;){
 	hitDatas.push(new HitData());
 }
 var STEP=2;
-var PENA =1*STEP;
+var PENA =5*STEP;
 var E=0;
 var SOL = 100;
 var G = 9.8;
@@ -59,6 +60,7 @@ for(var i=0;i<MAX;i++){
 	var o = new Obj();
 	obj.push(o);
 	o.p[0] = 128*0.01+((Math.random()-0.5)*1);
+	//o.p[0] = 128*0.01;
 	o.p[1] = 168*0.01 - i*0.3;
 }
 obj[0].m=99999;
@@ -192,11 +194,11 @@ var f = function(dt){
 		sub(dv_,o.v,o2.v);
 		var c = dot(dv_,n);
 		
-		mul(hitData.f,hitData.f,0);
-//		if(c<0){
+		if(c<0){
 		muladd(o.f,o.f,hitData.f,1);
 		muladd(o2.f,o2.f,hitData.f,-1);
-//		}
+		//mul(hitData.f,hitData.f,0);
+		}
 	//	muladd(o.v,o.v,hitData.f,dt*o._m);
 	//	muladd(o2.v,o2.v,hitData.f,-dt*o._m);
 	}
@@ -204,11 +206,11 @@ var f = function(dt){
 		for(var i=0;i<MAX;i++){
 			var o = obj[i];
 			if(o.m>9999){continue;}
-			muladd(o._v,o.v,o.f,dt*o._m);
+			mul(o._v,o.v,1.0);
 	//		muladd(o.v,o.v,o.f,dt*o._m);
 	//		mul(o.f,o.f,0);
 		}
-	for(k;k<SOL;k++){
+	for(k=0;k<SOL;k++){
 		for(var i=hitlist.length;i--;){
 			var hitData = hitlist[i];
 			var o= hitData.a;
@@ -230,12 +232,14 @@ var f = function(dt){
 		for(var i=0;i<MAX;i++){
 			var o = obj[i];
 			if(o.m>9999){continue;}
-			hoge+=o.f[0]*o.f[0]+o.f[1]*o.f[1];
-			muladd(o._v,o.v,o.f,dt*o._m);
+			muladd(buf,o.v,o.f,dt*o._m);
+			sub(buf,buf,o._v);
+			hoge+=buf[0]*buf[0]+buf[1]*buf[1];
+			add(o._v,o._v,buf);
 			//muladd(o.v,o.v,o.f,dt*o._m);
 			//mul(o.f,o.f,0);
 		}
-		if(hoge<0.0001){
+		if(hoge<0.001){
 			break;
 		}
 	}
