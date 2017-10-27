@@ -44,15 +44,15 @@ var HitData=function(){
 	this._f = new Vec2();
 	this.count=0;
 }
-var MAX=4+40;
+var MAX=4+100;
 var hitDatas =[];
 var hitlist=[];
 for(var i=MAX*(MAX+1)/2;i--;){
 	hitDatas.push(new HitData());
 }
 var STEP=2;
-var PENA =5*STEP;
-var E=0.2;
+var PENA =1*STEP;
+var E=0.1;
 var SOL = 100;
 var G = 9.8;
 var _dt;
@@ -62,7 +62,7 @@ for(var i=0;i<MAX;i++){
 	obj.push(o);
 	o.p[0] = 128*0.01+((Math.random()-0.5)*1);
 	//o.p[0] = 128*0.01;
-	o.p[1] = 168*0.01 - i*0.3;
+	o.p[1] = 168*0.01 - i*0.1;
 }
 obj[0].m=99999;
 obj[0]._m=0;
@@ -220,7 +220,7 @@ var f = function(dt){
 
 			var pow = dot(dv_,n) - hitData.aaa;
 			//pow*=0.2;
-			
+
 			mul(hitData._f,hitData.f,1);
 			mul(fo,n,hitData.m*pow*_dt);
 			add(hitData.f,hitData.f,fo);
@@ -228,24 +228,24 @@ var f = function(dt){
 				hitData.f[0]=0;
 				hitData.f[1]=0;
 			}
-	//	if(dot(dv_,n)<0){
 			sub(fo,hitData.f,hitData._f);
 			add(o.f,o.f,fo);
 			muladd(o2.f,o2.f,fo,-1);
-			}
-	//	}
+			muladd(o.v,o.v,fo,dt*o._m);
+			muladd(o2.v,o2.v,fo,-dt*o2._m);
+		}
 		var hoge=0;
 		for(var i=0;i<MAX;i++){
 			var o = obj[i];
 			if(o.m>9999){
 				continue;
 			}
-			muladd(o.v,o.v,o.f,dt*o._m);
+			//muladd(o.v,o.v,o.f,dt*o._m);
 			hoge+=o.f[0]*o.f[0]+o.f[1]*o.f[1];
 			o.f[0]=0;
 			o.f[1]=0;
 		}
-		if(hoge<0.00001){
+		if(hoge<=0.00001){
 			break;
 		}
 	}
