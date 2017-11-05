@@ -16,7 +16,7 @@ var Vec2 = function(){
 var MAX=3+30;
 var STEP=2;
 var PENA =4*STEP;
-var E=0.2;
+var E=0.;
 var SOL = 100;
 var G = 9.8;
 var SCALE = 0.01;
@@ -40,7 +40,7 @@ var Obj=function(){
 	this.size=0.05;
 	this.m=0.01;
 	this._m=1.0/this.m;
-	this.moment=2.0/5*this.m*this.size*this.size;
+	this.moment=2.0/5.0*this.m*this.size*this.size;
 	this._moment=1.0/this.moment;
 	this.id=idcount;
 	idcount++;
@@ -83,19 +83,27 @@ for(var i=0;i<MAX;i++){
 //	o.p[0] = 148*SCALE
 //	o.p[1] = 168*SCALE
 	o.size=0.05+Math.random()*0.1;
+	o.moment=2.0/5*o.m*o.size*o.size;
+	o._moment=1.0/o.moment;
 }
+obj[0].size=512*SCALE;
 obj[0].m=99999;
 obj[0]._m=0;
-obj[0].size=512*SCALE;
+obj[0].moment=99999;
+obj[0]._moment=0;
 obj[0].p[0]=128*SCALE;
 obj[0].p[1]=220*SCALE+obj[0].size
+obj[1].size=512*SCALE;
 obj[1].m=99999;
 obj[1]._m=0;
-obj[1].size=512*SCALE;
+obj[1].moment=99999;
+obj[1]._moment=0;
 obj[1].p[0]=220*SCALE+obj[1].size;
 obj[1].p[1]=128*SCALE;
 obj[2].m=99999;
 obj[2]._m=0;
+obj[2].moment=99999;
+obj[2]._moment=0;
 obj[2].size=512*SCALE;
 obj[2].p[0]=32*SCALE-obj[1].size;
 obj[2].p[1]=128*SCALE;
@@ -287,8 +295,15 @@ var f = function(dt){
 			mul(force,force,-1);
 			act(o2,hitData.obj2p,force);
 
+			sub(dv,o2.v,o.v);
+			sub(bvec,hitData.obj1p,o.p);
+			muladd(dv,dv,hitData.t,-cross(bvec,hitData.t)*o.angv);
+			sub(bvec,hitData.obj2p,o2.p);
+			muladd(dv,dv,hitData.t,cross(bvec,hitData.t)*o2.angv);
+			dv[0]+=0;
+
 		}
-		if(hoge<=0.00001){
+		if(hoge<=0.000001*MAX){
 			break;
 		}
 	}
@@ -315,7 +330,8 @@ var f = function(dt){
 		muladd(o.p,o.p,o.v,dt);
 		o.ang+=o.angv*dt;
 	}
-	for(i=0;i<hitlist.length;i++){
+	var max = hitlist.length;
+	for(i=0;i<max;i++){
 		var hitDataBuf = hitDataBufs[i];
 		var hitData = hitlist[i];
 		hitDataBuf.id0 = hitData.obj1.id;
