@@ -7,13 +7,13 @@
 <body>
 	<div id="hoge"></div>
 	<canvas id="c" width=256 height=256 style="border:solid 1px black;" ></canvas>
+	<input type="button" value="reset" id="reset"/>
 </body>
 <script type="text/javascript">
-
-var MAX = 3 + 30; 
-var STEP_PER_FRAME = 2; 
-var PENALTY = 400 * STEP_PER_FRAME;
-var REPETITION_MAX = 50; 
+var MAX = 3 + 30;
+var FPS = 30;
+var STEP_PER_FRAME = 4;
+var REPETITION_MAX = 99; 
 var G = 9.8; 
 var SCALE = 0.01; 
 
@@ -21,174 +21,183 @@ var Obj = function() {
 	this.id = 0;
 	this.location = new Vec2();
 	this.locationV = new Vec2();
+	this.old_locationV = new Vec2();
 	this.rotation = 0;
 	this.rotationV = 0;
+	this.old_rotationV= 0;
 	this.size = 0.05; 
-	this.m = 0.01; 
-	this.moment = 2.0 / 5.0 * this.m * this.size * this.size;
-	this.inv_m = 1.0 / this.m; 
-	this.inv_moment = 1.0 / this.moment; 
+	this.mass = 0.01; 
+	this.moment = 2.0 / 5.0 * this.mass * this.size * this.size;
+	this.inv_mass = 1.0 / this.mass; 
+	this.inv_massoment = 1.0 / this.moment; 
 	this.inv_restCoe = 1.0/0.2; 
 	this.inv_fricCoe = 1.0/0.2; 
 }
-var HitData = function() {
+var HitInfo = function() {
 	this.obj1 = null;
 	this.obj2 = null;
-	this.obj1p = new Vec2();
-	this.obj2p = new Vec2();
+	this.pos1 = new Vec2();
+	this.pos2 = new Vec2();
 	this.nVec = new Vec2();
+	this.nEffic = 0;
+	this.nImpulse = 0; 
 	this.tVec = new Vec2();
-	this.m = 0;
-	this.moment = 0;
-	this.f = 0; 
-	this.ft = 0; 
+	this.tEffic= 0;
+	this.tImpulse = 0; 
 	this.restCoe = 0; 
 	this.fricCoe = 0;
 }
-var HitDataBuf = function() {
+var impulseBuf = function() {
 	this.id0 = 0;
 	this.id1 = 0;
-	this.f = 0;
-	this.ft = 0;
+	this.nImpulse = 0;
+	this.tImpulse = 0;
 }
-var hitDatas = [];
-var hitDataBufs = [];
-var hitDatasMAX = MAX * 8;
-for (var i = hitDatasMAX; i--;) {
-	hitDatas.push(new HitData());
-	hitDataBufs.push(new HitDataBuf());
+var hitInfos = [];
+var impulseBufs = [];
+var hitInfosMAX = MAX * 8;
+for (var i = hitInfosMAX; i--;) {
+	hitInfos.push(new HitInfo());
+	impulseBufs.push(new impulseBuf());
 }
-hitDataBufs.push(new HitDataBuf());
-hitDataBufs[0].id0 = MAX;
-var _dt;
+impulseBufs.push(new impulseBuf());
+
 var objs = [];
 for (var i = 0; i < MAX; i++) {
-	var o = new Obj();
-	objs.push(o);
-	o.id = i;
-	o.location[0] = 128 * SCALE + ((Math.random() - 0.5) * 1);
-	o.location[1] = 168 * SCALE - i * 0.1;
-	o.size = 0.05 + Math.random() * 0.2;
-	o.m = o.size*o.size*10;
-	o.moment = 2.0 / 5.0 * o.m * o.size * o.size;
-	o.inv_m = 1.0 / o.m;
-	o.inv_moment = 1.0 / o.moment;
+	objs.push(new Obj());
+}
+var init = document.getElementById("reset").onclick = function(){
+	for (var i = 0; i < MAX; i++) {
+		var obj = objs[i];
+		obj.id = i;
+		obj.location[0] = 128 * SCALE + ((Math.random() - 0.5) * 1);
+		obj.location[1] = 168 * SCALE - i * 0.1;
+		obj.locationV[0]= 0;
+		obj.locationV[1]= 0;
+		obj.rotation = 0;
+		obj.rotationV = 0;
+		obj.size = 0.05 + Math.random() * 0.2;
+		obj.mass = obj.size*obj.size*10;
+		obj.moment = 2.0 / 5.0 * obj.mass * obj.size * obj.size;
+		obj.inv_mass = 1.0 / obj.mass;
+		obj.inv_massoment = 1.0 / obj.moment;
+	}
+
+	objs[0].size = 512 * SCALE;
+	objs[0].mass = 99999;
+	objs[0].inv_mass = 0;
+	objs[0].moment = 99999;
+	objs[0].inv_massoment = 0;
+	objs[0].location[0] = 128 * SCALE;
+	objs[0].location[1] = 220 * SCALE + objs[0].size
+	objs[1].size = 512 * SCALE;
+	objs[1].mass = 99999;
+	objs[1].inv_mass = 0;
+	objs[1].moment = 99999;
+	objs[1].inv_massoment = 0;
+	objs[1].location[0] = 220 * SCALE + objs[1].size;
+	objs[1].location[1] = 128 * SCALE;
+	objs[2].mass = 99999;
+	objs[2].inv_mass = 0;
+	objs[2].moment = 99999;
+	objs[2].inv_massoment = 0;
+	objs[2].size = 512 * SCALE;
+	objs[2].location[0] = 32 * SCALE - objs[1].size;
+	objs[2].location[1] = 128 * SCALE;
+
+	impulseBufs[0].id0 = MAX;
 }
 
-objs[0].size = 512 * SCALE;
-objs[0].m = 99999;
-objs[0].inv_m = 0;
-objs[0].moment = 99999;
-objs[0].inv_moment = 0;
-objs[0].location[0] = 128 * SCALE;
-objs[0].location[1] = 220 * SCALE + objs[0].size
-objs[1].size = 512 * SCALE;
-objs[1].m = 99999;
-objs[1].inv_m = 0;
-objs[1].moment = 99999;
-objs[1].inv_moment = 0;
-objs[1].location[0] = 220 * SCALE + objs[1].size;
-objs[1].location[1] = 128 * SCALE;
-objs[2].m = 99999;
-objs[2].inv_m = 0;
-objs[2].moment = 99999;
-objs[2].inv_moment = 0;
-objs[2].size = 512 * SCALE;
-objs[2].location[0] = 32 * SCALE - objs[1].size;
-objs[2].location[1] = 128 * SCALE;
 
 
-var ctx = document.getElementById("c").getContext("2d");
-
-var calcD = function(n, hitData) {
-	var obj1 = hitData.obj1;
-	var obj2 = hitData.obj2;
-	var t = cross(n, hitData.obj1p);
-	var d = t * t * obj1.inv_moment;
-	t = cross(n, hitData.obj2p);
-	d += t * t * obj2.inv_moment;
-	return 1 / (obj1.inv_m + obj2.inv_m + dot(n, hitData.tVec) * d);
+var calcEffic = function(n, hitInfo) {
+	var obj1 = hitInfo.obj1;
+	var obj2 = hitInfo.obj2;
+	var t = cross(n, hitInfo.pos1);
+	var d = t * t * obj1.inv_massoment;
+	t = cross(n, hitInfo.pos2);
+	d += t * t * obj2.inv_massoment;
+	return 1 / (obj1.inv_mass + obj2.inv_mass + dot(n, hitInfo.tVec) * d);
 }
-var calcDiffVelocity = function(dv,hitData){
-	var obj1 = hitData.obj1;
-	var obj2 = hitData.obj2;
+
+var calcDiffVelocity = function(dv,hitInfo){
+	var obj1 = hitInfo.obj1;
+	var obj2 = hitInfo.obj2;
 	sub(dv, obj2.locationV, obj1.locationV);
-	dv[0] -= -hitData.obj1p[1] * obj1.rotationV;
-	dv[1] -= hitData.obj1p[0] * obj1.rotationV;
-	dv[0] += -hitData.obj2p[1] * obj2.rotationV;
-	dv[1] += hitData.obj2p[0] * obj2.rotationV;
-
+	dv[0] -= -hitInfo.pos1[1] * obj1.rotationV;
+	dv[1] -= hitInfo.pos1[0] * obj1.rotationV;
+	dv[0] += -hitInfo.pos2[1] * obj2.rotationV;
+	dv[1] += hitInfo.pos2[0] * obj2.rotationV;
 }
 
-var addForce = function(hitData,force){
-	var obj1 = hitData.obj1;
-	var obj2 = hitData.obj2;
+var addimpulse = function(hitInfo,impulse){
+	var obj1 = hitInfo.obj1;
+	var obj2 = hitInfo.obj2;
 
-	if(obj1.inv_m > 0){
-		muladd(obj1.locationV,obj1.locationV,force, obj1.inv_m);
-		obj1.rotationV += cross(hitData.obj1p, force) * obj1.inv_moment;
+	if(obj1.inv_mass > 0){
+		muladd(obj1.locationV,obj1.locationV,impulse, obj1.inv_mass);
+		obj1.rotationV += cross(hitInfo.pos1, impulse) * obj1.inv_massoment;
 	}
-	if(obj2.inv_m > 0){
-		muladd(obj2.locationV,obj2.locationV,force, -obj2.inv_m);
-		obj2.rotationV += -cross(hitData.obj2p, force) * obj2.inv_moment;
+	if(obj2.inv_mass > 0){
+		muladd(obj2.locationV,obj2.locationV,impulse, -obj2.inv_mass);
+		obj2.rotationV += -cross(hitInfo.pos2, impulse) * obj2.inv_massoment;
 	}
 }
 
-var repetition = 0; //ステップあたりの反復回数カウント用
+var repetition = 0; 
 var f = function(dt) {
-	_dt = 1.0 / dt;
 	var dp = new Vec2();
 	var dv = new Vec2(); 
-	var force = new Vec2();
+	var impulse = new Vec2();
 
-	hitDatasCount = 0;
-	hitDataBufsCount = 0;
+	hitInfosCount = 0;
+	impulseBufsCount = 0;
 	for (var i = 0; i < MAX; i++) {
 		var obj1 = objs[i];
 		for (var j = i + 1; j < MAX; j++) {
 			var obj2 = objs[j];
 
-			if(hitDatasCount>=hitDatas.length-1){
+			if(hitInfosCount>=hitInfos.length-1){
 				break;
 			}
 			sub(dp, obj2.location, obj1.location);
 			if (dp[0] * dp[0] + dp[1] * dp[1] < (obj1.size + obj2.size) * (obj1.size + obj2.size)) {
-				if (obj1.inv_m == 0 && obj2.inv_m == 0) {
+				if (obj1.inv_mass == 0 && obj2.inv_mass == 0) {
 					continue;
 				}
-				var hitData = hitDatas[hitDatasCount];
-				hitDatasCount++;
+				var hitInfo = hitInfos[hitInfosCount];
+				hitInfosCount++;
 
-				hitData.obj1 = obj1;
-				hitData.obj2 = obj2;
-				hitData.f = 0;
-				hitData.ft = 0;
+				hitInfo.obj1 = obj1;
+				hitInfo.obj2 = obj2;
+				hitInfo.nImpulse = 0;
+				hitInfo.tImpulse = 0;
 				var d = Math.sqrt(dp[0] * dp[0] + dp[1] * dp[1])
 				if (d != 0) {
-					mul(hitData.nVec, dp, 1 / d);
+					mul(hitInfo.nVec, dp, -1 / d);
 				} else {
-					mul(hitData.nVec, dp, 0);
+					mul(hitInfo.nVec, dp, 0);
 				}
-				hitData.tVec[0] = -hitData.nVec[1];
-				hitData.tVec[1] = hitData.nVec[0];
-				mul(hitData.obj1p, hitData.nVec, obj1.size);
-				mul(hitData.obj2p, hitData.nVec, -obj2.size);
-				hitData.m = calcD(hitData.nVec, hitData);
-				hitData.moment = calcD(hitData.tVec, hitData);
+				hitInfo.tVec[0] = -hitInfo.nVec[1];
+				hitInfo.tVec[1] = hitInfo.nVec[0];
+				mul(hitInfo.pos1, hitInfo.nVec, -obj1.size);
+				mul(hitInfo.pos2, hitInfo.nVec, obj2.size);
+				hitInfo.nEffic = calcEffic(hitInfo.nVec, hitInfo);
+				hitInfo.tEffic = calcEffic(hitInfo.tVec, hitInfo);
 
-				hitData.fricCoe = 1.0/(obj1.inv_fricCoe + obj2.inv_fricCoe);
+				hitInfo.fricCoe = 2.0/(obj1.inv_fricCoe + obj2.inv_fricCoe);
 
 				sub(dv, obj2.locationV, obj1.locationV);
-				hitData.repulsion = dot(dv, hitData.nVec) / (obj1.inv_restCoe + obj2.inv_restCoe);
+				hitInfo.repulsion = dot(dv, hitInfo.nVec) * 2 / (obj1.inv_restCoe + obj2.inv_restCoe)*hitInfo.nEffic;
 
-				for (; 1; hitDataBufsCount++) {
-					var hitDataBuf = hitDataBufs[hitDataBufsCount];
-					if (hitDataBuf.id0 > i || (hitDataBuf.id0 ==i && hitDataBuf.id1 > j)) {
+				for (; 1; impulseBufsCount++) {
+					var impulseBuf = impulseBufs[impulseBufsCount];
+					if (impulseBuf.id0 > i || (impulseBuf.id0 ==i && impulseBuf.id1 > j)) {
 						break;
 					}
-					if (hitDataBuf.id0 == i && hitDataBuf.id1 == j) {
-						hitData.f = hitDataBuf.f;
-						hitData.ft = hitDataBuf.ft;
+					if (impulseBuf.id0 == i && impulseBuf.id1 == j) {
+						hitInfo.nImpulse = impulseBuf.nImpulse;
+						hitInfo.tImpulse = impulseBuf.tImpulse;
 						break;
 					}
 				}
@@ -196,146 +205,139 @@ var f = function(dt) {
 		}
 	}
 
-	hitDatas[hitDatasCount].obj1=null;
+	hitInfos[hitInfosCount].obj1=null;
 
-	for (var i = 0;hitDatas[i].obj1; i++) {
-		var hitData = hitDatas[i];
-		var o = hitData.obj1;
-		var o2 = hitData.obj2;
-		var n = hitData.nVec;
+	for (var i = 0;hitInfos[i].obj1; i++) {
+		var hitInfo = hitInfos[i];
 
-		mul(force, hitData.nVec, hitData.f * dt);
-		addForce( hitData, force);
-
-		mul(force, hitData.tVec, hitData.ft * dt);
-		addForce( hitData, force);
+		mul(impulse, hitInfo.nVec, hitInfo.nImpulse );
+		muladd(impulse, impulse, hitInfo.tVec, hitInfo.tImpulse );
+		addimpulse( hitInfo, impulse);
 	}
 
 	for (var i = 0; i < MAX; i++) {
 		var obj = objs[i];
-		if (obj.inv_m > 0) {
+		if (obj.inv_mass > 0) {
 			obj.locationV[1]+=G*dt;
 		}
 	}
 	for (repetition = 0; repetition < REPETITION_MAX; repetition++) {
 		for (var i = 0; i < MAX; i++) {
 			var o = objs[i];
-			o.oldv0 = o.locationV[0] ;
-			o.oldv1 = o.locationV[1] ;
-			o.oldangv = o.rotationV ;
+
+			o.old_locationV[0] = o.locationV[0] ;
+			o.old_locationV[1] = o.locationV[1] ;
+			o.old_rotationV = o.rotationV ;
 		}
-		for (var i = 0;hitDatas[i].obj1; i++) {
-			var hitData = hitDatas[i];
-			var o = hitData.obj1;
-			var o2 = hitData.obj2;
-			var n = hitData.nVec;
 
-			calcDiffVelocity(dv,hitData);
-			var pow = dot(dv, n) + hitData.repulsion;
+		for (var i = 0;hitInfos[i].obj1; i++) {
+			var hitInfo = hitInfos[i];
 
-			var old = hitData.f;
-			hitData.f += pow * _dt * hitData.m;
-			if (hitData.f > 0) {
-				hitData.f = 0;
+			calcDiffVelocity(dv,hitInfo);
+			var old = hitInfo.nImpulse;
+			hitInfo.nImpulse += dot(dv, hitInfo.nVec) * hitInfo.nEffic + hitInfo.repulsion;
+			if (hitInfo.nImpulse < 0) {
+				hitInfo.nImpulse = 0;
 			}
-			mul(force, n, (hitData.f-old) * dt);
-			addForce( hitData, force);
+			mul(impulse, hitInfo.nVec, (hitInfo.nImpulse-old));
+			addimpulse( hitInfo, impulse);
 
-			calcDiffVelocity(dv,hitData);
-			var max = -hitData.f * _dt * hitData.fricCoe;
-			pow = dot(dv, hitData.tVec);
-			old = hitData.ft;
-			hitData.ft += pow * _dt * hitData.moment;
-			if (hitData.ft > max) {
-				hitData.ft = max;
+			calcDiffVelocity(dv,hitInfo);
+			var max = hitInfo.nImpulse * hitInfo.fricCoe;
+			old = hitInfo.tImpulse;
+			hitInfo.tImpulse += dot(dv, hitInfo.tVec)* hitInfo.tEffic;
+			if (hitInfo.tImpulse > max) {
+				hitInfo.tImpulse = max;
 			}
-			if (hitData.ft < -max) {
-				hitData.ft = -max;
+			if (hitInfo.tImpulse < -max) {
+				hitInfo.tImpulse = -max;
 			}
-			mul(force, hitData.tVec, (hitData.ft-old) * dt);
-			addForce( hitData, force);
+			mul(impulse, hitInfo.tVec, (hitInfo.tImpulse-old));
+			addimpulse( hitInfo, impulse);
 		}
 
 		var sum= 0;
 		for (var i = 0; i < MAX; i++) {
 			var obj = objs[i];
-			var x = (obj.locationV[0] - obj.oldv0)*obj.m;
-			var y = (obj.locationV[1] - obj.oldv1)*obj.m;
-			var z = (obj.rotationV - obj.oldangv)*obj.moment;
+			var x = (obj.locationV[0] - obj.old_locationV[0])*obj.mass;
+			var y = (obj.locationV[1] - obj.old_locationV[1])*obj.mass;
+			var z = (obj.rotationV - obj.old_rotationV)*obj.moment;
 			sum+=x*x+y*y+z*z ;
 		}
-		if ( sum<= 0.00000001 * MAX ) {
+		if ( sum<= 0.0000001 ) {
 			break;
 		}
 	}
 
-	for (var i = 0;hitDatas[i].obj1; i++) {
-		var hitData = hitDatas[i];
+	var PENALTY = 1000;
+	for (var i = 0;hitInfos[i].obj1; i++) {
+		var hitInfo = hitInfos[i];
 
-		add(dp, hitData.obj2p, hitData.obj2.location);
-		sub(dp, dp, hitData.obj1.location);
-		sub(dp, dp, hitData.obj1p);
-		mul(force, dp, PENALTY*dt*hitData.m);
-
-		addForce(hitData,force);
+		add(dp, hitInfo.pos2, hitInfo.obj2.location);
+		sub(dp, dp, hitInfo.obj1.location);
+		sub(dp, dp, hitInfo.pos1);
+		mul(impulse, dp, PENALTY*dt*hitInfo.nEffic);
+		addimpulse(hitInfo,impulse);
 	}
+
 	for (var i = 0; i < MAX; i++) {
 		var obj = objs[i];
-		if (obj.inv_m ==0 ) continue;
+		if (obj.inv_mass ==0 ) continue;
 
 		muladd(obj.location, obj.location, obj.locationV, dt);
 		obj.rotation += obj.rotationV * dt;
 	}
-	for (var i = 0;hitDatas[i].obj1; i++) {
-		var hitDataBuf = hitDataBufs[i];
-		var hitData = hitDatas[i];
-		hitDataBuf.id0 = hitData.obj1.id;
-		hitDataBuf.id1 = hitData.obj2.id;
-		hitDataBuf.f = hitData.f;
-		hitDataBuf.ft = hitData.ft;
+
+	for (var i = 0;hitInfos[i].obj1; i++) {
+		var impulseBuf = impulseBufs[i];
+		var hitInfo = hitInfos[i];
+
+		impulseBuf.id0 = hitInfo.obj1.id;
+		impulseBuf.id1 = hitInfo.obj2.id;
+		impulseBuf.nImpulse = hitInfo.nImpulse;
+		impulseBuf.tImpulse = hitInfo.tImpulse;
 	}
-	hitDataBufs[i].id0 = MAX;
-
-
+	impulseBufs[i].id0 = MAX;
 }
 var timesum = 0;
 var framecount = 0;
 var msec= 0;
+var ctx = document.getElementById("c").getContext("2d");
 var ml = function() {
 
 	var start = Date.now();
 	for (var i = 0; i < STEP_PER_FRAME; i++) {
-		f(0.033 / STEP_PER_FRAME);
+		f( 1/ (FPS * STEP_PER_FRAME) );
 	}
 	timesum += (+Date.now() - start);
 	framecount++;
-	if (framecount == 30) {
-		msec= timesum / 30.0;
+	if (framecount == FPS) {
+		msec= timesum / FPS;
 		framecount = 0;
 		timesum = 0;
 	}
 
 	ctx.clearRect(0, 0, 256, 256);
 	ctx.strokeStyle = "black";
+	var inv_scale = 1/SCALE;
 	for (var i = 0; i < MAX; i++) {
-		var o = objs[i];
-		var size = o.size * 100;
+		var obj = objs[i];
+		var size = obj.size * inv_scale;
 		ctx.beginPath();
-		ctx.arc(o.location[0] * 100, o.location[1] * 100, size, Math.PI* 2, false);
-		ctx.moveTo(o.location[0] * 100, o.location[1] * 100);
-		ctx.lineTo(o.location[0] * 100 + size * Math.cos(o.rotation), o.location[1] * 100 + size * Math
-			.sin(o.rotation));
+		ctx.arc(obj.location[0] * inv_scale, obj.location[1] * inv_scale, size, Math.PI* 2, false);
+		ctx.moveTo(obj.location[0] * inv_scale, obj.location[1] * inv_scale);
+		ctx.lineTo(obj.location[0] * inv_scale + size * Math.cos(obj.rotation), obj.location[1] * inv_scale
+			   	+ size * Math.sin(obj.rotation));
 		ctx.closePath();
 		ctx.stroke();
 	}
-	document.getElementById("hoge").innerHTML = "calctime:" +msec.toFixed(3) + "ms/f<br />"
-		+ "repetation:" + repetition;
-	setTimeout(ml, 33);
+	document.getElementById("hoge").innerHTML = "calctime:" +msec.toFixed(2) + "ms/f<br />"
+		+ "repetation:" + ("_" +repetition).slice(-2);
+	setTimeout(ml, 1000/FPS);
 }
-
+init();
 ml();
 
-//ベクトル計算関数
 function Vec2() {
 	this[0] = 0;
 	this[1] = 0;
