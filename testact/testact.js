@@ -892,7 +892,7 @@ var Testact=(function(){
 		var ctx=canvas.getContext("2d");
 		gl = canvasgl.getContext('webgl') || canvasgl.getContext('experimental-webgl');
 
-		Util.init(canvas,document.body);
+		Util.init(canvas,canvasgl,document.body);
 		var ono3d = new Ono3d()
 		O3o.setOno3d(ono3d)
 		ono3d.init(canvas,ctx);
