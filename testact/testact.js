@@ -665,7 +665,8 @@ var Testact=(function(){
 			var fps = framecount*1000/(nowTime-oldTime)
 			if(framecount!==0)mspf = mseccount/framecount
 			
-			Util.setText(span,fps.toFixed(2) + "fps " + mspf.toFixed(2) + "msec/f" +"," +iroiro)
+			Util.setText(span,fps.toFixed(2) + "fps " + mspf.toFixed(2) + "msec/f" +","
+				   +"<br />repetition" + onoPhy.repetition+","+iroiro)
 	
 			framecount = 0
 			mseccount=0
