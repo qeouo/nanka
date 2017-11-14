@@ -201,7 +201,8 @@ var Testact=(function(){
 						if(objects[j].name == phyObj.name){
 							O3o.movePhyObj(objects[j],phyObj,1);
 							Vec3.set(phyObj.v,0,0,0);
-							Vec3.set(phyObj.av,0,0,0);
+							Vec3.set(phyObj.rotV,0,0,0);
+							Vec3.set(phyObj.rotL,0,0,0);
 							break;
 						}
 					}
