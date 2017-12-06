@@ -456,7 +456,10 @@ var Testact=(function(){
 
 				Vec3.sub(bV2,p1,p0);
 				Vec3.muladd(bV2,p0,bV2,tsukamiZ);
-				Mat43.dotMat43Vec3(bane.con2Pos,targetPhyObj.imatrix,bV2);
+
+				var im=new Mat43();
+				Mat43.getInv(im,targetPhyObj.matrix);
+				Mat43.dotMat43Vec3(bane.con2Pos,im,bV2);
 			}
 		}
 
