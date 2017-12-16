@@ -135,9 +135,7 @@ var Testact=(function(){
 							if(phyobj.type == OnoPhy.MESH){
 								continue
 							}
-							phyobj.mass*=phyobj.scale[0]* phyobj.scale[1]* phyobj.scale[2]*phyobj.size[0]*phyobj.size[1]*phyobj.size[2];
-							Vec3.set(phyobj.v,0,0,0);
-							//Vec3.set(phyobj.location,-4,6,0);
+							var o=scene.objects[i];
 
 							OnoPhy.setPhyObjData(phyobj);
 						}
@@ -414,34 +412,16 @@ var Testact=(function(){
 			bane= null;
 			tsukamiZ= 100;
 			var targetPhyObj = null;
-			for(var i=0;i<onoPhy.phyObjs.length;i++){
-				var phyObj = onoPhy.phyObjs[i];
-				if(phyObj.fix){
+			for(var i=0;i<onoPhy.collisions.length;i++){
+				var collision= onoPhy.collisions[i];
+				if(collision.parent.fix){
 					continue;
 				}
-				var flg = false;
-				switch (phyObj.type){
-				case OnoPhy.CUBOID:
-					if(OnoPhy.CUBOID_LINE(p0,p1,phyObj)){
-						flg=true;
-					}	
-					break;
-				case OnoPhy.SPHERE:
-					if(OnoPhy.SPHERE_LINE(p0,p1,phyObj)){
-						flg=true;
-					}
-					break;
-				case OnoPhy.CAPSULE:
-					if(OnoPhy.CAPSULE_LINE(p0,p1,phyObj)){
-						flg=true;
-					}
-					break;
-				}
-				if(flg){
-					if(OnoPhy.result<tsukamiZ){
-						tsukamiZ = OnoPhy.result;
-						targetPhyObj = phyObj;
-						continue;
+				var z = OnoPhy.collisionLine(p0,p1,collision);
+				if(z>0){
+					if(z<tsukamiZ){
+						tsukamiZ = z;
+						targetPhyObj = collision.parent;
 					}
 				}
 			}
@@ -545,7 +525,7 @@ var Testact=(function(){
 			ono3d.pop();
 		}
 
-//ƒVƒƒƒhƒEƒ}ƒbƒv•`‰æ
+//ã‚·ãƒ£ãƒ‰ã‚¦ãƒžãƒƒãƒ—æç”»
 		gl.bindFramebuffer(gl.FRAMEBUFFER,Rastgl.frameBuffer);
 		gl.viewport(0,0,1024,1024);
 		gl.depthMask(true);
@@ -574,7 +554,7 @@ var Testact=(function(){
 		
 		globalParam.stereo=-globalParam.stereoVolume * globalParam.stereomode*0.7;
 
-//‰“Œi•`‰æ
+//é æ™¯æç”»
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.disable(gl.DEPTH_TEST);
 		gl.disable(gl.BLEND);
@@ -601,7 +581,7 @@ var Testact=(function(){
 		}
 
 		gl.viewport(0,0,WIDTH,HEIGHT);
-//ƒIƒuƒWƒFƒNƒg•`‰æ
+//ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆæç”»
 		gl.depthMask(true);
 		gl.enable(gl.DEPTH_TEST);
 		ono3d.setViewport(0,0,WIDTH,HEIGHT);
@@ -612,7 +592,7 @@ var Testact=(function(){
 		Plain.draw(ono3d);
 		gl.finish();
 		
-//•`‰æŒ‹‰Ê‚ð•ÊƒtƒŒ[ƒ€ƒoƒbƒtƒ@‚ÉƒRƒs[
+//æç”»çµæžœã‚’åˆ¥ãƒ•ãƒ¬ãƒ¼ãƒ ãƒãƒƒãƒ•ã‚¡ã«ã‚³ãƒ”ãƒ¼
 		gl.depthMask(false);
 		gl.disable(gl.DEPTH_TEST);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
@@ -622,14 +602,14 @@ var Testact=(function(){
 		gl.bindTexture(gl.TEXTURE_2D, Rastgl.fTexture);
 		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
 
-//ƒƒCƒ“‚Ìƒoƒbƒtƒ@‚ÌƒAƒ‹ƒtƒ@’l‚ð1‚É‚·‚é
+//ãƒ¡ã‚¤ãƒ³ã®ãƒãƒƒãƒ•ã‚¡ã®ã‚¢ãƒ«ãƒ•ã‚¡å€¤ã‚’1ã«ã™ã‚‹
 		gl.viewport(0,0,WIDTH,HEIGHT);
 		gl.colorMask(false,false,false,true);
 		gl.clearColor(0.0,0.0,0.0,1.0);
 		gl.clear(gl.COLOR_BUFFER_BIT);
 		gl.colorMask(true,true,true,true);
 
-//‹^Ž—HDR‚Ú‚©‚µ
+//ç–‘ä¼¼HDRã¼ã‹ã—
 		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
 		gl.viewport(0,0,WIDTH+1.0,HEIGHT);
 		gl.depthMask(false);
@@ -642,7 +622,7 @@ var Testact=(function(){
 		gl.bindTexture(gl.TEXTURE_2D, emiTexture);
 		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
 		Gauss.filter(emiTexture,emiTexture,100,2.0/1024,1024.0);
-//•\‰æ–Ê‚É‡¬
+//è¡¨ç”»é¢ã«åˆæˆ
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.viewport(0,0,WIDTH,HEIGHT);
 		gl.enable(gl.BLEND);
