@@ -429,10 +429,9 @@ var Testact=(function(){
 				bane = onoPhy.createSpring();
 				bane.con1 = null;
 				bane.con2 = targetPhyObj;
-				bane.size[0]=1;
 				bane.scale[0]=0;
-				bane.penalty=40;
-				bane.damper=40;
+				bane.f=40;
+				bane.c=40;
 
 				Vec3.sub(bV2,p1,p0);
 				Vec3.muladd(bV2,p0,bV2,tsukamiZ);
