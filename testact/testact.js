@@ -125,6 +125,7 @@ var Testact=(function(){
 					ono3d.rotate(-PI*0.5,1,0,0);
 					O3o.setFrame(obj3d,scene,0);
 					for(i=0;i<scene.objects.length;i++){
+						var object=scene.objects[i];
 						var phyobj=O3o.createPhyObj(scene.objects[i],onoPhy);
 						if(phyobj){
 							Vec3.copy(phyobj.location,obj.p);
@@ -233,9 +234,10 @@ var Testact=(function(){
 							}
 						}
 						if(globalParam.physics){
-							O3o.drawScene(obj3d,globalParam.scene,obj.t*24/globalParam.fps,phyObjs,objects[i]);
+							O3o.drawObject_(objects[i],phyObjs);
 						}else{
-							O3o.drawScene(obj3d,globalParam.scene,obj.t*24/globalParam.fps,null,objects[i]);
+							O3o.drawObject_(objects[i],null);
+							//O3o.drawScene(obj3d,globalParam.scene,obj.t*24/globalParam.fps,null,objects[i]);
 						}
 					}
 				}
@@ -665,6 +667,16 @@ var Testact=(function(){
 		obj3d=O3o.load(globalParam.model,function(){
 			var sceneSelect = document.getElementById("scene");
 			var option;
+
+			for(var i=0;i<obj3d.objects.length;i++){
+				var object=obj3d.objects[i];
+				while(object.modifiers.length){
+					if(object.modifiers[0].type != "MIRROR"){
+						break;
+					}
+					O3o.freeze(object,object.modifiers[0]);
+				}
+			}
 			for(var i=0;i<obj3d.scenes.length;i++){
 				if(obj3d.scenes[i].name.indexOf("_",0)==0){
 					continue;
