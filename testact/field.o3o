@@ -684,7 +684,7 @@
     "name":"Scene"
     ,"frame_start":1
     ,"frame_end":250
-    ,"objects":["ICO球","cuboid","平面","立方体","円柱","平面.001"]
+    ,"objects":["ICO球","cuboid","平面","立方体","円柱"]
   }
 ]
 }
