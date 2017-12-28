@@ -99,12 +99,18 @@ var Testact=(function(){
 		return;
 	}
 	var balls=[];
+	var naraku;
 	var mainObj=function(obj,msg,param){
 		var phyObjs = obj.phyObjs;
 		switch(msg){
 		case MSG_CREATE:
 			obj.phyObjs= null;
 			Vec3.set(obj.p,0,15,-9);
+			naraku = onoPhy.createCollision(OnoPhy.CUBOID);
+			Vec3.set(naraku.location,0,-50,0);
+			Vec3.set(naraku.rotation,0,0,0);
+			Vec3.set(naraku.size,100,50,100);
+			naraku.calcPre();
 			break;
 		case MSG_MOVE:
 		
@@ -114,8 +120,6 @@ var Testact=(function(){
 			}
 			var scene= obj3d.scenes[globalParam.scene];
 			if(phyObjs===null){
-
-
 				if(obj3d.scenes.length>0){
 					phyObjs=new Array();
 					obj.phyObjs= phyObjs;
@@ -129,16 +133,7 @@ var Testact=(function(){
 						var object=scene.objects[i];
 						var phyobj=O3o.createPhyObj(scene.objects[i],onoPhy);
 						if(phyobj){
-							//Vec3.copy(phyobj.location,obj.p);
-
 							phyObjs.push(phyobj);
-							//O3o.movePhyObj(scene.objects[i],phyobj,1);
-						
-							if(phyobj.type == OnoPhy.MESH){
-								continue
-							}
-							var o=scene.objects[i];
-
 						}
 						if(phyobj.name=="ico"){
 							var size = 1*2;
@@ -153,6 +148,7 @@ var Testact=(function(){
 									phyobj.location[2]+=(Math.random()*1-0.5)*size;
 
 									balls.push(phyobj);
+									phyObjs.push(phyobj);
 
 									OnoPhy.setPhyObjData(phyobj);
 								}
@@ -162,12 +158,10 @@ var Testact=(function(){
 					globalParam.physics_=true;
 				}
 			}
-			//O3o.setFrame(obj3d,scene,(obj.t+1)*24/30);
 			ono3d.setTargetMatrix(1)
 			ono3d.loadIdentity()
 			ono3d.setTargetMatrix(0)
 			ono3d.loadIdentity();
-			//ono3d.translate(obj.p[0],obj.p[1],obj.p[2]);
 			ono3d.rotate(-PI*0.5,1,0,0)
 			O3o.setFrame(obj3d,scene,timer/1000.0*24);
 			if(phyObjs && globalParam.physics){
@@ -211,19 +205,46 @@ var Testact=(function(){
 //			obj.p[1] = phyObjs[0].matrix[13];
 //			obj.p[2] = phyObjs[0].matrix[14];
 			objects = scene.objects;
+			//for(var i=0;i<phyObjs.length;i++){
+
+			var hitInfos = onoPhy.hitInfos;
+			//for(var i=0;i<hitInfos.length;i++){
+			//	var col=null;
+			//	if(hitInfos[i].col1==naraku){
+			//		col = hitInfos[i].col2;
+			//	}
+			//	if(hitInfos[i].col2==naraku){
+			//		col = hitInfos[i].col1;
+			//	}
+			//	if(!col){
+			//		continue;
+			//	}
+			//	if(!col.parent){
+			//		continue;
+			//	}
+			//var phyObj = col.parent;
+
 			for(var i=0;i<phyObjs.length;i++){
 				var phyObj = phyObjs[i];
 				if(phyObj.location[1]<-10){
-					for(var j=0;j<objects.length;j++){
-						if(objects[j].name == phyObj.name){
-							O3o.movePhyObj(objects[j],phyObj,1);
-							Vec3.set(phyObj.v,0,0,0);
-							Vec3.set(phyObj.rotV,0,0,0);
-							Vec3.set(phyObj.rotL,0,0,0);
-							break;
-						}
-					}
+	//			for(var j=0;j<objects.length;j++){
+	//				if(objects[j].name == phyObj.name){
+					var size=1*2;
+
+						phyObj.location[1]=10;
+						phyObj.location[0]=(Math.random()-0.5)*size;
+						phyObj.location[2]=(Math.random()*1-0.5)*size;
+						Vec3.set(phyObj.v,0,0,0);
+						Vec3.set(phyObj.rotL,0,0,0);
+						//O3o.movePhyObj(objects[j],phyObj,1);
+						//Vec3.set(phyObj.v,0,0,0);
+						//Vec3.set(phyObj.rotV,0,0,0);
+						//Vec3.set(phyObj.rotL,0,0,0);
+	//					break;
+	//				}
+	//			}
 				}
+				
 			}
 
 			break;
@@ -354,8 +375,7 @@ var Testact=(function(){
 			}
 		}
 	
-	var mobj=createObj(mainObj);
-	mobj.id=0;
+	var mobj;
 
 	
 	var camera=createObj(defObj);
@@ -476,9 +496,13 @@ var Testact=(function(){
 			bane= null;
 			tsukamiZ= 100;
 			var targetPhyObj = null;
-			for(var i=0;i<onoPhy.collisions.length;i++){
-				var collision= onoPhy.collisions[i];
-				if(collision.parent.fix){
+			for(var i=0;i<mobj.phyObjs.length;i++){
+				var phyObj = mobj.phyObjs[i];
+				if(phyObj.fix){
+					continue;
+				}
+				var collision= phyObj.children[0];
+				if(!collision){
 					continue;
 				}
 				var z = OnoPhy.collisionLine(p0,p1,collision);
@@ -999,6 +1023,7 @@ var Testact=(function(){
 		
 		onoPhy = new OnoPhy();
 
+		mobj=createObj(mainObj);
 		var light = new ono3d.LightSource()
 		light.type =Ono3d.LT_DIRECTION
 		Vec3.set(light.angle,-1,-1,-1);
