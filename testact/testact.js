@@ -99,18 +99,12 @@ var Testact=(function(){
 		return;
 	}
 	var balls=[];
-	var naraku;
 	var mainObj=function(obj,msg,param){
 		var phyObjs = obj.phyObjs;
 		switch(msg){
 		case MSG_CREATE:
 			obj.phyObjs= null;
 			Vec3.set(obj.p,0,15,-9);
-			naraku = onoPhy.createCollision(OnoPhy.CUBOID);
-			Vec3.set(naraku.location,0,-50,0);
-			Vec3.set(naraku.rotation,0,0,0);
-			Vec3.set(naraku.size,100,50,100);
-			naraku.calcPre();
 			break;
 		case MSG_MOVE:
 		
@@ -505,7 +499,7 @@ var Testact=(function(){
 				if(!collision){
 					continue;
 				}
-				var z = OnoPhy.collisionLine(p0,p1,collision);
+				var z = Collider.collisionLine(p0,p1,collision);
 				if(z>0){
 					if(z<tsukamiZ){
 						tsukamiZ = z;
@@ -741,8 +735,8 @@ var Testact=(function(){
 			if(framecount!==0)mspf = mseccount/framecount
 			
 			Util.setText(span,fps.toFixed(2) + "fps " + mspf.toFixed(2) + "msec/f" +","
-				   +"\n AABB " + onoPhy.AABBTime+"ms(" + onoPhy.collisions.length + ")"
-				   +"\n Collision " + onoPhy.collisionTime + "ms(" + onoPhy.collisionCount+ ")"
+				   +"\n AABB " + onoPhy.collider.AABBTime+"ms(" + onoPhy.collider.collisions.length + ")"
+				   +"\n Collision " + onoPhy.collider.collisionTime + "ms(" + onoPhy.collider.collisionCount+ ")"
 				   +"\n Impulse " + onoPhy.impulseTime+"ms ,repetition " + onoPhy.repetition+","
 				   +"\n draw geometry" + drawgeometry
 				   +"\n draw rasterise" + drawrasterise
