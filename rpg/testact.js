@@ -18,13 +18,13 @@ var Testact=(function(){
 	var customBumps=[];
 	var bdf;
 	var bdfimage=null;
+	var iroiro;
 	var bane= null;
 	var soundbuffer=null;
 	var tsukamiZ=100;
 	var bV0 = new Vec3();
 	var bV1 = new Vec3();
 	var bV2 = new Vec3();
-	var bM = new Mat43();
 
 	var STAT_EMPTY=0
 		,STAT_ENABLE=1
@@ -98,7 +98,6 @@ var Testact=(function(){
 		}
 		return;
 	}
-	var balls=[];
 	var mainObj=function(obj,msg,param){
 		var phyObjs = obj.phyObjs;
 		switch(msg){
@@ -114,6 +113,8 @@ var Testact=(function(){
 			}
 			var scene= obj3d.scenes[globalParam.scene];
 			if(phyObjs===null){
+
+
 				if(obj3d.scenes.length>0){
 					phyObjs=new Array();
 					obj.phyObjs= phyObjs;
@@ -124,33 +125,32 @@ var Testact=(function(){
 					ono3d.rotate(-PI*0.5,1,0,0);
 					O3o.setFrame(obj3d,scene,0);
 					for(i=0;i<scene.objects.length;i++){
-						var object=scene.objects[i];
 						var phyobj=O3o.createPhyObj(scene.objects[i],onoPhy);
 						if(phyobj){
+							Vec3.copy(phyobj.location,obj.p);
+
 							phyObjs.push(phyobj);
-						}
-						if(phyobj.name=="ico"){
-							for(var j=0;j<40;j++){
-								var phyobj=O3o.createPhyObj(scene.objects[i],onoPhy);
-								if(phyobj){
-									phyobj.name+=j;
-									Vec3.set(phyobj.location,0,(j+2)*j-10,1000);
-
-									balls.push(phyobj);
-									phyObjs.push(phyobj);
-
-									OnoPhy.setPhyObjData(phyobj);
-								}
+							O3o.movePhyObj(scene.objects[i],phyobj,1);
+						
+							if(phyobj.type == OnoPhy.MESH){
+								continue
 							}
+							phyobj.mass*=phyobj.scale[0]* phyobj.scale[1]* phyobj.scale[2]*phyobj.size[0]*phyobj.size[1]*phyobj.size[2];
+							Vec3.set(phyobj.v,0,0,0);
+							//Vec3.set(phyobj.location,-4,6,0);
+
+							OnoPhy.setPhyObjData(phyobj);
 						}
 					}
 					globalParam.physics_=true;
 				}
 			}
+			//O3o.setFrame(obj3d,scene,(obj.t+1)*24/30);
 			ono3d.setTargetMatrix(1)
 			ono3d.loadIdentity()
 			ono3d.setTargetMatrix(0)
 			ono3d.loadIdentity();
+			//ono3d.translate(obj.p[0],obj.p[1],obj.p[2]);
 			ono3d.rotate(-PI*0.5,1,0,0)
 			O3o.setFrame(obj3d,scene,timer/1000.0*24);
 			if(phyObjs && globalParam.physics){
@@ -177,28 +177,36 @@ var Testact=(function(){
 			}else{
 				globalParam.physics_=false;
 			}
+			
 
+			
+//			phyObjs[0].a[0]+=(Util.keyflag[2+obj.id*8]-Util.keyflag[0+obj.id*8])*phyObjs[0].mass*4;
+//			phyObjs[0].a[2]+=(Util.keyflag[3+obj.id*8]-Util.keyflag[1+obj.id*8])*phyObjs[0].mass*4;
+			
+			
+//			if(Util.keyflag[4+obj.id*8] &&  !Util.keyflagOld[4+obj.id*8]){
+//				phyObjs[0].v[1]=2;
+//				phyObjs[0].location[1]+=0.04;
+//			
+//			}
+			
+//			obj.p[0] = phyObjs[0].matrix[12];
+//			obj.p[1] = phyObjs[0].matrix[13];
+//			obj.p[2] = phyObjs[0].matrix[14];
 			objects = scene.objects;
-
 			for(var i=0;i<phyObjs.length;i++){
 				var phyObj = phyObjs[i];
 				if(phyObj.location[1]<-10){
-					var size=1*2;
-					if(!phyObj.parent){
-						phyObj.location[1]=10;
-						phyObj.location[0]=0;
-						phyObj.location[2]=0;
-					}else{
-						O3o.movePhyObj(phyObj.parent,phyObj,1);
+					for(var j=0;j<objects.length;j++){
+						if(objects[j].name == phyObj.name){
+							O3o.movePhyObj(objects[j],phyObj,1);
+							Vec3.set(phyObj.v,0,0,0);
+							Vec3.set(phyObj.av,0,0,0);
+							break;
+						}
 					}
-					phyObj.location[0]+=(Math.random()-0.5)*size;
-					phyObj.location[2]+=(Math.random()*1-0.5)*size;
-					Vec3.set(phyObj.v,0,0,0);
-					Vec3.set(phyObj.rotL,0,0,0);
 				}
-				
 			}
-
 			break;
 
 		case MSG_DRAW:
@@ -226,57 +234,11 @@ var Testact=(function(){
 							}
 						}
 						if(globalParam.physics){
-							O3o.drawObject(objects[i],phyObjs);
+							O3o.drawScene(obj3d,globalParam.scene,obj.t*24/globalParam.fps,phyObjs,objects[i]);
 						}else{
-							O3o.drawObject(objects[i],null);
+							O3o.drawScene(obj3d,globalParam.scene,obj.t*24/globalParam.fps,null,objects[i]);
 						}
 					}
-				}
-			}
-
-			for(var i=0;i<balls.length;i++){
-				var object=balls[i];
-				ono3d.lineWidth=1;
-				ono3d.rf&=~Ono3d.RF_OUTLINE;
-				if(globalParam.outlineWidth>0.){
-					ono3d.lineWidth=globalParam.outlineWidth;
-					ono3d.rf|=Ono3d.RF_OUTLINE;
-					Util.hex2rgb(ono3d.lineColor,globalParam.outlineColor);
-				}
-				if(bane){
-					if(bane.con2.name == object.name){
-						ono3d.lineWidth=1;
-						ono3d.rf|=Ono3d.RF_OUTLINE;
-						Vec4.set(ono3d.lineColor,1,4,1,0);
-					}
-				}
-				if(globalParam.physics){
-					var phyObj=balls[i];
-					var matrix = objects[0].mixedmatrix;
-					var rotmat=phyObj.rotmat;
-					var sx=phyObj.scale[0];
-					var sy=phyObj.scale[1];
-					var sz=phyObj.scale[2];
-					matrix[0]=rotmat[0]*sx;
-					matrix[1]=rotmat[1]*sx;
-					matrix[2]=rotmat[2]*sx;
-					matrix[3]=0;
-					matrix[4]=rotmat[3]*sy;
-					matrix[5]=rotmat[4]*sy;
-					matrix[6]=rotmat[5]*sy;
-					matrix[7]=0;
-					matrix[8]=rotmat[6]*sz;
-					matrix[9]=rotmat[7]*sz;
-					matrix[10]=rotmat[8]*sz;
-					matrix[11]=0;
-					matrix[12]=phyObj.location[0];
-					matrix[13]=phyObj.location[1];
-					matrix[14]=phyObj.location[2];
-					matrix[15]=1;
-
-					ono3d.setTargetMatrix(0)
-					ono3d.loadIdentity();
-					O3o.drawObject(objects[0]);
 				}
 			}
 			break;
@@ -295,6 +257,7 @@ var Testact=(function(){
 		globalParam.stereomode=0;
 		globalParam.stereoVolume=1;
 		globalParam.step=2;
+		globalParam.step2=1;
 		globalParam.fps=30;
 		globalParam.scene=0;
 		globalParam.shadow=1;
@@ -327,7 +290,8 @@ var Testact=(function(){
 			}
 		}
 	
-	var mobj;
+	var mobj=createObj(mainObj);
+	mobj.id=0;
 
 	
 	var camera=createObj(defObj);
@@ -364,15 +328,15 @@ var Testact=(function(){
 			}
 		}
 
+		for(var j=0;j<globalParam.step2;j++){
 			for(i=0;i<OBJSLENGTH;i++){
 				if(objs[i].stat!==STAT_ENABLE)continue;
 				objs[i].func(objs[i],MSG_MOVE,0);
 			}
 			if(globalParam.physics){
-				for(var i=0;i<globalParam.step;i++){
-				onoPhy.calc(1.0/globalParam.fps/globalParam.step);
-				}
+				onoPhy.calc(1.0/globalParam.fps/globalParam.step2,globalParam.step);
 			}
+		}
 
 		//camera3.p[0]=0;
 		//camera2.p[1]=15;
@@ -381,6 +345,7 @@ var Testact=(function(){
 		//camera2.p[1]=-(Util.cursorY-HEIGHT)/HEIGHT*6;
 		//camera2.p[2]=40-Math.pow((Util.cursorX-WIDTH)/WIDTH,2)*2;
 
+		iroiro="";
 		if(Util.pressOn && !bane){
 			camera2.a[1]+=(-(Util.cursorX-Util.oldcursorX)/WIDTH);
 			camera2.a[0]+=((Util.cursorY-Util.oldcursorY)/HEIGHT);
@@ -448,20 +413,34 @@ var Testact=(function(){
 			bane= null;
 			tsukamiZ= 100;
 			var targetPhyObj = null;
-			for(var i=0;i<mobj.phyObjs.length;i++){
-				var phyObj = mobj.phyObjs[i];
+			for(var i=0;i<onoPhy.phyObjs.length;i++){
+				var phyObj = onoPhy.phyObjs[i];
 				if(phyObj.fix){
 					continue;
 				}
-				var collision= phyObj.children[0];
-				if(!collision){
-					continue;
+				var flg = false;
+				switch (phyObj.type){
+				case OnoPhy.CUBOID:
+					if(OnoPhy.CUBOID_LINE(p0,p1,phyObj)){
+						flg=true;
+					}	
+					break;
+				case OnoPhy.SPHERE:
+					if(OnoPhy.SPHERE_LINE(p0,p1,phyObj)){
+						flg=true;
+					}
+					break;
+				case OnoPhy.CAPSULE:
+					if(OnoPhy.CAPSULE_LINE(p0,p1,phyObj)){
+						flg=true;
+					}
+					break;
 				}
-				var z = Collider.collisionLine(p0,p1,collision);
-				if(z>0){
-					if(z<tsukamiZ){
-						tsukamiZ = z;
-						targetPhyObj = collision.parent;
+				if(flg){
+					if(OnoPhy.result<tsukamiZ){
+						tsukamiZ = OnoPhy.result;
+						targetPhyObj = phyObj;
+						continue;
 					}
 				}
 			}
@@ -469,16 +448,14 @@ var Testact=(function(){
 				bane = onoPhy.createSpring();
 				bane.con1 = null;
 				bane.con2 = targetPhyObj;
+				bane.size[0]=1;
 				bane.scale[0]=0;
-				bane.f=40;
-				bane.c=40;
+				bane.penalty=40;
+				bane.damper=40;
 
 				Vec3.sub(bV2,p1,p0);
 				Vec3.muladd(bV2,p0,bV2,tsukamiZ);
-
-				var im=new Mat43();
-				Mat43.getInv(im,targetPhyObj.matrix);
-				Mat43.dotMat43Vec3(bane.con2Pos,im,bV2);
+				Mat43.dotMat43Vec3(bane.con2Pos,targetPhyObj.imatrix,bV2);
 			}
 		}
 
@@ -553,7 +530,6 @@ var Testact=(function(){
 
 		O3o.useCustomMaterial = globalParam.cMaterial;
 
-		var start = Date.now();
 		for(i=0;i<OBJSLENGTH;i++){
 			if(objs[i].stat!==STAT_ENABLE)continue;
 			ono3d.push();
@@ -564,10 +540,8 @@ var Testact=(function(){
 			ono3d.setTargetMatrix(1)
 			ono3d.pop();
 		}
-		var drawgeometry=Date.now()-start;
 
-		start=Date.now();
-//ã‚·ãƒ£ãƒ‰ã‚¦ãƒžãƒƒãƒ—æç”»
+//ƒVƒƒƒhƒEƒ}ƒbƒv•`‰æ
 		gl.bindFramebuffer(gl.FRAMEBUFFER,Rastgl.frameBuffer);
 		gl.viewport(0,0,1024,1024);
 		gl.depthMask(true);
@@ -596,7 +570,7 @@ var Testact=(function(){
 		
 		globalParam.stereo=-globalParam.stereoVolume * globalParam.stereomode*0.7;
 
-//é æ™¯æç”»
+//‰“Œi•`‰æ
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.disable(gl.DEPTH_TEST);
 		gl.disable(gl.BLEND);
@@ -623,7 +597,7 @@ var Testact=(function(){
 		}
 
 		gl.viewport(0,0,WIDTH,HEIGHT);
-//ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆæç”»
+//ƒIƒuƒWƒFƒNƒg•`‰æ
 		gl.depthMask(true);
 		gl.enable(gl.DEPTH_TEST);
 		ono3d.setViewport(0,0,WIDTH,HEIGHT);
@@ -634,7 +608,7 @@ var Testact=(function(){
 		Plain.draw(ono3d);
 		gl.finish();
 		
-//æç”»çµæžœã‚’åˆ¥ãƒ•ãƒ¬ãƒ¼ãƒ ãƒãƒƒãƒ•ã‚¡ã«ã‚³ãƒ”ãƒ¼
+//•`‰æŒ‹‰Ê‚ð•ÊƒtƒŒ[ƒ€ƒoƒbƒtƒ@‚ÉƒRƒs[
 		gl.depthMask(false);
 		gl.disable(gl.DEPTH_TEST);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
@@ -644,14 +618,14 @@ var Testact=(function(){
 		gl.bindTexture(gl.TEXTURE_2D, Rastgl.fTexture);
 		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
 
-//ãƒ¡ã‚¤ãƒ³ã®ãƒãƒƒãƒ•ã‚¡ã®ã‚¢ãƒ«ãƒ•ã‚¡å€¤ã‚’1ã«ã™ã‚‹
+//ƒƒCƒ“‚Ìƒoƒbƒtƒ@‚ÌƒAƒ‹ƒtƒ@’l‚ð1‚É‚·‚é
 		gl.viewport(0,0,WIDTH,HEIGHT);
 		gl.colorMask(false,false,false,true);
 		gl.clearColor(0.0,0.0,0.0,1.0);
 		gl.clear(gl.COLOR_BUFFER_BIT);
 		gl.colorMask(true,true,true,true);
 
-//ç–‘ä¼¼HDRã¼ã‹ã—
+//‹^Ž—HDR‚Ú‚©‚µ
 		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
 		gl.viewport(0,0,WIDTH+1.0,HEIGHT);
 		gl.depthMask(false);
@@ -664,7 +638,7 @@ var Testact=(function(){
 		gl.bindTexture(gl.TEXTURE_2D, emiTexture);
 		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
 		Gauss.filter(emiTexture,emiTexture,100,2.0/1024,1024.0);
-//è¡¨ç”»é¢ã«åˆæˆ
+//•\‰æ–Ê‚É‡¬
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.viewport(0,0,WIDTH,HEIGHT);
 		gl.enable(gl.BLEND);
@@ -684,7 +658,6 @@ var Testact=(function(){
 		ono3d.clear();
 		gl.finish();
 
-		var drawrasterise=Date.now()-start;
 		mseccount += (Date.now() - nowTime)
 		framecount++
 		if(nowTime-oldTime > 1000){
@@ -692,13 +665,7 @@ var Testact=(function(){
 			var fps = framecount*1000/(nowTime-oldTime)
 			if(framecount!==0)mspf = mseccount/framecount
 			
-			Util.setText(span,fps.toFixed(2) + "fps " + mspf.toFixed(2) + "msec/f" +","
-				   +"\n AABB " + onoPhy.collider.AABBTime+"ms(" + onoPhy.collider.collisions.length + ")"
-				   +"\n Collision " + onoPhy.collider.collisionTime + "ms(" + onoPhy.collider.collisionCount+ ")"
-				   +"\n Impulse " + onoPhy.impulseTime+"ms ,repetition " + onoPhy.repetition+","
-				   +"\n draw geometry" + drawgeometry
-				   +"\n draw rasterise" + drawrasterise
-				   )
+			Util.setText(span,fps.toFixed(2) + "fps " + mspf.toFixed(2) + "msec/f" +"," +iroiro)
 	
 			framecount = 0
 			mseccount=0
@@ -714,16 +681,6 @@ var Testact=(function(){
 		obj3d=O3o.load(globalParam.model,function(){
 			var sceneSelect = document.getElementById("scene");
 			var option;
-
-			for(var i=0;i<obj3d.objects.length;i++){
-				var object=obj3d.objects[i];
-				//while(object.modifiers.length){
-				//	if(object.modifiers[0].type != "MIRROR"){
-				//		break;
-				//	}
-				//	O3o.freeze(object,object.modifiers[0]);
-				//}
-			}
 			for(var i=0;i<obj3d.scenes.length;i++){
 				if(obj3d.scenes[i].name.indexOf("_",0)==0){
 					continue;
@@ -922,23 +879,43 @@ var Testact=(function(){
 		}
 
 	}
-//		var div=document.createElement("div");
-//		parentnode.appendChild(div);
+		var div = parentnode;
+//		document.createElement("div");
+//		div.style.margin="0px";
+//		div.style.padding="0px";
+//		div.style.width="100%";
+//		div.style.height="100%";
+//		div.style.textAlign="center";
+//		div.style.vereticalAlign="middle";
+		div.addEventListener("resize",function(e){
+			var rect =  e.target.getBoundingClientRect();
+			if(rect.width/canvasgl.width> rect.height/canvasgl.height){
+				canvasgl.style.width="auto";
+				canvasgl.style.height="100%";
+			}else{
+				canvasgl.style.width="100%";
+				canvasgl.style.height="auto";
+			}
+		},false);
+		//parentnode.appendChild(div);
 		var canvas =document.createElement("canvas");
 		canvas.width=WIDTH;
 		canvas.height=HEIGHT;
-		parentnode.appendChild(canvas);
+		div.appendChild(canvas);
 		var canvasgl =document.createElement("canvas");
 		canvasgl.width=WIDTH;
 		canvasgl.height=HEIGHT;
-		parentnode.appendChild(canvasgl);
+		div.appendChild(canvasgl);
 		var ctx=canvas.getContext("2d");
+		Util.fireEvent(div,"resize");
+
 		gl = canvasgl.getContext('webgl') || canvasgl.getContext('experimental-webgl');
 
 		Util.init(canvas,canvasgl,document.body);
-		var ono3d = new Ono3d()
-		O3o.setOno3d(ono3d)
+		var ono3d = new Ono3d();
+		O3o.setOno3d(ono3d);
 		ono3d.init(canvas,ctx);
+
 
 		ono3d.rendercanvas=canvas;
 		if(gl){
@@ -951,7 +928,7 @@ var Testact=(function(){
 
 		if(globalParam.enableGL){
 			Rastgl.init(gl,ono3d);
-			canvas.style.width="0px";
+			canvas.style.display="none";
 			canvasgl.style.display="inline";
 			Ono3d.setDrawMethod(3);
 		}else{
@@ -975,7 +952,6 @@ var Testact=(function(){
 		
 		onoPhy = new OnoPhy();
 
-		mobj=createObj(mainObj);
 		var light = new ono3d.LightSource()
 		light.type =Ono3d.LT_DIRECTION
 		Vec3.set(light.angle,-1,-1,-1);

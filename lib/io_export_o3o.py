@@ -1,8 +1,8 @@
-scenesbl_info = {
+bl_info = {
     "name": "Export Ono3dObject (.o3o)",
     "author": "ono",
     "version": (0,0,1),
-    "blender": (2, 6, 3),
+    "blender": (2, 7, 0),
     "location": "File > Export > Ono3dObject (.o3o)",
     "description": "Export Ono3dObject (.o3o)",
     "warning": "",
