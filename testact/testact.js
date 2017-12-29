@@ -134,7 +134,8 @@ var Testact=(function(){
 								var phyobj=O3o.createPhyObj(scene.objects[i],onoPhy);
 								if(phyobj){
 									phyobj.name+=j;
-									Vec3.set(phyobj.location,0,(j+2)*j-10,1000);
+									Vec3.set(phyobj.location,0,(j+0.5)*j-8,1000);
+									phyobj.parent=null;
 
 									balls.push(phyobj);
 									phyObjs.push(phyobj);
@@ -160,6 +161,14 @@ var Testact=(function(){
 				if(!globalParam.physics_){
 					flg = 1;
 					globalParam.physics_=true;
+					
+
+					for(var i=0;i<phyObjs.length;i++){
+						var phyObj = phyObjs[i];
+						Vec3.set(phyObj.v,0,0,0);
+						Vec3.set(phyObj.rotL,0,0,0);
+						Mat44.set(phyObj.oldmat,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9999);
+					}
 				}
 				for(var i=0;i<phyObjs.length;i++){
 					var phyName=phyObjs[i].name;
@@ -185,14 +194,14 @@ var Testact=(function(){
 				if(phyObj.location[1]<-10){
 					var size=1*2;
 					if(!phyObj.parent){
-						phyObj.location[1]=10;
+						phyObj.location[1]=5;
 						phyObj.location[0]=0;
 						phyObj.location[2]=0;
+						phyObj.location[0]+=(Math.random()-0.5)*size;
+						phyObj.location[2]+=(Math.random()*1-0.5)*size;
 					}else{
 						O3o.movePhyObj(phyObj.parent,phyObj,1);
 					}
-					phyObj.location[0]+=(Math.random()-0.5)*size;
-					phyObj.location[2]+=(Math.random()*1-0.5)*size;
 					Vec3.set(phyObj.v,0,0,0);
 					Vec3.set(phyObj.rotL,0,0,0);
 				}
@@ -392,14 +401,14 @@ var Testact=(function(){
 		camera2.p[1]=Math.sin(camera2.a[0]);
 		camera2.p[0]=Math.sin(camera2.a[1])*camera2.p[2];
 		camera2.p[2]=Math.cos(camera2.a[1])*camera2.p[2];
-		Vec3.mul(camera2.p,camera2.p,15);
-		camera2.p[1]+=10;
+		Vec3.mul(camera2.p,camera2.p,7);
+		camera2.p[1]+=3;
 
 		camera.p[0]+=(camera2.p[0]-camera.p[0])*0.1
 		camera.p[1]+=(camera2.p[1]-camera.p[1])*0.1
 		camera.p[2]+=(camera2.p[2]-camera.p[2])*0.1
 		vec3[0]=0
-		vec3[1]=2
+		vec3[1]=1
 		vec3[2]=0
 		homingCamera(camera.a,vec3,camera.p);
 
@@ -576,7 +585,7 @@ var Testact=(function(){
 		if(globalParam.shadow){
 			gl.enable(gl.DEPTH_TEST);
 			
-			ono3d.setOrtho(10.0,10.0,1.0,30.0)
+			ono3d.setOrtho(10.0,10.0,10.0,20.0)
 			var lightSource = ono3d.lightSources[0]
 			Mat43.setInit(lightSource.matrix);
 			Mat43.getRotVector(lightSource.matrix,lightSource.angle);
