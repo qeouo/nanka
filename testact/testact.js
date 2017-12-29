@@ -434,6 +434,9 @@ var Testact=(function(){
 			cursorr[0]*=2;
 			if(cursorr[0]<0){
 				cursorr[0]+=1;
+
+				ono3d.projectionMat[12]=globalParam.stereo;
+				Mat44.dotMat44Mat43(ono3d.pvMat,ono3d.projectionMat,ono3d.viewMatrix);
 			}else{
 				cursorr[0]-=1;
 			}
@@ -601,7 +604,7 @@ var Testact=(function(){
 		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
 		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1024,1024);
 		
-		globalParam.stereo=-globalParam.stereoVolume * globalParam.stereomode*0.7;
+		globalParam.stereo=-globalParam.stereoVolume * globalParam.stereomode*0.4;
 
 //遠景描画
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
