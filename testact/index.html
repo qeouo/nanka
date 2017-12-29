@@ -114,7 +114,6 @@ var handleFileSelect = function(evt) {
 <body onload="onl();" style="height:100%;overflow-y: hidden;">
 <div>
 <input type="file" id="files" name="upfile[]"  multiple  style="text-align:center;display:none;" />
-<span id="cons" ></span><br />
 <div id="control" style="float:left;">
 <div style="float:left;margin-right:10px;">
 法線補間<input class="slider" id="smoothing"/><br />
@@ -163,6 +162,11 @@ step/frame<input class="slider" id="step" min="1" max="10" step="1"/><br />
 </select><br />
 影響度合<input class="slider"  max="10.0" id="cNormal"/><br />
 </div>
+
+</div>
+
+<div style="float:left;margin-right:10px;">
+<pre id="cons" ></pre><br />
 </div>
 </div>
 <div style="clear:both;left:0;right:0;margin:0 auto;width:720px;">

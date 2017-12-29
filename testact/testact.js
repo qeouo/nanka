@@ -135,12 +135,10 @@ var Testact=(function(){
 								if(phyobj){
 									phyobj.name+=j;
 									Vec3.set(phyobj.location,0,(j+0.5)*j-8,1000);
-									phyobj.parent=null;
-
 									balls.push(phyobj);
 									phyObjs.push(phyobj);
-
-									OnoPhy.setPhyObjData(phyobj);
+									//OnoPhy.setPhyObjData(phyobj);
+									phyobj.parent=null;
 								}
 							}
 						}
@@ -585,7 +583,7 @@ var Testact=(function(){
 		if(globalParam.shadow){
 			gl.enable(gl.DEPTH_TEST);
 			
-			ono3d.setOrtho(10.0,10.0,10.0,20.0)
+			ono3d.setOrtho(10.0,10.0,10.0,30.0)
 			var lightSource = ono3d.lightSources[0]
 			Mat43.setInit(lightSource.matrix);
 			Mat43.getRotVector(lightSource.matrix,lightSource.angle);
@@ -618,11 +616,11 @@ var Testact=(function(){
 		gl.disable(gl.BLEND);
 		if(sky.gltexture){
 			if(globalParam.stereomode==0){
-				ono3d.setPers(0.577,HEIGHT/WIDTH);
+				ono3d.setPers(0.577,HEIGHT/WIDTH,1,20);
 				gl.viewport(0,0,WIDTH,HEIGHT);
 				Env.env(envtexes[1]);
 			}else{
-				ono3d.setPers(0.577,HEIGHT/WIDTH*2);
+				ono3d.setPers(0.577,HEIGHT/WIDTH*2,1,20);
 				gl.viewport(0,0,WIDTH/2,HEIGHT);
 				Env.env(envtexes[1]);
 				gl.viewport(WIDTH/2,0,WIDTH/2,HEIGHT);
@@ -701,12 +699,12 @@ var Testact=(function(){
 			var fps = framecount*1000/(nowTime-oldTime)
 			if(framecount!==0)mspf = mseccount/framecount
 			
-			Util.setText(span,fps.toFixed(2) + "fps " + mspf.toFixed(2) + "msec/f" +","
+			Util.setText(span,fps.toFixed(2) + "fps " + mspf.toFixed(2) + "msec/f"
 				   +"\n AABB " + onoPhy.collider.AABBTime+"ms(" + onoPhy.collider.collisions.length + ")"
 				   +"\n Collision " + onoPhy.collider.collisionTime + "ms(" + onoPhy.collider.collisionCount+ ")"
-				   +"\n Impulse " + onoPhy.impulseTime+"ms ,repetition " + onoPhy.repetition+","
-				   +"\n draw geometry" + drawgeometry
-				   +"\n draw rasterise" + drawrasterise
+				   +"\n Impulse " + onoPhy.impulseTime+"ms ,repetition " + onoPhy.repetition
+				   +"\n draw geometry " + drawgeometry +"ms"
+				   +"\n draw rasterise " + drawrasterise +"ms" 
 				   )
 	
 			framecount = 0
