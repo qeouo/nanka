@@ -130,16 +130,11 @@ var Testact=(function(){
 							phyObjs.push(phyobj);
 						}
 						if(phyobj.name=="ico"){
-							var size = 1*2;
 							for(var j=0;j<40;j++){
 								var phyobj=O3o.createPhyObj(scene.objects[i],onoPhy);
 								if(phyobj){
 									phyobj.name+=j;
-									Vec3.copy(phyobj.location,obj.p);
-									O3o.movePhyObj(scene.objects[i],phyobj,1);
-									phyobj.location[1]+=(j+1)*size;
-									phyobj.location[0]+=(Math.random()-0.5)*size;
-									phyobj.location[2]+=(Math.random()*1-0.5)*size;
+									Vec3.set(phyobj.location,0,(j+2)*j-10,1000);
 
 									balls.push(phyobj);
 									phyObjs.push(phyobj);
@@ -182,61 +177,24 @@ var Testact=(function(){
 			}else{
 				globalParam.physics_=false;
 			}
-			
 
-			
-//			phyObjs[0].a[0]+=(Util.keyflag[2+obj.id*8]-Util.keyflag[0+obj.id*8])*phyObjs[0].mass*4;
-//			phyObjs[0].a[2]+=(Util.keyflag[3+obj.id*8]-Util.keyflag[1+obj.id*8])*phyObjs[0].mass*4;
-			
-			
-//			if(Util.keyflag[4+obj.id*8] &&  !Util.keyflagOld[4+obj.id*8]){
-//				phyObjs[0].v[1]=2;
-//				phyObjs[0].location[1]+=0.04;
-//			
-//			}
-			
-//			obj.p[0] = phyObjs[0].matrix[12];
-//			obj.p[1] = phyObjs[0].matrix[13];
-//			obj.p[2] = phyObjs[0].matrix[14];
 			objects = scene.objects;
-			//for(var i=0;i<phyObjs.length;i++){
-
-			var hitInfos = onoPhy.hitInfos;
-			//for(var i=0;i<hitInfos.length;i++){
-			//	var col=null;
-			//	if(hitInfos[i].col1==naraku){
-			//		col = hitInfos[i].col2;
-			//	}
-			//	if(hitInfos[i].col2==naraku){
-			//		col = hitInfos[i].col1;
-			//	}
-			//	if(!col){
-			//		continue;
-			//	}
-			//	if(!col.parent){
-			//		continue;
-			//	}
-			//var phyObj = col.parent;
 
 			for(var i=0;i<phyObjs.length;i++){
 				var phyObj = phyObjs[i];
 				if(phyObj.location[1]<-10){
-	//			for(var j=0;j<objects.length;j++){
-	//				if(objects[j].name == phyObj.name){
 					var size=1*2;
-
+					if(!phyObj.parent){
 						phyObj.location[1]=10;
-						phyObj.location[0]=(Math.random()-0.5)*size;
-						phyObj.location[2]=(Math.random()*1-0.5)*size;
-						Vec3.set(phyObj.v,0,0,0);
-						Vec3.set(phyObj.rotL,0,0,0);
-						//O3o.movePhyObj(objects[j],phyObj,1);
-						//Vec3.set(phyObj.v,0,0,0);
-						//Vec3.set(phyObj.rotV,0,0,0);
-						//Vec3.set(phyObj.rotL,0,0,0);
-	//					break;
-	//				}
-	//			}
+						phyObj.location[0]=0;
+						phyObj.location[2]=0;
+					}else{
+						O3o.movePhyObj(phyObj.parent,phyObj,1);
+					}
+					phyObj.location[0]+=(Math.random()-0.5)*size;
+					phyObj.location[2]+=(Math.random()*1-0.5)*size;
+					Vec3.set(phyObj.v,0,0,0);
+					Vec3.set(phyObj.rotL,0,0,0);
 				}
 				
 			}
