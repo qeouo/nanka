@@ -126,15 +126,17 @@ var Testact=(function(){
 					for(i=0;i<scene.objects.length;i++){
 						var object=scene.objects[i];
 						var phyobj=O3o.createPhyObj(scene.objects[i],onoPhy);
-						if(phyobj){
-							phyObjs.push(phyobj);
+						if(!phyobj){
+							continue;
 						}
+						phyObjs.push(phyobj);
+						
 						if(phyobj.name=="ico"){
 							for(var j=0;j<40;j++){
 								var phyobj=O3o.createPhyObj(scene.objects[i],onoPhy);
 								if(phyobj){
 									phyobj.name+=j;
-									Vec3.set(phyobj.location,0,(j+0.5)*j-8,1000);
+									Vec3.set(phyobj.location,0,(j+0.3)*j-8,1000);
 									balls.push(phyobj);
 									phyObjs.push(phyobj);
 									//OnoPhy.setPhyObjData(phyobj);
