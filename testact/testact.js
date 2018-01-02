@@ -508,21 +508,12 @@ var Testact=(function(){
 				Vec4.mul(vec4,vec4,w);
 				Mat44.dotMat44Vec4(vec4,mat44,vec4);
 				Vec3.copy(bane.p0,vec4);
-				
-	//			Vec3.sub(vec4,vec4,tsukamiTarget.location);
-	//			Vec3.mul(vec4,vec4,40);
-	//			Vec3.add(tsukamiTarget.a,tsukamiTarget.a,vec4);
 			}
 			
 		}
 
 		ono3d.rf=0;
 		ono3d.lineWidth=1.0;
-//		if(globalParam.outlineWidth>0.){
-//			ono3d.lineWidth=globalParam.outlineWidth;
-//			ono3d.rf=Ono3d.RF_OUTLINE;
-//			Util.hex2rgb(ono3d.outlineColor,globalParam.outlineColor);
-//		}
 		ono3d.smoothing=globalParam.smoothing;
 
 		var light=ono3d.lightSources[0];
@@ -693,10 +684,12 @@ var Testact=(function(){
 //				Rastgl.copyframe(bdfimage.gltexture,vec[0]/vec[3],vec[1]/vec[3],0.3,-0.3*ono3d.persx/ono3d.persy,0,0,0.6,0.6);
 //			});
 //		}
-		ono3d.clear();
+
 		gl.finish();
+		ono3d.clear();
 
 		var drawrasterise=Date.now()-start;
+
 		mseccount += (Date.now() - nowTime)
 		framecount++
 		if(nowTime-oldTime > 1000){
