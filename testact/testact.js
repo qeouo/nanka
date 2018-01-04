@@ -98,7 +98,6 @@ var Testact=(function(){
 		}
 		return;
 	}
-	var balls=[];
 	var mainObj=function(obj,msg,param){
 		var phyObjs = obj.phyObjs;
 		switch(msg){
@@ -130,22 +129,33 @@ var Testact=(function(){
 							continue;
 						}
 						phyObjs.push(phyobj);
-						
-						if(phyobj.name=="ico"){
-							for(var j=0;j<40;j++){
-								var phyobj=O3o.createPhyObj(scene.objects[i],onoPhy);
-								if(phyobj){
-									phyobj.name+=j;
-									Vec3.set(phyobj.location,0,(j+0.3)*j-8,1000);
-									balls.push(phyobj);
-									phyObjs.push(phyobj);
-									//OnoPhy.setPhyObjData(phyobj);
-									phyobj.parent=null;
-								}
-							}
-						}
+						object.phyObj = phyobj;
 					}
 					globalParam.physics_=true;
+				}
+				for(var i=0;i<phyObjs.length;i++){
+					if(phyObjs[i].joint){
+						var joint = phyObjs[i].joint;
+						var search=function(name){
+							for(var j=0;j<phyObjs.length;j++){
+								if(name == phyObjs[j].name){
+									return phyObjs[j];
+								}
+							}
+							return null;
+						}
+						if(joint.object1){
+							joint.object1 = search(joint.object1.name);
+						}
+						if(joint.object2){
+							joint.object2 = search(joint.object2.name);
+						}
+						if(joint.object1 && joint.object2){
+							var m=joint.matrix;
+							Mat44.dot(m,joint.object2.inv_matrix,joint.object1.matrix);
+							joint.len=Math.sqrt(m[12]*m[12]+m[13]*m[13]+m[14]*m[14]);
+						}
+					}
 				}
 			}
 			ono3d.setTargetMatrix(1)
@@ -240,52 +250,6 @@ var Testact=(function(){
 							O3o.drawObject(objects[i],null);
 						}
 					}
-				}
-			}
-
-			for(var i=0;i<balls.length;i++){
-				var object=balls[i];
-				ono3d.lineWidth=1;
-				ono3d.rf&=~Ono3d.RF_OUTLINE;
-				if(globalParam.outlineWidth>0.){
-					ono3d.lineWidth=globalParam.outlineWidth;
-					ono3d.rf|=Ono3d.RF_OUTLINE;
-					Util.hex2rgb(ono3d.lineColor,globalParam.outlineColor);
-				}
-				if(bane){
-					if(bane.con2.name == object.name){
-						ono3d.lineWidth=1;
-						ono3d.rf|=Ono3d.RF_OUTLINE;
-						Vec4.set(ono3d.lineColor,1,4,1,0);
-					}
-				}
-				if(globalParam.physics){
-					var phyObj=balls[i];
-					var matrix = objects[0].mixedmatrix;
-					var rotmat=phyObj.rotmat;
-					var sx=phyObj.scale[0];
-					var sy=phyObj.scale[1];
-					var sz=phyObj.scale[2];
-					matrix[0]=rotmat[0]*sx;
-					matrix[1]=rotmat[1]*sx;
-					matrix[2]=rotmat[2]*sx;
-					matrix[3]=0;
-					matrix[4]=rotmat[3]*sy;
-					matrix[5]=rotmat[4]*sy;
-					matrix[6]=rotmat[5]*sy;
-					matrix[7]=0;
-					matrix[8]=rotmat[6]*sz;
-					matrix[9]=rotmat[7]*sz;
-					matrix[10]=rotmat[8]*sz;
-					matrix[11]=0;
-					matrix[12]=phyObj.location[0];
-					matrix[13]=phyObj.location[1];
-					matrix[14]=phyObj.location[2];
-					matrix[15]=1;
-
-					ono3d.setTargetMatrix(0)
-					ono3d.loadIdentity();
-					O3o.drawObject(objects[0]);
 				}
 			}
 			break;
