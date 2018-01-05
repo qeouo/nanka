@@ -134,8 +134,9 @@ var Testact=(function(){
 					globalParam.physics_=true;
 				}
 				for(var i=0;i<phyObjs.length;i++){
-					if(phyObjs[i].joint){
-						var joint = phyObjs[i].joint;
+					var phyObj = phyObjs[i];
+					if(phyObj.joint){
+						var joint = phyObj.joint;
 						var search=function(name){
 							for(var j=0;j<phyObjs.length;j++){
 								if(name == phyObjs[j].name){
@@ -150,9 +151,21 @@ var Testact=(function(){
 						if(joint.object2){
 							joint.object2 = search(joint.object2.name);
 						}
+						joint.target = phyObj;
+						joint.parent = joint.object1;
+						if(joint.parent== joint.target){
+							joint.parent = joint.object2;
+						}
 						if(joint.object1 && joint.object2){
 							var m=joint.matrix;
-							Mat44.dot(m,joint.object2.inv_matrix,joint.object1.matrix);
+							if(joint.object1==phyObj){
+								joint.parent=joint.object2;
+								joint.child=joint.object1;
+							}else{
+								joint.parent=joint.object1;
+								joint.child=joint.object2;
+							}
+							Mat44.dot(m,joint.parent.inv_matrix,joint.child.matrix);
 							joint.len=Math.sqrt(m[12]*m[12]+m[13]*m[13]+m[14]*m[14]);
 						}
 					}
