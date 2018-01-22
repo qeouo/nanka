@@ -167,11 +167,38 @@ def ExportOno3dObject():
         if(obj.rigid_body):
             fileout(',"rigid_body":')
             fileoutMu()
-            fileout('"type":\"{}\"\n'.format(obj.rigid_body.type))
+            fileout('"type":"{}"\n'.format(obj.rigid_body.type))
             fileout(',"mass":{}\n'.format(obj.rigid_body.mass))
-            fileout(',"colligion_shape":\"{}\"\n'.format(obj.rigid_body.collision_shape))
+            fileout(',"colligion_shape":"{}"\n'.format(obj.rigid_body.collision_shape))
             fileout(',"friction":{:9f}\n'.format(obj.rigid_body.friction))
             fileout(',"restitution":{:9f}\n'.format(obj.rigid_body.restitution))
+            fileoutMd()
+        if(obj.rigid_body_constraint):
+            fileout(',"rigid_body_constraint":')
+            fileoutMu()
+            fileout('"breaking_threshold":{:9f}\n'.format(0+obj.rigid_body_constraint.breaking_threshold))
+            fileout(',"disable_collisions":{}\n'.format(0+obj.rigid_body_constraint.disable_collisions))
+            fileout(',"enabled":{}\n'.format(0+obj.rigid_body_constraint.enabled))
+            fileout(',"limit_ang_lower":[{:9f},{:9f},{:9f}]\n'.format(obj.rigid_body_constraint.limit_ang_x_lower,obj.rigid_body_constraint.limit_ang_y_lower,obj.rigid_body_constraint.limit_ang_z_lower))
+            fileout(',"limit_ang_upper":[{:9f},{:9f},{:9f}]\n'.format(obj.rigid_body_constraint.limit_ang_x_upper,obj.rigid_body_constraint.limit_ang_y_upper,obj.rigid_body_constraint.limit_ang_z_upper))
+            fileout(',"limit_lin_lower":[{:9f},{:9f},{:9f}]\n'.format(obj.rigid_body_constraint.limit_lin_x_lower,obj.rigid_body_constraint.limit_lin_y_lower,obj.rigid_body_constraint.limit_lin_z_lower))
+            fileout(',"limit_lin_upper":[{:9f},{:9f},{:9f}]\n'.format(obj.rigid_body_constraint.limit_lin_x_upper,obj.rigid_body_constraint.limit_lin_y_upper,obj.rigid_body_constraint.limit_lin_z_upper))
+            fileout(',"motor_ang_max_impulse":{:9f}\n'.format(obj.rigid_body_constraint.motor_ang_max_impulse))
+            fileout(',"motor_ang_target_velocity":{:9f}\n'.format(obj.rigid_body_constraint.motor_ang_target_velocity))
+            fileout(',"motor_lin_max_impulse":{:9f}\n'.format(obj.rigid_body_constraint.motor_lin_max_impulse))
+            fileout(',"motor_lin_target_velocity":{:9f}\n'.format(obj.rigid_body_constraint.motor_lin_target_velocity))
+            if(obj.rigid_body_constraint.object1):
+                fileout(',"object1":"{}"\n'.format(obj.rigid_body_constraint.object1.name))
+            if(obj.rigid_body_constraint.object2):
+                fileout(',"object2":"{}"\n'.format(obj.rigid_body_constraint.object2.name))
+            fileout(',"spring_damping":[{:9f},{:9f},{:9f}]\n'.format(obj.rigid_body_constraint.spring_damping_x,obj.rigid_body_constraint.spring_damping_y,obj.rigid_body_constraint.spring_damping_z))
+            fileout(',"spring_stiffness":[{:9f},{:9f},{:9f}]\n'.format(obj.rigid_body_constraint.spring_stiffness_x,obj.rigid_body_constraint.spring_stiffness_y,obj.rigid_body_constraint.spring_stiffness_z))
+            fileout(',"use_breaking":{}\n'.format(0+obj.rigid_body_constraint.use_breaking))
+            fileout(',"use_limit_ang":[{},{},{}]\n'.format(0+obj.rigid_body_constraint.use_limit_ang_x,0+obj.rigid_body_constraint.use_limit_ang_y,0+obj.rigid_body_constraint.use_limit_ang_z))
+            fileout(',"use_limit_lin":[{},{},{}]\n'.format(0+obj.rigid_body_constraint.use_limit_lin_x,0+obj.rigid_body_constraint.use_limit_lin_y,0+obj.rigid_body_constraint.use_limit_lin_z))
+            fileout(',"use_motor_ang":{}\n'.format(0+obj.rigid_body_constraint.use_motor_ang))
+            fileout(',"use_motor_lin":{}\n'.format(0+obj.rigid_body_constraint.use_motor_lin))
+            fileout(',"use_spring_ang":[{},{},{}]\n'.format(0+obj.rigid_body_constraint.use_spring_ang_x,0+obj.rigid_body_constraint.use_spring_ang_y,0+obj.rigid_body_constraint.use_spring_ang_z))
             fileoutMd()
         b = obj.bound_box
         fileout(',"bound_box":[{:9f},{:9f},{:9f},{:9f},{:9f},{:9f}]\n'.format(b[0][0],b[0][1],b[0][2],b[6][0],b[6][1],b[6][2]))
@@ -182,14 +209,14 @@ def ExportOno3dObject():
             fileout('')
             if(group != obj.modifiers[0]):fileout2(',')
             fileout2('{')
-            fileout2('"name":\"{}\"'.format(group.name))
-            fileout2(',"type":\"{}\"'.format(group.type))
+            fileout2('"name":"{}"'.format(group.name))
+            fileout2(',"type":"{}"'.format(group.type))
             if(group.type=="ARMATURE" ):
                 if(group.object!=None ):
-                    fileout2(',"object":\"{}\"'.format(group.object.name))
-                    fileout2(',"vertex_group":\"{}\"'.format(group.vertex_group))
+                    fileout2(',"object":"{}"'.format(group.object.name))
+                    fileout2(',"vertex_group":"{}"'.format(group.vertex_group))
             elif(group.type=="CLOTH" ):
-                fileout2(',"pin":\"{}\"'.format(group.settings.vertex_group_mass))
+                fileout2(',"pin":"{}"'.format(group.settings.vertex_group_mass))
                 fileout2(',"mass":{}'.format(group.settings.mass))
                 fileout2(',"structural":{}'.format(group.settings.structural_stiffness))
                 fileout2(',"bending_stiffness":{}'.format(group.settings.bending_stiffness))
@@ -205,7 +232,7 @@ def ExportOno3dObject():
                 fileout2(',"goalMax":{:9f}'.format(group.settings.goal_max))
                 fileout2(',"goalSpring":{:9f}'.format(group.settings.goal_spring))
                 fileout2(',"goalFriction":{:9f}'.format(group.settings.goal_friction))
-                fileout2(',"pin":\"{}\"'.format(group.settings.vertex_group_goal))
+                fileout2(',"pin":"{}"'.format(group.settings.vertex_group_goal))
                 fileout2(',"edgePull":{:9f}'.format(group.settings.pull))
                 fileout2(',"edgePush":{:9f}'.format(group.settings.push))
                 fileout2(',"edgeDamping":{:9f}'.format(group.settings.damping))
@@ -244,10 +271,10 @@ def WriteTexture(Texture=None):
     if Texture is None :return
         
     fileout2('{')
-    fileout2('"name":\"{}\"'.format(Texture.name))
-    fileout2(',"typ":\"{}\"'.format(Texture.type))
+    fileout2('"name":"{}"'.format(Texture.name))
+    fileout2(',"typ":"{}"'.format(Texture.type))
     if(Texture.type == "IMAGE"):
-        fileout2(',"path":\"{}\"'.format(Texture.image.filepath))
+        fileout2(',"path":"{}"'.format(Texture.image.filepath))
     fileout2('}\n')
 
 def WriteMaterial( Material=None):
@@ -288,7 +315,7 @@ def WriteMaterial( Material=None):
 def WriteArmatureBones(Armature):
     import mathutils
     fileoutMu()
-    fileout('"name":\"{}\" \n'.format( Armature.name))
+    fileout('"name":"{}" \n'.format( Armature.name))
 
     Bones = Armature.bones
     fileout(',"bones":')
@@ -297,9 +324,9 @@ def WriteArmatureBones(Armature):
         fileout('')
         if(Bones[0] != Bone):fileout2(',')
         fileoutMu()
-        fileout('"name":\"{}\" \n'.format( Bone.name))
+        fileout('"name":"{}" \n'.format( Bone.name))
         if(Bone.parent):
-            fileout(',"parent":\"{}\" \n'.format( Bone.parent.name))
+            fileout(',"parent":"{}" \n'.format( Bone.parent.name))
 
         DataBone = Bones[Bone.name]
         BoneMatrix = DataBone.matrix_local
@@ -318,7 +345,7 @@ def WriteMesh(mesh):
 
     fileoutMu()
     sp = mesh.name.split("|");
-    fileout('"name":\"{}\"\n'.format(mesh.name))
+    fileout('"name":"{}"\n'.format(mesh.name))
     if mesh.show_double_sided & config.EnableDoubleSided:
         fileout(',"double_sided":1\n')
     if mesh.shape_keys:
@@ -328,7 +355,7 @@ def WriteMesh(mesh):
             fileout('')
             if(shapeKey != mesh.shape_keys.key_blocks[0]):fileout2(',')
             fileoutMu()
-            fileout('"name":\"{}\"\n'.format(shapeKey.name ))
+            fileout('"name":"{}"\n'.format(shapeKey.name ))
             fileout(',"shapeKeyPoints":')
             fileoutLu()
             for shapeKeyPoint in shapeKey.data:
@@ -418,7 +445,7 @@ def WriteMesh(mesh):
         fileout('')
         if(uv_layer != mesh.uv_layers[0]):fileout2(',')
         fileoutMu()
-        fileout('"name":\"{}\"\n'.format(uv_layer.name ))
+        fileout('"name":"{}"\n'.format(uv_layer.name ))
         fileout(',"data":')
         fileoutLu()
         uvIndex = 0
@@ -439,9 +466,9 @@ def WriteMesh(mesh):
 
 def WriteAction(action):
     fileoutMu()
-    fileout('"name":\"{}\"\n'.format(action.name))
+    fileout('"name":"{}"\n'.format(action.name))
     fileout(',"endframe":{}\n'.format(int(action.frame_range[1])))
-    fileout(',"id_root":\"{}\"\n'.format(action.id_root))
+    fileout(',"id_root":"{}"\n'.format(action.id_root))
     fcurvesize = 0
     i = 0
 
@@ -454,9 +481,9 @@ def WriteAction(action):
         fileout2('{')
         fcurve = action.fcurves[i]
         ii = 0
-        p = re.search("\[\"(.+)\"\]\.(.+)$",fcurve.data_path)
+        p = re.search('\["(.+)"\]\.(.+)$',fcurve.data_path)
         if(not p):
-            p = re.search("\[(.+)\]\.(.+)$",fcurve.data_path)
+            p = re.search('\[(.+)\]\.(.+)$',fcurve.data_path)
         if(p):
             pflg = p.group(2)
         else:
