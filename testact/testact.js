@@ -458,7 +458,7 @@ var Testact=(function(){
 				bane = onoPhy.createSpring();
 				bane.con1 = null;
 				bane.con2 = targetPhyObj;
-				bane.scale[0]=0;
+				bane.defaultLength=0;
 				bane.f=40;
 				bane.c=40;
 
@@ -473,7 +473,7 @@ var Testact=(function(){
 
 		if(bane){
 			if(!Util.pressOn){
-				onoPhy.deletePhyObject(bane);
+				onoPhy.deleteSpring(bane);
 				bane= null;
 
 			}else{
@@ -676,7 +676,7 @@ var Testact=(function(){
 			
 			Util.setText(span,fps.toFixed(2) + "fps " + mspf.toFixed(2) + "msec/f"
 				   +"\n AABB " + onoPhy.collider.AABBTime+"ms(" + onoPhy.collider.collisions.length + ")"
-				   +"\n Collision " + onoPhy.collider.collisionTime + "ms(" + onoPhy.collider.collisionCount+ ")"
+				   +"\n Collision " + onoPhy.collisionTime + "ms(" + onoPhy.collider.collisionCount+ ")"
 				   +"\n Impulse " + onoPhy.impulseTime+"ms ,repetition " + onoPhy.repetition
 				   +"\n draw geometry " + drawgeometry +"ms"
 				   +"\n draw rasterise " + drawrasterise +"ms" 

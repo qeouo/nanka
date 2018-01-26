@@ -169,7 +169,7 @@ def ExportOno3dObject():
             fileoutMu()
             fileout('"type":"{}"\n'.format(obj.rigid_body.type))
             fileout(',"mass":{}\n'.format(obj.rigid_body.mass))
-            fileout(',"colligion_shape":"{}"\n'.format(obj.rigid_body.collision_shape))
+            fileout(',"collision_shape":"{}"\n'.format(obj.rigid_body.collision_shape))
             fileout(',"friction":{:9f}\n'.format(obj.rigid_body.friction))
             fileout(',"restitution":{:9f}\n'.format(obj.rigid_body.restitution))
             fileoutMd()
@@ -201,6 +201,7 @@ def ExportOno3dObject():
             fileout(',"use_motor_lin":{}\n'.format(0+rbc.use_motor_lin))
             fileout(',"use_spring":[{},{},{}]\n'.format(0+rbc.use_spring_x,0+rbc.use_spring_y,0+rbc.use_spring_z))
             fileout(',"use_spring_ang":[{},{},{}]\n'.format(0+rbc.use_spring_ang_x,0+rbc.use_spring_ang_y,0+rbc.use_spring_ang_z))
+            fileout(',"type":"{}"\n'.format(rbc.type))
             fileoutMd()
         b = obj.bound_box
         fileout(',"bound_box":[{:9f},{:9f},{:9f},{:9f},{:9f},{:9f}]\n'.format(b[0][0],b[0][1],b[0][2],b[6][0],b[6][1],b[6][2]))
