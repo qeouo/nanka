@@ -194,6 +194,8 @@ def ExportOno3dObject():
                 fileout(',"object2":"{}"\n'.format(rbc.object2.name))
             fileout(',"spring_damping":[{:9f},{:9f},{:9f}]\n'.format(rbc.spring_damping_x,rbc.spring_damping_y,rbc.spring_damping_z))
             fileout(',"spring_stiffness":[{:9f},{:9f},{:9f}]\n'.format(rbc.spring_stiffness_x,rbc.spring_stiffness_y,rbc.spring_stiffness_z))
+            fileout(',"spring_damping_ang":[{:9f},{:9f},{:9f}]\n'.format(rbc.spring_damping_ang_x,rbc.spring_damping_ang_y,rbc.spring_damping_ang_z))
+            fileout(',"spring_stiffness_ang":[{:9f},{:9f},{:9f}]\n'.format(rbc.spring_stiffness_ang_x,rbc.spring_stiffness_ang_y,rbc.spring_stiffness_ang_z))
             fileout(',"use_breaking":{}\n'.format(0+rbc.use_breaking))
             fileout(',"use_limit_ang":[{},{},{}]\n'.format(0+rbc.use_limit_ang_x,0+rbc.use_limit_ang_y,0+rbc.use_limit_ang_z))
             fileout(',"use_limit_lin":[{},{},{}]\n'.format(0+rbc.use_limit_lin_x,0+rbc.use_limit_lin_y,0+rbc.use_limit_lin_z))
