@@ -88,9 +88,10 @@
     ,"rigid_body":{
       "type":"ACTIVE"
       ,"mass":1.0
-      ,"colligion_shape":"SPHERE"
+      ,"collision_shape":"SPHERE"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
     ,"modifiers":[
@@ -108,9 +109,10 @@
     ,"rigid_body":{
       "type":"ACTIVE"
       ,"mass":1.0
-      ,"colligion_shape":"SPHERE"
+      ,"collision_shape":"SPHERE"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
     ,"modifiers":[
@@ -128,9 +130,10 @@
     ,"rigid_body":{
       "type":"ACTIVE"
       ,"mass":1.0
-      ,"colligion_shape":"SPHERE"
+      ,"collision_shape":"SPHERE"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
     ,"modifiers":[
@@ -148,9 +151,10 @@
     ,"rigid_body":{
       "type":"ACTIVE"
       ,"mass":1.0
-      ,"colligion_shape":"SPHERE"
+      ,"collision_shape":"SPHERE"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
     ,"modifiers":[
@@ -168,9 +172,10 @@
     ,"rigid_body":{
       "type":"ACTIVE"
       ,"mass":1.0
-      ,"colligion_shape":"SPHERE"
+      ,"collision_shape":"SPHERE"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
     ,"modifiers":[
@@ -188,9 +193,10 @@
     ,"rigid_body":{
       "type":"ACTIVE"
       ,"mass":1.0
-      ,"colligion_shape":"SPHERE"
+      ,"collision_shape":"SPHERE"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
     ,"modifiers":[
@@ -208,9 +214,10 @@
     ,"rigid_body":{
       "type":"ACTIVE"
       ,"mass":1.0
-      ,"colligion_shape":"SPHERE"
+      ,"collision_shape":"SPHERE"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
     ,"modifiers":[
@@ -228,9 +235,10 @@
     ,"rigid_body":{
       "type":"ACTIVE"
       ,"mass":1.0
-      ,"colligion_shape":"SPHERE"
+      ,"collision_shape":"SPHERE"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
     ,"modifiers":[
@@ -248,9 +256,10 @@
     ,"rigid_body":{
       "type":"ACTIVE"
       ,"mass":1.0
-      ,"colligion_shape":"SPHERE"
+      ,"collision_shape":"SPHERE"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
     ,"modifiers":[
@@ -268,9 +277,10 @@
     ,"rigid_body":{
       "type":"ACTIVE"
       ,"mass":1.0
-      ,"colligion_shape":"SPHERE"
+      ,"collision_shape":"SPHERE"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
     ,"modifiers":[
@@ -288,9 +298,10 @@
     ,"rigid_body":{
       "type":"ACTIVE"
       ,"mass":1.0
-      ,"colligion_shape":"SPHERE"
+      ,"collision_shape":"SPHERE"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
     ,"modifiers":[
@@ -308,9 +319,10 @@
     ,"rigid_body":{
       "type":"ACTIVE"
       ,"mass":1.0
-      ,"colligion_shape":"SPHERE"
+      ,"collision_shape":"SPHERE"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
     ,"modifiers":[
@@ -328,9 +340,10 @@
     ,"rigid_body":{
       "type":"ACTIVE"
       ,"mass":1.0
-      ,"colligion_shape":"SPHERE"
+      ,"collision_shape":"SPHERE"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
     ,"modifiers":[
@@ -348,9 +361,10 @@
     ,"rigid_body":{
       "type":"ACTIVE"
       ,"mass":1.0
-      ,"colligion_shape":"SPHERE"
+      ,"collision_shape":"SPHERE"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
     ,"modifiers":[
@@ -368,9 +382,10 @@
     ,"rigid_body":{
       "type":"ACTIVE"
       ,"mass":1.0
-      ,"colligion_shape":"SPHERE"
+      ,"collision_shape":"SPHERE"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
     ,"modifiers":[
@@ -388,9 +403,10 @@
     ,"rigid_body":{
       "type":"ACTIVE"
       ,"mass":1.0
-      ,"colligion_shape":"SPHERE"
+      ,"collision_shape":"SPHERE"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
     ,"modifiers":[
@@ -408,9 +424,10 @@
     ,"rigid_body":{
       "type":"ACTIVE"
       ,"mass":1.0
-      ,"colligion_shape":"SPHERE"
+      ,"collision_shape":"SPHERE"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
     ,"modifiers":[
@@ -428,9 +445,10 @@
     ,"rigid_body":{
       "type":"ACTIVE"
       ,"mass":1.0
-      ,"colligion_shape":"SPHERE"
+      ,"collision_shape":"SPHERE"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
     ,"modifiers":[
@@ -448,9 +466,10 @@
     ,"rigid_body":{
       "type":"ACTIVE"
       ,"mass":1.0
-      ,"colligion_shape":"SPHERE"
+      ,"collision_shape":"SPHERE"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
     ,"modifiers":[
@@ -468,9 +487,10 @@
     ,"rigid_body":{
       "type":"ACTIVE"
       ,"mass":1.0
-      ,"colligion_shape":"SPHERE"
+      ,"collision_shape":"SPHERE"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
     ,"modifiers":[
@@ -488,9 +508,10 @@
     ,"rigid_body":{
       "type":"ACTIVE"
       ,"mass":1.0
-      ,"colligion_shape":"SPHERE"
+      ,"collision_shape":"SPHERE"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
     ,"modifiers":[
@@ -508,9 +529,10 @@
     ,"rigid_body":{
       "type":"ACTIVE"
       ,"mass":1.0
-      ,"colligion_shape":"SPHERE"
+      ,"collision_shape":"SPHERE"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
     ,"modifiers":[
@@ -528,9 +550,10 @@
     ,"rigid_body":{
       "type":"ACTIVE"
       ,"mass":1.0
-      ,"colligion_shape":"SPHERE"
+      ,"collision_shape":"SPHERE"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
     ,"modifiers":[
@@ -548,9 +571,10 @@
     ,"rigid_body":{
       "type":"ACTIVE"
       ,"mass":1.0
-      ,"colligion_shape":"SPHERE"
+      ,"collision_shape":"SPHERE"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
     ,"modifiers":[
@@ -568,9 +592,10 @@
     ,"rigid_body":{
       "type":"ACTIVE"
       ,"mass":1.0
-      ,"colligion_shape":"SPHERE"
+      ,"collision_shape":"SPHERE"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
     ,"modifiers":[
@@ -601,9 +626,10 @@
     ,"rigid_body":{
       "type":"PASSIVE"
       ,"mass":1.0
-      ,"colligion_shape":"BOX"
+      ,"collision_shape":"BOX"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-1.000000,-1.000000,-1.000000, 1.000000, 1.000000, 1.000000]
     ,"modifiers":[
@@ -621,9 +647,10 @@
     ,"rigid_body":{
       "type":"PASSIVE"
       ,"mass":1.0
-      ,"colligion_shape":"BOX"
+      ,"collision_shape":"BOX"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-1.000000,-1.000000,-1.000000, 1.000000, 1.000000, 1.000000]
     ,"modifiers":[
@@ -641,9 +668,10 @@
     ,"rigid_body":{
       "type":"PASSIVE"
       ,"mass":1.0
-      ,"colligion_shape":"BOX"
+      ,"collision_shape":"BOX"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-1.000000,-1.000000,-1.000000, 1.000000, 1.000000, 1.000000]
     ,"modifiers":[
@@ -661,9 +689,10 @@
     ,"rigid_body":{
       "type":"PASSIVE"
       ,"mass":1.0
-      ,"colligion_shape":"BOX"
+      ,"collision_shape":"BOX"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-1.000000,-1.000000,-1.000000, 1.000000, 1.000000, 1.000000]
     ,"modifiers":[
