@@ -284,6 +284,7 @@ var Testact=(function(){
 		globalParam.fps=30;
 		globalParam.scene=0;
 		globalParam.shadow=1;
+		globalParam.hdr=0;
 		globalParam.model="./field.o3o";
 		globalParam.materialMode = false;
 		globalParam.cColor= "ffffff";
@@ -458,7 +459,7 @@ var Testact=(function(){
 				bane = onoPhy.createSpring();
 				bane.con1 = null;
 				bane.con2 = targetPhyObj;
-				bane.scale[0]=0;
+				bane.defaultLength=0;
 				bane.f=40;
 				bane.c=40;
 
@@ -473,7 +474,7 @@ var Testact=(function(){
 
 		if(bane){
 			if(!Util.pressOn){
-				onoPhy.deletePhyObject(bane);
+				onoPhy.deleteSpring(bane);
 				bane= null;
 
 			}else{
@@ -614,7 +615,7 @@ var Testact=(function(){
 		Plain.draw(ono3d);
 		gl.finish();
 		
-//描画結果を別フレームバッファにコピー
+//描画結果をメインのバッファにコピー
 		gl.depthMask(false);
 		gl.disable(gl.DEPTH_TEST);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
@@ -631,25 +632,27 @@ var Testact=(function(){
 		gl.clear(gl.COLOR_BUFFER_BIT);
 		gl.colorMask(true,true,true,true);
 
-//疑似HDRぼかし
-		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-		gl.viewport(0,0,WIDTH+1.0,HEIGHT);
-		gl.depthMask(false);
-		gl.disable(gl.DEPTH_TEST);
-		gl.enable(gl.BLEND);
-		gl.blendFuncSeparate(gl.CONSTANT_ALPHA,gl.DST_ALPHA,gl.ZERO,gl.ZERO);
-		gl.blendColor(0,0,0,0.7);
-		Rastgl.copyframe(emiTexture,0,0,WIDTH/1024,HEIGHT/1024);
-		gl.disable(gl.BLEND);
-		gl.bindTexture(gl.TEXTURE_2D, emiTexture);
-		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
-		Gauss.filter(emiTexture,emiTexture,100,2.0/1024,1024.0);
-//表画面に合成
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		gl.viewport(0,0,WIDTH,HEIGHT);
-		gl.enable(gl.BLEND);
-		gl.blendFunc(gl.ONE,gl.ONE);
-		Rastgl.copyframe(emiTexture,0,0,WIDTH/1024,HEIGHT/1024);
+		if(globalParam.hdr){
+			//疑似HDRぼかし(α値が0が通常、1に近いほど光る)
+			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+			gl.viewport(0,0,WIDTH+1.0,HEIGHT);
+			gl.depthMask(false);
+			gl.disable(gl.DEPTH_TEST);
+			gl.enable(gl.BLEND);
+			gl.blendFuncSeparate(gl.CONSTANT_ALPHA,gl.DST_ALPHA,gl.ZERO,gl.ZERO);
+			gl.blendColor(0,0,0,0.7);
+			Rastgl.copyframe(emiTexture,0,0,WIDTH/1024,HEIGHT/1024); //既存の光テクスチャを重ねる
+			gl.disable(gl.BLEND);
+			gl.bindTexture(gl.TEXTURE_2D, emiTexture);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);//結果を光テクスチャに書き込み
+			Gauss.filter(emiTexture,emiTexture,100,2.0/1024,1024.0); //光テクスチャをぼかす
+
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			gl.viewport(0,0,WIDTH,HEIGHT);
+			gl.enable(gl.BLEND);
+			gl.blendFunc(gl.ONE,gl.ONE);
+			Rastgl.copyframe(emiTexture,0,0,WIDTH/1024,HEIGHT/1024); //メイン画面に合成
+		}
 
 //		if(bdfimage){
 //			gl.enable(gl.BLEND);
@@ -676,7 +679,7 @@ var Testact=(function(){
 			
 			Util.setText(span,fps.toFixed(2) + "fps " + mspf.toFixed(2) + "msec/f"
 				   +"\n AABB " + onoPhy.collider.AABBTime+"ms(" + onoPhy.collider.collisions.length + ")"
-				   +"\n Collision " + onoPhy.collider.collisionTime + "ms(" + onoPhy.collider.collisionCount+ ")"
+				   +"\n Collision " + onoPhy.collisionTime + "ms(" + onoPhy.collider.collisionCount+ ")"
 				   +"\n Impulse " + onoPhy.impulseTime+"ms ,repetition " + onoPhy.repetition
 				   +"\n draw geometry " + drawgeometry +"ms"
 				   +"\n draw rasterise " + drawrasterise +"ms" 
@@ -865,6 +868,7 @@ var Testact=(function(){
 			,"outlineColor"
 			,"stereoVolume"
 			,"shadow"
+			,"hdr"
 			,"frenel"
 			,"cMaterial"
 			,"cColor"
