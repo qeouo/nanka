@@ -336,7 +336,6 @@
 ,"objects":[
   {
     "name":"c"
-    ,"hide_render": 1
     ,"groups":[]
     ,"location":[ 0.371316,-0.002747, 3.118977]
     ,"rotation":[ 1.570796, 0.000000, 0.000000]
@@ -350,6 +349,7 @@
       ,"collision_shape":"BOX"
       ,"friction":10.000000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"rigid_body_constraint":{
       "breaking_threshold":10.000000
@@ -384,7 +384,6 @@
   }
   ,{
     "name":"c.001"
-    ,"hide_render": 1
     ,"groups":[]
     ,"location":[-0.391215,-0.002747, 3.118977]
     ,"rotation":[ 1.570796, 0.000000, 0.000000]
@@ -398,6 +397,7 @@
       ,"collision_shape":"BOX"
       ,"friction":10.000000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"rigid_body_constraint":{
       "breaking_threshold":10.000000
@@ -432,7 +432,6 @@
   }
   ,{
     "name":"c.002"
-    ,"hide_render": 1
     ,"groups":[]
     ,"location":[-1.141589,-0.008079, 3.118977]
     ,"rotation":[ 1.570796, 0.000000, 0.000000]
@@ -446,6 +445,7 @@
       ,"collision_shape":"BOX"
       ,"friction":10.000000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"rigid_body_constraint":{
       "breaking_threshold":10.000000
@@ -480,7 +480,6 @@
   }
   ,{
     "name":"c.003"
-    ,"hide_render": 1
     ,"groups":[]
     ,"location":[-1.886418,-0.000401, 3.118977]
     ,"rotation":[ 1.570796, 0.000000, 0.000000]
@@ -494,6 +493,7 @@
       ,"collision_shape":"BOX"
       ,"friction":10.000000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"rigid_body_constraint":{
       "breaking_threshold":10.000000
@@ -554,6 +554,7 @@
       ,"collision_shape":"SPHERE"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"rigid_body_constraint":{
       "breaking_threshold":10.000000
@@ -601,6 +602,7 @@
       ,"collision_shape":"SPHERE"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"rigid_body_constraint":{
       "breaking_threshold":10.000000
@@ -648,6 +650,7 @@
       ,"collision_shape":"SPHERE"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"rigid_body_constraint":{
       "breaking_threshold":10.000000
@@ -695,6 +698,7 @@
       ,"collision_shape":"SPHERE"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"rigid_body_constraint":{
       "breaking_threshold":10.000000
@@ -742,6 +746,7 @@
       ,"collision_shape":"SPHERE"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
     ,"modifiers":[
@@ -762,6 +767,7 @@
       ,"collision_shape":"SPHERE"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.199557,-0.189788,-0.223111, 0.199557, 0.189788, 0.223111]
     ,"modifiers":[
@@ -782,7 +788,6 @@
   }
   ,{
     "name":"立方体"
-    ,"hide_render": 1
     ,"groups":[]
     ,"location":[-0.003601,-0.007191, 3.107546]
     ,"rotation":[ 1.570796, 0.000000, 0.000000]
@@ -796,6 +801,7 @@
       ,"collision_shape":"BOX"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"rigid_body_constraint":{
       "breaking_threshold":10.000000
@@ -830,7 +836,6 @@
   }
   ,{
     "name":"立方体.001"
-    ,"hide_render": 1
     ,"groups":[]
     ,"location":[-0.766133,-0.007191, 3.107546]
     ,"rotation":[ 1.570796, 0.000000, 0.000000]
@@ -844,6 +849,7 @@
       ,"collision_shape":"BOX"
       ,"friction":10.000000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"rigid_body_constraint":{
       "breaking_threshold":10.000000
@@ -878,7 +884,6 @@
   }
   ,{
     "name":"立方体.002"
-    ,"hide_render": 1
     ,"groups":[]
     ,"location":[-1.516507,-0.012523, 3.107546]
     ,"rotation":[ 1.570796, 0.000000, 0.000000]
@@ -892,6 +897,7 @@
       ,"collision_shape":"BOX"
       ,"friction":10.000000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"rigid_body_constraint":{
       "breaking_threshold":10.000000
@@ -926,7 +932,6 @@
   }
   ,{
     "name":"立方体.003"
-    ,"hide_render": 1
     ,"groups":[]
     ,"location":[-2.261335,-0.004844, 3.107546]
     ,"rotation":[ 1.570796, 0.000000, 0.000000]
@@ -940,6 +945,7 @@
       ,"collision_shape":"BOX"
       ,"friction":10.000000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.259587,-0.106998,-0.218774, 0.259587, 0.106998, 0.218774]
     ,"modifiers":[
@@ -960,6 +966,7 @@
       ,"collision_shape":"BOX"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-1.000000,-1.000000,-1.000000, 1.000000, 1.000000, 1.000000]
     ,"modifiers":[
@@ -980,6 +987,7 @@
       ,"collision_shape":"BOX"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"rigid_body_constraint":{
       "breaking_threshold":10.000000
@@ -1027,6 +1035,7 @@
       ,"collision_shape":"BOX"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.313439,-0.150196,-0.150196, 0.313439, 0.150196, 0.150196]
     ,"modifiers":[
@@ -1047,6 +1056,7 @@
       ,"collision_shape":"BOX"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.313439,-0.150196,-0.150196, 0.313439, 0.150196, 0.150196]
     ,"modifiers":[
@@ -1067,6 +1077,7 @@
       ,"collision_shape":"BOX"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"rigid_body_constraint":{
       "breaking_threshold":10.000000
@@ -1114,6 +1125,7 @@
       ,"collision_shape":"BOX"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"rigid_body_constraint":{
       "breaking_threshold":10.000000
@@ -1161,6 +1173,7 @@
       ,"collision_shape":"BOX"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"rigid_body_constraint":{
       "breaking_threshold":10.000000

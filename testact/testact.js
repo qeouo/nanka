@@ -243,6 +243,9 @@ var Testact=(function(){
 				if(obj3d.scenes.length>0){
 					var objects = obj3d.scenes[globalParam.scene].objects;
 					for(var i=0;i<objects.length;i++){
+						if(objects[i].hide_render){
+							continue;
+						}
 						ono3d.lineWidth=1;
 						ono3d.rf&=~Ono3d.RF_OUTLINE;
 						if(globalParam.outlineWidth>0.){

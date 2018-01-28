@@ -172,6 +172,10 @@ def ExportOno3dObject():
             fileout(',"collision_shape":"{}"\n'.format(obj.rigid_body.collision_shape))
             fileout(',"friction":{:9f}\n'.format(obj.rigid_body.friction))
             fileout(',"restitution":{:9f}\n'.format(obj.rigid_body.restitution))
+            collision_groups=0
+            for num in range(20):
+                collision_groups|= (obj.rigid_body.collision_groups[num] << num)
+            fileout(',"collision_groups":{}\n'.format(collision_groups))
             fileoutMd()
         if(obj.rigid_body_constraint):
             rbc=obj.rigid_body_constraint
