@@ -357,6 +357,7 @@
       ,"collision_shape":"BOX"
       ,"friction": 0.300000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.382152,-0.256865,-0.201574, 0.382152, 0.256865, 0.201574]
     ,"modifiers":[
@@ -377,6 +378,7 @@
       ,"collision_shape":"SPHERE"
       ,"friction": 0.500000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.356201,-0.374531,-0.374531, 0.356201, 0.374531, 0.374531]
     ,"modifiers":[
@@ -398,6 +400,7 @@
       ,"collision_shape":"CAPSULE"
       ,"friction": 0.300000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-0.221535,-0.221535,-0.616058, 0.221535, 0.221535, 0.616058]
     ,"modifiers":[
@@ -419,6 +422,7 @@
       ,"collision_shape":"MESH"
       ,"friction": 1.000000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-2.557271,-2.557271,-0.000000, 2.557271, 2.557271, 0.556242]
     ,"modifiers":[
@@ -440,6 +444,7 @@
       ,"collision_shape":"BOX"
       ,"friction": 1.000000
       ,"restitution": 0.000000
+      ,"collision_groups":1
     }
     ,"bound_box":[-1.699281,-1.699281,-0.138922, 1.699281, 1.699281, 0.138922]
     ,"modifiers":[
