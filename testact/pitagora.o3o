@@ -456,6 +456,33 @@
       ,"restitution": 0.000000
       ,"collision_groups":4
     }
+    ,"rigid_body_constraint":{
+      "breaking_threshold":10.000000
+      ,"disable_collisions":1
+      ,"enabled":1
+      ,"limit_ang_lower":[-0.785398,-0.785398,-0.785398]
+      ,"limit_ang_upper":[ 0.785398, 0.785398, 0.785398]
+      ,"limit_lin_lower":[-1.000000,-1.000000,-1.000000]
+      ,"limit_lin_upper":[ 1.000000, 1.000000, 1.000000]
+      ,"motor_ang_max_impulse": 1.000000
+      ,"motor_ang_target_velocity": 1.000000
+      ,"motor_lin_max_impulse": 1.000000
+      ,"motor_lin_target_velocity": 1.000000
+      ,"object1":"kabe2"
+      ,"object2":"立方体"
+      ,"spring_damping":[ 0.500000, 0.500000, 0.500000]
+      ,"spring_stiffness":[10.000000,10.000000,10.000000]
+      ,"spring_damping_ang":[ 0.500000, 0.500000, 0.500000]
+      ,"spring_stiffness_ang":[10.000000,10.000000,10.000000]
+      ,"use_breaking":0
+      ,"use_limit_ang":[0,0,0]
+      ,"use_limit_lin":[0,0,0]
+      ,"use_motor_ang":0
+      ,"use_motor_lin":0
+      ,"use_spring":[0,0,0]
+      ,"use_spring_ang":[0,0,0]
+      ,"type":"SLIDER"
+    }
     ,"bound_box":[-0.215944,-0.304401,-0.057763, 0.215944, 0.304401, 0.057763]
     ,"modifiers":[
     ]
@@ -716,7 +743,7 @@
       ,"spring_damping":[ 0.500000, 0.500000, 0.500000]
       ,"spring_stiffness":[10.000000,10.000000,10.000000]
       ,"spring_damping_ang":[ 0.500000, 0.600000, 0.500000]
-      ,"spring_stiffness_ang":[10.000000,30.000000,10.000000]
+      ,"spring_stiffness_ang":[10.000000,25.000000,10.000000]
       ,"use_breaking":0
       ,"use_limit_ang":[1,1,1]
       ,"use_limit_lin":[1,1,1]
@@ -725,54 +752,6 @@
       ,"use_spring":[0,0,0]
       ,"use_spring_ang":[0,1,0]
       ,"type":"GENERIC_SPRING"
-    }
-    ,"bound_box":[-1.165758,-1.165758,-0.300575, 1.165758, 1.165758, 0.300575]
-    ,"modifiers":[
-    ]
-  }
-  ,{
-    "name":"立方体.013"
-    ,"groups":[]
-    ,"location":[ 0.922579, 0.076102, 0.009204]
-    ,"rotation":[ 0.000003,-1.581638,-0.000003]
-    ,"scale":[ 0.313164, 0.142263, 0.190027]
-    ,"matrix":[-0.003395, 0.000000, 0.313146, 0.000000,-0.000000, 0.142263,-0.000000, 0.000000,-0.190016,-0.000000,-0.002060, 0.000000, 0.922579, 0.076102, 0.009204, 1.000000]
-    ,"type":"MESH"
-    ,"data":"立方体.015"
-    ,"rigid_body":{
-      "type":"PASSIVE"
-      ,"mass":1.0
-      ,"collision_shape":"BOX"
-      ,"friction": 0.500000
-      ,"restitution": 0.000000
-      ,"collision_groups":1
-    }
-    ,"rigid_body_constraint":{
-      "breaking_threshold":10.000000
-      ,"disable_collisions":1
-      ,"enabled":1
-      ,"limit_ang_lower":[ 0.000000, 0.000000, 0.000000]
-      ,"limit_ang_upper":[ 0.000000, 0.000000, 0.000000]
-      ,"limit_lin_lower":[-0.100000, 0.000000,-1.000000]
-      ,"limit_lin_upper":[ 0.000000, 0.000000, 1.000000]
-      ,"motor_ang_max_impulse": 1.000000
-      ,"motor_ang_target_velocity": 1.000000
-      ,"motor_lin_max_impulse": 1.000000
-      ,"motor_lin_target_velocity": 1.000000
-      ,"object1":"立方体.013"
-      ,"object2":"立方体"
-      ,"spring_damping":[ 0.500000, 0.500000, 0.500000]
-      ,"spring_stiffness":[10.000000,10.000000,10.000000]
-      ,"spring_damping_ang":[ 0.500000, 0.500000, 0.500000]
-      ,"spring_stiffness_ang":[10.000000,10.000000,10.000000]
-      ,"use_breaking":0
-      ,"use_limit_ang":[1,1,1]
-      ,"use_limit_lin":[0,1,0]
-      ,"use_motor_ang":0
-      ,"use_motor_lin":0
-      ,"use_spring":[0,0,0]
-      ,"use_spring_ang":[0,0,0]
-      ,"type":"SLIDER"
     }
     ,"bound_box":[-1.165758,-1.165758,-0.300575, 1.165758, 1.165758, 0.300575]
     ,"modifiers":[
@@ -832,7 +811,7 @@
     "name":"Scene"
     ,"frame_start":1
     ,"frame_end":1000
-    ,"objects":["立方体.005","立方体","立方体.008","立方体.014","立方体.013","立方体.011","立方体.009","立方体.007","kabe2","kabe","ICO球.002","ICO球.001","立方体.003","立方体.002","立方体.001","立方体.000","ICO球","Lamp","Camera"]
+    ,"objects":["立方体.005","立方体","立方体.008","立方体.014","立方体.011","立方体.009","立方体.007","kabe2","kabe","ICO球.002","ICO球.001","立方体.003","立方体.002","立方体.001","立方体.000","ICO球","Lamp","Camera"]
   }
 ]
 }
