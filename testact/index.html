@@ -5,33 +5,12 @@
 <meta http-equiv="Content-Language" content="ja" />
 <meta http-equiv="Content-Style-Type" content="text/css" />
 <meta http-equiv="Content-Script-Type" content="text/javascript" />
+<meta name="expires" content="0" />
 <!-- meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" /-->
 
-
-<script type="text/javascript">
-
-function inherits(childCtor, parentCtor) {
-    // ES6
-    if (Object.setPrototypeOf) {
-        Object.setPrototypeOf(childCtor.prototype, parentCtor.prototype);
-    }
-    // ES5
-    else if (Object.create) {
-        childCtor.prototype = Object.create(parentCtor.prototype);
-    }
-    // legacy platform
-    else {
-        function tempCtor() {};
-        tempCtor.prototype = parentCtor.prototype;
-        childCtor.superClass_ = parentCtor.prototype;
-        childCtor.prototype = new tempCtor();
-        childCtor.prototype.constructor = childCtor;
-    }
-};
-</script>
-
+<script type="text/javascript" src="../lib/inherits.js"></script>
 <script type="text/javascript" src="../lib/vector.js"></script>
 <script type="text/javascript" src="../lib/geono.js"></script>
 <script type="text/javascript" src="../lib/sort.js"></script>
