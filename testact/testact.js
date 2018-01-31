@@ -354,15 +354,18 @@ var Testact=(function(){
 			}
 		}
 
-			for(i=0;i<OBJSLENGTH;i++){
-				if(objs[i].stat!==STAT_ENABLE)continue;
-				objs[i].func(objs[i],MSG_MOVE,0);
-			}
-			if(globalParam.physics){
-				for(var i=0;i<globalParam.step;i++){
+		for(i=0;i<OBJSLENGTH;i++){
+			if(objs[i].stat!==STAT_ENABLE)continue;
+			objs[i].func(objs[i],MSG_MOVE,0);
+		}
+		var phytime=0;
+		if(globalParam.physics){
+			for(var i=0;i<globalParam.step;i++){
+				var s=Date.now();
 				onoPhy.calc(1.0/globalParam.fps/globalParam.step);
-				}
+				phytime=Date.now()-s;
 			}
+		}
 
 		//camera3.p[0]=0;
 		//camera2.p[1]=15;
@@ -682,8 +685,9 @@ var Testact=(function(){
 			
 			Util.setText(span,fps.toFixed(2) + "fps " + mspf.toFixed(2) + "msec/f"
 				   +"\n AABB " + onoPhy.collider.AABBTime+"ms(" + onoPhy.collider.collisions.length + ")"
-				   +"\n Collision " + onoPhy.collisionTime + "ms(" + onoPhy.collider.collisionCount+ ")"
+				   +"\n Collision " + onoPhy.collider.collisionTime + "ms(" + onoPhy.collider.collisionCount+ ")"
 				   +"\n Impulse " + onoPhy.impulseTime+"ms ,repetition " + onoPhy.repetition
+				   +"\n PhyTime" + phytime
 				   +"\n draw geometry " + drawgeometry +"ms"
 				   +"\n draw rasterise " + drawrasterise +"ms" 
 				   )
