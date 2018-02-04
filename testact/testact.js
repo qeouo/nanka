@@ -442,7 +442,7 @@ var Testact=(function(){
 			Vec3.set(p1,vec4[0],vec4[1],vec4[2]);
 
 			bane= null;
-			tsukamiZ= 100;
+			tsukamiZ= 1;
 			var targetPhyObj = null;
 			for(var i=0;i<mobj.phyObjs.length;i++){
 				var phyObj = mobj.phyObjs[i];
@@ -454,7 +454,7 @@ var Testact=(function(){
 					continue;
 				}
 				var z = Collider.collisionLine(p0,p1,collision);
-				if(z>0){
+				if(z>0&& z>-1){
 					if(z<tsukamiZ){
 						tsukamiZ = z;
 						targetPhyObj = collision.parent;
@@ -466,7 +466,7 @@ var Testact=(function(){
 				bane.con1 = null;
 				bane.con2 = targetPhyObj;
 				bane.defaultLength=0;
-				bane.f=40;
+				bane.f=40*targetPhyObj.mass;
 				bane.c=40;
 
 				Vec3.sub(bV2,p1,p0);
