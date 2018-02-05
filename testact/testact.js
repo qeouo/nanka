@@ -446,14 +446,14 @@ var Testact=(function(){
 			var targetPhyObj = null;
 			for(var i=0;i<mobj.phyObjs.length;i++){
 				var phyObj = mobj.phyObjs[i];
-				//if(phyObj.fix){
-				//	continue;
-				//}
+				if(phyObj.fix){
+					continue;
+				}
 				var collision= phyObj.children[0];
 				if(!collision){
 					continue;
 				}
-				var z = Collider.collisionLine(p0,p1,collision);
+				var z = collision.ray(p0,p1);
 				if(z>0&& z>-1){
 					if(z<tsukamiZ){
 						tsukamiZ = z;

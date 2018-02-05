@@ -355,7 +355,7 @@
       "type":"ACTIVE"
       ,"mass":1.0
       ,"collision_shape":"BOX"
-      ,"friction": 0.250000
+      ,"friction": 0.300000
       ,"restitution": 0.000000
       ,"collision_groups":1
     }
