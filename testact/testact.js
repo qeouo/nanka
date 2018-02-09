@@ -106,129 +106,63 @@ var Testact=(function(){
 			Vec3.set(obj.p,0,15,-9);
 			break;
 		case MSG_MOVE:
-		
-			
 			if(obj3d.scenes.length===0){
 				break;
 			}
+			
+			 //変換マトリクス初期化
+			ono3d.setTargetMatrix(1);
+			ono3d.loadIdentity();
+			ono3d.setTargetMatrix(0);
+			ono3d.loadIdentity();
+			ono3d.rotate(-PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
+
 			var scene= obj3d.scenes[globalParam.scene];
+			O3o.setFrame(obj3d,scene,timer/1000.0*24); //アニメーション処理
+
 			if(phyObjs===null){
+				//物理シミュオブジェクトの設定
 				if(obj3d.scenes.length>0){
 					phyObjs=new Array();
 					obj.phyObjs= phyObjs;
-					ono3d.setTargetMatrix(1)
-					ono3d.loadIdentity()
-					ono3d.setTargetMatrix(0)
-					ono3d.loadIdentity()
-					ono3d.rotate(-PI*0.5,1,0,0);
-					O3o.setFrame(obj3d,scene,0);
 					for(i=0;i<scene.objects.length;i++){
-						var object=scene.objects[i];
+						//3Dデータから物理オブジェクト生成
 						var phyobj=O3o.createPhyObj(scene.objects[i],onoPhy);
 						if(!phyobj){
 							continue;
 						}
 						phyObjs.push(phyobj);
-						object.phyObj = phyobj;
+						scene.objects[i].phyObj = phyobj;
+
+						//物理オブジェクトにアニメーション結果を強制反映
+						O3o.movePhyObj(scene.objects[i],true);
 					}
-					globalParam.physics_=true;
-				}
-				for(var i=0;i<phyObjs.length;i++){
-					var phyObj = phyObjs[i];
-					if(phyObj.joint){
-						var joint = phyObj.joint;
-						var search=function(name){
-							for(var j=0;j<phyObjs.length;j++){
-								if(name == phyObjs[j].name){
-									return phyObjs[j];
-								}
-							}
-							return null;
-						}
-						if(joint.object1){
-							joint.object1 = search(joint.object1.name);
-						}
-						if(joint.object2){
-							joint.object2 = search(joint.object2.name);
-						}
-						joint.target = phyObj;
-						joint.parent = joint.object1;
-						if(joint.parent== joint.target){
-							joint.parent = joint.object2;
-						}
-						if(joint.object1 && joint.object2){
-							var m=joint.matrix;
-							if(joint.object1==phyObj){
-								joint.parent=joint.object2;
-								joint.child=joint.object1;
-							}else{
-								joint.parent=joint.object1;
-								joint.child=joint.object2;
-							}
-							Mat44.dot(m,joint.parent.inv_matrix,joint.child.matrix);
-							joint.len=Math.sqrt(m[12]*m[12]+m[13]*m[13]+m[14]*m[14]);
-						}
+
+					for(var i=0;i<phyObjs.length;i++){
+						//ジョイント作成
+						O3o.createPhyJoint(scene.objects[i],phyObjs,onoPhy);
 					}
 				}
 			}
-			ono3d.setTargetMatrix(1)
-			ono3d.loadIdentity()
-			ono3d.setTargetMatrix(0)
-			ono3d.loadIdentity();
-			ono3d.rotate(-PI*0.5,1,0,0)
-			O3o.setFrame(obj3d,scene,timer/1000.0*24);
+
 			if(phyObjs && globalParam.physics){
-				var objects = scene.objects;
-				var flg = 0;
-
-				if(!globalParam.physics_){
-					flg = 1;
-					globalParam.physics_=true;
-					
-
-					for(var i=0;i<phyObjs.length;i++){
-						var phyObj = phyObjs[i];
-						Vec3.set(phyObj.v,0,0,0);
-						Vec3.set(phyObj.rotL,0,0,0);
-						Mat44.set(phyObj.oldmat,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,9999);
-					}
+				//物理シミュ有効の場合は物理オブジェクトにアニメーション結果を反映させる
+				for(var i=0;i<scene.objects.length;i++){
+					//物理オブジェクトにアニメーション結果を反映
+					//(前回の物理シミュ無効の場合は強制反映する)
+					O3o.movePhyObj(scene.objects[i],!globalParam.physics_);
 				}
-				for(var i=0;i<phyObjs.length;i++){
-					var phyName=phyObjs[i].name;
-					if(phyObjs[i].type == OnoPhy.MESH){
-						continue;
-					}
-					for(var j=0;j<objects.length;j++){
-						if(phyName===objects[j].name){
-							O3o.movePhyObj(objects[j],phyObjs[i],flg);
-							break;
-						}
-					}
-				}
-
+				globalParam.physics_=true;
 			}else{
 				globalParam.physics_=false;
 			}
-
-			objects = scene.objects;
 
 			for(var i=0;i<phyObjs.length;i++){
 				var phyObj = phyObjs[i];
 				if(phyObj.location[1]<-10){
 					var size=1*2;
-					if(!phyObj.parent){
-						phyObj.location[1]=5;
-						phyObj.location[0]=0;
-						phyObj.location[2]=0;
-						phyObj.location[0]+=(Math.random()-0.5)*size;
-						phyObj.location[2]+=(Math.random()*1-0.5)*size;
-					}else{
-						O3o.movePhyObj(phyObj.parent,phyObj,1);
-					}
-					Vec3.set(phyObj.v,0,0,0);
-					Vec3.set(phyObj.rotL,0,0,0);
+					O3o.movePhyObj(phyObj.parent,phyObj,true);
 				}
-				
 			}
 
 			break;
@@ -280,6 +214,7 @@ var Testact=(function(){
 		globalParam.lightThreshold1=0.;
 		globalParam.lightThreshold2=1.;
 		globalParam.physics=1;
+		globalParam.physics_=0;
 		globalParam.smoothing=0;
 		globalParam.stereomode=0;
 		globalParam.stereoVolume=1;
@@ -449,7 +384,7 @@ var Testact=(function(){
 				if(phyObj.fix){
 					continue;
 				}
-				var collision= phyObj.children[0];
+				var collision= phyObj.collision;
 				if(!collision){
 					continue;
 				}
