@@ -132,10 +132,7 @@ var Testact=(function(){
 							continue;
 						}
 						phyObjs.push(phyobj);
-						scene.objects[i].phyObj = phyobj;
 
-						//物理オブジェクトにアニメーション結果を強制反映
-						O3o.movePhyObj(scene.objects[i],true);
 					}
 
 					for(var i=0;i<phyObjs.length;i++){
