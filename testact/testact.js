@@ -147,7 +147,9 @@ var Testact=(function(){
 				for(var i=0;i<scene.objects.length;i++){
 					//物理オブジェクトにアニメーション結果を反映
 					//(前回の物理シミュ無効の場合は強制反映する)
-					O3o.movePhyObj(scene.objects[i],!globalParam.physics_);
+					if(scene.objects[i].phyObj){
+						O3o.movePhyObj(scene.objects[i],!globalParam.physics_);
+					}
 				}
 				globalParam.physics_=true;
 			}else{
