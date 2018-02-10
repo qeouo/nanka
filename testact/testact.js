@@ -746,42 +746,42 @@ var Testact=(function(){
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 			emiTexture = Rastgl.createTexture(null,1024,1024);
 
-			bdf = Bdf.load("../lib/k8x12.bdf",null,function(){
-				bdfimage = Bdf.render("abcABC!?",bdf,false);
-				bdfimage.gltexture = Rastgl.createTexture(bdfimage);
-
-				gl.bindTexture(gl.TEXTURE_2D,bdfimage.gltexture);
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-				gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-				gl.viewport(0,0,1024,1024);
-				gl.clearColor(.8,0.2,0.6,0.0);
-				gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
-				gl.viewport(0,0,512,512);
-				gl.enable(gl.BLEND);
-				gl.blendFuncSeparate(gl.ZERO,gl.ONE,gl.ONE,gl.ONE);
-				Rastgl.copyframe(bdfimage.gltexture,0,0,1/8,1/8);
-				Rastgl.copyframe(bdfimage.gltexture,-2/512,0,1/8,1/8);
-				Rastgl.copyframe(bdfimage.gltexture,-1/512,1/512,1/8,1/8);
-				Rastgl.copyframe(bdfimage.gltexture,-0/512,1/512,1/8,1/8);
-				Rastgl.copyframe(bdfimage.gltexture,-2/512,1/512,1/8,1/8);
-				Rastgl.copyframe(bdfimage.gltexture,0/512,-1/512,1/8,1/8);
-				Rastgl.copyframe(bdfimage.gltexture,-2/512,-1/512,1/8,1/8);
-				Rastgl.copyframe(bdfimage.gltexture,-1/512,-1/512,1/8,1/8);
-				Rastgl.copyframe(bdfimage.gltexture,-1/512,0,1/8,1/8);
-				gl.bindTexture(gl.TEXTURE_2D,Rastgl.fTexture2);
-				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1024,1024);
-				gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
-				Gauss.filter(Rastgl.fTexture2,Rastgl.fTexture2,100,1.0/1024,1024.0);
-				gl.enable(gl.BLEND);
-				gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
-				Rastgl.copyframe(bdfimage.gltexture,-1/512,0,1/8,1/8);
-				gl.bindTexture(gl.TEXTURE_2D,bdfimage.gltexture);
-				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,512,512);
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-
-			});
+//			bdf = Bdf.load("../lib/k8x12.bdf",null,function(){
+//				bdfimage = Bdf.render("abcABC!?",bdf,false);
+//				bdfimage.gltexture = Rastgl.createTexture(bdfimage);
+//
+//				gl.bindTexture(gl.TEXTURE_2D,bdfimage.gltexture);
+//				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+//				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+//				gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+//				gl.viewport(0,0,1024,1024);
+//				gl.clearColor(.8,0.2,0.6,0.0);
+//				gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
+//				gl.viewport(0,0,512,512);
+//				gl.enable(gl.BLEND);
+//				gl.blendFuncSeparate(gl.ZERO,gl.ONE,gl.ONE,gl.ONE);
+//				Rastgl.copyframe(bdfimage.gltexture,0,0,1/8,1/8);
+//				Rastgl.copyframe(bdfimage.gltexture,-2/512,0,1/8,1/8);
+//				Rastgl.copyframe(bdfimage.gltexture,-1/512,1/512,1/8,1/8);
+//				Rastgl.copyframe(bdfimage.gltexture,-0/512,1/512,1/8,1/8);
+//				Rastgl.copyframe(bdfimage.gltexture,-2/512,1/512,1/8,1/8);
+//				Rastgl.copyframe(bdfimage.gltexture,0/512,-1/512,1/8,1/8);
+//				Rastgl.copyframe(bdfimage.gltexture,-2/512,-1/512,1/8,1/8);
+//				Rastgl.copyframe(bdfimage.gltexture,-1/512,-1/512,1/8,1/8);
+//				Rastgl.copyframe(bdfimage.gltexture,-1/512,0,1/8,1/8);
+//				gl.bindTexture(gl.TEXTURE_2D,Rastgl.fTexture2);
+//				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1024,1024);
+//				gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
+//				Gauss.filter(Rastgl.fTexture2,Rastgl.fTexture2,100,1.0/1024,1024.0);
+//				gl.enable(gl.BLEND);
+//				gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
+//				Rastgl.copyframe(bdfimage.gltexture,-1/512,0,1/8,1/8);
+//				gl.bindTexture(gl.TEXTURE_2D,bdfimage.gltexture);
+//				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,512,512);
+//				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+//				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+//
+//			});
 		});
 		
 		Util.setFps(globalParam.fps,mainloop);
