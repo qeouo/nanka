@@ -399,9 +399,9 @@ var Testact=(function(){
 				bane = onoPhy.createSpring();
 				bane.con1 = null;
 				bane.con2 = targetPhyObj;
-				bane.defaultLength=0;
+				bane.defaultLength=0.1;
 				bane.f=40*targetPhyObj.mass;
-				bane.c=40;
+				bane.c=100*targetPhyObj.mass;
 
 				Vec3.sub(bV2,p1,p0);
 				Vec3.muladd(bV2,p0,bV2,tsukamiZ);
