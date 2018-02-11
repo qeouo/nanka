@@ -400,8 +400,8 @@ var Testact=(function(){
 				bane.con1 = null;
 				bane.con2 = targetPhyObj;
 				bane.defaultLength=0.1;
-				bane.f=100*targetPhyObj.mass;
-				bane.c=200*targetPhyObj.mass;
+				bane.f=50*targetPhyObj.mass;
+				bane.c=10*targetPhyObj.mass;
 
 				Vec3.sub(bV2,p1,p0);
 				Vec3.muladd(bV2,p0,bV2,tsukamiZ);
