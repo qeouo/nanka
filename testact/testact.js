@@ -399,7 +399,7 @@ var Testact=(function(){
 				bane = onoPhy.createSpring();
 				bane.con1 = null;
 				bane.con2 = targetPhyObj;
-				bane.defaultLength=0.1;
+				bane.defaultLength=0;
 				bane.f=50*targetPhyObj.mass;
 				bane.c=10*targetPhyObj.mass;
 
@@ -426,6 +426,10 @@ var Testact=(function(){
 				Vec4.mul(vec4,vec4,w);
 				Mat44.dotMat44Vec4(vec4,mat44,vec4);
 				Vec3.copy(bane.p0,vec4);
+
+				if(Util.pressCount==1){
+					Vec3.copy(bane._p0,vec4);
+				}
 			}
 			
 		}

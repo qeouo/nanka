@@ -227,7 +227,7 @@ def ExportOno3dObject():
             elif(group.type=="CLOTH" ):
                 fileout2(',"pin":"{}"'.format(group.settings.vertex_group_mass))
                 fileout2(',"mass":{}'.format(group.settings.mass))
-                fileout2(',"structural":{}'.format(group.settings.structural_stiffness))
+                fileout2(',"structual_stiffness":{}'.format(group.settings.structural_stiffness))
                 fileout2(',"bending_stiffness":{}'.format(group.settings.bending_stiffness))
                 fileout2(',"spring_damping":{}'.format(group.settings.spring_damping))
                 fileout2(',"air_damping":{}'.format(group.settings.air_damping))

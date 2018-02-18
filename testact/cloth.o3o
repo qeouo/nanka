@@ -457,7 +457,7 @@
     ,"data":"平面"
     ,"bound_box":[-0.432432,-0.432432, 0.000000, 0.432432, 0.432432, 0.000000]
     ,"modifiers":[
-      {"name":"クロス","type":"CLOTH","pin":"pin","mass":2.0,"structural":15.0,"bending_stiffness":0.5,"spring_damping":5.0,"air_damping":1.0,"vel_damping":1.0}
+      {"name":"クロス","type":"CLOTH","pin":"pin","mass":2.0,"structual_stiffness":15.0,"bending_stiffness":0.5,"spring_damping":5.0,"air_damping":1.0,"vel_damping":1.0}
     ]
   }
 ]
