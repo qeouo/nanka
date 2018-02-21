@@ -49,14 +49,14 @@ var Testact=(function(){
 		this.hp=1;
 		this.t=0;
 		this.hitareas=[];
-		this.matrix=new Mat44();
+		this.matrix=new Mat43();
 	}	
 	var createObj = function(func){
 		for(i=0;i<OBJSLENGTH;i++){
 			var obj=objs[i];
 			if(obj.stat!==STAT_EMPTY)continue;
 			obj.func=func;
-			Mat44.setInit(obj.matrix);
+			Mat43.setInit(obj.matrix);
 			obj.parent=null;
 			Vec3.set(obj.scale,1,1,1);
 			obj.angle=0;
@@ -406,7 +406,7 @@ var Testact=(function(){
 				Vec3.sub(bV2,p1,p0);
 				Vec3.madd(bV2,p0,bV2,tsukamiZ);
 
-				var im=new Mat44();
+				var im=new Mat43();
 				Mat43.getInv(im,targetPhyObj.matrix);
 				Mat43.dotVec3(bane.con2Pos,im,bV2);
 			}
