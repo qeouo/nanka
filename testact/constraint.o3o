@@ -422,8 +422,8 @@
     ,"rigid_body":{
       "type":"PASSIVE"
       ,"mass":1.0
-      ,"collision_shape":"BOX"
-      ,"friction":10.000000
+      ,"collision_shape":"CYLINDER"
+      ,"friction": 0.300000
       ,"restitution": 0.000000
       ,"collision_groups":1
     }
@@ -470,8 +470,8 @@
     ,"rigid_body":{
       "type":"ACTIVE"
       ,"mass":1.0
-      ,"collision_shape":"BOX"
-      ,"friction":10.000000
+      ,"collision_shape":"CYLINDER"
+      ,"friction": 0.300000
       ,"restitution": 0.000000
       ,"collision_groups":1
     }
@@ -518,8 +518,8 @@
     ,"rigid_body":{
       "type":"ACTIVE"
       ,"mass":1.0
-      ,"collision_shape":"BOX"
-      ,"friction":10.000000
+      ,"collision_shape":"CYLINDER"
+      ,"friction": 0.300000
       ,"restitution": 0.000000
       ,"collision_groups":1
     }
@@ -566,8 +566,8 @@
     ,"rigid_body":{
       "type":"ACTIVE"
       ,"mass":1.0
-      ,"collision_shape":"BOX"
-      ,"friction":10.000000
+      ,"collision_shape":"CYLINDER"
+      ,"friction": 0.300000
       ,"restitution": 0.000000
       ,"collision_groups":1
     }
@@ -944,7 +944,7 @@
       "type":"ACTIVE"
       ,"mass":1.0
       ,"collision_shape":"BOX"
-      ,"friction":10.000000
+      ,"friction": 0.500000
       ,"restitution": 0.000000
       ,"collision_groups":1
     }
@@ -992,7 +992,7 @@
       "type":"ACTIVE"
       ,"mass":1.0
       ,"collision_shape":"BOX"
-      ,"friction":10.000000
+      ,"friction": 0.500000
       ,"restitution": 0.000000
       ,"collision_groups":1
     }
@@ -1040,7 +1040,7 @@
       "type":"ACTIVE"
       ,"mass":1.0
       ,"collision_shape":"BOX"
-      ,"friction":10.000000
+      ,"friction": 0.500000
       ,"restitution": 0.000000
       ,"collision_groups":1
     }

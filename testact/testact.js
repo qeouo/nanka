@@ -356,7 +356,7 @@ var Testact=(function(){
 				cursorr[0]+=1;
 
 				ono3d.projectionMat[12]=globalParam.stereo;
-				Mat44.dotMat44Mat44(ono3d.pvMat,ono3d.projectionMat,ono3d.viewMatrix);
+				Mat44.dot(ono3d.pvMat,ono3d.projectionMat,ono3d.viewMatrix);
 			}else{
 				cursorr[0]-=1;
 			}
@@ -367,12 +367,12 @@ var Testact=(function(){
 
 			Mat44.getInv(mat44,ono3d.pvMat);
 			Vec4.set(vec4,cursorr[0],-cursorr[1],-1,1);
-			Mat44.dotMat44Vec4(vec4,mat44,vec4);
+			Mat44.dotVec4(vec4,mat44,vec4);
 			Vec3.set(p0,vec4[0],vec4[1],vec4[2]);
 
 			Vec4.set(vec4,cursorr[0],-cursorr[1],1,1);
 			Vec4.mul(vec4,vec4,80);
-			Mat44.dotMat44Vec4(vec4,mat44,vec4);
+			Mat44.dotVec4(vec4,mat44,vec4);
 			Vec3.set(p1,vec4[0],vec4[1],vec4[2]);
 
 			bane= null;
@@ -407,8 +407,8 @@ var Testact=(function(){
 				Vec3.madd(bV2,p0,bV2,tsukamiZ);
 
 				var im=new Mat44();
-				Mat44.getInv(im,targetPhyObj.matrix);
-				Mat44.dotMat44Vec3(bane.con2Pos,im,bV2);
+				Mat43.getInv(im,targetPhyObj.matrix);
+				Mat43.dotVec3(bane.con2Pos,im,bV2);
 			}
 		}
 
@@ -424,7 +424,7 @@ var Testact=(function(){
 				var z =  -ono3d.projectionMat[10] + ono3d.projectionMat[14]/w;
 				Vec4.set(vec4,cursorr[0],-cursorr[1],z,1);
 				Vec4.mul(vec4,vec4,w);
-				Mat44.dotMat44Vec4(vec4,mat44,vec4);
+				Mat44.dotVec4(vec4,mat44,vec4);
 				Vec3.copy(bane.p0,vec4);
 
 				if(Util.pressCount==1){
