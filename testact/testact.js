@@ -24,7 +24,7 @@ var Testact=(function(){
 	var bV0 = new Vec3();
 	var bV1 = new Vec3();
 	var bV2 = new Vec3();
-	var bM = new Mat43();
+	var bM = new Mat44();
 
 	var STAT_EMPTY=0
 		,STAT_ENABLE=1
@@ -49,14 +49,14 @@ var Testact=(function(){
 		this.hp=1;
 		this.t=0;
 		this.hitareas=[];
-		this.matrix=new Mat43();
+		this.matrix=new Mat44();
 	}	
 	var createObj = function(func){
 		for(i=0;i<OBJSLENGTH;i++){
 			var obj=objs[i];
 			if(obj.stat!==STAT_EMPTY)continue;
 			obj.func=func;
-			Mat43.setInit(obj.matrix);
+			Mat44.setInit(obj.matrix);
 			obj.parent=null;
 			Vec3.set(obj.scale,1,1,1);
 			obj.angle=0;
@@ -356,7 +356,7 @@ var Testact=(function(){
 				cursorr[0]+=1;
 
 				ono3d.projectionMat[12]=globalParam.stereo;
-				Mat44.dotMat44Mat43(ono3d.pvMat,ono3d.projectionMat,ono3d.viewMatrix);
+				Mat44.dotMat44Mat44(ono3d.pvMat,ono3d.projectionMat,ono3d.viewMatrix);
 			}else{
 				cursorr[0]-=1;
 			}
@@ -404,11 +404,11 @@ var Testact=(function(){
 				bane.c=10*targetPhyObj.mass;
 
 				Vec3.sub(bV2,p1,p0);
-				Vec3.muladd(bV2,p0,bV2,tsukamiZ);
+				Vec3.madd(bV2,p0,bV2,tsukamiZ);
 
-				var im=new Mat43();
-				Mat43.getInv(im,targetPhyObj.matrix);
-				Mat43.dotMat43Vec3(bane.con2Pos,im,bV2);
+				var im=new Mat44();
+				Mat44.getInv(im,targetPhyObj.matrix);
+				Mat44.dotMat44Vec3(bane.con2Pos,im,bV2);
 			}
 		}
 
@@ -503,15 +503,15 @@ var Testact=(function(){
 			
 			ono3d.setOrtho(10.0,10.0,10.0,30.0)
 			var lightSource = ono3d.lightSources[0]
-			Mat43.setInit(lightSource.matrix);
-			Mat43.getRotVector(lightSource.matrix,lightSource.angle);
-			Mat43.setInit(mat44);
+			Mat44.setInit(lightSource.matrix);
+			Mat44.getRotVector(lightSource.matrix,lightSource.angle);
+			Mat44.setInit(mat44);
 			mat44[12]=-lightSource.pos[0]
 			mat44[13]=-lightSource.pos[1]
 			mat44[14]=-lightSource.pos[2]
 
-			Mat43.dot(lightSource.matrix,lightSource.matrix,mat44);
-			Mat44.dotMat44Mat43(ono3d.pvMat,ono3d.projectionMat,lightSource.matrix);
+			Mat44.dot(lightSource.matrix,lightSource.matrix,mat44);
+			Mat44.dot(ono3d.pvMat,ono3d.projectionMat,lightSource.matrix);
 			Mat44.copy(lightSource.matrix,ono3d.pvMat);
 			
 			Shadow.draw(ono3d);
