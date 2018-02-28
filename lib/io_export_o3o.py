@@ -242,9 +242,10 @@ def ExportOno3dObject():
                 fileout2(',"goalSpring":{:9f}'.format(group.settings.goal_spring))
                 fileout2(',"goalFriction":{:9f}'.format(group.settings.goal_friction))
                 fileout2(',"pin":"{}"'.format(group.settings.vertex_group_goal))
-                fileout2(',"edgePull":{:9f}'.format(group.settings.pull))
-                fileout2(',"edgePush":{:9f}'.format(group.settings.push))
-                fileout2(',"edgeDamping":{:9f}'.format(group.settings.damping))
+                fileout2(',"pull":{:9f}'.format(group.settings.pull))
+                fileout2(',"push":{:9f}'.format(group.settings.push))
+                fileout2(',"damping":{:9f}'.format(group.settings.damping))
+                fileout2(',"bend":{:9f}'.format(group.settings.bend))
             elif(group.type=="MIRROR" ):
                 fileout2(',"use_x":{}'.format(int(group.use_x)));
                 fileout2(',"use_y":{}'.format(int(group.use_y)));

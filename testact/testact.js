@@ -5,7 +5,6 @@ var Testact=(function(){
 	var obj3d;
 	var PI=Math.PI;
 	var OBJSLENGTH=1024;
-	var i;
 	var gl;
 	var onoPhy=null;
 	var objs=[];
@@ -26,6 +25,7 @@ var Testact=(function(){
 	var bV2 = new Vec3();
 	var bM = new Mat44();
 
+	var i;
 	var STAT_EMPTY=0
 		,STAT_ENABLE=1
 		,STAT_CREATE=2
@@ -300,13 +300,6 @@ var Testact=(function(){
 				phytime=Date.now()-s;
 			}
 		}
-
-		//camera3.p[0]=0;
-		//camera2.p[1]=15;
-		//camera2.p[2]=15;
-		//camera2.p[0]=(Util.cursorX-WIDTH)/WIDTH*8;
-		//camera2.p[1]=-(Util.cursorY-HEIGHT)/HEIGHT*6;
-		//camera2.p[2]=40-Math.pow((Util.cursorX-WIDTH)/WIDTH,2)*2;
 
 		if(Util.pressOn && !bane){
 			camera2.a[1]+=(-(Util.cursorX-Util.oldcursorX)/WIDTH);
