@@ -214,42 +214,44 @@ def ExportOno3dObject():
 
         fileout(',"modifiers":')
         fileoutLu()
-        for group in obj.modifiers:
+        for modifier in obj.modifiers:
             fileout('')
-            if(group != obj.modifiers[0]):fileout2(',')
+            if(modifier != obj.modifiers[0]):fileout2(',')
             fileout2('{')
-            fileout2('"name":"{}"'.format(group.name))
-            fileout2(',"type":"{}"'.format(group.type))
-            if(group.type=="ARMATURE" ):
-                if(group.object!=None ):
-                    fileout2(',"object":"{}"'.format(group.object.name))
-                    fileout2(',"vertex_group":"{}"'.format(group.vertex_group))
-            elif(group.type=="CLOTH" ):
-                fileout2(',"pin":"{}"'.format(group.settings.vertex_group_mass))
-                fileout2(',"mass":{}'.format(group.settings.mass))
-                fileout2(',"structual_stiffness":{}'.format(group.settings.structural_stiffness))
-                fileout2(',"bending_stiffness":{}'.format(group.settings.bending_stiffness))
-                fileout2(',"spring_damping":{}'.format(group.settings.spring_damping))
-                fileout2(',"air_damping":{}'.format(group.settings.air_damping))
-                fileout2(',"vel_damping":{}'.format(group.settings.vel_damping))
-            elif(group.type=="SOFT_BODY" ):
-                fileout2(',"friction":{:9f}'.format(group.settings.friction))
-                fileout2(',"mass":{:9f}'.format(group.settings.mass))
-                fileout2(',"speed":{:9f}'.format(group.settings.speed))
-                fileout2(',"goalDefault":{:9f}'.format(group.settings.goal_default))
-                fileout2(',"goalMin":{:9f}'.format(group.settings.goal_min))
-                fileout2(',"goalMax":{:9f}'.format(group.settings.goal_max))
-                fileout2(',"goalSpring":{:9f}'.format(group.settings.goal_spring))
-                fileout2(',"goalFriction":{:9f}'.format(group.settings.goal_friction))
-                fileout2(',"pin":"{}"'.format(group.settings.vertex_group_goal))
-                fileout2(',"pull":{:9f}'.format(group.settings.pull))
-                fileout2(',"push":{:9f}'.format(group.settings.push))
-                fileout2(',"damping":{:9f}'.format(group.settings.damping))
-                fileout2(',"bend":{:9f}'.format(group.settings.bend))
-            elif(group.type=="MIRROR" ):
-                fileout2(',"use_x":{}'.format(int(group.use_x)));
-                fileout2(',"use_y":{}'.format(int(group.use_y)));
-                fileout2(',"use_z":{}'.format(int( group.use_z)));
+            fileout2('"name":"{}"'.format(modifier.name))
+            fileout2(',"type":"{}"'.format(modifier.type))
+            if(modifier.type=="ARMATURE" ):
+                if(modifier.object!=None ):
+                    fileout2(',"object":"{}"'.format(modifier.object.name))
+                    fileout2(',"vertex_modifier":"{}"'.format(modifier.vertex_modifier))
+            elif(modifier.type=="MESH_DEFORM" ):
+                fileout2(',"object":"{}"'.format(modifier.object.name))
+            elif(modifier.type=="CLOTH" ):
+                fileout2(',"pin":"{}"'.format(modifier.settings.vertex_modifier_mass))
+                fileout2(',"mass":{}'.format(modifier.settings.mass))
+                fileout2(',"structual_stiffness":{}'.format(modifier.settings.structural_stiffness))
+                fileout2(',"bending_stiffness":{}'.format(modifier.settings.bending_stiffness))
+                fileout2(',"spring_damping":{}'.format(modifier.settings.spring_damping))
+                fileout2(',"air_damping":{}'.format(modifier.settings.air_damping))
+                fileout2(',"vel_damping":{}'.format(modifier.settings.vel_damping))
+            elif(modifier.type=="SOFT_BODY" ):
+                fileout2(',"friction":{:9f}'.format(modifier.settings.friction))
+                fileout2(',"mass":{:9f}'.format(modifier.settings.mass))
+                fileout2(',"speed":{:9f}'.format(modifier.settings.speed))
+                fileout2(',"goalDefault":{:9f}'.format(modifier.settings.goal_default))
+                fileout2(',"goalMin":{:9f}'.format(modifier.settings.goal_min))
+                fileout2(',"goalMax":{:9f}'.format(modifier.settings.goal_max))
+                fileout2(',"goalSpring":{:9f}'.format(modifier.settings.goal_spring))
+                fileout2(',"goalFriction":{:9f}'.format(modifier.settings.goal_friction))
+                fileout2(',"pin":"{}"'.format(modifier.settings.vertex_group_goal))
+                fileout2(',"pull":{:9f}'.format(modifier.settings.pull))
+                fileout2(',"push":{:9f}'.format(modifier.settings.push))
+                fileout2(',"damping":{:9f}'.format(modifier.settings.damping))
+                fileout2(',"bend":{:9f}'.format(modifier.settings.bend))
+            elif(modifier.type=="MIRROR" ):
+                fileout2(',"use_x":{}'.format(int(modifier.use_x)));
+                fileout2(',"use_y":{}'.format(int(modifier.use_y)));
+                fileout2(',"use_z":{}'.format(int( modifier.use_z)));
             fileout2('}\n')
         fileoutLd()
         fileoutMd()
@@ -401,7 +403,7 @@ def WriteMesh(mesh):
             fileout2(']')
             Index=0
             if(len(Vertex.groups)> 1):
-                fileout2(',"groupratios":[')
+                fileout2(',"groupWeights":[')
                 for group in Vertex.groups:
                     if(group != Vertex.groups[0]):fileout2(',')
                     fileout2('{:9f}'.format(group.weight/weightmax))

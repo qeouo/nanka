@@ -132,7 +132,6 @@ var Testact=(function(){
 							continue;
 						}
 						phyObjs.push(phyobj);
-
 					}
 
 					for(var i=0;i<phyObjs.length;i++){
