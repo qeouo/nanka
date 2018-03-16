@@ -369,43 +369,67 @@ var Testact=(function(){
 
 			bane= null;
 			tsukamiZ= 1;
+			var targetsub=-1;
 			var targetPhyObj = null;
 			for(var i=0;i<mobj.phyObjs.length;i++){
 				var phyObj = mobj.phyObjs[i];
-				if(phyObj.fix){
-					continue;
-				}
-				var collision= phyObj.collision;
-				if(!collision){
-					continue;
-				}
-				var z = collision.ray(p0,p1);
-				if(z>0&& z>-1){
-					if(z<tsukamiZ){
-						tsukamiZ = z;
-						targetPhyObj = collision.parent;
+				if(phyObj.type===OnoPhy.CLOTH){
+					var res={};
+					var z = phyObj.ray(res,p0,p1);
+					if(z>0&& z>-1){
+						if(z<tsukamiZ){
+							tsukamiZ = z;
+							targetsub=res.face;
+							targetPhyObj = phyObj;
+						}
+					}
+
+				}else{
+					if(phyObj.fix){
+						continue;
+					}
+					var collision= phyObj.collision;
+					if(!collision){
+						continue;
+						
+					}
+					var z = collision.ray(p0,p1);
+					if(z>0&& z>-1){
+						if(z<tsukamiZ){
+							tsukamiZ = z;
+							targetPhyObj = collision.parent;
+						}
 					}
 				}
 			}
 			if(targetPhyObj){
 				bane = onoPhy.createSpring();
 				bane.con1 = null;
-				bane.con2 = targetPhyObj;
 				bane.defaultLength=0;
 				bane.f=50*targetPhyObj.mass;
-				bane.c=10*targetPhyObj.mass;
+				bane.c=1*targetPhyObj.mass;
 
 				Vec3.sub(bV2,p1,p0);
 				Vec3.madd(bV2,p0,bV2,tsukamiZ);
 
-				var im=new Mat43();
-				Mat43.getInv(im,targetPhyObj.matrix);
-				Mat43.dotVec3(bane.con2Pos,im,bV2);
+				if(targetPhyObj.type===OnoPhy.CLOTH){
+					bane.con2=targetPhyObj.getPhyFace(targetsub,bV2);
+					Vec3.set(bane.con2Pos,0,0,0);
+				}else{
+					bane.con2 = targetPhyObj;
+					var im=new Mat43();
+					Mat43.getInv(im,targetPhyObj.matrix);
+					Mat43.dotVec3(bane.con2Pos,im,bV2);
+				}
+
 			}
 		}
 
 		if(bane){
 			if(!Util.pressOn){
+				if(bane.con2.type===OnoPhy.FACE){
+					OnoPhy.Cloth.disablePhyFace.push(bane.con2);
+				}
 				onoPhy.deleteSpring(bane);
 				bane= null;
 
