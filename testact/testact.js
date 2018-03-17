@@ -157,8 +157,13 @@ var Testact=(function(){
 
 			for(var i=0;i<phyObjs.length;i++){
 				var phyObj = phyObjs[i];
-				if(phyObj.location[1]<-10){
-					var size=1*2;
+				var aabb;
+				if(phyObj.type===OnoPhy.CLOTH){
+					aabb = phyObj.AABB;
+				}else{
+					aabb = phyObj.collision.AABB;
+				}
+				if(aabb.max[1]<-10){
 					O3o.movePhyObj(phyObj.parent,phyObj,true);
 				}
 			}
@@ -369,8 +374,8 @@ var Testact=(function(){
 
 			bane= null;
 			tsukamiZ= 1;
-			var targetsub=-1;
 			var targetPhyObj = null;
+			var res2={};
 			for(var i=0;i<mobj.phyObjs.length;i++){
 				var phyObj = mobj.phyObjs[i];
 				if(phyObj.type===OnoPhy.CLOTH){
@@ -379,7 +384,10 @@ var Testact=(function(){
 					if(z>0&& z>-1){
 						if(z<tsukamiZ){
 							tsukamiZ = z;
-							targetsub=res.face;
+							res2.face=res.face;
+							res2.p1=res.p1;
+							res2.p2=res.p2;
+							res2.p3=res.p3;
 							targetPhyObj = phyObj;
 						}
 					}
@@ -413,7 +421,7 @@ var Testact=(function(){
 				Vec3.madd(bV2,p0,bV2,tsukamiZ);
 
 				if(targetPhyObj.type===OnoPhy.CLOTH){
-					bane.con2=targetPhyObj.getPhyFace(targetsub,bV2);
+					bane.con2=targetPhyObj.getPhyFace(res2.p1,res2.p2,res2.p3,res2.face,bV2);
 					Vec3.set(bane.con2Pos,0,0,0);
 				}else{
 					bane.con2 = targetPhyObj;

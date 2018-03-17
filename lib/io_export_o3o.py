@@ -301,12 +301,17 @@ def WriteMaterial( Material=None):
     dict["a"] = Material.alpha
     dict["dif"] = Material.diffuse_intensity
     dict["emt"] = Material.emit
+    dict["use_transparency"] = Material.use_transparency
+    if(Material.raytrace_transparency):
+        dict["ior"] = Material.raytrace_transparency.ior
+        dict["filter"] = Material.raytrace_transparency.filter
+        dict["trans_rough"] = (1.0-Material.raytrace_transparency.gloss_factor)
     if(Material.raytrace_mirror):
+        dict["use_mirror"] = Material.raytrace_mirror.use
         lst = list(Material.mirror_color)
         dict["reflect"] = Material.raytrace_mirror.reflect_factor
         dict["rough"] = (1.0-Material.raytrace_mirror.gloss_factor)
-    if(Material.raytrace_transparency):
-        dict["ior"] = Material.raytrace_transparency.ior
+    
     dict["texture_slots"] = []
     for texture_slot in Material.texture_slots:
         if(texture_slot is None):continue
