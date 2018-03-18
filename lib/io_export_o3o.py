@@ -223,7 +223,7 @@ def ExportOno3dObject():
             if(modifier.type=="ARMATURE" ):
                 if(modifier.object!=None ):
                     fileout2(',"object":"{}"'.format(modifier.object.name))
-                    fileout2(',"vertex_modifier":"{}"'.format(modifier.vertex_modifier))
+                    fileout2(',"vertex_group":"{}"'.format(modifier.vertex_group))
             elif(modifier.type=="MESH_DEFORM" ):
                 fileout2(',"object":"{}"'.format(modifier.object.name))
             elif(modifier.type=="CLOTH" ):
