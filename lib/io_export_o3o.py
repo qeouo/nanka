@@ -270,14 +270,21 @@ def ExportOno3dObject():
     print("Finished")
 
 def writeMatrix(matrix):
-    fileout2('matrix:{}\n'.format(stringMatrix(matrix)))
+    fileout2('"matrix":{}\n'.format(stringMatrix(matrix)))
 
-def stringMatrix(matrix):
+def stringMatrix2(matrix):
     return '[{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f}]'.format(
          matrix[0][0], matrix[1][0], matrix[2][0], matrix[3][0]
         ,matrix[0][1], matrix[1][1], matrix[2][1], matrix[3][1]
         ,matrix[0][2], matrix[1][2], matrix[2][2], matrix[3][2]
         ,matrix[0][3], matrix[1][3], matrix[2][3], matrix[3][3])
+def stringMatrix(matrix):
+    return '[{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f}]'.format(
+         matrix[0][0], matrix[1][0], matrix[2][0]
+        ,matrix[0][1], matrix[1][1], matrix[2][1]
+        ,matrix[0][2], matrix[1][2], matrix[2][2]
+        ,matrix[0][3], matrix[1][3], matrix[2][3])
+
 
 def WriteTexture(Texture=None):
     if Texture is None :return
@@ -348,7 +355,8 @@ def WriteArmatureBones(Armature):
         DataBone = Bones[Bone.name]
         BoneMatrix = DataBone.matrix_local
 
-        fileout(',"matrix":[{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f}]\n'.format( BoneMatrix[0][0], BoneMatrix[1][0], BoneMatrix[2][0], BoneMatrix[3][0],BoneMatrix[0][1], BoneMatrix[1][1], BoneMatrix[2][1], BoneMatrix[3][1],BoneMatrix[0][2], BoneMatrix[1][2], BoneMatrix[2][2], BoneMatrix[3][2],BoneMatrix[0][3], BoneMatrix[1][3], BoneMatrix[2][3], BoneMatrix[3][3]))
+        fileout2(',"matrix":{}\n'.format(stringMatrix(DataBone.matrix_local)))
+# fileout(',"matrix":[{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f}]\n'.format( BoneMatrix[0][0], BoneMatrix[1][0], BoneMatrix[2][0], BoneMatrix[3][0],BoneMatrix[0][1], BoneMatrix[1][1], BoneMatrix[2][1], BoneMatrix[3][1],BoneMatrix[0][2], BoneMatrix[1][2], BoneMatrix[2][2], BoneMatrix[3][2],BoneMatrix[0][3], BoneMatrix[1][3], BoneMatrix[2][3], BoneMatrix[3][3]))
 
         fileout(',"length":{:9f} \n'.format( Bone.length))
 
