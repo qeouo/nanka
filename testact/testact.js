@@ -177,33 +177,34 @@ var Testact=(function(){
 
 			ono3d.rf=0;
 			if(obj3d){
-				if(obj3d.scenes.length>0){
-					var objects = obj3d.scenes[globalParam.scene].objects;
-					for(var i=0;i<objects.length;i++){
-						if(objects[i].hide_render){
-							continue;
-						}
-						ono3d.lineWidth=1;
-						ono3d.rf&=~Ono3d.RF_OUTLINE;
-						if(globalParam.outlineWidth>0.){
-							ono3d.lineWidth=globalParam.outlineWidth;
-							ono3d.rf|=Ono3d.RF_OUTLINE;
-							Util.hex2rgb(ono3d.lineColor,globalParam.outlineColor);
-						}
-						if(bane){
-							if(bane.con2.name == objects[i].name){
-								ono3d.lineWidth=1;
-								ono3d.rf|=Ono3d.RF_OUTLINE;
-								Vec4.set(ono3d.lineColor,1,4,1,0);
-							}
-						}
-						if(globalParam.physics){
-							O3o.drawObject(objects[i],phyObjs);
-						}else{
-							O3o.drawObject(objects[i],null);
-						}
-					}
-				}
+				//if(obj3d.scenes.length>0){
+				//	var objects = obj3d.scenes[globalParam.scene].objects;
+				//	for(var i=0;i<objects.length;i++){
+				//		if(objects[i].hide_render){
+				//			continue;
+				//		}
+				//		ono3d.lineWidth=1;
+				//		ono3d.rf&=~Ono3d.RF_OUTLINE;
+				//		if(globalParam.outlineWidth>0.){
+				//			ono3d.lineWidth=globalParam.outlineWidth;
+				//			ono3d.rf|=Ono3d.RF_OUTLINE;
+				//			Util.hex2rgb(ono3d.lineColor,globalParam.outlineColor);
+				//		}
+				//		if(bane){
+				//			if(bane.con2.name == objects[i].name){
+				//				ono3d.lineWidth=1;
+				//				ono3d.rf|=Ono3d.RF_OUTLINE;
+				//				Vec4.set(ono3d.lineColor,1,4,1,0);
+				//			}
+				//		}
+				//		if(globalParam.physics){
+				//			O3o.drawObject(objects[i],phyObjs);
+				//		}else{
+				//			O3o.drawObject(objects[i],null);
+				//		}
+				//	}
+				//}
+				O3o.drawObject(obj3d.objectsN["human"]);
 			}
 			break;
 		}
