@@ -205,14 +205,15 @@ var Testact=(function(){
 				//		}
 				//	}
 				//}
-				var m = obj3d.objectsN["アーマチュア"].poseArmature;
-				poseArmature.reset();
-				poseArmature.setAction(obj3d.actions[2],timer/1000.0*24);
-				m.setAction(obj3d.actions[0],timer/1000.0*24);
-				O3o.PoseArmature.sub(poseArmature,poseArmature,m);
-				O3o.PoseArmature.add(m,m,poseArmature);
-				
-				m.setAction(obj3d.actions[2],timer/1000.0*24);
+				var t = obj3d.objectsN["アーマチュア"].poseArmature;
+				var s = poseArmature;
+				s.reset();
+				s.setAction(obj3d.actions[2],timer/1000.0*24);
+				t.setAction(obj3d.actions[1],timer/1000.0*24);
+				O3o.PoseArmature.sub(s,s,t);
+				O3o.PoseArmature.mul(s,s,0.2);
+				O3o.PoseArmature.add(t,s,t);
+
 
 				O3o.drawObject(obj3d.objectsN["human"]);
 			}
