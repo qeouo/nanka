@@ -98,6 +98,7 @@ var Testact=(function(){
 		}
 		return;
 	}
+	var poseArmature=null;
 	var mainObj=function(obj,msg,param){
 		var phyObjs = obj.phyObjs;
 		switch(msg){
@@ -204,6 +205,15 @@ var Testact=(function(){
 				//		}
 				//	}
 				//}
+				var m = obj3d.objectsN["アーマチュア"].poseArmature;
+				poseArmature.reset();
+				poseArmature.setAction(obj3d.actions[2],timer/1000.0*24);
+				m.setAction(obj3d.actions[0],timer/1000.0*24);
+				O3o.PoseArmature.sub(poseArmature,poseArmature,m);
+				O3o.PoseArmature.add(m,m,poseArmature);
+				
+				m.setAction(obj3d.actions[2],timer/1000.0*24);
+
 				O3o.drawObject(obj3d.objectsN["human"]);
 			}
 			break;
@@ -690,6 +700,8 @@ var Testact=(function(){
 			}
 			document.getElementById("scene").selectedIndex=globalParam.scene;
 			Util.fireEvent(document.getElementById("scene"),"change");
+
+			poseArmature = new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
 
 		});
 		
