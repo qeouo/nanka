@@ -35,7 +35,16 @@ var Testact=(function(){
 		,MSG_CREATE=++i
 		,MSG_MOVE=++i
 		,MSG_DRAW=++i
-		;
+	;
+
+	var texts=[
+		"Source"
+		,"Reference"
+		,"Source-Reference"
+		,"Target"
+		,"Result"
+	]
+
 	
 	var Obj = function(){
 		this.p=new Vec3();
@@ -99,8 +108,9 @@ var Testact=(function(){
 		return;
 	}
 	var sourceArmature=null;
-	var targetArmature=null;
 	var referenceArmature=null;
+	var srArmature=null;
+	var targetArmature=null;
 	var mainObj=function(obj,msg,param){
 		var phyObjs = obj.phyObjs;
 		switch(msg){
@@ -207,9 +217,15 @@ var Testact=(function(){
 //						}
 //					}
 //				}
+			if(globalParam.outlineWidth>0.){
+				ono3d.lineWidth=globalParam.outlineWidth;
+				ono3d.rf|=Ono3d.RF_OUTLINE;
+				Util.hex2rgb(ono3d.lineColor,globalParam.outlineColor);
+			}
 			var dst = obj3d.objectsN["アーマチュア"].poseArmature;
 			sourceArmature.reset();
 			referenceArmature.reset();
+			srArmature.reset();
 			targetArmature.reset();
 			sourceArmature.setAction(obj3d.actions[globalParam.source],timer/1000.0*24);
 			targetArmature.setAction(obj3d.actions[globalParam.target],timer/1000.0*24);
@@ -220,20 +236,26 @@ var Testact=(function(){
 			O3o.PoseArmature.copy(dst,sourceArmature);
 			O3o.drawObject(obj3d.objectsN["human"]);
 
-			ono3d.translate(2,0,0)
+			ono3d.translate(1.5,0,0)
 			O3o.PoseArmature.copy(dst,referenceArmature);
 			O3o.drawObject(obj3d.objectsN["human"]);
 
-			ono3d.translate(2,0,0)
+
+			O3o.PoseArmature.sub(srArmature,sourceArmature,referenceArmature);
+
+			ono3d.translate(1.5,0,0)
+			O3o.PoseArmature.copy(dst,srArmature);
+			O3o.drawObject(obj3d.objectsN["human"]);
+
+			ono3d.translate(1.5,0,0)
 			O3o.PoseArmature.copy(dst,targetArmature);
 			O3o.drawObject(obj3d.objectsN["human"]);
 
-			O3o.PoseArmature.sub(sourceArmature,sourceArmature,referenceArmature);
-			O3o.PoseArmature.mul(sourceArmature,sourceArmature,globalParam.actionAlpha);
-			O3o.PoseArmature.add(dst,sourceArmature,targetArmature);
-
-			ono3d.translate(2,0,0)
+			O3o.PoseArmature.mul(dst,srArmature,globalParam.actionAlpha);
+			O3o.PoseArmature.add(dst,dst,targetArmature);
+			ono3d.translate(1.5,0,0)
 			O3o.drawObject(obj3d.objectsN["human"]);
+
 			}
 			break;
 		}
@@ -668,9 +690,27 @@ var Testact=(function(){
 			gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
 			Rastgl.stereoDraw(ono3d,function(){
 				var vec = new Vec4();
-				Vec4.set(vec,0,1,0,1);
-				Mat44.dotVec4(vec,ono3d.viewMatrix,vec);
-				Rastgl.copyframe(bdfimage.gltexture,vec[0]/vec[3],vec[1]/vec[3],0.8,0.3*ono3d.persx/ono3d.persy,0,0.6,1.0,-0.6);
+				ono3d.setTargetMatrix(0);
+				ono3d.loadIdentity();
+				ono3d.rotate(-PI*0.5,1,0,0);
+				ono3d.translate(-3,0,0);
+				var dst = obj3d.objectsN["アーマチュア"].poseArmature;
+				var arms = [sourceArmature,referenceArmature,srArmature,targetArmature,dst];
+				for(var i=0;i<texts.length;i++){
+					arms[i].calcMatrix();
+					Vec4.set(vec,0,0,2.0,1);
+					Mat43.dotVec3(vec,arms[i].matrices[5],vec);
+					Mat44.dotVec4(vec,ono3d.worldMatrix,vec);
+					Mat44.dotVec4(vec,ono3d.viewMatrix,vec);
+					Mat44.dotVec4(vec,ono3d.projectionMat,vec);
+					var len = texts[i].length;
+					var width = (4*texts[i].length+1);
+					var height = 12;
+					Rastgl.copyframe(bdfimage.gltexture,vec[0]/vec[3],vec[1]/vec[3],width*4/720,(height-1)*4/(720*ono3d.persy/ono3d.persx)
+						,0,(height*(i+1))/512,width/512,-(height-1)/512);
+
+					ono3d.translate(1.5,0,0);
+				}
 			});
 			ono3d.setTargetMatrix(0)
 		}
@@ -756,6 +796,7 @@ var Testact=(function(){
 			targetArmature= new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
 			sourceArmature= new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
 			referenceArmature= new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
+			srArmature = new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
 
 		});
 		
@@ -841,40 +882,49 @@ var Testact=(function(){
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 			emiTexture = Rastgl.createTexture(null,1024,1024);
 
-			bdf = Bdf.load("../lib/k8x12.bdf",null,function(){
-				bdfimage = Bdf.render("abcABC!?",bdf,false);
-				bdfimage.gltexture = Rastgl.createTexture(bdfimage);
+			bdf = Bdf.load("./k8x12.bdf",null,function(){
+				var txt="";
+				for(var i=0;i<texts.length;i++){
+					txt+=texts[i]+"\n";
+				}
+				bdfimage = Bdf.render(txt,bdf,false);
+				bdfimage.gltexture = Rastgl.createTexture(bdfimage);//512x512
 
 				gl.bindTexture(gl.TEXTURE_2D,bdfimage.gltexture);
 				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-				gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+				gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);//1024x1024
 				gl.viewport(0,0,1024,1024);
-				//gl.viewport(0,0,512,512);
 				gl.clearColor(.8,0.2,0.6,0.0);
 				gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
 				gl.enable(gl.BLEND);
 				gl.blendFuncSeparate(gl.ZERO,gl.ONE,gl.ONE,gl.ONE);
-				Rastgl.copyframe(bdfimage.gltexture,0,0,0.5/8,0.5/8);
-				Rastgl.copyframe(bdfimage.gltexture,-2/512,0,0.5/8,0.5/8);
-				Rastgl.copyframe(bdfimage.gltexture,-1/512,1/512,0.5/8,0.5/8);
-				Rastgl.copyframe(bdfimage.gltexture,-0/512,1/512,0.5/8,0.5/8);
-				//Rastgl.copyframe(bdfimage.gltexture,-2/512,1/512,1/8,1/8);
-				//Rastgl.copyframe(bdfimage.gltexture,0/512,-1/512,1/8,1/8);
-				//Rastgl.copyframe(bdfimage.gltexture,-2/512,-1/512,1/8,1/8);
-				//Rastgl.copyframe(bdfimage.gltexture,-1/512,-1/512,1/8,1/8);
-				//Rastgl.copyframe(bdfimage.gltexture,-1/512,0,1/8,1/8);
-				gl.bindTexture(gl.TEXTURE_2D,Rastgl.fTexture2);
-				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,512,512);
+				var scl=2;//1;//1/8;
+				var ss=1/512;
+				Rastgl.copyframe(bdfimage.gltexture,0,0,scl,scl);
+				Rastgl.copyframe(bdfimage.gltexture,-1*ss,0,scl,scl);
+				Rastgl.copyframe(bdfimage.gltexture,-2*ss,0,scl,scl);
+
+				Rastgl.copyframe(bdfimage.gltexture,0,-1*ss,scl,scl);
+				Rastgl.copyframe(bdfimage.gltexture,-1*ss,-1*ss,scl,scl);
+				Rastgl.copyframe(bdfimage.gltexture,-2*ss,-1*ss,scl,scl);
+
+				Rastgl.copyframe(bdfimage.gltexture,0*ss,-2*ss,scl,scl);
+				Rastgl.copyframe(bdfimage.gltexture,-1*ss,-2*ss,scl,scl);
+				Rastgl.copyframe(bdfimage.gltexture,-2*ss,-2*ss,scl,scl);
+				//gl.bindTexture(gl.TEXTURE_2D,Rastgl.fTexture2);
+				//gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,512,512);
 				gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
-				Gauss.filter(Rastgl.fTexture2,Rastgl.fTexture2,100,1.0/512,512.0);
+				//Gauss.filter(Rastgl.fTexture2,Rastgl.fTexture2,100,1.0/512,512.0);
 				gl.enable(gl.BLEND);
 				gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
-				Rastgl.copyframe(bdfimage.gltexture,-1/512,0,1/8,1/8);
+				Rastgl.copyframe(bdfimage.gltexture,-1*ss,-1*ss,scl,scl);
 				gl.bindTexture(gl.TEXTURE_2D,bdfimage.gltexture);
 				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,512,512);
 				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 
 			});
 		});
@@ -917,10 +967,11 @@ var Testact=(function(){
 			,"cTexture"
 			,"cBump"
 			,"cNormal"
-			,"target"
-			,"source"
-			,"reference"
+			//,"target"
+			//,"source"
+			//,"reference"
 			,"actionAlpha"
+
 
 		];
 		for(var i=0;i<tags.length;i++){
