@@ -2,7 +2,6 @@
 var Testact=(function(){
 	var ret={};
 	var HEIGHT=480,WIDTH=720;
-	var obj3d;
 	var PI=Math.PI;
 	var OBJSLENGTH=1024;
 	var gl;
@@ -20,10 +19,8 @@ var Testact=(function(){
 	var bane= null;
 	var soundbuffer=null;
 	var tsukamiZ=100;
-	var bV0 = new Vec3();
-	var bV1 = new Vec3();
-	var bV2 = new Vec3();
-	var bM = new Mat44();
+
+	var obj3d,field;
 
 	var i;
 	var STAT_EMPTY=0
@@ -111,12 +108,13 @@ var Testact=(function(){
 	var referenceArmature=null;
 	var srArmature=null;
 	var targetArmature=null;
+	var motionT=0;
 	var mainObj=function(obj,msg,param){
 		var phyObjs = obj.phyObjs;
 		switch(msg){
 		case MSG_CREATE:
 			obj.phyObjs= null;
-			Vec3.set(obj.p,0,15,-9);
+			Vec3.set(obj.p,0,0,0);
 			break;
 		case MSG_MOVE:
 			if(obj3d.scenes.length===0){
@@ -227,34 +225,83 @@ var Testact=(function(){
 			referenceArmature.reset();
 			srArmature.reset();
 			targetArmature.reset();
-			sourceArmature.setAction(obj3d.actions[globalParam.source],timer/1000.0*24);
-			targetArmature.setAction(obj3d.actions[globalParam.target],timer/1000.0*24);
-			referenceArmature.setAction(obj3d.actions[globalParam.reference],timer/1000.0*24);
+			//sourceArmature.setAction(obj3d.actions[source],timer/1000.0*24);
+			//targetArmature.setAction(obj3d.actions[globalParam.target],timer/1000.0*24);
+			//referenceArmature.setAction(obj3d.actions[globalParam.reference],timer/1000.0*24);
 			ono3d.loadIdentity();
 			ono3d.rotate(-PI*0.5,1,0,0)
-			ono3d.translate(-3,0,0)
-			O3o.PoseArmature.copy(dst,sourceArmature);
+			//ono3d.translate(-3,0,0)
+			//O3o.PoseArmature.copy(dst,sourceArmature);
+			//O3o.drawObject(obj3d.objectsN["human"]);
+
+			//ono3d.translate(1.5,0,0)
+			//O3o.PoseArmature.copy(dst,referenceArmature);
+			//O3o.drawObject(obj3d.objectsN["human"]);
+
+
+			//O3o.PoseArmature.sub(srArmature,sourceArmature,referenceArmature);
+
+			//ono3d.translate(1.5,0,0)
+			//O3o.PoseArmature.copy(dst,srArmature);
+			//O3o.drawObject(obj3d.objectsN["human"]);
+
+			//ono3d.translate(1.5,0,0)
+			//O3o.PoseArmature.copy(dst,targetArmature);
+			//O3o.drawObject(obj3d.objectsN["human"]);
+
+			//O3o.PoseArmature.mul(dst,srArmature,globalParam.actionAlpha);
+			//O3o.PoseArmature.add(dst,dst,targetArmature);
+			//ono3d.translate(1.5,0,0)
+			//O3o.drawObject(obj3d.objectsN["human"]);
+
+			var oldT = motionT/1000;
+			if(Util.pressOn){
+				motionT+=33;//Math.sqrt(Util.padY*Util.padY + Util.padX*Util.padX)*33;
+			}	
+			var T = motionT/1000;
+			var d = (T|0) - (oldT|0);
+			var vec = Vec3.poolAlloc();
+			Vec3.set(vec,0,0,0);
+			sourceArmature.setAction(obj3d.actions[1],23.999999);
+			referenceArmature.setAction(obj3d.actions[2],23.99999);
+			Vec3.mul(vec,sourceArmature.poseBones[0].location,Util.padY);
+			Vec3.madd(vec,vec,referenceArmature.poseBones[0].location,Util.padX);
+			Vec3.mul(vec,vec,-d);
+
+			sourceArmature.reset();
+			referenceArmature.reset();
+			sourceArmature.setAction(obj3d.actions[1],oldT*24);
+			referenceArmature.setAction(obj3d.actions[2],oldT*24);
+			Vec3.madd(vec,vec,sourceArmature.poseBones[0].location,Util.padY);
+			Vec3.madd(vec,vec,referenceArmature.poseBones[0].location,Util.padX);
+
+			sourceArmature.reset();
+			referenceArmature.reset();
+			sourceArmature.setAction(obj3d.actions[1],motionT/1000.0*24);
+			referenceArmature.setAction(obj3d.actions[2],motionT/1000.0*24);
+			Vec3.madd(vec,vec,sourceArmature.poseBones[0].location,-Util.padY);
+			Vec3.madd(vec,vec,referenceArmature.poseBones[0].location,-Util.padX);
+			
+			
+			dst.setAction(obj3d.actions[0],0);
+			O3o.PoseArmature.sub(sourceArmature,sourceArmature,dst);
+			O3o.PoseArmature.sub(referenceArmature,referenceArmature,dst);
+			O3o.PoseArmature.mul(sourceArmature,sourceArmature,Util.padY);
+			O3o.PoseArmature.mul(referenceArmature,referenceArmature,Util.padX);
+			O3o.PoseArmature.add(dst,referenceArmature,dst);
+			O3o.PoseArmature.add(dst,sourceArmature,dst);
+			Vec3.set(dst.poseBones[0].location,0,0,dst.poseBones[0].location[2]);
+
+			Mat44.dotMat33Vec3(vec,ono3d.worldMatrix,vec);
+			vec[1]=0;
+
+			Vec3.add(obj.p,obj.p,vec);
+			ono3d.loadIdentity();
+			ono3d.translate(obj.p[0],obj.p[1],obj.p[2])
+			ono3d.rotate(-PI*0.5,1,0,0)
+			//O3o.PoseArmature.copy(dst,sourceArmature);
 			O3o.drawObject(obj3d.objectsN["human"]);
-
-			ono3d.translate(1.5,0,0)
-			O3o.PoseArmature.copy(dst,referenceArmature);
-			O3o.drawObject(obj3d.objectsN["human"]);
-
-
-			O3o.PoseArmature.sub(srArmature,sourceArmature,referenceArmature);
-
-			ono3d.translate(1.5,0,0)
-			O3o.PoseArmature.copy(dst,srArmature);
-			O3o.drawObject(obj3d.objectsN["human"]);
-
-			ono3d.translate(1.5,0,0)
-			O3o.PoseArmature.copy(dst,targetArmature);
-			O3o.drawObject(obj3d.objectsN["human"]);
-
-			O3o.PoseArmature.mul(dst,srArmature,globalParam.actionAlpha);
-			O3o.PoseArmature.add(dst,dst,targetArmature);
-			ono3d.translate(1.5,0,0)
-			O3o.drawObject(obj3d.objectsN["human"]);
+			Vec3.poolFree(1);
 
 			}
 			break;
@@ -322,8 +369,6 @@ var Testact=(function(){
 	var oldTime = 0;
 	var mseccount=0;
 	var framecount=0;
-	var vec3=new Vec3();
-	var vec4=new Vec4();
 	var inittime=0;
 	var timer=0;
 	var mat44 = new Mat44;
@@ -363,8 +408,8 @@ var Testact=(function(){
 		}
 
 		if(Util.pressOn && !bane){
-			camera2.a[1]+=(-(Util.cursorX-Util.oldcursorX)/WIDTH);
-			camera2.a[0]+=((Util.cursorY-Util.oldcursorY)/HEIGHT);
+	//		camera2.a[1]+=(-(Util.cursorX-Util.oldcursorX)/WIDTH);
+	//		camera2.a[0]+=((Util.cursorY-Util.oldcursorY)/HEIGHT);
 
 		}
 		camera2.a[0] =Math.min(camera2.a[0],Math.PI/2);
@@ -379,10 +424,12 @@ var Testact=(function(){
 		camera.p[0]+=(camera2.p[0]-camera.p[0])*0.1
 		camera.p[1]+=(camera2.p[1]-camera.p[1])*0.1
 		camera.p[2]+=(camera2.p[2]-camera.p[2])*0.1
+		var vec3=Vec3.poolAlloc();
 		vec3[0]=0
 		vec3[1]=1
 		vec3[2]=0
 		homingCamera(camera.a,vec3,camera.p);
+		Vec3.poolFree(1);
 
 		for(i=0;i<OBJSLENGTH;i++){
 			if(objs[i].stat!==STAT_ENABLE)continue;
@@ -413,9 +460,12 @@ var Testact=(function(){
 				cursorr[0]-=1;
 			}
 		}
+
+		var vec4 = Vec4.poolAlloc();
 		if(Util.pressCount == 1){
-			var p0 =bV0;
-			var p1 =bV1;
+			var p0 =Vec3.poolAlloc();
+			var p1 =Vec3.poolAlloc();
+			var bV2 = Vec3.poolAlloc();
 
 			Mat44.getInv(mat44,ono3d.pvMat);
 			Vec4.set(vec4,cursorr[0],-cursorr[1],-1,1);
@@ -486,6 +536,7 @@ var Testact=(function(){
 				}
 
 			}
+			Vec3.poolFree(3);
 		}
 
 		if(bane){
@@ -512,6 +563,7 @@ var Testact=(function(){
 			}
 			
 		}
+		Vec4.poolFree(1);
 
 		ono3d.rf=0;
 		ono3d.lineWidth=1.0;
@@ -558,8 +610,18 @@ var Testact=(function(){
 		O3o.useCustomMaterial = globalParam.cMaterial;
 
 		var start = Date.now();
+
+		if(field.scenes.length>0){
+			ono3d.setTargetMatrix(0);
+			ono3d.loadIdentity();
+			ono3d.rotate(-PI*0.5,1,0,0)
+			O3o.drawScene(field.scenes[0]);
+			//ono3d.loadIdentity();
+
+		}
 		for(i=0;i<OBJSLENGTH;i++){
 			if(objs[i].stat!==STAT_ENABLE)continue;
+			ono3d.setTargetMatrix(1)
 			ono3d.push();
 			ono3d.setTargetMatrix(0)
 			ono3d.loadIdentity()
@@ -580,7 +642,7 @@ var Testact=(function(){
 		if(globalParam.shadow){
 			gl.enable(gl.DEPTH_TEST);
 			
-			ono3d.setOrtho(10.0,10.0,10.0,30.0)
+			ono3d.setOrtho(10.0,10.0,15.0,30.0)
 			var lightSource = ono3d.lightSources[0]
 			Mat44.setInit(lightSource.matrix);
 			Mat44.getRotVector(lightSource.matrix,lightSource.angle);
@@ -677,7 +739,7 @@ var Testact=(function(){
 			Rastgl.copyframe(emiTexture,0,0,WIDTH/1024,HEIGHT/1024); //メイン画面に合成
 		}
 
-		if(bdfimage){
+		if(bdfimage&& 0){
 			
 			ono3d.setTargetMatrix(1)
 			ono3d.loadIdentity()
@@ -846,6 +908,7 @@ var Testact=(function(){
 			select.appendChild(option);
 		}
 		//soundbuffer = WebAudio.loadSound('se.mp3');
+		field =O3o.load("f1.o3o");
 		sky = Ono3d.loadCubemap("skybox.jpg",function(image){
 			var envsize=16;
 
@@ -881,53 +944,54 @@ var Testact=(function(){
 			gl.bindTexture(gl.TEXTURE_2D, null);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 			emiTexture = Rastgl.createTexture(null,1024,1024);
-
-			bdf = Bdf.load("./k8x12.bdf",null,function(){
-				var txt="";
-				for(var i=0;i<texts.length;i++){
-					txt+=texts[i]+"\n";
-				}
-				bdfimage = Bdf.render(txt,bdf,false);
-				bdfimage.gltexture = Rastgl.createTexture(bdfimage);//512x512
-
-				gl.bindTexture(gl.TEXTURE_2D,bdfimage.gltexture);
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-				gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);//1024x1024
-				gl.viewport(0,0,1024,1024);
-				gl.clearColor(.8,0.2,0.6,0.0);
-				gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
-				gl.enable(gl.BLEND);
-				gl.blendFuncSeparate(gl.ZERO,gl.ONE,gl.ONE,gl.ONE);
-				var scl=2;//1;//1/8;
-				var ss=1/512;
-				Rastgl.copyframe(bdfimage.gltexture,0,0,scl,scl);
-				Rastgl.copyframe(bdfimage.gltexture,-1*ss,0,scl,scl);
-				Rastgl.copyframe(bdfimage.gltexture,-2*ss,0,scl,scl);
-
-				Rastgl.copyframe(bdfimage.gltexture,0,-1*ss,scl,scl);
-				Rastgl.copyframe(bdfimage.gltexture,-1*ss,-1*ss,scl,scl);
-				Rastgl.copyframe(bdfimage.gltexture,-2*ss,-1*ss,scl,scl);
-
-				Rastgl.copyframe(bdfimage.gltexture,0*ss,-2*ss,scl,scl);
-				Rastgl.copyframe(bdfimage.gltexture,-1*ss,-2*ss,scl,scl);
-				Rastgl.copyframe(bdfimage.gltexture,-2*ss,-2*ss,scl,scl);
-				//gl.bindTexture(gl.TEXTURE_2D,Rastgl.fTexture2);
-				//gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,512,512);
-				gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
-				//Gauss.filter(Rastgl.fTexture2,Rastgl.fTexture2,100,1.0/512,512.0);
-				gl.enable(gl.BLEND);
-				gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
-				Rastgl.copyframe(bdfimage.gltexture,-1*ss,-1*ss,scl,scl);
-				gl.bindTexture(gl.TEXTURE_2D,bdfimage.gltexture);
-				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,512,512);
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-
-			});
 		});
+
+		bdf = Bdf.load("./k8x12.bdf",null,function(){
+			var txt="";
+			for(var i=0;i<texts.length;i++){
+				txt+=texts[i]+"\n";
+			}
+			bdfimage = Bdf.render(txt,bdf,false);
+			bdfimage.gltexture = Rastgl.createTexture(bdfimage);//512x512
+
+			gl.bindTexture(gl.TEXTURE_2D,bdfimage.gltexture);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);//1024x1024
+			gl.viewport(0,0,1024,1024);
+			gl.clearColor(.8,0.2,0.6,0.0);
+			gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
+			gl.enable(gl.BLEND);
+			gl.blendFuncSeparate(gl.ZERO,gl.ONE,gl.ONE,gl.ONE);
+			var scl=2;//1;//1/8;
+			var ss=1/512;
+			Rastgl.copyframe(bdfimage.gltexture,0,0,scl,scl);
+			Rastgl.copyframe(bdfimage.gltexture,-1*ss,0,scl,scl);
+			Rastgl.copyframe(bdfimage.gltexture,-2*ss,0,scl,scl);
+
+			Rastgl.copyframe(bdfimage.gltexture,0,-1*ss,scl,scl);
+			Rastgl.copyframe(bdfimage.gltexture,-1*ss,-1*ss,scl,scl);
+			Rastgl.copyframe(bdfimage.gltexture,-2*ss,-1*ss,scl,scl);
+
+			Rastgl.copyframe(bdfimage.gltexture,0*ss,-2*ss,scl,scl);
+			Rastgl.copyframe(bdfimage.gltexture,-1*ss,-2*ss,scl,scl);
+			Rastgl.copyframe(bdfimage.gltexture,-2*ss,-2*ss,scl,scl);
+			//gl.bindTexture(gl.TEXTURE_2D,Rastgl.fTexture2);
+			//gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,512,512);
+			gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
+			//Gauss.filter(Rastgl.fTexture2,Rastgl.fTexture2,100,1.0/512,512.0);
+			gl.enable(gl.BLEND);
+			gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
+			Rastgl.copyframe(bdfimage.gltexture,-1*ss,-1*ss,scl,scl);
+			gl.bindTexture(gl.TEXTURE_2D,bdfimage.gltexture);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,512,512);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+
+		});
+		
 		
 		Util.setFps(globalParam.fps,mainloop);
 		Util.fpsman();
@@ -1015,7 +1079,7 @@ var Testact=(function(){
 		var ctx=canvas.getContext("2d");
 		gl = canvasgl.getContext('webgl') || canvasgl.getContext('experimental-webgl');
 
-		Util.init(canvas,canvasgl,document.body);
+		Util.init(canvas,canvasgl,parentnode);
 		var ono3d = new Ono3d()
 		O3o.setOno3d(ono3d)
 		ono3d.init(canvas,ctx);
