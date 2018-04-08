@@ -87,7 +87,7 @@ var handleFileSelect = function(evt) {
 }
 	var onl=function(){
 	document.getElementById('files').addEventListener('change', handleFileSelect, false);
-		Testact.loadModel();
+		//Testact.loadModel();
 		Testact.start();
 	}
 
@@ -153,7 +153,7 @@ var handleFileSelect = function(evt) {
 </div>
 </div>
 
-<div style="clear:both;background-color:#eef;color:#f00;">
+<div style="clear:both;background-color:#eef;color:#f00;display:none;">
 	( Source<select id="source"></select>
 	 - Reference<select id="reference"></select>
 	 ) * alpha<input class="slider" id="actionAlpha" max="1"/>

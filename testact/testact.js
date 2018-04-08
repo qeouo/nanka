@@ -21,6 +21,7 @@ var Testact=(function(){
 	var tsukamiZ=100;
 
 	var obj3d,field;
+	var goField;
 
 	var i;
 	var STAT_EMPTY=0
@@ -43,25 +44,57 @@ var Testact=(function(){
 	]
 
 	
-	var Obj = function(){
-		this.p=new Vec3();
-		this.scale=new Vec3();
-		this.angle=0;
-		this.v=new Vec3();
-		this.a=new Vec3();
-		this.pos2=new Vec3();
-		this.stat=STAT_EMPTY;
-		this.type=0;
-		this.hp=1;
-		this.t=0;
-		this.hitareas=[];
-		this.matrix=new Mat43();
-	}	
-	var createObj = function(func){
+	var Obj = (function(){
+		var Obj = function(){
+			this.p=new Vec3();
+			this.scale=new Vec3();
+			this.angle=0;
+			this.v=new Vec3();
+			this.a=new Vec3();
+			this.stat=STAT_EMPTY;
+			this.type=0;
+			this.hp=1;
+			this.t=0;
+			this.hitareas=[];
+			this.matrix=new Mat43();
+			this.phyObjs = [];
+		}
+		var ret = Obj;
+
+		ret.prototype.init=function(){
+			this.func.prototype.init.call(this);
+		};
+		ret.prototype.move=function(){
+			this.func.prototype.move.call(this);
+		}
+		ret.prototype.draw=function(){
+			this.func.prototype.draw.call(this);
+		}
+		ret.prototype.hit=function(){
+			this.func.prototype.hit.call(this);
+		};
+
+		return ret;
+	})();
+
+	var defObj = (function(){
+		var defObj = function(){};
+		var ret = defObj;
+		ret.prototype.init=function(){};
+		ret.prototype.move=function(){};
+		ret.prototype.draw=function(){};
+		ret.prototype.hit=function(){};
+		return ret;
+	})();
+
+
+	var createObj = function(c){
+		if(!c){
+			c=defObj;
+		}
 		for(i=0;i<OBJSLENGTH;i++){
 			var obj=objs[i];
 			if(obj.stat!==STAT_EMPTY)continue;
-			obj.func=func;
 			Mat43.setInit(obj.matrix);
 			obj.parent=null;
 			Vec3.set(obj.scale,1,1,1);
@@ -73,7 +106,12 @@ var Testact=(function(){
 			obj.frame=0;
 			obj.pos2=new Vec3();
 			obj.type=TYPE_EFFECT;
-			obj.func(obj,MSG_CREATE,0);
+			obj.phyObjs = [];
+			obj.func=c;
+			obj.init();
+			//obj.func=func;
+			//obj.func(obj,MSG_CREATE,0);
+
 			return obj;
 		}
 		return null;
@@ -87,38 +125,23 @@ var Testact=(function(){
 		obj.num=i;
 		objs.push(obj);
 	}
-	var defObj=function(obj,msg,param){
-		switch(msg){
-		case MSG_CREATE:
-			break;
-		case MSG_MOVE:
-			break;
-		case MSG_DRAW:
-			break;
-		case MSG_HIT:
-			obj.hp--;
-			break;
-		case MSG_FRAMEOUT:
-			deleteObj(obj);
-			break;
+
+	var GoField= (function(){
+		var GoField =function(){};
+		var ret = GoField;
+		inherits(ret,defObj);
+		ret.prototype.init=function(){
+			field =O3o.load("f1.o3o",function(o3o){
+				//物理シミュオブジェクトの設定
+				goField.phyObjs= O3o.createPhyObjs(o3o.scenes[0],onoPhy);
+			});
 		}
-		return;
-	}
-	var sourceArmature=null;
-	var referenceArmature=null;
-	var srArmature=null;
-	var targetArmature=null;
-	var motionT=0;
-	var mainObj=function(obj,msg,param){
-		var phyObjs = obj.phyObjs;
-		switch(msg){
-		case MSG_CREATE:
-			obj.phyObjs= null;
-			Vec3.set(obj.p,0,0,0);
-			break;
-		case MSG_MOVE:
+		ret.prototype.move=function(){
+			var obj3d=field;
+			var obj = this;
+			var phyObjs = obj.phyObjs;
 			if(obj3d.scenes.length===0){
-				break;
+				return;
 			}
 			
 			 //変換マトリクス初期化
@@ -128,27 +151,129 @@ var Testact=(function(){
 			ono3d.loadIdentity();
 			ono3d.rotate(-PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
 
-			var scene= obj3d.scenes[globalParam.scene];
+			var scene= obj3d.scenes[0];
+			O3o.setFrame(obj3d,scene,timer/1000.0*24); //アニメーション処理
+
+			if(phyObjs && globalParam.physics){
+				//物理シミュ有効の場合は物理オブジェクトにアニメーション結果を反映させる
+				for(var i=0;i<scene.objects.length;i++){
+					//物理オブジェクトにアニメーション結果を反映
+					//(前回の物理シミュ無効の場合は強制反映する)
+					if(scene.objects[i].phyObj){
+						O3o.movePhyObj(scene.objects[i],!globalParam.physics_);
+					}
+				}
+				globalParam.physics_=true;
+			}else{
+				globalParam.physics_=false;
+			}
+
+			for(var i=0;i<phyObjs.length;i++){
+				var phyObj = phyObjs[i];
+				var aabb;
+				if(phyObj.type===OnoPhy.CLOTH){
+					aabb = phyObj.AABB;
+				}else{
+					aabb = phyObj.collision.AABB;
+				}
+				if(aabb.max[1]<-10){
+					O3o.movePhyObj(phyObj.parent,phyObj,true);
+				}
+			}
+		}
+		ret.prototype.draw=function(){
+			var obj3d=field;
+			var obj = this;
+			var phyObjs = obj.phyObjs;
+
+			ono3d.setTargetMatrix(0)
+			ono3d.loadIdentity();
+			ono3d.rotate(-PI*0.5,1,0,0)
+
+			ono3d.rf=0;
+			if(obj3d){
+				if(obj3d.scenes.length>0){
+					var objects = obj3d.scenes[0].objects;
+					for(var i=0;i<objects.length;i++){
+						if(objects[i].hide_render){
+							continue;
+						}
+						ono3d.lineWidth=1;
+						ono3d.rf&=~Ono3d.RF_OUTLINE;
+						if(globalParam.outlineWidth>0.){
+							ono3d.lineWidth=globalParam.outlineWidth;
+							ono3d.rf|=Ono3d.RF_OUTLINE;
+							Util.hex2rgb(ono3d.lineColor,globalParam.outlineColor);
+						}
+						if(bane){
+							if(bane.con2.name == objects[i].name){
+								ono3d.lineWidth=1;
+								ono3d.rf|=Ono3d.RF_OUTLINE;
+								Vec4.set(ono3d.lineColor,1,4,1,0);
+							}
+						}
+						if(globalParam.physics){
+							O3o.drawObject(objects[i],phyObjs);
+						}else{
+							O3o.drawObject(objects[i],null);
+						}
+					}
+				}
+//
+			}
+		}
+		return ret;
+	})();
+
+	var sourceArmature=null;
+	var referenceArmature=null;
+	var srArmature=null;
+	var targetArmature=null;
+	var motionT=0;
+
+	var mainObj = (function(){
+		var mainObj =function(){
+		};
+		var ret = mainObj;
+		ret.prototype.init = function(){
+			var obj = this;
+			obj.phyObjs= null;
+			Vec3.set(obj.p,0,0,0);
+
+			obj3d=O3o.load("human.o3o",function(o3o){
+
+				for(var i=0;i<obj3d.objects.length;i++){
+					var object=obj3d.objects[i];
+				}
+
+				targetArmature= new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
+				sourceArmature= new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
+				referenceArmature= new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
+				srArmature = new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
+
+			});
+		}
+		ret.prototype.move=function(){
+			var obj = this;
+			var phyObjs = obj.phyObjs;
+			if(obj3d.scenes.length===0){
+				return;
+			}
+			
+			 //変換マトリクス初期化
+			ono3d.setTargetMatrix(1);
+			ono3d.loadIdentity();
+			ono3d.setTargetMatrix(0);
+			ono3d.loadIdentity();
+			ono3d.rotate(-PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
+
+			var scene= obj3d.scenes[0];
 			O3o.setFrame(obj3d,scene,timer/1000.0*24); //アニメーション処理
 
 			if(phyObjs===null){
 				//物理シミュオブジェクトの設定
 				if(obj3d.scenes.length>0){
-					phyObjs=new Array();
-					obj.phyObjs= phyObjs;
-					for(i=0;i<scene.objects.length;i++){
-						//3Dデータから物理オブジェクト生成
-						var phyobj=O3o.createPhyObj(scene.objects[i],onoPhy);
-						if(!phyobj){
-							continue;
-						}
-						phyObjs.push(phyobj);
-					}
-
-					for(var i=0;i<phyObjs.length;i++){
-						//ジョイント作成
-						O3o.createPhyJoint(scene.objects[i],phyObjs,onoPhy);
-					}
+					phyObjs = obj.phyObjs= O3o.createPhyObjs(scene,onoPhy);
 				}
 			}
 
@@ -178,136 +303,79 @@ var Testact=(function(){
 					O3o.movePhyObj(phyObj.parent,phyObj,true);
 				}
 			}
+		}
+		ret.prototype.draw=function(){
+			var obj = this;
+			var phyObjs = obj.phyObjs;
 
-			break;
-
-		case MSG_DRAW:
 			ono3d.setTargetMatrix(0)
 			ono3d.loadIdentity();
 			ono3d.rotate(-PI*0.5,1,0,0)
 
 			ono3d.rf=0;
 			if(obj3d){
-//				if(obj3d.scenes.length>0){
-//					var objects = obj3d.scenes[globalParam.scene].objects;
-//					for(var i=0;i<objects.length;i++){
-//						if(objects[i].hide_render){
-//							continue;
-//						}
-//						ono3d.lineWidth=1;
-//						ono3d.rf&=~Ono3d.RF_OUTLINE;
-//						if(globalParam.outlineWidth>0.){
-//							ono3d.lineWidth=globalParam.outlineWidth;
-//							ono3d.rf|=Ono3d.RF_OUTLINE;
-//							Util.hex2rgb(ono3d.lineColor,globalParam.outlineColor);
-//						}
-//						if(bane){
-//							if(bane.con2.name == objects[i].name){
-//								ono3d.lineWidth=1;
-//								ono3d.rf|=Ono3d.RF_OUTLINE;
-//								Vec4.set(ono3d.lineColor,1,4,1,0);
-//							}
-//						}
-//						if(globalParam.physics){
-//							O3o.drawObject(objects[i],phyObjs);
-//						}else{
-//							O3o.drawObject(objects[i],null);
-//						}
-//					}
-//				}
-			if(globalParam.outlineWidth>0.){
-				ono3d.lineWidth=globalParam.outlineWidth;
-				ono3d.rf|=Ono3d.RF_OUTLINE;
-				Util.hex2rgb(ono3d.lineColor,globalParam.outlineColor);
-			}
-			var dst = obj3d.objectsN["アーマチュア"].poseArmature;
-			sourceArmature.reset();
-			referenceArmature.reset();
-			srArmature.reset();
-			targetArmature.reset();
-			//sourceArmature.setAction(obj3d.actions[source],timer/1000.0*24);
-			//targetArmature.setAction(obj3d.actions[globalParam.target],timer/1000.0*24);
-			//referenceArmature.setAction(obj3d.actions[globalParam.reference],timer/1000.0*24);
-			ono3d.loadIdentity();
-			ono3d.rotate(-PI*0.5,1,0,0)
-			//ono3d.translate(-3,0,0)
-			//O3o.PoseArmature.copy(dst,sourceArmature);
-			//O3o.drawObject(obj3d.objectsN["human"]);
 
-			//ono3d.translate(1.5,0,0)
-			//O3o.PoseArmature.copy(dst,referenceArmature);
-			//O3o.drawObject(obj3d.objectsN["human"]);
+				var oldT = motionT/1000;
+				if(Util.pressOn){
+					motionT+=33;//Math.sqrt(Util.padY*Util.padY + Util.padX*Util.padX)*33;
+				}	
+				var T = motionT/1000;
+				var d = (T|0) - (oldT|0);
+				var vec = Vec3.poolAlloc();
+				Vec3.set(vec,0,0,0);
 
+				var dst = obj3d.objectsN["アーマチュア"].poseArmature;
+				sourceArmature.reset();
+				referenceArmature.reset();
+				srArmature.reset();
+				targetArmature.reset();
 
-			//O3o.PoseArmature.sub(srArmature,sourceArmature,referenceArmature);
+				sourceArmature.setAction(obj3d.actions[1],23.999999);
+				referenceArmature.setAction(obj3d.actions[2],23.99999);
+				Vec3.mul(vec,sourceArmature.poseBones[0].location,Util.padY);
+				Vec3.madd(vec,vec,referenceArmature.poseBones[0].location,Util.padX);
+				Vec3.mul(vec,vec,-d);
 
-			//ono3d.translate(1.5,0,0)
-			//O3o.PoseArmature.copy(dst,srArmature);
-			//O3o.drawObject(obj3d.objectsN["human"]);
+				sourceArmature.reset();
+				referenceArmature.reset();
+				sourceArmature.setAction(obj3d.actions[1],oldT*24);
+				referenceArmature.setAction(obj3d.actions[2],oldT*24);
+				Vec3.madd(vec,vec,sourceArmature.poseBones[0].location,Util.padY);
+				Vec3.madd(vec,vec,referenceArmature.poseBones[0].location,Util.padX);
 
-			//ono3d.translate(1.5,0,0)
-			//O3o.PoseArmature.copy(dst,targetArmature);
-			//O3o.drawObject(obj3d.objectsN["human"]);
+				sourceArmature.reset();
+				referenceArmature.reset();
+				sourceArmature.setAction(obj3d.actions[1],motionT/1000.0*24);
+				referenceArmature.setAction(obj3d.actions[2],motionT/1000.0*24);
+				Vec3.madd(vec,vec,sourceArmature.poseBones[0].location,-Util.padY);
+				Vec3.madd(vec,vec,referenceArmature.poseBones[0].location,-Util.padX);
+				
+				
+				dst.setAction(obj3d.actions[0],0);
+				O3o.PoseArmature.sub(sourceArmature,sourceArmature,dst);
+				O3o.PoseArmature.sub(referenceArmature,referenceArmature,dst);
+				O3o.PoseArmature.mul(sourceArmature,sourceArmature,Util.padY);
+				O3o.PoseArmature.mul(referenceArmature,referenceArmature,Util.padX);
+				O3o.PoseArmature.add(dst,referenceArmature,dst);
+				O3o.PoseArmature.add(dst,sourceArmature,dst);
+				Vec3.set(dst.poseBones[0].location,0,0,dst.poseBones[0].location[2]);
 
-			//O3o.PoseArmature.mul(dst,srArmature,globalParam.actionAlpha);
-			//O3o.PoseArmature.add(dst,dst,targetArmature);
-			//ono3d.translate(1.5,0,0)
-			//O3o.drawObject(obj3d.objectsN["human"]);
+				Mat44.dotMat33Vec3(vec,ono3d.worldMatrix,vec);
+				vec[1]=0;
 
-			var oldT = motionT/1000;
-			if(Util.pressOn){
-				motionT+=33;//Math.sqrt(Util.padY*Util.padY + Util.padX*Util.padX)*33;
-			}	
-			var T = motionT/1000;
-			var d = (T|0) - (oldT|0);
-			var vec = Vec3.poolAlloc();
-			Vec3.set(vec,0,0,0);
-			sourceArmature.setAction(obj3d.actions[1],23.999999);
-			referenceArmature.setAction(obj3d.actions[2],23.99999);
-			Vec3.mul(vec,sourceArmature.poseBones[0].location,Util.padY);
-			Vec3.madd(vec,vec,referenceArmature.poseBones[0].location,Util.padX);
-			Vec3.mul(vec,vec,-d);
-
-			sourceArmature.reset();
-			referenceArmature.reset();
-			sourceArmature.setAction(obj3d.actions[1],oldT*24);
-			referenceArmature.setAction(obj3d.actions[2],oldT*24);
-			Vec3.madd(vec,vec,sourceArmature.poseBones[0].location,Util.padY);
-			Vec3.madd(vec,vec,referenceArmature.poseBones[0].location,Util.padX);
-
-			sourceArmature.reset();
-			referenceArmature.reset();
-			sourceArmature.setAction(obj3d.actions[1],motionT/1000.0*24);
-			referenceArmature.setAction(obj3d.actions[2],motionT/1000.0*24);
-			Vec3.madd(vec,vec,sourceArmature.poseBones[0].location,-Util.padY);
-			Vec3.madd(vec,vec,referenceArmature.poseBones[0].location,-Util.padX);
-			
-			
-			dst.setAction(obj3d.actions[0],0);
-			O3o.PoseArmature.sub(sourceArmature,sourceArmature,dst);
-			O3o.PoseArmature.sub(referenceArmature,referenceArmature,dst);
-			O3o.PoseArmature.mul(sourceArmature,sourceArmature,Util.padY);
-			O3o.PoseArmature.mul(referenceArmature,referenceArmature,Util.padX);
-			O3o.PoseArmature.add(dst,referenceArmature,dst);
-			O3o.PoseArmature.add(dst,sourceArmature,dst);
-			Vec3.set(dst.poseBones[0].location,0,0,dst.poseBones[0].location[2]);
-
-			Mat44.dotMat33Vec3(vec,ono3d.worldMatrix,vec);
-			vec[1]=0;
-
-			Vec3.add(obj.p,obj.p,vec);
-			ono3d.loadIdentity();
-			ono3d.translate(obj.p[0],obj.p[1],obj.p[2])
-			ono3d.rotate(-PI*0.5,1,0,0)
-			//O3o.PoseArmature.copy(dst,sourceArmature);
-			O3o.drawObject(obj3d.objectsN["human"]);
-			Vec3.poolFree(1);
+				Vec3.add(obj.p,obj.p,vec);
+				ono3d.loadIdentity();
+				ono3d.translate(obj.p[0],obj.p[1],obj.p[2])
+				ono3d.rotate(-PI*0.5,1,0,0)
+				//O3o.PoseArmature.copy(dst,sourceArmature);
+				O3o.drawObject(obj3d.objectsN["human"]);
+				Vec3.poolFree(1);
 
 			}
-			break;
 		}
-		return defObj(obj,msg,param);
-	}
+		return ret;
+		//return defObj(obj,msg,param);
+	})();
 		var url=location.search.substring(1,location.search.length)
 		globalParam.outlineWidth=0;
 		globalParam.outlineColor="000000";
@@ -362,8 +430,8 @@ var Testact=(function(){
 	var mobj;
 
 	
-	var camera=createObj(defObj);
-	var camera2=createObj(defObj);
+	var camera=createObj();
+	var camera2=createObj();
 	var camerazoom=0.577;
 	var span;
 	var oldTime = 0;
@@ -396,7 +464,8 @@ var Testact=(function(){
 
 		for(i=0;i<OBJSLENGTH;i++){
 			if(objs[i].stat!==STAT_ENABLE)continue;
-			objs[i].func(objs[i],MSG_MOVE,0);
+			//objs[i].func(objs[i],MSG_MOVE,0);
+			objs[i].move();
 		}
 		var phytime=0;
 		if(globalParam.physics){
@@ -611,14 +680,6 @@ var Testact=(function(){
 
 		var start = Date.now();
 
-		if(field.scenes.length>0){
-			ono3d.setTargetMatrix(0);
-			ono3d.loadIdentity();
-			ono3d.rotate(-PI*0.5,1,0,0)
-			O3o.drawScene(field.scenes[0]);
-			//ono3d.loadIdentity();
-
-		}
 		for(i=0;i<OBJSLENGTH;i++){
 			if(objs[i].stat!==STAT_ENABLE)continue;
 			ono3d.setTargetMatrix(1)
@@ -626,7 +687,8 @@ var Testact=(function(){
 			ono3d.setTargetMatrix(0)
 			ono3d.loadIdentity()
 			ono3d.rf=0;
-			objs[i].func(objs[i],MSG_DRAW,0);
+			objs[i].draw();
+			//objs[i].func(objs[i],MSG_DRAW,0);
 			ono3d.setTargetMatrix(1)
 			ono3d.pop();
 		}
@@ -813,12 +875,6 @@ var Testact=(function(){
 
 			for(var i=0;i<obj3d.objects.length;i++){
 				var object=obj3d.objects[i];
-				//while(object.modifiers.length){
-				//	if(object.modifiers[0].type != "MIRROR"){
-				//		break;
-				//	}
-				//	O3o.freeze(object,object.modifiers[0]);
-				//}
 			}
 
 			var sceneSelect = document.getElementById("scene");
@@ -832,34 +888,6 @@ var Testact=(function(){
 				option.innerHTML = obj3d.scenes[i].name;
 				sceneSelect.appendChild(option);
 			}
-			document.getElementById("scene").selectedIndex=globalParam.scene;
-			Util.fireEvent(document.getElementById("scene"),"change");
-
-			var sel1= document.getElementById("target");
-			var sel2= document.getElementById("reference");
-			var sel3= document.getElementById("source");
-			var option;
-			for(var i=0;i<obj3d.actions.length;i++){
-				option = document.createElement('option');
-				option.setAttribute('value', i);
-				option.innerHTML = obj3d.actions[i].name;
-
-				sel1.appendChild(option);
-				sel2.appendChild(option.cloneNode(true));
-				sel3.appendChild(option.cloneNode(true));
-			}
-			sel1.selectedIndex=globalParam.target;
-			sel2.selectedIndex=globalParam.reference;
-			sel3.selectedIndex=globalParam.source;
-			Util.fireEvent(sel1,"change");
-			Util.fireEvent(sel2,"change");
-			Util.fireEvent(sel3,"change");
-
-			targetArmature= new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
-			sourceArmature= new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
-			referenceArmature= new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
-			srArmature = new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
-
 		});
 		
 	}
@@ -908,7 +936,6 @@ var Testact=(function(){
 			select.appendChild(option);
 		}
 		//soundbuffer = WebAudio.loadSound('se.mp3');
-		field =O3o.load("f1.o3o");
 		sky = Ono3d.loadCubemap("skybox.jpg",function(image){
 			var envsize=16;
 
@@ -1119,6 +1146,7 @@ var Testact=(function(){
 		
 		onoPhy = new OnoPhy();
 
+		goField=createObj(GoField);
 		mobj=createObj(mainObj);
 		var light = new ono3d.LightSource()
 		light.type =Ono3d.LT_DIRECTION
