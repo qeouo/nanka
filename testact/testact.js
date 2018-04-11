@@ -361,7 +361,10 @@ var Testact=(function(){
 				Vec3.set(dst.poseBones[0].location,0,0,dst.poseBones[0].location[2]);
 
 				Mat44.dotMat33Vec3(vec,ono3d.worldMatrix,vec);
+				vec[0]=Util.padX;
+				vec[2]=Util.padY;
 				vec[1]=0;
+				Vec3.mul(vec,vec,0.03);
 
 				Vec3.add(obj.p,obj.p,vec);
 				ono3d.loadIdentity();
