@@ -773,8 +773,8 @@
     ,"type":"MESH"
     ,"data":"円柱"
     ,"rigid_body":{
-      "type":"PASSIVE"
-      ,"mass":1.0
+      "type":"ACTIVE"
+      ,"mass":50000.0
       ,"collision_shape":"CAPSULE"
       ,"friction": 0.500000
       ,"restitution": 0.000000

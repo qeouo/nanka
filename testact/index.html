@@ -114,14 +114,12 @@ var handleFileSelect = function(evt) {
 		<label><input type="radio" id="cross" name="q1" value="1" onchange="globalParam.stereomode=parseFloat(this.value)">交差</label>
 		<label><input type="radio" id="parallel" name="q1" value="-1" onchange="globalParam.stereomode=parseFloat(this.value)">平行</label>
 	</div>
-	<div style="float:left;margin-right:10px;">
+	<div style="float:left;margin-right:10px;display:none;">
 		<label><input type="checkbox" id="physics" />物理シミュ</label><br />
 		step/frame<input class="slider" id="step" min="1" max="10" step="1"/><br />
-		<div style="display:none;">
 		シーン<select id="scene"  onchange="globalParam.scene=parseInt(this.value);Testact.changeScene();">
 		</select><br />
 		フレネル反射<input class="slider" id="frenel"/><br />
-		</div>
 	</div>
 	<div style="float:left;margin-right:10px;">
 		<pre id="cons" ></pre><br />

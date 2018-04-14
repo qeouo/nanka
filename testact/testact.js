@@ -131,9 +131,10 @@ var Testact=(function(){
 		var ret = GoField;
 		inherits(ret,defObj);
 		ret.prototype.init=function(){
+			var t=this;
 			field =O3o.load("f1.o3o",function(o3o){
 				//物理シミュオブジェクトの設定
-				goField.phyObjs= O3o.createPhyObjs(o3o.scenes[0],onoPhy);
+				t.phyObjs= O3o.createPhyObjs(o3o.scenes[0],onoPhy);
 			});
 		}
 		ret.prototype.move=function(){
@@ -163,9 +164,6 @@ var Testact=(function(){
 						O3o.movePhyObj(scene.objects[i],!globalParam.physics_);
 					}
 				}
-				globalParam.physics_=true;
-			}else{
-				globalParam.physics_=false;
 			}
 
 			for(var i=0;i<phyObjs.length;i++){
@@ -231,15 +229,16 @@ var Testact=(function(){
 	var targetArmature=null;
 	var motionT=0;
 
-	var mainObj = (function(){
-		var mainObj =function(){
+	var goJiki = (function(){
+		var goJiki =function(){
 		};
-		var ret = mainObj;
+		var ret = goJiki;
 		ret.prototype.init = function(){
 			var obj = this;
 			obj.phyObjs= null;
-			Vec3.set(obj.p,0,0,0);
+			Vec3.set(obj.p,0,3,0);
 
+			var t=this;
 			obj3d=O3o.load("human.o3o",function(o3o){
 
 				for(var i=0;i<obj3d.objects.length;i++){
@@ -251,6 +250,17 @@ var Testact=(function(){
 				referenceArmature= new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
 				srArmature = new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
 
+				ono3d.setTargetMatrix(1);
+				ono3d.loadIdentity();
+				ono3d.setTargetMatrix(0);
+				ono3d.loadIdentity();
+				ono3d.rotate(-PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
+				ono3d.translate(obj.p[0],obj.p[1],obj.p[2]);
+				t.phyObjs= O3o.createPhyObjs(o3o.scenes[0],onoPhy);
+				var phyObj = t.phyObjs[0];
+				Vec3.copy(phyObj.location,t.p);
+				Mat33.set(phyObj.inertiaTensorBase,1,0,0,0,1,0,0,0,1);
+				Mat33.mul(phyObj.inertiaTensorBase,phyObj.inertiaTensorBase,99999999);
 			});
 		}
 		ret.prototype.move=function(){
@@ -259,50 +269,43 @@ var Testact=(function(){
 			if(obj3d.scenes.length===0){
 				return;
 			}
+
+			var phyObj = this.phyObjs[0];
+			Vec3.copy(this.p,phyObj.location);
+
+			//Mat44.dotMat33Vec3(vec,ono3d.worldMatrix,vec);
+			var vec = Vec3.poolAlloc();
+			vec[0]=Util.padX;
+			vec[2]=Util.padY;
+			vec[1]=0;
+			Vec3.madd(phyObj.v,phyObj.v,vec,0.2);
+			Vec4.set(phyObj.rotq,-0.707,0.707,0,0);
+			//Vec3.set(phyObj.rotq,0,0,0,1);
+			Vec3.poolFree(1);
 			
-			 //変換マトリクス初期化
-			ono3d.setTargetMatrix(1);
-			ono3d.loadIdentity();
-			ono3d.setTargetMatrix(0);
-			ono3d.loadIdentity();
-			ono3d.rotate(-PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
+			////変換マトリクス初期化
+			//ono3d.setTargetMatrix(1);
+			//ono3d.loadIdentity();
+			//ono3d.setTargetMatrix(0);
+			//ono3d.loadIdentity();
+			//ono3d.rotate(-PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
 
-			var scene= obj3d.scenes[0];
-			O3o.setFrame(obj3d,scene,timer/1000.0*24); //アニメーション処理
+			//var scene= obj3d.scenes[0];
+			//O3o.setFrame(obj3d,scene,timer/1000.0*24); //アニメーション処理
 
-			if(phyObjs===null){
-				//物理シミュオブジェクトの設定
-				if(obj3d.scenes.length>0){
-					phyObjs = obj.phyObjs= O3o.createPhyObjs(scene,onoPhy);
-				}
-			}
+			//if(phyObjs && globalParam.physics){
+			//	//物理シミュ有効の場合は物理オブジェクトにアニメーション結果を反映させる
+			//	for(var i=0;i<scene.objects.length;i++){
+			//		//物理オブジェクトにアニメーション結果を反映
+			//		//(前回の物理シミュ無効の場合は強制反映する)
+			//		if(scene.objects[i].phyObj){
+			//			O3o.movePhyObj(scene.objects[i],!globalParam.physics_);
+			//		}
+			//	}
 
-			if(phyObjs && globalParam.physics){
-				//物理シミュ有効の場合は物理オブジェクトにアニメーション結果を反映させる
-				for(var i=0;i<scene.objects.length;i++){
-					//物理オブジェクトにアニメーション結果を反映
-					//(前回の物理シミュ無効の場合は強制反映する)
-					if(scene.objects[i].phyObj){
-						O3o.movePhyObj(scene.objects[i],!globalParam.physics_);
-					}
-				}
-				globalParam.physics_=true;
-			}else{
-				globalParam.physics_=false;
-			}
+			//	ono3d.translate(obj.p[0],obj.p[1],obj.p[2]);
+			//}
 
-			for(var i=0;i<phyObjs.length;i++){
-				var phyObj = phyObjs[i];
-				var aabb;
-				if(phyObj.type===OnoPhy.CLOTH){
-					aabb = phyObj.AABB;
-				}else{
-					aabb = phyObj.collision.AABB;
-				}
-				if(aabb.max[1]<-10){
-					O3o.movePhyObj(phyObj.parent,phyObj,true);
-				}
-			}
 		}
 		ret.prototype.draw=function(){
 			var obj = this;
@@ -360,19 +363,33 @@ var Testact=(function(){
 				O3o.PoseArmature.add(dst,sourceArmature,dst);
 				Vec3.set(dst.poseBones[0].location,0,0,dst.poseBones[0].location[2]);
 
-				Mat44.dotMat33Vec3(vec,ono3d.worldMatrix,vec);
-				vec[0]=Util.padX;
-				vec[2]=Util.padY;
-				vec[1]=0;
-				Vec3.mul(vec,vec,0.03);
 
 				Vec3.add(obj.p,obj.p,vec);
 				ono3d.loadIdentity();
 				ono3d.translate(obj.p[0],obj.p[1],obj.p[2])
-				ono3d.rotate(-PI*0.5,1,0,0)
+				var phyObj = this.phyObjs[0];
+				var m = Mat43.poolAlloc();
+				Mat43.fromQuat(m,this.phyObjs[0].rotq);
+				ono3d.worldMatrix[0]=m[0];
+				ono3d.worldMatrix[1]=m[1];
+				ono3d.worldMatrix[2]=m[2];
+				ono3d.worldMatrix[4]=m[3];
+				ono3d.worldMatrix[5]=m[4];
+				ono3d.worldMatrix[6]=m[5];
+				ono3d.worldMatrix[8]=m[6];
+				ono3d.worldMatrix[9]=m[7];
+				ono3d.worldMatrix[10]=m[8];
+
+				var e =obj3d.objectsN["円柱"];
+				Mat43.getInv(m,e.iparentmatrix);
+				Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
+				ono3d.translate(-e.location[0],-e.location[1],-e.location[2])
+				//ono3d.rotate(-PI*0.5,1,0,0)
 				//O3o.PoseArmature.copy(dst,sourceArmature);
 				O3o.drawObject(obj3d.objectsN["human"]);
+				//O3o.drawObject(obj3d.objectsN["円柱"],this.phyObjs);
 				Vec3.poolFree(1);
+				Mat43.poolFree(1);
 
 			}
 		}
@@ -477,6 +494,7 @@ var Testact=(function(){
 				onoPhy.calc(1.0/globalParam.fps/globalParam.step);
 				phytime=Date.now()-s;
 			}
+			globalParam.physics_=1;
 		}
 
 		if(Util.pressOn && !bane){
@@ -490,7 +508,7 @@ var Testact=(function(){
 		camera2.p[1]=Math.sin(camera2.a[0]);
 		camera2.p[0]=Math.sin(camera2.a[1])*camera2.p[2];
 		camera2.p[2]=Math.cos(camera2.a[1])*camera2.p[2];
-		Vec3.mul(camera2.p,camera2.p,7);
+		Vec3.mul(camera2.p,camera2.p,10);
 		camera2.p[1]+=3;
 
 		camera.p[0]+=(camera2.p[0]-camera.p[0])*0.1
@@ -534,82 +552,82 @@ var Testact=(function(){
 		}
 
 		var vec4 = Vec4.poolAlloc();
-		if(Util.pressCount == 1){
-			var p0 =Vec3.poolAlloc();
-			var p1 =Vec3.poolAlloc();
-			var bV2 = Vec3.poolAlloc();
+		//if(Util.pressCount == 1){
+		//	var p0 =Vec3.poolAlloc();
+		//	var p1 =Vec3.poolAlloc();
+		//	var bV2 = Vec3.poolAlloc();
 
-			Mat44.getInv(mat44,ono3d.pvMat);
-			Vec4.set(vec4,cursorr[0],-cursorr[1],-1,1);
-			Mat44.dotVec4(vec4,mat44,vec4);
-			Vec3.set(p0,vec4[0],vec4[1],vec4[2]);
+		//	Mat44.getInv(mat44,ono3d.pvMat);
+		//	Vec4.set(vec4,cursorr[0],-cursorr[1],-1,1);
+		//	Mat44.dotVec4(vec4,mat44,vec4);
+		//	Vec3.set(p0,vec4[0],vec4[1],vec4[2]);
 
-			Vec4.set(vec4,cursorr[0],-cursorr[1],1,1);
-			Vec4.mul(vec4,vec4,80);
-			Mat44.dotVec4(vec4,mat44,vec4);
-			Vec3.set(p1,vec4[0],vec4[1],vec4[2]);
+		//	Vec4.set(vec4,cursorr[0],-cursorr[1],1,1);
+		//	Vec4.mul(vec4,vec4,80);
+		//	Mat44.dotVec4(vec4,mat44,vec4);
+		//	Vec3.set(p1,vec4[0],vec4[1],vec4[2]);
 
-			bane= null;
-			tsukamiZ= 1;
-			var targetPhyObj = null;
-			var res2={};
-			for(var i=0;i<mobj.phyObjs.length;i++){
-				var phyObj = mobj.phyObjs[i];
-				if(phyObj.type===OnoPhy.CLOTH){
-					var res={};
-					var z = phyObj.ray(res,p0,p1);
-					if(z>0&& z>-1){
-						if(z<tsukamiZ){
-							tsukamiZ = z;
-							res2.face=res.face;
-							res2.p1=res.p1;
-							res2.p2=res.p2;
-							res2.p3=res.p3;
-							targetPhyObj = phyObj;
-						}
-					}
+		//	bane= null;
+		//	tsukamiZ= 1;
+		//	var targetPhyObj = null;
+		//	var res2={};
+		//	for(var i=0;i<mobj.phyObjs.length;i++){
+		//		var phyObj = mobj.phyObjs[i];
+		//		if(phyObj.type===OnoPhy.CLOTH){
+		//			var res={};
+		//			var z = phyObj.ray(res,p0,p1);
+		//			if(z>0&& z>-1){
+		//				if(z<tsukamiZ){
+		//					tsukamiZ = z;
+		//					res2.face=res.face;
+		//					res2.p1=res.p1;
+		//					res2.p2=res.p2;
+		//					res2.p3=res.p3;
+		//					targetPhyObj = phyObj;
+		//				}
+		//			}
 
-				}else{
-					if(phyObj.fix){
-						continue;
-					}
-					var collision= phyObj.collision;
-					if(!collision){
-						continue;
-						
-					}
-					var z = collision.ray(p0,p1);
-					if(z>0&& z>-1){
-						if(z<tsukamiZ){
-							tsukamiZ = z;
-							targetPhyObj = collision.parent;
-						}
-					}
-				}
-			}
-			if(targetPhyObj){
-				bane = onoPhy.createSpring();
-				bane.con1 = null;
-				bane.defaultLength=0;
-				bane.f=50*targetPhyObj.mass;
-				bane.c=1*targetPhyObj.mass;
+		//		}else{
+		//			if(phyObj.fix){
+		//				continue;
+		//			}
+		//			var collision= phyObj.collision;
+		//			if(!collision){
+		//				continue;
+		//				
+		//			}
+		//			var z = collision.ray(p0,p1);
+		//			if(z>0&& z>-1){
+		//				if(z<tsukamiZ){
+		//					tsukamiZ = z;
+		//					targetPhyObj = collision.parent;
+		//				}
+		//			}
+		//		}
+		//	}
+		//	if(targetPhyObj){
+		//		bane = onoPhy.createSpring();
+		//		bane.con1 = null;
+		//		bane.defaultLength=0;
+		//		bane.f=50*targetPhyObj.mass;
+		//		bane.c=1*targetPhyObj.mass;
 
-				Vec3.sub(bV2,p1,p0);
-				Vec3.madd(bV2,p0,bV2,tsukamiZ);
+		//		Vec3.sub(bV2,p1,p0);
+		//		Vec3.madd(bV2,p0,bV2,tsukamiZ);
 
-				if(targetPhyObj.type===OnoPhy.CLOTH){
-					bane.con2=targetPhyObj.getPhyFace(res2.p1,res2.p2,res2.p3,res2.face,bV2);
-					Vec3.set(bane.con2Pos,0,0,0);
-				}else{
-					bane.con2 = targetPhyObj;
-					var im=new Mat43();
-					Mat43.getInv(im,targetPhyObj.matrix);
-					Mat43.dotVec3(bane.con2Pos,im,bV2);
-				}
+		//		if(targetPhyObj.type===OnoPhy.CLOTH){
+		//			bane.con2=targetPhyObj.getPhyFace(res2.p1,res2.p2,res2.p3,res2.face,bV2);
+		//			Vec3.set(bane.con2Pos,0,0,0);
+		//		}else{
+		//			bane.con2 = targetPhyObj;
+		//			var im=new Mat43();
+		//			Mat43.getInv(im,targetPhyObj.matrix);
+		//			Mat43.dotVec3(bane.con2Pos,im,bV2);
+		//		}
 
-			}
-			Vec3.poolFree(3);
-		}
+		//	}
+		//	Vec3.poolFree(3);
+		//}
 
 		if(bane){
 			if(!Util.pressOn){
@@ -1150,7 +1168,7 @@ var Testact=(function(){
 		onoPhy = new OnoPhy();
 
 		goField=createObj(GoField);
-		mobj=createObj(mainObj);
+		mobj=createObj(goJiki);
 		var light = new ono3d.LightSource()
 		light.type =Ono3d.LT_DIRECTION
 		Vec3.set(light.angle,-1,-1,-1);
