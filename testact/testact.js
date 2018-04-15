@@ -229,6 +229,23 @@ var Testact=(function(){
 	var targetArmature=null;
 	var motionT=0;
 
+
+	var lsrToMat=function(m,l,s,r){
+		Mat43.fromQuat(m,r);
+		m[0]*=s[0];
+		m[1]*=s[0];
+		m[2]*=s[0];
+		m[3]*=s[1];
+		m[4]*=s[1];
+		m[5]*=s[1];
+		m[6]*=s[2];
+		m[7]*=s[2];
+		m[8]*=s[2];
+		m[9]=l[0];
+		m[10]=l[1];
+		m[11]=l[2];
+
+	}
 	var goJiki = (function(){
 		var goJiki =function(){
 		};
@@ -278,7 +295,7 @@ var Testact=(function(){
 			vec[0]=Util.padX;
 			vec[2]=Util.padY;
 			vec[1]=0;
-			Vec3.madd(phyObj.v,phyObj.v,vec,0.2);
+			Vec3.madd(phyObj.v,phyObj.v,vec,0.15);
 			Vec4.set(phyObj.rotq,-0.707,0.707,0,0);
 			//Vec3.set(phyObj.rotq,0,0,0,1);
 			Vec3.poolFree(1);
@@ -324,8 +341,6 @@ var Testact=(function(){
 				}	
 				var T = motionT/1000;
 				var d = (T|0) - (oldT|0);
-				var vec = Vec3.poolAlloc();
-				Vec3.set(vec,0,0,0);
 
 				var dst = obj3d.objectsN["アーマチュア"].poseArmature;
 				sourceArmature.reset();
@@ -333,62 +348,27 @@ var Testact=(function(){
 				srArmature.reset();
 				targetArmature.reset();
 
-				sourceArmature.setAction(obj3d.actions[1],23.999999);
-				referenceArmature.setAction(obj3d.actions[2],23.99999);
-				Vec3.mul(vec,sourceArmature.poseBones[0].location,Util.padY);
-				Vec3.madd(vec,vec,referenceArmature.poseBones[0].location,Util.padX);
-				Vec3.mul(vec,vec,-d);
-
-				sourceArmature.reset();
-				referenceArmature.reset();
-				sourceArmature.setAction(obj3d.actions[1],oldT*24);
-				referenceArmature.setAction(obj3d.actions[2],oldT*24);
-				Vec3.madd(vec,vec,sourceArmature.poseBones[0].location,Util.padY);
-				Vec3.madd(vec,vec,referenceArmature.poseBones[0].location,Util.padX);
-
-				sourceArmature.reset();
-				referenceArmature.reset();
 				sourceArmature.setAction(obj3d.actions[1],motionT/1000.0*24);
 				referenceArmature.setAction(obj3d.actions[2],motionT/1000.0*24);
-				Vec3.madd(vec,vec,sourceArmature.poseBones[0].location,-Util.padY);
-				Vec3.madd(vec,vec,referenceArmature.poseBones[0].location,-Util.padX);
-				
-				
+			
+				var phyObj = this.phyObjs[0];
 				dst.setAction(obj3d.actions[0],0);
 				O3o.PoseArmature.sub(sourceArmature,sourceArmature,dst);
 				O3o.PoseArmature.sub(referenceArmature,referenceArmature,dst);
-				O3o.PoseArmature.mul(sourceArmature,sourceArmature,Util.padY);
-				O3o.PoseArmature.mul(referenceArmature,referenceArmature,Util.padX);
+				O3o.PoseArmature.mul(sourceArmature,sourceArmature,phyObj.v[2]*0.5);
+				O3o.PoseArmature.mul(referenceArmature,referenceArmature,phyObj.v[0]*0.5);
 				O3o.PoseArmature.add(dst,referenceArmature,dst);
 				O3o.PoseArmature.add(dst,sourceArmature,dst);
-				Vec3.set(dst.poseBones[0].location,0,0,dst.poseBones[0].location[2]);
 
-
-				Vec3.add(obj.p,obj.p,vec);
 				ono3d.loadIdentity();
-				ono3d.translate(obj.p[0],obj.p[1],obj.p[2])
-				var phyObj = this.phyObjs[0];
 				var m = Mat43.poolAlloc();
-				Mat43.fromQuat(m,this.phyObjs[0].rotq);
-				ono3d.worldMatrix[0]=m[0];
-				ono3d.worldMatrix[1]=m[1];
-				ono3d.worldMatrix[2]=m[2];
-				ono3d.worldMatrix[4]=m[3];
-				ono3d.worldMatrix[5]=m[4];
-				ono3d.worldMatrix[6]=m[5];
-				ono3d.worldMatrix[8]=m[6];
-				ono3d.worldMatrix[9]=m[7];
-				ono3d.worldMatrix[10]=m[8];
+				lsrToMat(m,phyObj.location,phyObj.scale,phyObj.rotq);
+				Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
 
 				var e =obj3d.objectsN["円柱"];
-				Mat43.getInv(m,e.iparentmatrix);
+				Mat43.getInv(m,e.mixedmatrix);
 				Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
-				ono3d.translate(-e.location[0],-e.location[1],-e.location[2])
-				//ono3d.rotate(-PI*0.5,1,0,0)
-				//O3o.PoseArmature.copy(dst,sourceArmature);
 				O3o.drawObject(obj3d.objectsN["human"]);
-				//O3o.drawObject(obj3d.objectsN["円柱"],this.phyObjs);
-				Vec3.poolFree(1);
 				Mat43.poolFree(1);
 
 			}
