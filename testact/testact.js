@@ -290,38 +290,17 @@ var Testact=(function(){
 			var phyObj = this.phyObjs[0];
 			Vec3.copy(this.p,phyObj.location);
 
-			//Mat44.dotMat33Vec3(vec,ono3d.worldMatrix,vec);
 			var vec = Vec3.poolAlloc();
-			vec[0]=Util.padX;
-			vec[2]=Util.padY;
+			vec[0]=Util.padX*0.15;
+			vec[2]=Util.padY*0.15;
 			vec[1]=0;
-			Vec3.madd(phyObj.v,phyObj.v,vec,0.15);
+			if(Util.keyflag[4]==1){
+				vec[1]+=0.5;
+			}
+			Vec3.add(phyObj.v,phyObj.v,vec);
 			Vec4.set(phyObj.rotq,-0.707,0.707,0,0);
-			//Vec3.set(phyObj.rotq,0,0,0,1);
+
 			Vec3.poolFree(1);
-			
-			////変換マトリクス初期化
-			//ono3d.setTargetMatrix(1);
-			//ono3d.loadIdentity();
-			//ono3d.setTargetMatrix(0);
-			//ono3d.loadIdentity();
-			//ono3d.rotate(-PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
-
-			//var scene= obj3d.scenes[0];
-			//O3o.setFrame(obj3d,scene,timer/1000.0*24); //アニメーション処理
-
-			//if(phyObjs && globalParam.physics){
-			//	//物理シミュ有効の場合は物理オブジェクトにアニメーション結果を反映させる
-			//	for(var i=0;i<scene.objects.length;i++){
-			//		//物理オブジェクトにアニメーション結果を反映
-			//		//(前回の物理シミュ無効の場合は強制反映する)
-			//		if(scene.objects[i].phyObj){
-			//			O3o.movePhyObj(scene.objects[i],!globalParam.physics_);
-			//		}
-			//	}
-
-			//	ono3d.translate(obj.p[0],obj.p[1],obj.p[2]);
-			//}
 
 		}
 		ret.prototype.draw=function(){
