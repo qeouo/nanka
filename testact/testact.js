@@ -294,8 +294,8 @@ var Testact=(function(){
 			vec[0]=Util.padX*0.15;
 			vec[2]=Util.padY*0.15;
 			vec[1]=0;
-			if(Util.keyflag[4]==1){
-				vec[1]+=0.5;
+			if(Util.keyflag[4]==1 && !Util.keyflagOld[4]){
+				vec[1]+=5;
 			}
 			Vec3.add(phyObj.v,phyObj.v,vec);
 			Vec4.set(phyObj.rotq,-0.707,0.707,0,0);
