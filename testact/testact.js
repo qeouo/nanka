@@ -127,6 +127,53 @@ var Testact=(function(){
 		objs.push(obj);
 	}
 
+	var GoCamera= (function(){
+		var GoCamera=function(){};
+		var ret = GoCamera;
+		inherits(ret,defObj);
+		ret.prototype.init=function(){
+		}
+		ret.prototype.move=function(){
+
+			if(Util.pressOn && !bane){
+		//		camera2.a[1]+=(-(Util.cursorX-Util.oldcursorX)/WIDTH);
+		//		camera2.a[0]+=((Util.cursorY-Util.oldcursorY)/HEIGHT);
+
+			}
+			camera2.a[0] =Math.min(camera2.a[0],Math.PI/2);
+			camera2.a[0] =Math.max(camera2.a[0],-Math.PI/2);
+			camera2.p[2]=Math.cos(camera2.a[0]);
+			camera2.p[1]=Math.sin(camera2.a[0]);
+			camera2.p[0]=Math.sin(camera2.a[1])*camera2.p[2];
+			camera2.p[2]=Math.cos(camera2.a[1])*camera2.p[2];
+			Vec3.mul(camera2.p,camera2.p,10);
+			camera2.p[1]+=3;
+
+			camera.p[0]+=(camera2.p[0]-camera.p[0])*0.1
+			camera.p[1]+=(camera2.p[1]-camera.p[1])*0.1
+			camera.p[2]+=(camera2.p[2]-camera.p[2])*0.1
+			var vec3=Vec3.poolAlloc();
+			vec3[0]=0
+			vec3[1]=1
+			vec3[2]=0
+			homingCamera(camera.a,vec3,camera.p);
+			Vec3.poolFree(1);
+		}
+		ret.prototype.draw=function(){
+		}
+		return ret;
+	})();
+
+	var homingCamera=function(angle,target,camera){
+		var dx=target[0]-camera[0]
+		var dy=target[1]-camera[1]
+		var dz=target[2]-camera[2]
+		angle[0]=Math.atan2(dy,Math.sqrt(dz*dz+dx*dx));
+		angle[1]=Math.atan2(dx,dz);
+		angle[2]=0;
+		
+	}
+
 	var GoField= (function(){
 		var GoField =function(){};
 		var ret = GoField;
@@ -247,10 +294,10 @@ var Testact=(function(){
 		m[11]=l[2];
 
 	}
-	var goJiki = (function(){
-		var goJiki =function(){
+	var GoJiki = (function(){
+		var GoJiki =function(){
 		};
-		var ret = goJiki;
+		var ret = GoJiki;
 		ret.prototype.init = function(){
 			var obj = this;
 			obj.phyObjs= null;
@@ -426,11 +473,11 @@ var Testact=(function(){
 		
 		var obj;
 
-		pad[0] = Util.padX + Util.keyflag[2]-Util.keyflag[0];
-		pad[1] = Util.padY + Util.keyflag[3]-Util.keyflag[1];
+		pad[0] = Util.padX + (Util.keyflag[2] || Util.keyflag[10])-(Util.keyflag[0] || Util.keyflag[8]);
+		pad[1] = Util.padY + (Util.keyflag[3] || Util.keyflag[11])-(Util.keyflag[1] || Util.keyflag[9]);
 		var l = Vec2.scalar(pad);
 		if(l>1){
-			Vec3.nrm(pad);
+			Vec2.norm(pad);
 		}
 		
 
@@ -459,29 +506,6 @@ var Testact=(function(){
 			globalParam.physics_=1;
 		}
 
-		if(Util.pressOn && !bane){
-	//		camera2.a[1]+=(-(Util.cursorX-Util.oldcursorX)/WIDTH);
-	//		camera2.a[0]+=((Util.cursorY-Util.oldcursorY)/HEIGHT);
-
-		}
-		camera2.a[0] =Math.min(camera2.a[0],Math.PI/2);
-		camera2.a[0] =Math.max(camera2.a[0],-Math.PI/2);
-		camera2.p[2]=Math.cos(camera2.a[0]);
-		camera2.p[1]=Math.sin(camera2.a[0]);
-		camera2.p[0]=Math.sin(camera2.a[1])*camera2.p[2];
-		camera2.p[2]=Math.cos(camera2.a[1])*camera2.p[2];
-		Vec3.mul(camera2.p,camera2.p,10);
-		camera2.p[1]+=3;
-
-		camera.p[0]+=(camera2.p[0]-camera.p[0])*0.1
-		camera.p[1]+=(camera2.p[1]-camera.p[1])*0.1
-		camera.p[2]+=(camera2.p[2]-camera.p[2])*0.1
-		var vec3=Vec3.poolAlloc();
-		vec3[0]=0
-		vec3[1]=1
-		vec3[2]=0
-		homingCamera(camera.a,vec3,camera.p);
-		Vec3.poolFree(1);
 
 		for(i=0;i<OBJSLENGTH;i++){
 			if(objs[i].stat!==STAT_ENABLE)continue;
@@ -1130,7 +1154,8 @@ var Testact=(function(){
 		onoPhy = new OnoPhy();
 
 		goField=createObj(GoField);
-		mobj=createObj(goJiki);
+		mobj=createObj(GoJiki);
+		createObj(GoCamera);
 		var light = new ono3d.LightSource()
 		light.type =Ono3d.LT_DIRECTION
 		Vec3.set(light.angle,-1,-1,-1);
@@ -1153,15 +1178,5 @@ var Testact=(function(){
 
 		span=document.getElementById("cons");
 		
-	var homingCamera=function(angle,target,camera){
-		var dx=target[0]-camera[0]
-		var dy=target[1]-camera[1]
-		var dz=target[2]-camera[2]
-		angle[0]=Math.atan2(dy,Math.sqrt(dz*dz+dx*dx));
-		angle[1]=Math.atan2(dx,dz);
-		angle[2]=0;
-		
-	}
-
 	return ret;
 })()
