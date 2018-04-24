@@ -34,6 +34,7 @@ var Testact=(function(){
 		,MSG_MOVE=++i
 		,MSG_DRAW=++i
 	;
+	var pad =new Vec2();
 
 	var texts=[
 		"Source"
@@ -291,8 +292,8 @@ var Testact=(function(){
 			Vec3.copy(this.p,phyObj.location);
 
 			var vec = Vec3.poolAlloc();
-			vec[0]=Util.padX*0.15;
-			vec[2]=Util.padY*0.15;
+			vec[0]=pad[0]*0.15;
+			vec[2]=pad[1]*0.15;
 			vec[1]=0;
 			if(Util.keyflag[4]==1 && !Util.keyflagOld[4]){
 				vec[1]+=5;
@@ -316,7 +317,7 @@ var Testact=(function(){
 
 				var oldT = motionT/1000;
 				if(Util.pressOn){
-					motionT+=33;//Math.sqrt(Util.padY*Util.padY + Util.padX*Util.padX)*33;
+					motionT+=33;
 				}	
 				var T = motionT/1000;
 				var d = (T|0) - (oldT|0);
@@ -425,12 +426,14 @@ var Testact=(function(){
 		
 		var obj;
 
-		if(obj3d == null){
-			return;
+		pad[0] = Util.padX + Util.keyflag[2]-Util.keyflag[0];
+		pad[1] = Util.padY + Util.keyflag[3]-Util.keyflag[1];
+		var l = Vec2.scalar(pad);
+		if(l>1){
+			Vec3.nrm(pad);
 		}
-		if(obj3d.objects.length<=0){
-			return;
-		}
+		
+
 		var i;
 		for(i=0;i<OBJSLENGTH;i++){
 			if(objs[i].stat===STAT_CREATE){
