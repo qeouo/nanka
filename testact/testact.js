@@ -140,22 +140,21 @@ var Testact=(function(){
 		//		camera2.a[0]+=((Util.cursorY-Util.oldcursorY)/HEIGHT);
 
 			}
-			camera2.a[0] =Math.min(camera2.a[0],Math.PI/2);
-			camera2.a[0] =Math.max(camera2.a[0],-Math.PI/2);
-			camera2.p[2]=Math.cos(camera2.a[0]);
-			camera2.p[1]=Math.sin(camera2.a[0]);
-			camera2.p[0]=Math.sin(camera2.a[1])*camera2.p[2];
-			camera2.p[2]=Math.cos(camera2.a[1])*camera2.p[2];
-			Vec3.mul(camera2.p,camera2.p,10);
-			camera2.p[1]+=3;
+			//camera2.a[0] =Math.min(camera2.a[0],Math.PI/2);
+			//camera2.a[0] =Math.max(camera2.a[0],-Math.PI/2);
+
+			camera2.p[0]=mobj.p[0];
+			camera2.p[1]=mobj.p[1]+3;
+			camera2.p[2]=mobj.p[2]+6;
+			//camera2.p[1]=Math.sin(camera2.a[0]);
+			//camera2.p[0]=Math.sin(camera2.a[1])*camera2.p[2];
+			//camera2.p[2]=Math.cos(camera2.a[1])*camera2.p[2];
 
 			camera.p[0]+=(camera2.p[0]-camera.p[0])*0.1
 			camera.p[1]+=(camera2.p[1]-camera.p[1])*0.1
 			camera.p[2]+=(camera2.p[2]-camera.p[2])*0.1
 			var vec3=Vec3.poolAlloc();
-			vec3[0]=0
-			vec3[1]=1
-			vec3[2]=0
+			Vec3.copy(vec3,mobj.p);
 			homingCamera(camera.a,vec3,camera.p);
 			Vec3.poolFree(1);
 		}
