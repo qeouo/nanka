@@ -339,7 +339,7 @@ var Testact=(function(){
 
 				phyObj.collision.groups|=3;
 				phyObj.collision.callbackFunc=function(col1,col2,pos1,pos2){
-					if(!pos2.parent){
+					if(!col2.parent){
 						return;
 					}
 					var vec3 = Vec3.poolAlloc();
@@ -365,7 +365,7 @@ var Testact=(function(){
 			vec[0]=pad[0];
 			vec[2]=pad[1];
 			vec[1]=0;
-			Mat43.getRotMat(mat43,camera.a[1]-Math.PI,0,1,0)
+			Mat43.fromRotVector(mat43,camera.a[1]-Math.PI,0,1,0)
 			Mat43.dotVec3(vec,mat43,vec);
 			vec[1]=0;
 
