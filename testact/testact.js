@@ -49,7 +49,7 @@ var Testact=(function(){
 		var Obj = function(){
 			this.p=new Vec3();
 			this.scale=new Vec3();
-			this.angle=0;
+			this.rotq = new Vec4();
 			this.v=new Vec3();
 			this.a=new Vec3();
 			this.stat=STAT_EMPTY;
@@ -134,28 +134,37 @@ var Testact=(function(){
 		ret.prototype.init=function(){
 		}
 		ret.prototype.move=function(){
-
 			if(Util.pressOn && !bane){
 		//		camera2.a[1]+=(-(Util.cursorX-Util.oldcursorX)/WIDTH);
 		//		camera2.a[0]+=((Util.cursorY-Util.oldcursorY)/HEIGHT);
 
+				//camera2.a[0] =Math.min(camera2.a[0],Math.PI/2);
+				//camera2.a[0] =Math.max(camera2.a[0],-Math.PI/2);
+				//
+				//camera2.p[1]=Math.sin(camera2.a[0]);
+				//camera2.p[0]=Math.sin(camera2.a[1])*camera2.p[2];
+				//camera2.p[2]=Math.cos(camera2.a[1])*camera2.p[2];
 			}
-			//camera2.a[0] =Math.min(camera2.a[0],Math.PI/2);
-			//camera2.a[0] =Math.max(camera2.a[0],-Math.PI/2);
 
-			camera2.p[0]=mobj.p[0];
-			camera2.p[1]=mobj.p[1]+3;
-			camera2.p[2]=mobj.p[2]+6;
-			//camera2.p[1]=Math.sin(camera2.a[0]);
-			//camera2.p[0]=Math.sin(camera2.a[1])*camera2.p[2];
-			//camera2.p[2]=Math.cos(camera2.a[1])*camera2.p[2];
+			this.p[0]=mobj.p[0];
+			this.p[1]=mobj.p[1]+3;
+			this.p[2]=mobj.p[2]+6;
 
-			camera.p[0]+=(camera2.p[0]-camera.p[0])*0.1
-			camera.p[1]+=(camera2.p[1]-camera.p[1])*0.1
-			camera.p[2]+=(camera2.p[2]-camera.p[2])*0.1
+			camera.p[0]+=(this.p[0]-camera.p[0])*0.1
+			camera.p[1]+=(this.p[1]-camera.p[1])*0.1
+			camera.p[2]+=(this.p[2]-camera.p[2])*0.1
 			var vec3=Vec3.poolAlloc();
 			Vec3.copy(vec3,mobj.p);
-			homingCamera(camera.a,vec3,camera.p);
+			homingCamera(this.a,vec3,this.p);
+			var nangle=function(a){
+				if(a>Math.PI*2){a-=Math.PI*2};
+				if(a<-Math.PI*2){a+=Math.PI*2};
+				return a;
+			}
+			camera.a[0] +=nangle(this.a[0]-camera.a[0])*0.1;
+			camera.a[1] +=nangle(this.a[1]-camera.a[1])*0.1;
+			camera.a[2] +=nangle(this.a[2]-camera.a[2])*0.1;
+
 			Vec3.poolFree(1);
 		}
 		ret.prototype.draw=function(){
@@ -180,6 +189,11 @@ var Testact=(function(){
 		ret.prototype.init=function(){
 			var t=this;
 			field =O3o.load("f1.o3o",function(o3o){
+
+				ono3d.setTargetMatrix(0);
+				ono3d.loadIdentity();
+				ono3d.rotate(-PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
+
 				//物理シミュオブジェクトの設定
 				t.phyObjs= O3o.createPhyObjs(o3o.scenes[0],onoPhy);
 			});
@@ -193,8 +207,6 @@ var Testact=(function(){
 			}
 			
 			 //変換マトリクス初期化
-			ono3d.setTargetMatrix(1);
-			ono3d.loadIdentity();
 			ono3d.setTargetMatrix(0);
 			ono3d.loadIdentity();
 			ono3d.rotate(-PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
@@ -208,7 +220,9 @@ var Testact=(function(){
 					//物理オブジェクトにアニメーション結果を反映
 					//(前回の物理シミュ無効の場合は強制反映する)
 					if(scene.objects[i].phyObj){
-						O3o.movePhyObj(scene.objects[i],!globalParam.physics_);
+						O3o.movePhyObj(scene.objects[i]
+							,1.0/globalParam.fps
+							,!globalParam.physics_);
 					}
 				}
 			}
@@ -222,7 +236,7 @@ var Testact=(function(){
 					aabb = phyObj.collision.AABB;
 				}
 				if(aabb.max[1]<-10){
-					O3o.movePhyObj(phyObj.parent,phyObj,true);
+					O3o.movePhyObj(phyObj.parent,0,phyObj,true);
 				}
 			}
 		}
@@ -276,23 +290,6 @@ var Testact=(function(){
 	var targetArmature=null;
 	var motionT=0;
 
-
-	var lsrToMat=function(m,l,s,r){
-		Mat43.fromQuat(m,r);
-		m[0]*=s[0];
-		m[1]*=s[0];
-		m[2]*=s[0];
-		m[3]*=s[1];
-		m[4]*=s[1];
-		m[5]*=s[1];
-		m[6]*=s[2];
-		m[7]*=s[2];
-		m[8]*=s[2];
-		m[9]=l[0];
-		m[10]=l[1];
-		m[11]=l[2];
-
-	}
 	var GoJiki = (function(){
 		var GoJiki =function(){
 		};
@@ -325,6 +322,16 @@ var Testact=(function(){
 				Vec3.copy(phyObj.location,t.p);
 				Mat33.set(phyObj.inertiaTensorBase,1,0,0,0,1,0,0,0,1);
 				Mat33.mul(phyObj.inertiaTensorBase,phyObj.inertiaTensorBase,99999999);
+
+				phyObj.collision.callbackFunc=function(col1,col2,pos1,pos2){
+					var vec3 = Vec3.poolAlloc();
+					Vec3.sub(vec3,pos2,pos1);
+					Vec3.norm(vec3);
+					if(vec3[1]>0.8){
+						mobj.ground=true;//接地フラグ
+					}
+					Vec3.poolFree(1);
+				};
 			});
 		}
 		ret.prototype.move=function(){
@@ -341,14 +348,15 @@ var Testact=(function(){
 			vec[0]=pad[0]*0.15;
 			vec[2]=pad[1]*0.15;
 			vec[1]=0;
-			if(Util.keyflag[4]==1 && !Util.keyflagOld[4]){
-				vec[1]+=5;
+			if(Util.keyflag[4]==1 && !Util.keyflagOld[4] && this.ground){
+				vec[1]+=6;
 			}
 			Vec3.add(phyObj.v,phyObj.v,vec);
 			Vec4.set(phyObj.rotq,-0.707,0.707,0,0);
 
 			Vec3.poolFree(1);
 
+			this.ground=false;//接地フラグ
 		}
 		ret.prototype.draw=function(){
 			var obj = this;
@@ -388,7 +396,7 @@ var Testact=(function(){
 
 				ono3d.loadIdentity();
 				var m = Mat43.poolAlloc();
-				lsrToMat(m,phyObj.location,phyObj.scale,phyObj.rotq);
+				Mat43.fromLSR(m,phyObj.location,phyObj.scale,phyObj.rotq);
 				Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
 
 				var e =obj3d.objectsN["円柱"];
@@ -457,7 +465,6 @@ var Testact=(function(){
 
 	
 	var camera=createObj();
-	var camera2=createObj();
 	var camerazoom=0.577;
 	var span;
 	var oldTime = 0;
@@ -465,7 +472,6 @@ var Testact=(function(){
 	var framecount=0;
 	var inittime=0;
 	var timer=0;
-	var mat44 = new Mat44;
 	var mainloop=function(){
 		var nowTime = Date.now()
 		timer=nowTime-inittime;
@@ -623,6 +629,7 @@ var Testact=(function(){
 				bane= null;
 
 			}else{
+				var mat44 = Mat44.poolAlloc();
 				Mat44.getInv(mat44,ono3d.pvMat);
 		
 				var w=(tsukamiZ*79+1);
@@ -632,6 +639,7 @@ var Testact=(function(){
 				Mat44.dotVec4(vec4,mat44,vec4);
 				Vec3.copy(bane.p0,vec4);
 
+				Mat44.poolFree(1);
 				if(Util.pressCount==1){
 					Vec3.copy(bane._p0,vec4);
 				}
@@ -714,14 +722,16 @@ var Testact=(function(){
 			var lightSource = ono3d.lightSources[0]
 			Mat44.setInit(lightSource.matrix);
 			Mat44.getRotVector(lightSource.matrix,lightSource.angle);
+			var mat44 = Mat44.poolAlloc();
 			Mat44.setInit(mat44);
 			mat44[12]=-lightSource.pos[0]
 			mat44[13]=-lightSource.pos[1]
 			mat44[14]=-lightSource.pos[2]
 
-			Mat44.dot(lightSource.matrix,lightSource.matrix,mat44);
-			Mat44.dot(ono3d.pvMat,ono3d.projectionMat,lightSource.matrix);
+			Mat44.dot(mat44,lightSource.matrix,mat44);
+			Mat44.dot(ono3d.pvMat,ono3d.projectionMat,mat44);
 			Mat44.copy(lightSource.matrix,ono3d.pvMat);
+			Mat44.poolFree(1);
 			
 			Shadow.draw(ono3d);
 		}
