@@ -194,7 +194,7 @@
 ,"objects":[
   {
     "name":"_goal"
-    ,"hide_render": 1
+    ,"hide_render": 0
     ,"groups":[]
     ,"location":[-4.303461, 4.293950, 0.972248]
     ,"rotation":[ 0.000000,-0.000000, 0.000000]

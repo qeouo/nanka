@@ -21,7 +21,7 @@ var Testact=(function(){
 	var tsukamiZ=100;
 
 	var obj3d,field;
-	var goField;
+	var goField,goCamera;
 
 	var i;
 	var STAT_EMPTY=0
@@ -134,21 +134,12 @@ var Testact=(function(){
 		ret.prototype.init=function(){
 		}
 		ret.prototype.move=function(){
-			if(Util.pressOn && !bane){
-		//		camera2.a[1]+=(-(Util.cursorX-Util.oldcursorX)/WIDTH);
-		//		camera2.a[0]+=((Util.cursorY-Util.oldcursorY)/HEIGHT);
-
-				//camera2.a[0] =Math.min(camera2.a[0],Math.PI/2);
-				//camera2.a[0] =Math.max(camera2.a[0],-Math.PI/2);
-				//
-				//camera2.p[1]=Math.sin(camera2.a[0]);
-				//camera2.p[0]=Math.sin(camera2.a[1])*camera2.p[2];
-				//camera2.p[2]=Math.cos(camera2.a[1])*camera2.p[2];
+			if(!mobj){
+				return;
 			}
-
-			this.p[0]=mobj.p[0];
-			this.p[1]=mobj.p[1]+3;
-			this.p[2]=mobj.p[2]+6;
+			Vec3.sub(this.p,this.p,mobj.p);
+			Vec3.norm(this.p);
+			Vec3.madd(this.p,mobj.p,this.p,5);
 
 			camera.p[0]+=(this.p[0]-camera.p[0])*0.1
 			camera.p[1]+=(this.p[1]-camera.p[1])*0.1
@@ -157,8 +148,8 @@ var Testact=(function(){
 			Vec3.copy(vec3,mobj.p);
 			homingCamera(this.a,vec3,this.p);
 			var nangle=function(a){
-				if(a>Math.PI*2){a-=Math.PI*2};
-				if(a<-Math.PI*2){a+=Math.PI*2};
+				if(a>Math.PI){a-=Math.PI*2};
+				if(a<-Math.PI){a+=Math.PI*2};
 				return a;
 			}
 			camera.a[0] +=nangle(this.a[0]-camera.a[0])*0.1;
@@ -182,6 +173,7 @@ var Testact=(function(){
 		
 	}
 
+	var goal =null;
 	var GoField= (function(){
 		var GoField =function(){};
 		var ret = GoField;
@@ -196,6 +188,28 @@ var Testact=(function(){
 
 				//物理シミュオブジェクトの設定
 				t.phyObjs= O3o.createPhyObjs(o3o.scenes[0],onoPhy);
+
+				mobj=createObj(GoJiki);
+
+				var start = o3o.objectsN["_start"];
+				Mat44.dotVec3(mobj.p,ono3d.worldMatrix,start.location);
+				goCamera.p[0]=mobj.p[0];
+				goCamera.p[1]=mobj.p[1]+3;
+				goCamera.p[2]=mobj.p[2]+6;
+
+				var goalobj = o3o.objectsN["_goal"];
+				goal= onoPhy.collider.createCollision(Collider.SPHERE);
+				Mat44.dotVec3(goal.location,ono3d.worldMatrix,goalobj.location);
+				Vec3.copy(goal.scale,goalobj.scale);
+				goal.groups=2;
+				goal.bold=1;
+				goal.name="goal";
+				goal.callbackFunc=function(col1,col2,pos1,pos2){
+					onoPhy.collider.deleteCollision(col1);
+					alert("goal");
+				}
+
+			
 			});
 		}
 		ret.prototype.move=function(){
@@ -323,7 +337,11 @@ var Testact=(function(){
 				Mat33.set(phyObj.inertiaTensorBase,1,0,0,0,1,0,0,0,1);
 				Mat33.mul(phyObj.inertiaTensorBase,phyObj.inertiaTensorBase,99999999);
 
+				phyObj.collision.groups|=3;
 				phyObj.collision.callbackFunc=function(col1,col2,pos1,pos2){
+					if(!pos2.parent){
+						return;
+					}
 					var vec3 = Vec3.poolAlloc();
 					Vec3.sub(vec3,pos2,pos1);
 					Vec3.norm(vec3);
@@ -336,31 +354,34 @@ var Testact=(function(){
 		}
 		ret.prototype.move=function(){
 			var obj = this;
-			var phyObjs = obj.phyObjs;
 			if(obj3d.scenes.length===0){
 				return;
 			}
-
 			var phyObj = this.phyObjs[0];
 			Vec3.copy(this.p,phyObj.location);
 
 			var vec = Vec3.poolAlloc();
-			vec[0]=pad[0]*0.15;
-			vec[2]=pad[1]*0.15;
+			var mat43 = Mat43.poolAlloc();
+			vec[0]=pad[0];
+			vec[2]=pad[1];
 			vec[1]=0;
+			Mat43.getRotMat(mat43,camera.a[1]-Math.PI,0,1,0)
+			Mat43.dotVec3(vec,mat43,vec);
+			vec[1]=0;
+
+			Vec3.mul(vec,vec,0.15);
 			if(Util.keyflag[4]==1 && !Util.keyflagOld[4] && this.ground){
-				vec[1]+=6;
+				vec[1]=6;
 			}
 			Vec3.add(phyObj.v,phyObj.v,vec);
 			Vec4.set(phyObj.rotq,-0.707,0.707,0,0);
 
+			Mat43.poolFree(1);
 			Vec3.poolFree(1);
 
 			this.ground=false;//接地フラグ
 		}
 		ret.prototype.draw=function(){
-			var obj = this;
-			var phyObjs = obj.phyObjs;
 
 			ono3d.setTargetMatrix(0)
 			ono3d.loadIdentity();
@@ -368,9 +389,11 @@ var Testact=(function(){
 
 			ono3d.rf=0;
 			if(obj3d){
+				var phyObj = this.phyObjs[0];
 
 				var oldT = motionT/1000;
-				if(Util.pressOn){
+				var l = phyObj.v[0]*phyObj.v[0] + phyObj.v[2]*phyObj.v[2];
+				if(l>0.5 && this.ground){
 					motionT+=33;
 				}	
 				var T = motionT/1000;
@@ -385,7 +408,6 @@ var Testact=(function(){
 				sourceArmature.setAction(obj3d.actions[1],motionT/1000.0*24);
 				referenceArmature.setAction(obj3d.actions[2],motionT/1000.0*24);
 			
-				var phyObj = this.phyObjs[0];
 				dst.setAction(obj3d.actions[0],0);
 				O3o.PoseArmature.sub(sourceArmature,sourceArmature,dst);
 				O3o.PoseArmature.sub(referenceArmature,referenceArmature,dst);
@@ -461,7 +483,7 @@ var Testact=(function(){
 			}
 		}
 	
-	var mobj;
+	var mobj = null;
 
 	
 	var camera=createObj();
@@ -1163,8 +1185,7 @@ var Testact=(function(){
 		onoPhy = new OnoPhy();
 
 		goField=createObj(GoField);
-		mobj=createObj(GoJiki);
-		createObj(GoCamera);
+		goCamera = createObj(GoCamera);
 		var light = new ono3d.LightSource()
 		light.type =Ono3d.LT_DIRECTION
 		Vec3.set(light.angle,-1,-1,-1);
