@@ -85,6 +85,7 @@ var Testact=(function(){
 		ret.prototype.move=function(){};
 		ret.prototype.draw=function(){};
 		ret.prototype.hit=function(){};
+		ret.prototype.drawhud=null;
 		return ret;
 	})();
 
@@ -173,14 +174,26 @@ var Testact=(function(){
 		
 	}
 
-	var goal =null;
+	var GoGoalMessage = (function(){
+		var GoGoalMessage =function(){};
+		var ret = GoGoalMessage;
+		inherits(ret,defObj);
+		ret.prototype.init=function(){
+		}
+		ret.prototype.move=function(){
+		}
+		ret.prototype.drawhud=function(){
+			
+		}
+
+	})();
+	var fieldpath="f1.o3o";
 	var GoField= (function(){
 		var GoField =function(){};
 		var ret = GoField;
 		inherits(ret,defObj);
 		ret.prototype.init=function(){
-			var t=this;
-			field =O3o.load("f1.o3o",function(o3o){
+			field =O3o.load(fieldpath,function(o3o){
 
 				ono3d.setTargetMatrix(0);
 				ono3d.loadIdentity();
@@ -198,7 +211,7 @@ var Testact=(function(){
 				goCamera.p[2]=mobj.p[2]+6;
 
 				var goalobj = o3o.objectsN["_goal"];
-				goal= onoPhy.collider.createCollision(Collider.SPHERE);
+				var goal= onoPhy.collider.createCollision(Collider.SPHERE);
 				Mat44.dotVec3(goal.location,ono3d.worldMatrix,goalobj.location);
 				Vec3.copy(goal.scale,goalobj.scale);
 				goal.groups=2;
@@ -208,8 +221,6 @@ var Testact=(function(){
 					onoPhy.collider.deleteCollision(col1);
 					alert("goal");
 				}
-
-			
 			});
 		}
 		ret.prototype.move=function(){
@@ -879,6 +890,19 @@ var Testact=(function(){
 
 		gl.finish();
 		ono3d.clear();
+
+		for(i=0;i<OBJSLENGTH;i++){
+			if(objs[i].stat!==STAT_ENABLE)continue;
+			ono3d.setTargetMatrix(1)
+			ono3d.push();
+			ono3d.setTargetMatrix(0)
+			ono3d.loadIdentity()
+			ono3d.rf=0;
+			objs[i].drawhud();
+			//objs[i].func(objs[i],MSG_DRAW,0);
+			ono3d.setTargetMatrix(1)
+			ono3d.pop();
+		}
 
 		var drawrasterise=Date.now()-start;
 
