@@ -1,7 +1,7 @@
 "use strict"
 var Testact=(function(){
 	var ret={};
-	var HEIGHT=480,WIDTH=720;
+	var HEIGHT=540,WIDTH=960;
 	var PI=Math.PI;
 	var OBJSLENGTH=1024;
 	var gl;
@@ -20,7 +20,7 @@ var Testact=(function(){
 	var soundbuffer=null;
 	var tsukamiZ=100;
 
-	var obj3d,field;
+	var obj3d=null,field=null;
 	var goField,goCamera;
 
 	var i;
@@ -39,6 +39,7 @@ var Testact=(function(){
 		var ObjMan=function(){
 			this.objs= []; 
 			this.pool= []; 
+			this.id=0;
 		}
 		var ret = ObjMan;
 
@@ -59,26 +60,6 @@ var Testact=(function(){
 			}
 			var ret = Obj;
 
-			ret.prototype.init=function(){
-				this.func.prototype.init.call(this);
-			};
-			ret.prototype.move=function(){
-				this.func.prototype.move.call(this);
-			}
-			ret.prototype.draw=function(){
-				this.func.prototype.draw.call(this);
-			}
-			ret.prototype.hit=function(){
-				this.func.prototype.hit.call(this);
-			};
-			ret.prototype.delete=function(){
-				this.func.prototype.delete.call(this);
-			};
-			ret.prototype.drawhud=function(){
-				if(this.func.prototype.drawhud){
-					this.func.prototype.drawhud.call(this);
-				}
-			};
 			return ret;
 		})();
 		var Obj = ret.Obj;
@@ -116,9 +97,13 @@ var Testact=(function(){
 			obj.pos2=new Vec3();
 			obj.phyObjs = [];
 			obj.func=c;
-			obj.init();
 
 			obj.id=this.id;
+
+			obj.__proto__=c.prototype;
+
+			obj.init();
+
 			this.id++;
 			return obj;
 			
@@ -177,7 +162,7 @@ var Testact=(function(){
 		ret.prototype.draw=function(){};
 		ret.prototype.hit=function(){};
 		ret.prototype.delete=function(){};
-		ret.prototype.drawhud=null;
+		ret.prototype.drawhud=function(){};
 		return ret;
 	})();
 
@@ -269,7 +254,7 @@ var Testact=(function(){
 				gl.enable(gl.BLEND);
 				gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
 
-				Rastgl.copyframe(bdfimage.gltexture,0,0,scale*width/720*2,scale*height/(720*ono3d.persy/ono3d.persx)*2
+				Rastgl.copyframe(bdfimage.gltexture,0,0,scale*width/WIDTH*2,scale*height/(WIDTH*ono3d.persy/ono3d.persx)*2
 							,0,height/512,width/512,-height/512);
 			}
 		}
@@ -287,7 +272,7 @@ var Testact=(function(){
 			}
 			Vec3.sub(this.p,this.p,mobj.p);
 			Vec3.norm(this.p);
-			Vec3.madd(this.p,mobj.p,this.p,5);
+			Vec3.madd(this.p,mobj.p,this.p,10);
 
 			camera.p[0]+=(this.p[0]-camera.p[0])*0.1
 			camera.p[1]+=(this.p[1]-camera.p[1])*0.1
@@ -486,12 +471,51 @@ var Testact=(function(){
 		var GoJiki =function(){
 		};
 		var ret = GoJiki;
+		inherits(ret,defObj);
+
 		ret.prototype.init = function(){
 			var obj = this;
 			obj.phyObjs= null;
 			Vec3.set(obj.p,0,3,0);
 
 			var t=this;
+			if(obj3d){
+				var o3o= obj3d;
+				for(var i=0;i<obj3d.objects.length;i++){
+					var object=obj3d.objects[i];
+				}
+
+				targetArmature= new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
+				sourceArmature= new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
+				referenceArmature= new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
+				srArmature = new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
+
+				ono3d.setTargetMatrix(1);
+				ono3d.loadIdentity();
+				ono3d.setTargetMatrix(0);
+				ono3d.loadIdentity();
+				ono3d.rotate(-PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
+				ono3d.translate(obj.p[0],obj.p[1],obj.p[2]);
+				t.phyObjs= O3o.createPhyObjs(o3o.scenes[0],onoPhy);
+				var phyObj = t.phyObjs[0];
+				Vec3.copy(phyObj.location,t.p);
+				Mat33.set(phyObj.inertiaTensorBase,1,0,0,0,1,0,0,0,1);
+				Mat33.mul(phyObj.inertiaTensorBase,phyObj.inertiaTensorBase,99999999);
+
+				phyObj.collision.groups|=3;
+				phyObj.collision.callbackFunc=function(col1,col2,pos1,pos2){
+					if(!col2.parent){
+						return;
+					}
+					var vec3 = Vec3.poolAlloc();
+					Vec3.sub(vec3,pos2,pos1);
+					Vec3.norm(vec3);
+					if(vec3[1]>0.8){
+						mobj.ground=true;//接地フラグ
+					}
+					Vec3.poolFree(1);
+				};
+			}else
 			obj3d=O3o.load("human.o3o",function(o3o){
 
 				for(var i=0;i<obj3d.objects.length;i++){
@@ -547,7 +571,7 @@ var Testact=(function(){
 			Mat43.dotVec3(vec,mat43,vec);
 			vec[1]=0;
 
-			Vec3.mul(vec,vec,0.15);
+			Vec3.mul(vec,vec,0.10);
 			if(Util.keyflag[4]==1 && !Util.keyflagOld[4] && this.ground){
 				vec[1]=6;
 			}
@@ -572,7 +596,7 @@ var Testact=(function(){
 				var oldT = motionT/1000;
 				var l = phyObj.v[0]*phyObj.v[0] + phyObj.v[2]*phyObj.v[2];
 				if(l>0.5 && this.ground){
-					motionT+=33;
+					motionT+=16;
 				}	
 				var T = motionT/1000;
 				var d = (T|0) - (oldT|0);
@@ -622,11 +646,11 @@ var Testact=(function(){
 		globalParam.smoothing=0;
 		globalParam.stereomode=0;
 		globalParam.stereoVolume=1;
-		globalParam.step=2;
-		globalParam.fps=30;
+		globalParam.step=1;
+		globalParam.fps=60;
 		globalParam.scene=0;
 		globalParam.shadow=1;
-		globalParam.hdr=0;
+		globalParam.hdr=1;
 		globalParam.model="./field.o3o";
 		globalParam.materialMode = false;
 		globalParam.cColor= "ffffff";
@@ -855,6 +879,8 @@ var Testact=(function(){
 		Plain.draw(ono3d);
 		gl.finish();
 		
+		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
+
 //描画結果をメインのバッファにコピー
 		gl.depthMask(false);
 		gl.disable(gl.DEPTH_TEST);
@@ -862,7 +888,7 @@ var Testact=(function(){
 		gl.clearColor(0.0,0.0,0.0,0.0);
 		gl.clear(gl.COLOR_BUFFER_BIT);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		gl.bindTexture(gl.TEXTURE_2D, Rastgl.fTexture);
+		gl.bindTexture(gl.TEXTURE_2D, Rastgl.fTexture2);
 		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
 
 //メインのバッファのアルファ値を1にする
@@ -873,27 +899,31 @@ var Testact=(function(){
 		gl.colorMask(true,true,true,true);
 
 		if(globalParam.hdr){
+			var emiSize=0.25;
 			//疑似HDRぼかし(α値が0が通常、1に近いほど光る)
 			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-			gl.viewport(0,0,WIDTH+1.0,HEIGHT);
+			gl.viewport(0,0,WIDTH*emiSize,HEIGHT*emiSize);
 			gl.depthMask(false);
+			gl.clearColor(0.0,0.0,0.0,0.0);
+			gl.clear(gl.COLOR_BUFFER_BIT);
 			gl.disable(gl.DEPTH_TEST);
+			gl.disable(gl.BLEND);
+			Rastgl.copyframe(Rastgl.fTexture2,0,0,WIDTH/1024,HEIGHT/1024); //今回の
 			gl.enable(gl.BLEND);
 			gl.blendFuncSeparate(gl.CONSTANT_ALPHA,gl.DST_ALPHA,gl.ZERO,gl.ZERO);
 			gl.blendColor(0,0,0,0.7);
-			Rastgl.copyframe(emiTexture,0,0,WIDTH/1024,HEIGHT/1024); //既存の光テクスチャを重ねる
+			Rastgl.copyframe(emiTexture,0,0,WIDTH/1024*emiSize,HEIGHT/1024*emiSize); //既存の光テクスチャを重ねる
 			gl.disable(gl.BLEND);
 			gl.bindTexture(gl.TEXTURE_2D, emiTexture);
-			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);//結果を光テクスチャに書き込み
-			Gauss.filter(emiTexture,emiTexture,100,2.0/1024,1024.0); //光テクスチャをぼかす
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH*emiSize,HEIGHT*emiSize);//結果を光テクスチャに書き込み
+			Gauss.filter(emiTexture,emiTexture,10,2.0/1024,1024.0*emiSize); //光テクスチャをぼかす
 
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 			gl.viewport(0,0,WIDTH,HEIGHT);
 			gl.enable(gl.BLEND);
 			gl.blendFunc(gl.ONE,gl.ONE);
-			Rastgl.copyframe(emiTexture,0,0,WIDTH/1024,HEIGHT/1024); //メイン画面に合成
+			Rastgl.copyframe(emiTexture,0,0,WIDTH/1024*emiSize,HEIGHT/1024*emiSize); //メイン画面に合成
 		}
-
 
 		gl.finish();
 		ono3d.clear();
@@ -997,8 +1027,8 @@ var Testact=(function(){
 			
 			gl.bindTexture(gl.TEXTURE_2D, null);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-			emiTexture = Rastgl.createTexture(null,1024,1024);
 		});
+		emiTexture = Rastgl.createTexture(null,1024,1024);
 
 		
 		Util.setFps(globalParam.fps,mainloop);
