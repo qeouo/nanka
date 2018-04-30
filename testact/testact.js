@@ -881,24 +881,18 @@ var Testact=(function(){
 		
 		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
 
-//描画結果をメインのバッファにコピー
-		gl.depthMask(false);
-		gl.disable(gl.DEPTH_TEST);
-		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-		gl.clearColor(0.0,0.0,0.0,0.0);
-		gl.clear(gl.COLOR_BUFFER_BIT);
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		gl.bindTexture(gl.TEXTURE_2D, Rastgl.fTexture2);
-		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
-
-//メインのバッファのアルファ値を1にする
-		gl.viewport(0,0,WIDTH,HEIGHT);
-		gl.colorMask(false,false,false,true);
-		gl.clearColor(0.0,0.0,0.0,1.0);
-		gl.clear(gl.COLOR_BUFFER_BIT);
-		gl.colorMask(true,true,true,true);
 
 		if(globalParam.hdr){
+			//描画結果をメインのバッファにコピー
+			gl.depthMask(false);
+			gl.disable(gl.DEPTH_TEST);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+			gl.clearColor(0.0,0.0,0.0,0.0);
+			gl.clear(gl.COLOR_BUFFER_BIT);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			gl.bindTexture(gl.TEXTURE_2D, Rastgl.fTexture2);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
+
 			var emiSize=0.25;
 			//疑似HDRぼかし(α値が0が通常、1に近いほど光る)
 			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
@@ -924,6 +918,12 @@ var Testact=(function(){
 			gl.blendFunc(gl.ONE,gl.ONE);
 			Rastgl.copyframe(emiTexture,0,0,WIDTH/1024*emiSize,HEIGHT/1024*emiSize); //メイン画面に合成
 		}
+//メインのバッファのアルファ値を1にする
+		gl.viewport(0,0,WIDTH,HEIGHT);
+		gl.colorMask(false,false,false,true);
+		gl.clearColor(0.0,0.0,0.0,1.0);
+		gl.clear(gl.COLOR_BUFFER_BIT);
+		gl.colorMask(true,true,true,true);
 
 		gl.finish();
 		ono3d.clear();
