@@ -463,10 +463,20 @@ var Testact=(function(){
 
 	var sourceArmature=null;
 	var referenceArmature=null;
-	var srArmature=null;
-	var targetArmature=null;
 	var motionT=0;
 
+
+	var assetload = function(obj3d,path,func){
+		if(obj3d){
+			func(obj3d);
+			return obj3d;
+		}
+		return O3o.load("human.o3o",func);
+
+	}
+
+	var groundNormal = new Vec3();
+	var groundVelocity = new Vec3();
 	var GoJiki = (function(){
 		var GoJiki =function(){
 		};
@@ -484,11 +494,6 @@ var Testact=(function(){
 				for(var i=0;i<obj3d.objects.length;i++){
 					var object=obj3d.objects[i];
 				}
-
-				targetArmature= new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
-				sourceArmature= new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
-				referenceArmature= new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
-				srArmature = new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
 
 				ono3d.setTargetMatrix(1);
 				ono3d.loadIdentity();
@@ -522,10 +527,8 @@ var Testact=(function(){
 					var object=obj3d.objects[i];
 				}
 
-				targetArmature= new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
 				sourceArmature= new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
 				referenceArmature= new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
-				srArmature = new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
 
 				ono3d.setTargetMatrix(1);
 				ono3d.loadIdentity();
@@ -549,6 +552,11 @@ var Testact=(function(){
 					Vec3.norm(vec3);
 					if(vec3[1]>0.8){
 						mobj.ground=true;//接地フラグ
+						Vec3.copy(groundNormal,vec3);//接触点角度
+						//接触点速度
+						var phyObj = col2.parent;
+						phyObj.calcVelocity(groundVelocity,pos1);
+
 					}
 					Vec3.poolFree(1);
 				};
@@ -570,13 +578,22 @@ var Testact=(function(){
 			Mat43.fromRotVector(mat43,camera.a[1]-Math.PI,0,1,0)
 			Mat43.dotVec3(vec,mat43,vec);
 			vec[1]=0;
+			if(vec[0]*vec[0] + vec[2]*vec[2]){
+				var r = Math.atan2(vec[0],vec[2]);
+				var q = Vec4.poolAlloc();
+				Vec4.fromRotVector(phyObj.rotq,-Math.PI*0.5,1,0,0);
+				Vec4.fromRotVector(q,r,0,1,0);
+				Vec4.qdot(phyObj.rotq,q,phyObj.rotq);
+				Vec4.poolFree(1);
+			}
+
+
 
 			Vec3.mul(vec,vec,0.10);
 			if(Util.keyflag[4]==1 && !Util.keyflagOld[4] && this.ground){
 				vec[1]=6;
 			}
 			Vec3.add(phyObj.v,phyObj.v,vec);
-			Vec4.set(phyObj.rotq,-0.707,0.707,0,0);
 
 			Mat43.poolFree(1);
 			Vec3.poolFree(1);
@@ -604,24 +621,36 @@ var Testact=(function(){
 				var dst = obj3d.objectsN["アーマチュア"].poseArmature;
 				sourceArmature.reset();
 				referenceArmature.reset();
-				srArmature.reset();
-				targetArmature.reset();
 
 				sourceArmature.setAction(obj3d.actions[1],motionT/1000.0*24);
 				referenceArmature.setAction(obj3d.actions[2],motionT/1000.0*24);
 			
+				var vec4 = Vec4.poolAlloc();
+				var vec3 = Vec3.poolAlloc();
+				Vec4.qmul(vec4,phyObj.rotq,-1);
+				if(mobj.ground){
+					Vec3.sub(vec3,phyObj.v,groundVelocity);
+					Vec4.rotVec3(vec3,vec4,phyObj.v);
+				}
+
+
+
 				dst.setAction(obj3d.actions[0],0);
 				O3o.PoseArmature.sub(sourceArmature,sourceArmature,dst);
 				O3o.PoseArmature.sub(referenceArmature,referenceArmature,dst);
-				O3o.PoseArmature.mul(sourceArmature,sourceArmature,phyObj.v[2]*0.5);
-				O3o.PoseArmature.mul(referenceArmature,referenceArmature,phyObj.v[0]*0.5);
+				O3o.PoseArmature.mul(sourceArmature,sourceArmature,vec3[1]*0.5);
+				O3o.PoseArmature.mul(referenceArmature,referenceArmature,vec3[0]*0.5);
 				O3o.PoseArmature.add(dst,referenceArmature,dst);
 				O3o.PoseArmature.add(dst,sourceArmature,dst);
+
+				Vec3.poolFree(1);
+				Vec4.poolFree(1);
 
 				ono3d.loadIdentity();
 				var m = Mat43.poolAlloc();
 				Mat43.fromLSR(m,phyObj.location,phyObj.scale,phyObj.rotq);
 				Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
+
 
 				var e =obj3d.objectsN["円柱"];
 				Mat43.getInv(m,e.mixedmatrix);
@@ -879,7 +908,7 @@ var Testact=(function(){
 		Plain.draw(ono3d);
 		gl.finish();
 		
-		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
+		//gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
 
 
 		if(globalParam.hdr){
