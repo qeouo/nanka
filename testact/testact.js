@@ -575,8 +575,16 @@ var Testact=(function(){
 			vec[0]=pad[0];
 			vec[2]=pad[1];
 			vec[1]=0;
+			var l = Vec3.scalar(vec);
 			Mat43.fromRotVector(mat43,camera.a[1]-Math.PI,0,1,0)
 			Mat43.dotVec3(vec,mat43,vec);
+			if(this.ground){
+				Vec3.cross(vec,groundNormal,vec);
+				Vec3.cross(vec,vec,groundNormal);
+				Vec3.norm(vec);
+				Vec3.mul(vec,vec,l);
+
+			}
 			vec[1]=0;
 			if(vec[0]*vec[0] + vec[2]*vec[2]){
 				var r = Math.atan2(vec[0],vec[2]);
@@ -838,122 +846,122 @@ var Testact=(function(){
 		}
 		var drawgeometry=Date.now()-start;
 
-		start=Date.now();
-//シャドウマップ描画
-		gl.bindFramebuffer(gl.FRAMEBUFFER,Rastgl.frameBuffer);
-		gl.viewport(0,0,1024,1024);
-		gl.depthMask(true);
-		gl.clearColor(1., 1., 1.,1.0);
-		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-		if(globalParam.shadow){
-			gl.enable(gl.DEPTH_TEST);
-			
-			ono3d.setOrtho(10.0,10.0,15.0,30.0)
-			var lightSource = ono3d.lightSources[0]
-			Mat44.setInit(lightSource.matrix);
-			Mat44.getRotVector(lightSource.matrix,lightSource.angle);
-			var mat44 = Mat44.poolAlloc();
-			Mat44.setInit(mat44);
-			mat44[12]=-lightSource.pos[0]
-			mat44[13]=-lightSource.pos[1]
-			mat44[14]=-lightSource.pos[2]
-
-			Mat44.dot(mat44,lightSource.matrix,mat44);
-			Mat44.dot(ono3d.pvMat,ono3d.projectionMat,mat44);
-			Mat44.copy(lightSource.matrix,ono3d.pvMat);
-			Mat44.poolFree(1);
-			
-			Shadow.draw(ono3d);
-		}
-		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
-		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1024,1024);
-		
-		globalParam.stereo=-globalParam.stereoVolume * globalParam.stereomode*0.4;
-
-//遠景描画
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		gl.disable(gl.DEPTH_TEST);
-		gl.disable(gl.BLEND);
-		gl.depthMask(true);
-		gl.viewport(0,0,1024,1024);
-		gl.clearColor(0.0,0.0,0.0,0.0);
-		gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
-		gl.depthMask(false);
-		gl.colorMask(true,true,true,true);
-		gl.disable(gl.BLEND);
-		if(sky.gltexture){
-			if(globalParam.stereomode==0){
-				ono3d.setPers(0.577,HEIGHT/WIDTH,1,20);
-				gl.viewport(0,0,WIDTH,HEIGHT);
-				Env.env(envtexes[1]);
-			}else{
-				ono3d.setPers(0.577,HEIGHT/WIDTH*2,1,20);
-				gl.viewport(0,0,WIDTH/2,HEIGHT);
-				Env.env(envtexes[1]);
-				gl.viewport(WIDTH/2,0,WIDTH/2,HEIGHT);
-				Env.env(envtexes[1]);
-				
-			}
-		}
-
-		gl.viewport(0,0,WIDTH,HEIGHT);
-//オブジェクト描画
-		gl.depthMask(true);
-		gl.enable(gl.DEPTH_TEST);
-		ono3d.setViewport(0,0,WIDTH,HEIGHT);
-
-		if(envtexes){
-			MainShader.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
-		}
-		Plain.draw(ono3d);
-		gl.finish();
-		
-		//gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
-
-
-		if(globalParam.hdr){
-			//描画結果をメインのバッファにコピー
-			gl.depthMask(false);
-			gl.disable(gl.DEPTH_TEST);
-			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-			gl.clearColor(0.0,0.0,0.0,0.0);
-			gl.clear(gl.COLOR_BUFFER_BIT);
-			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-			gl.bindTexture(gl.TEXTURE_2D, Rastgl.fTexture2);
-			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
-
-			var emiSize=0.25;
-			//疑似HDRぼかし(α値が0が通常、1に近いほど光る)
-			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-			gl.viewport(0,0,WIDTH*emiSize,HEIGHT*emiSize);
-			gl.depthMask(false);
-			gl.clearColor(0.0,0.0,0.0,0.0);
-			gl.clear(gl.COLOR_BUFFER_BIT);
-			gl.disable(gl.DEPTH_TEST);
-			gl.disable(gl.BLEND);
-			Rastgl.copyframe(Rastgl.fTexture2,0,0,WIDTH/1024,HEIGHT/1024); //今回の
-			gl.enable(gl.BLEND);
-			gl.blendFuncSeparate(gl.CONSTANT_ALPHA,gl.DST_ALPHA,gl.ZERO,gl.ZERO);
-			gl.blendColor(0,0,0,0.7);
-			Rastgl.copyframe(emiTexture,0,0,WIDTH/1024*emiSize,HEIGHT/1024*emiSize); //既存の光テクスチャを重ねる
-			gl.disable(gl.BLEND);
-			gl.bindTexture(gl.TEXTURE_2D, emiTexture);
-			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH*emiSize,HEIGHT*emiSize);//結果を光テクスチャに書き込み
-			Gauss.filter(emiTexture,emiTexture,10,2.0/1024,1024.0*emiSize); //光テクスチャをぼかす
-
-			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-			gl.viewport(0,0,WIDTH,HEIGHT);
-			gl.enable(gl.BLEND);
-			gl.blendFunc(gl.ONE,gl.ONE);
-			Rastgl.copyframe(emiTexture,0,0,WIDTH/1024*emiSize,HEIGHT/1024*emiSize); //メイン画面に合成
-		}
-//メインのバッファのアルファ値を1にする
-		gl.viewport(0,0,WIDTH,HEIGHT);
-		gl.colorMask(false,false,false,true);
-		gl.clearColor(0.0,0.0,0.0,1.0);
-		gl.clear(gl.COLOR_BUFFER_BIT);
-		gl.colorMask(true,true,true,true);
-
+//		start=Date.now();
+////シャドウマップ描画
+//		gl.bindFramebuffer(gl.FRAMEBUFFER,Rastgl.frameBuffer);
+//		gl.viewport(0,0,1024,1024);
+//		gl.depthMask(true);
+//		gl.clearColor(1., 1., 1.,1.0);
+//		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+//		if(globalParam.shadow){
+//			gl.enable(gl.DEPTH_TEST);
+//			
+//			ono3d.setOrtho(10.0,10.0,15.0,30.0)
+//			var lightSource = ono3d.lightSources[0]
+//			Mat44.setInit(lightSource.matrix);
+//			Mat44.getRotVector(lightSource.matrix,lightSource.angle);
+//			var mat44 = Mat44.poolAlloc();
+//			Mat44.setInit(mat44);
+//			mat44[12]=-lightSource.pos[0]
+//			mat44[13]=-lightSource.pos[1]
+//			mat44[14]=-lightSource.pos[2]
+//
+//			Mat44.dot(mat44,lightSource.matrix,mat44);
+//			Mat44.dot(ono3d.pvMat,ono3d.projectionMat,mat44);
+//			Mat44.copy(lightSource.matrix,ono3d.pvMat);
+//			Mat44.poolFree(1);
+//			
+//			Shadow.draw(ono3d);
+//		}
+//		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
+//		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1024,1024);
+//		
+//		globalParam.stereo=-globalParam.stereoVolume * globalParam.stereomode*0.4;
+//
+////遠景描画
+//		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+//		gl.disable(gl.DEPTH_TEST);
+//		gl.disable(gl.BLEND);
+//		gl.depthMask(true);
+//		gl.viewport(0,0,1024,1024);
+//		gl.clearColor(0.0,0.0,0.0,0.0);
+//		gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
+//		gl.depthMask(false);
+//		gl.colorMask(true,true,true,true);
+//		gl.disable(gl.BLEND);
+//		if(sky.gltexture){
+//			if(globalParam.stereomode==0){
+//				ono3d.setPers(0.577,HEIGHT/WIDTH,1,20);
+//				gl.viewport(0,0,WIDTH,HEIGHT);
+//				Env.env(envtexes[1]);
+//			}else{
+//				ono3d.setPers(0.577,HEIGHT/WIDTH*2,1,20);
+//				gl.viewport(0,0,WIDTH/2,HEIGHT);
+//				Env.env(envtexes[1]);
+//				gl.viewport(WIDTH/2,0,WIDTH/2,HEIGHT);
+//				Env.env(envtexes[1]);
+//				
+//			}
+//		}
+//
+//		gl.viewport(0,0,WIDTH,HEIGHT);
+////オブジェクト描画
+//		gl.depthMask(true);
+//		gl.enable(gl.DEPTH_TEST);
+//		ono3d.setViewport(0,0,WIDTH,HEIGHT);
+//
+//		if(envtexes){
+//			MainShader.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
+//		}
+//		Plain.draw(ono3d);
+//		gl.finish();
+//		
+//		//gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
+//
+//
+//		if(globalParam.hdr){
+//			//描画結果をメインのバッファにコピー
+//			gl.depthMask(false);
+//			gl.disable(gl.DEPTH_TEST);
+//			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+//			gl.clearColor(0.0,0.0,0.0,0.0);
+//			gl.clear(gl.COLOR_BUFFER_BIT);
+//			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+//			gl.bindTexture(gl.TEXTURE_2D, Rastgl.fTexture2);
+//			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
+//
+//			var emiSize=0.25;
+//			//疑似HDRぼかし(α値が0が通常、1に近いほど光る)
+//			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+//			gl.viewport(0,0,WIDTH*emiSize,HEIGHT*emiSize);
+//			gl.depthMask(false);
+//			gl.clearColor(0.0,0.0,0.0,0.0);
+//			gl.clear(gl.COLOR_BUFFER_BIT);
+//			gl.disable(gl.DEPTH_TEST);
+//			gl.disable(gl.BLEND);
+//			Rastgl.copyframe(Rastgl.fTexture2,0,0,WIDTH/1024,HEIGHT/1024); //今回の
+//			gl.enable(gl.BLEND);
+//			gl.blendFuncSeparate(gl.CONSTANT_ALPHA,gl.DST_ALPHA,gl.ZERO,gl.ZERO);
+//			gl.blendColor(0,0,0,0.7);
+//			Rastgl.copyframe(emiTexture,0,0,WIDTH/1024*emiSize,HEIGHT/1024*emiSize); //既存の光テクスチャを重ねる
+//			gl.disable(gl.BLEND);
+//			gl.bindTexture(gl.TEXTURE_2D, emiTexture);
+//			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH*emiSize,HEIGHT*emiSize);//結果を光テクスチャに書き込み
+//			Gauss.filter(emiTexture,emiTexture,10,2.0/1024,1024.0*emiSize); //光テクスチャをぼかす
+//
+//			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+//			gl.viewport(0,0,WIDTH,HEIGHT);
+//			gl.enable(gl.BLEND);
+//			gl.blendFunc(gl.ONE,gl.ONE);
+//			Rastgl.copyframe(emiTexture,0,0,WIDTH/1024*emiSize,HEIGHT/1024*emiSize); //メイン画面に合成
+//		}
+////メインのバッファのアルファ値を1にする
+//		gl.viewport(0,0,WIDTH,HEIGHT);
+//		gl.colorMask(false,false,false,true);
+//		gl.clearColor(0.0,0.0,0.0,1.0);
+//		gl.clear(gl.COLOR_BUFFER_BIT);
+//		gl.colorMask(true,true,true,true);
+//
 		gl.finish();
 		ono3d.clear();
 
