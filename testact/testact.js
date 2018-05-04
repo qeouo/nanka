@@ -27,6 +27,7 @@ var Testact=(function(){
 	var pad =new Vec2();
 
 	var txt="STAGE CLEAR!!";
+	var txt2="ALL CLEAR!!";
 	var objMan;
 	var goMain;
 
@@ -166,19 +167,22 @@ var Testact=(function(){
 		return ret;
 	})();
 
+	var stage =0;
+	var stages=[
+		"f1.o3o"
+		,"f2.o3o"
+		,"f3.o3o"
+		,"f4.o3o"
+		,"f5.o3o"
+	]
 	var GoMain = (function(){
 		var GoMain=function(){};
 		var ret = GoMain;
 		inherits(ret,defObj);
-		var stage =1;
-		var stages=[
-			"f1.o3o"
-			,"f2.o3o"
-		]
 		ret.prototype.init=function(){
 
 			bdf = Bdf.load("./k8x12.bdf",null,function(){
-				bdfimage = Bdf.render(txt,bdf,false);
+				bdfimage = Bdf.render(txt+"\n"+txt2,bdf,false);
 				bdfimage.gltexture = Rastgl.createTexture(bdfimage);//512x512
 
 				gl.bindTexture(gl.TEXTURE_2D,bdfimage.gltexture);
@@ -221,6 +225,9 @@ var Testact=(function(){
 				objMan.deleteObj(objMan.objs[i]);
 			}
 			fieldpath=stages[stage];
+			if(globalParam.stage){
+				fieldpath=globalParam.stage;
+			}
 
 
 			onoPhy.init();
@@ -235,9 +242,13 @@ var Testact=(function(){
 
 	})();
 
+	var blit = function(tex,x,y,w,h,u,v,u2,v2){
+			Rastgl.copyframe(tex.gltexture,x,y,w*2,h*2
+							,u/tex.width,(v+v2)/tex.height,u2/tex.width,-v2/tex.height);
+	}
 	var GoMsg = (function(){
-		var GoCamera=function(){};
-		var ret = GoCamera;
+		var GoMsg=function(){};
+		var ret = GoMsg;
 		inherits(ret,defObj);
 		ret.prototype.init=function(){
 		}
@@ -249,13 +260,37 @@ var Testact=(function(){
 		ret.prototype.drawhud = function(){
 			if(bdfimage){
 				var width=txt.length*4;
-				var height=12+2;
+				var height=12+1;
+				var scale=4;
+				gl.enable(gl.BLEND);
+				gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
+				blit(bdfimage,0,0,scale*width/WIDTH,scale*height/(WIDTH*ono3d.persy/ono3d.persx)
+							,0,0,width,height);
+			}
+		}
+		return ret;
+	})();
+	
+	var GoMsg2 = (function(){
+		var GoMsg2=function(){};
+		var ret = GoMsg2;
+		inherits(ret,defObj);
+		ret.prototype.init=function(){
+		}
+		ret.prototype.move=function(){
+			if(this.t>60){
+			}
+		}
+		ret.prototype.drawhud = function(){
+			if(bdfimage){
+				var width=txt2.length*4;
+				var height=12+1;
 				var scale=4;
 				gl.enable(gl.BLEND);
 				gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
 
-				Rastgl.copyframe(bdfimage.gltexture,0,0,scale*width/WIDTH*2,scale*height/(WIDTH*ono3d.persy/ono3d.persx)*2
-							,0,height/512,width/512,-height/512);
+				blit(bdfimage,0,0,scale*width/WIDTH,scale*height/(WIDTH*ono3d.persy/ono3d.persx)
+							,0,height,width,height);
 			}
 		}
 		return ret;
@@ -270,9 +305,20 @@ var Testact=(function(){
 			if(!mobj){
 				return;
 			}
+
+			var v3 = Vec3.poolAlloc();
+			Vec3.set(v3,0,6,1);
+			Mat43.dotVec3(v3,mobj.phyObjs[0].matrix,v3);
+			Vec3.sub(v3,v3,this.p);
+			Vec3.madd(this.p,this.p,v3,0.02);
+
+
+			Vec3.poolFree(1);
+			//onoPhy.collider.hitcheck(Collider.SPHERE,this.p);
 			Vec3.sub(this.p,this.p,mobj.p);
 			Vec3.norm(this.p);
-			Vec3.madd(this.p,mobj.p,this.p,10);
+			Vec3.madd(this.p,mobj.p,this.p,6);
+
 
 			camera.p[0]+=(this.p[0]-camera.p[0])*0.1
 			camera.p[1]+=(this.p[1]-camera.p[1])*0.1
@@ -285,10 +331,21 @@ var Testact=(function(){
 				if(a<-Math.PI){a+=Math.PI*2};
 				return a;
 			}
+			for(var i=0;i<3;i++){
+				this.a[i]=nangle(this.a[i]);
+				camera.a[i]=nangle(camera.a[i]);
+			}
 			camera.a[0] +=nangle(this.a[0]-camera.a[0])*0.1;
 			camera.a[1] +=nangle(this.a[1]-camera.a[1])*0.1;
 			camera.a[2] +=nangle(this.a[2]-camera.a[2])*0.1;
 
+
+			if(ono3d.lightSources.length>1){
+				var light = ono3d.lightSources[1];
+				Vec3.copy(vec3,light.angle);
+				Vec3.norm(vec3);
+				Vec3.madd(light.pos,mobj.p,vec3,-10);
+			}
 			Vec3.poolFree(1);
 		}
 		ret.prototype.draw=function(){
@@ -306,6 +363,32 @@ var Testact=(function(){
 		
 	}
 	var fieldpath="f1.o3o";
+	var reset=function(){
+		var o3o = field;
+		ono3d.setTargetMatrix(0);
+		ono3d.loadIdentity();
+		ono3d.rotate(-PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
+
+		var start = o3o.objectsN["_start"];
+		Mat44.dotVec3(mobj.p,ono3d.worldMatrix,start.location);
+		var m = Mat44.poolAlloc();
+		Mat44.setInit(m);
+		Mat44.dotMat43(m,m,start.matrix);
+		Mat44.dot(m,ono3d.worldMatrix,m);
+		Vec4.fromMat44(mobj.rotq,m);
+
+		Mat44.poolFree(1);
+
+		if(mobj.phyObjs.length){
+			Vec3.copy(mobj.phyObjs[0].location,mobj.p);
+		}
+
+		Vec3.set(goCamera.p,0,6,2)
+		var start = o3o.objectsN["_start"];
+		Mat43.dotVec3(goCamera.p,start.matrix,goCamera.p);
+		Mat44.dotVec3(goCamera.p,ono3d.worldMatrix,goCamera.p);
+
+	}
 	var GoField= (function(){
 		var GoField =function(){};
 		var ret = GoField;
@@ -322,57 +405,88 @@ var Testact=(function(){
 				//物理シミュオブジェクトの設定
 				t.phyObjs= O3o.createPhyObjs(o3o.scenes[0],onoPhy);
 
+				ono3d.push();
 				mobj=objMan.createObj(GoJiki);
+				ono3d.pop();
 
-				var start = o3o.objectsN["_start"];
-				Mat44.dotVec3(mobj.p,ono3d.worldMatrix,start.location);
-				goCamera.p[0]=mobj.p[0];
-				goCamera.p[1]=mobj.p[1]+3;
-				goCamera.p[2]=mobj.p[2]+6;
+				reset();
+				Vec3.copy(camera.p,goCamera.p)
 
+				Vec3.set(camera.a,0,PI,0)
+
+				var m43 = Mat43.poolAlloc();
 				var goalobj = o3o.objectsN["_goal"];
 				var goal= onoPhy.collider.createCollision(Collider.SPHERE);
-				Mat44.dotVec3(goal.location,ono3d.worldMatrix,goalobj.location);
-				Vec3.copy(goal.scale,goalobj.scale);
+				Mat43.dotMat44Mat43(m43,ono3d.worldMatrix,goalobj.mixedmatrix);
+				Mat43.toLSR(goal.location,goal.scale,goal.rotq,m43);
 				goal.groups=2;
 				goal.bold=1;
 				goal.name="goal";
 				goal.callbackFunc=function(col1,col2,pos1,pos2){
+					if(!col2.parent)return;
+					if(col2.parent.name!=="jiki"){
+						return;
+					}
 					onoPhy.collider.deleteCollision(col1);
-					objMan.createObj(GoMsg);
-
+					if(stage<stages.length-1){
+						objMan.createObj(GoMsg);
+					}else{
+						objMan.createObj(GoMsg2);
+					}
 				}
+				var borderObj= o3o.objectsN["_border"];
+				var collision= onoPhy.collider.createCollision(Collider.CUBOID);
+				Mat44.dotVec3(collision.location,ono3d.worldMatrix,borderObj.location);
+				Vec3.copy(collision.scale,borderObj.scale);
+				var m = Mat44.poolAlloc();
+				Mat44.setInit(m);
+				Mat44.dotMat43(m,m,borderObj.matrix);
+				Mat44.dot(m,ono3d.worldMatrix,m);
+				Vec4.fromMat44(collision.rotq,m);
+				collision.groups=2;
+				collision.bold=0;
+				collision.name="border";
+				Mat44.poolFree(1);
 
 				var light=null;
-				if(ono3d.lightSources.length==0){
-					light = new ono3d.LightSource()
-					ono3d.lightSources.push(light)
+				ono3d.lightSources.splice(0,ono3d.lightSources.length);
+
+				light = new ono3d.LightSource();
+				ono3d.lightSources.push(light);
+				light.type =Ono3d.LT_AMBIENT;
+				Vec3.set(light.color,0.4,0.4,0.4);
+
+				var scene = o3o.scenes[0];
+				for(var i=0;i<scene.objects.length;i++){
+					var object = scene.objects[i];
+					if(object.type!=="LAMP")continue;
+					var ol = object.data;
+					light = new ono3d.LightSource();
+					ono3d.lightSources.push(light);
+					if(ol.type==="SUN"){
+						light.type = Ono3d.LT_DIRECTION;
+					}else{
+						light.type = Ono3d.LT_AMBIENT;
+					}
+
+					Vec3.set(light.angle,0,0,-1);
+					var m=Mat43.poolAlloc();
+					Mat43.fromLSE(m,object.location,object.scale,object.rotation);
+					Mat43.dotMat33Vec3(light.angle,m,light.angle);
+					Mat44.dotMat33Vec3(light.angle,ono3d.worldMatrix,light.angle);
+
+					Vec3.set(light.pos,0,0,0);
+					Mat43.dotVec3(light.pos,m,light.pos);
+					Mat44.dotVec3(light.pos,ono3d.worldMatrix,light.pos);
+					light.power=1;
+					Vec3.copy(light.color,ol.color);
+					Vec3.norm(light.angle)
+
+					Mat43.poolFree(1);
 				}
-				light = ono3d.lightSources[0];
-				
 
-				light.type =Ono3d.LT_DIRECTION
-				Vec3.set(light.angle,-1,-1,-1);
-				Vec3.set(light.pos,10,15,10);
-				light.power=1
-				light.color[0]=1
-				light.color[1]=1
-				light.color[2]=1
-				Vec3.norm(light.angle)
+				Mat43.poolFree(1);
 
-				if(ono3d.lightSources.length==1){
-					light = new ono3d.LightSource()
-					ono3d.lightSources.push(light)
-				}
-				light = ono3d.lightSources[1];
-
-				light.type =Ono3d.LT_AMBIENT
-				light.color[0]=0.2
-				light.color[1]=0.2
-				light.color[2]=0.2
-
-				Vec3.set(camera.p,0,6,10)
-				Vec3.set(camera.a,0,PI,0)
 			});
 		}
 		ret.prototype.move=function(){
@@ -389,7 +503,7 @@ var Testact=(function(){
 			ono3d.rotate(-PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
 
 			var scene= obj3d.scenes[0];
-			O3o.setFrame(obj3d,scene,timer/1000.0*24); //アニメーション処理
+			O3o.setFrame(obj3d,scene,this.t/60.0*24); //アニメーション処理
 
 			if(phyObjs && globalParam.physics){
 				//物理シミュ有効の場合は物理オブジェクトにアニメーション結果を反映させる
@@ -417,6 +531,16 @@ var Testact=(function(){
 				}
 			}
 		}
+		var scope=[
+			[-1,-1,0]
+			,[-1,1,0]
+			,[1,1,0]
+			,[1,-1,0]
+			,[-2,-2,-10]
+			,[-1,1,1]
+			,[1,1,1]
+			,[1,-1,1]
+		];
 		ret.prototype.draw=function(){
 			var obj3d=field;
 			var obj = this;
@@ -427,26 +551,26 @@ var Testact=(function(){
 			ono3d.rotate(-PI*0.5,1,0,0)
 
 			ono3d.rf=0;
+
+			var v=Vec4.poolAlloc();
+			var im = Mat44.poolAlloc();
+			Mat44.getInv(im,ono3d.projectionMat);
+			Vec3.copy(v,scope[0]);
+			v[3]=1;
+			Mat44.dotVec4(v,im,v);
+			Vec3.copy(v,scope[4]);
+			v[3]=1;
+			Mat44.dotVec4(v,ono3d.projectionMat,v);
+			Vec4.poolFree(1);
+			Mat44.poolFree(1);
+			camera.p;
+
 			if(obj3d){
 				if(obj3d.scenes.length>0){
 					var objects = obj3d.scenes[0].objects;
 					for(var i=0;i<objects.length;i++){
 						if(objects[i].hide_render){
 							continue;
-						}
-						ono3d.lineWidth=1;
-						ono3d.rf&=~Ono3d.RF_OUTLINE;
-						if(globalParam.outlineWidth>0.){
-							ono3d.lineWidth=globalParam.outlineWidth;
-							ono3d.rf|=Ono3d.RF_OUTLINE;
-							Util.hex2rgb(ono3d.lineColor,globalParam.outlineColor);
-						}
-						if(bane){
-							if(bane.con2.name == objects[i].name){
-								ono3d.lineWidth=1;
-								ono3d.rf|=Ono3d.RF_OUTLINE;
-								Vec4.set(ono3d.lineColor,1,4,1,0);
-							}
 						}
 						if(globalParam.physics){
 							O3o.drawObject(objects[i],phyObjs);
@@ -471,7 +595,7 @@ var Testact=(function(){
 			func(obj3d);
 			return obj3d;
 		}
-		return O3o.load("human.o3o",func);
+		return O3o.load(path,func);
 
 	}
 
@@ -485,44 +609,10 @@ var Testact=(function(){
 
 		ret.prototype.init = function(){
 			var obj = this;
-			obj.phyObjs= null;
-			Vec3.set(obj.p,0,3,0);
 
 			var t=this;
-			if(obj3d){
+			obj3d = assetload(obj3d,"human.o3o",function(obj3d){
 				var o3o= obj3d;
-				for(var i=0;i<obj3d.objects.length;i++){
-					var object=obj3d.objects[i];
-				}
-
-				ono3d.setTargetMatrix(1);
-				ono3d.loadIdentity();
-				ono3d.setTargetMatrix(0);
-				ono3d.loadIdentity();
-				ono3d.rotate(-PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
-				ono3d.translate(obj.p[0],obj.p[1],obj.p[2]);
-				t.phyObjs= O3o.createPhyObjs(o3o.scenes[0],onoPhy);
-				var phyObj = t.phyObjs[0];
-				Vec3.copy(phyObj.location,t.p);
-				Mat33.set(phyObj.inertiaTensorBase,1,0,0,0,1,0,0,0,1);
-				Mat33.mul(phyObj.inertiaTensorBase,phyObj.inertiaTensorBase,99999999);
-
-				phyObj.collision.groups|=3;
-				phyObj.collision.callbackFunc=function(col1,col2,pos1,pos2){
-					if(!col2.parent){
-						return;
-					}
-					var vec3 = Vec3.poolAlloc();
-					Vec3.sub(vec3,pos2,pos1);
-					Vec3.norm(vec3);
-					if(vec3[1]>0.8){
-						mobj.ground=true;//接地フラグ
-					}
-					Vec3.poolFree(1);
-				};
-			}else
-			obj3d=O3o.load("human.o3o",function(o3o){
-
 				for(var i=0;i<obj3d.objects.length;i++){
 					var object=obj3d.objects[i];
 				}
@@ -530,8 +620,6 @@ var Testact=(function(){
 				sourceArmature= new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
 				referenceArmature= new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
 
-				ono3d.setTargetMatrix(1);
-				ono3d.loadIdentity();
 				ono3d.setTargetMatrix(0);
 				ono3d.loadIdentity();
 				ono3d.rotate(-PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
@@ -544,6 +632,10 @@ var Testact=(function(){
 
 				phyObj.collision.groups|=3;
 				phyObj.collision.callbackFunc=function(col1,col2,pos1,pos2){
+					if(col2.name==="border"){
+						reset();
+						return;
+					}
 					if(!col2.parent){
 						return;
 					}
@@ -561,6 +653,7 @@ var Testact=(function(){
 					Vec3.poolFree(1);
 				};
 			});
+			Vec4.fromRotVector(this.rotq,-Math.PI*0.5,1,0,0);
 		}
 		ret.prototype.move=function(){
 			var obj = this;
@@ -578,26 +671,38 @@ var Testact=(function(){
 			var l = Vec3.scalar(vec);
 			Mat43.fromRotVector(mat43,camera.a[1]-Math.PI,0,1,0)
 			Mat43.dotVec3(vec,mat43,vec);
+
+			if(vec[0]*vec[0] + vec[2]*vec[2]){
+				var r = Math.atan2(vec[0],vec[2]);
+				var q = Vec4.poolAlloc();
+				Vec4.fromRotVector(this.rotq,-Math.PI*0.5,1,0,0);
+				Vec4.fromRotVector(q,r,0,1,0);
+				Vec4.qdot(this.rotq,q,this.rotq);
+				Vec4.poolFree(1);
+			}
+			Vec4.copy(phyObj.rotq,this.rotq);
+
+			var v2 = Vec3.poolAlloc();
 			if(this.ground){
 				Vec3.cross(vec,groundNormal,vec);
 				Vec3.cross(vec,vec,groundNormal);
 				Vec3.norm(vec);
-				Vec3.mul(vec,vec,l);
 
+				Vec3.mul(vec,vec,4*l);
+				Vec3.sub(v2,phyObj.v,groundVelocity);
+				Vec3.sub(v2,vec,v2);
+				Vec3.mul(vec,v2,0.1);
+
+
+			}else{
+				Vec3.mul(vec,vec,0.05);
+				//vec[0]=0;
+				//vec[1]=0;
+				//vec[2]=0;
 			}
+			Vec3.poolFree(1);
 			vec[1]=0;
-			if(vec[0]*vec[0] + vec[2]*vec[2]){
-				var r = Math.atan2(vec[0],vec[2]);
-				var q = Vec4.poolAlloc();
-				Vec4.fromRotVector(phyObj.rotq,-Math.PI*0.5,1,0,0);
-				Vec4.fromRotVector(q,r,0,1,0);
-				Vec4.qdot(phyObj.rotq,q,phyObj.rotq);
-				Vec4.poolFree(1);
-			}
 
-
-
-			Vec3.mul(vec,vec,0.10);
 			if(Util.keyflag[4]==1 && !Util.keyflagOld[4] && this.ground){
 				vec[1]=6;
 			}
@@ -615,12 +720,14 @@ var Testact=(function(){
 			ono3d.rotate(-PI*0.5,1,0,0)
 
 			ono3d.rf=0;
-			if(obj3d){
+			ono3d.lineWidth=1.2;
+			ono3d.rf|=Ono3d.RF_OUTLINE;
+			if(obj3d.scenes.length){
 				var phyObj = this.phyObjs[0];
 
 				var oldT = motionT/1000;
 				var l = phyObj.v[0]*phyObj.v[0] + phyObj.v[2]*phyObj.v[2];
-				if(l>0.5 && this.ground){
+				if(l>0.1 && this.ground){
 					motionT+=16;
 				}	
 				var T = motionT/1000;
@@ -638,7 +745,7 @@ var Testact=(function(){
 				Vec4.qmul(vec4,phyObj.rotq,-1);
 				if(mobj.ground){
 					Vec3.sub(vec3,phyObj.v,groundVelocity);
-					Vec4.rotVec3(vec3,vec4,phyObj.v);
+					Vec4.rotVec3(vec3,vec4,vec3);
 				}
 
 
@@ -646,8 +753,8 @@ var Testact=(function(){
 				dst.setAction(obj3d.actions[0],0);
 				O3o.PoseArmature.sub(sourceArmature,sourceArmature,dst);
 				O3o.PoseArmature.sub(referenceArmature,referenceArmature,dst);
-				O3o.PoseArmature.mul(sourceArmature,sourceArmature,vec3[1]*0.5);
-				O3o.PoseArmature.mul(referenceArmature,referenceArmature,vec3[0]*0.5);
+				O3o.PoseArmature.mul(sourceArmature,sourceArmature,vec3[1]*0.3);
+				O3o.PoseArmature.mul(referenceArmature,referenceArmature,vec3[0]*0.3);
 				O3o.PoseArmature.add(dst,referenceArmature,dst);
 				O3o.PoseArmature.add(dst,sourceArmature,dst);
 
@@ -660,7 +767,7 @@ var Testact=(function(){
 				Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
 
 
-				var e =obj3d.objectsN["円柱"];
+				var e =obj3d.objectsN["jiki"];
 				Mat43.getInv(m,e.mixedmatrix);
 				Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
 				O3o.drawObject(obj3d.objectsN["human"]);
@@ -791,11 +898,11 @@ var Testact=(function(){
 		ono3d.lineWidth=1.0;
 		ono3d.smoothing=globalParam.smoothing;
 
-		var light=ono3d.lightSources[0];
-		Util.hex2rgb(light.color,globalParam.lightColor1);
+		//var light=ono3d.lightSources[0];
+		//Util.hex2rgb(light.color,globalParam.lightColor1);
 
-		light=ono3d.lightSources[1];
-		Util.hex2rgb(light.color,globalParam.lightColor2);
+		//light=ono3d.lightSources[1];
+		//Util.hex2rgb(light.color,globalParam.lightColor2);
 
 		ono3d.lightThreshold1=globalParam.lightThreshold1;
 		ono3d.lightThreshold2=globalParam.lightThreshold2;
@@ -846,122 +953,125 @@ var Testact=(function(){
 		}
 		var drawgeometry=Date.now()-start;
 
-//		start=Date.now();
-////シャドウマップ描画
-//		gl.bindFramebuffer(gl.FRAMEBUFFER,Rastgl.frameBuffer);
-//		gl.viewport(0,0,1024,1024);
-//		gl.depthMask(true);
-//		gl.clearColor(1., 1., 1.,1.0);
-//		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-//		if(globalParam.shadow){
-//			gl.enable(gl.DEPTH_TEST);
-//			
-//			ono3d.setOrtho(10.0,10.0,15.0,30.0)
-//			var lightSource = ono3d.lightSources[0]
-//			Mat44.setInit(lightSource.matrix);
-//			Mat44.getRotVector(lightSource.matrix,lightSource.angle);
-//			var mat44 = Mat44.poolAlloc();
-//			Mat44.setInit(mat44);
-//			mat44[12]=-lightSource.pos[0]
-//			mat44[13]=-lightSource.pos[1]
-//			mat44[14]=-lightSource.pos[2]
-//
-//			Mat44.dot(mat44,lightSource.matrix,mat44);
-//			Mat44.dot(ono3d.pvMat,ono3d.projectionMat,mat44);
-//			Mat44.copy(lightSource.matrix,ono3d.pvMat);
-//			Mat44.poolFree(1);
-//			
-//			Shadow.draw(ono3d);
-//		}
-//		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
-//		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1024,1024);
-//		
-//		globalParam.stereo=-globalParam.stereoVolume * globalParam.stereomode*0.4;
-//
-////遠景描画
-//		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-//		gl.disable(gl.DEPTH_TEST);
-//		gl.disable(gl.BLEND);
-//		gl.depthMask(true);
-//		gl.viewport(0,0,1024,1024);
-//		gl.clearColor(0.0,0.0,0.0,0.0);
-//		gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
-//		gl.depthMask(false);
-//		gl.colorMask(true,true,true,true);
-//		gl.disable(gl.BLEND);
-//		if(sky.gltexture){
-//			if(globalParam.stereomode==0){
-//				ono3d.setPers(0.577,HEIGHT/WIDTH,1,20);
-//				gl.viewport(0,0,WIDTH,HEIGHT);
-//				Env.env(envtexes[1]);
-//			}else{
-//				ono3d.setPers(0.577,HEIGHT/WIDTH*2,1,20);
-//				gl.viewport(0,0,WIDTH/2,HEIGHT);
-//				Env.env(envtexes[1]);
-//				gl.viewport(WIDTH/2,0,WIDTH/2,HEIGHT);
-//				Env.env(envtexes[1]);
-//				
-//			}
-//		}
-//
-//		gl.viewport(0,0,WIDTH,HEIGHT);
-////オブジェクト描画
-//		gl.depthMask(true);
-//		gl.enable(gl.DEPTH_TEST);
-//		ono3d.setViewport(0,0,WIDTH,HEIGHT);
-//
-//		if(envtexes){
-//			MainShader.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
-//		}
-//		Plain.draw(ono3d);
-//		gl.finish();
-//		
-//		//gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
-//
-//
-//		if(globalParam.hdr){
-//			//描画結果をメインのバッファにコピー
-//			gl.depthMask(false);
-//			gl.disable(gl.DEPTH_TEST);
-//			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-//			gl.clearColor(0.0,0.0,0.0,0.0);
-//			gl.clear(gl.COLOR_BUFFER_BIT);
-//			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-//			gl.bindTexture(gl.TEXTURE_2D, Rastgl.fTexture2);
-//			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
-//
-//			var emiSize=0.25;
-//			//疑似HDRぼかし(α値が0が通常、1に近いほど光る)
-//			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-//			gl.viewport(0,0,WIDTH*emiSize,HEIGHT*emiSize);
-//			gl.depthMask(false);
-//			gl.clearColor(0.0,0.0,0.0,0.0);
-//			gl.clear(gl.COLOR_BUFFER_BIT);
-//			gl.disable(gl.DEPTH_TEST);
-//			gl.disable(gl.BLEND);
-//			Rastgl.copyframe(Rastgl.fTexture2,0,0,WIDTH/1024,HEIGHT/1024); //今回の
-//			gl.enable(gl.BLEND);
-//			gl.blendFuncSeparate(gl.CONSTANT_ALPHA,gl.DST_ALPHA,gl.ZERO,gl.ZERO);
-//			gl.blendColor(0,0,0,0.7);
-//			Rastgl.copyframe(emiTexture,0,0,WIDTH/1024*emiSize,HEIGHT/1024*emiSize); //既存の光テクスチャを重ねる
-//			gl.disable(gl.BLEND);
-//			gl.bindTexture(gl.TEXTURE_2D, emiTexture);
-//			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH*emiSize,HEIGHT*emiSize);//結果を光テクスチャに書き込み
-//			Gauss.filter(emiTexture,emiTexture,10,2.0/1024,1024.0*emiSize); //光テクスチャをぼかす
-//
-//			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-//			gl.viewport(0,0,WIDTH,HEIGHT);
-//			gl.enable(gl.BLEND);
-//			gl.blendFunc(gl.ONE,gl.ONE);
-//			Rastgl.copyframe(emiTexture,0,0,WIDTH/1024*emiSize,HEIGHT/1024*emiSize); //メイン画面に合成
-//		}
-////メインのバッファのアルファ値を1にする
-//		gl.viewport(0,0,WIDTH,HEIGHT);
-//		gl.colorMask(false,false,false,true);
-//		gl.clearColor(0.0,0.0,0.0,1.0);
-//		gl.clear(gl.COLOR_BUFFER_BIT);
-//		gl.colorMask(true,true,true,true);
-//
+		start=Date.now();
+//シャドウマップ描画
+		gl.bindFramebuffer(gl.FRAMEBUFFER,Rastgl.frameBuffer);
+		gl.viewport(0,0,1024,1024);
+		gl.depthMask(true);
+		gl.clearColor(1., 1., 1.,1.0);
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		if(globalParam.shadow){
+			gl.enable(gl.DEPTH_TEST);
+			
+			ono3d.setOrtho(20.0,20.0,1.0,20.0)
+			var lightSource = ono3d.lightSources.find(
+				function(a){return a.type===Rastgl.LT_DIRECTION;});
+			if(lightSource){
+				Mat44.setInit(lightSource.matrix);
+				Mat44.getRotVector(lightSource.matrix,lightSource.angle);
+				var mat44 = Mat44.poolAlloc();
+				Mat44.setInit(mat44);
+				mat44[12]=-lightSource.pos[0]
+				mat44[13]=-lightSource.pos[1]
+				mat44[14]=-lightSource.pos[2]
+
+				Mat44.dot(mat44,lightSource.matrix,mat44);
+				Mat44.dot(ono3d.pvMat,ono3d.projectionMat,mat44);
+				Mat44.copy(lightSource.matrix,ono3d.pvMat);
+				Mat44.poolFree(1);
+				
+				Shadow.draw(ono3d);
+			}
+		}
+		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
+		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1024,1024);
+		
+		globalParam.stereo=-globalParam.stereoVolume * globalParam.stereomode*0.4;
+
+//遠景描画
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.disable(gl.DEPTH_TEST);
+		gl.disable(gl.BLEND);
+		gl.depthMask(true);
+		gl.viewport(0,0,1024,1024);
+		gl.clearColor(0.0,0.0,0.0,0.0);
+		gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
+		gl.depthMask(false);
+		gl.colorMask(true,true,true,true);
+		gl.disable(gl.BLEND);
+		if(sky.gltexture){
+			if(globalParam.stereomode==0){
+				ono3d.setPers(0.577,HEIGHT/WIDTH,1,20);
+				gl.viewport(0,0,WIDTH,HEIGHT);
+				Env.env(envtexes[1]);
+			}else{
+				ono3d.setPers(0.577,HEIGHT/WIDTH*2,1,20);
+				gl.viewport(0,0,WIDTH/2,HEIGHT);
+				Env.env(envtexes[1]);
+				gl.viewport(WIDTH/2,0,WIDTH/2,HEIGHT);
+				Env.env(envtexes[1]);
+				
+			}
+		}
+
+		gl.viewport(0,0,WIDTH,HEIGHT);
+//オブジェクト描画
+		gl.depthMask(true);
+		gl.enable(gl.DEPTH_TEST);
+		ono3d.setViewport(0,0,WIDTH,HEIGHT);
+
+		if(envtexes){
+			MainShader.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
+		}
+		Plain.draw(ono3d);
+		gl.finish();
+		
+		//gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
+
+
+		if(globalParam.hdr){
+			//描画結果をメインのバッファにコピー
+			gl.depthMask(false);
+			gl.disable(gl.DEPTH_TEST);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+			gl.clearColor(0.0,0.0,0.0,0.0);
+			gl.clear(gl.COLOR_BUFFER_BIT);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			gl.bindTexture(gl.TEXTURE_2D, Rastgl.fTexture2);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
+
+			var emiSize=0.25;
+			//疑似HDRぼかし(α値が0が通常、1に近いほど光る)
+			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+			gl.viewport(0,0,WIDTH*emiSize,HEIGHT*emiSize);
+			gl.depthMask(false);
+			gl.clearColor(0.0,0.0,0.0,0.0);
+			gl.clear(gl.COLOR_BUFFER_BIT);
+			gl.disable(gl.DEPTH_TEST);
+			gl.disable(gl.BLEND);
+			Rastgl.copyframe(Rastgl.fTexture2,0,0,WIDTH/1024,HEIGHT/1024); //今回の
+			gl.enable(gl.BLEND);
+			gl.blendFuncSeparate(gl.CONSTANT_ALPHA,gl.DST_ALPHA,gl.ZERO,gl.ZERO);
+			gl.blendColor(0,0,0,0.7);
+			Rastgl.copyframe(emiTexture,0,0,WIDTH/1024*emiSize,HEIGHT/1024*emiSize); //既存の光テクスチャを重ねる
+			gl.disable(gl.BLEND);
+			gl.bindTexture(gl.TEXTURE_2D, emiTexture);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH*emiSize,HEIGHT*emiSize);//結果を光テクスチャに書き込み
+			Gauss.filter(emiTexture,emiTexture,10,2.0/1024,1024.0*emiSize); //光テクスチャをぼかす
+
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			gl.viewport(0,0,WIDTH,HEIGHT);
+			gl.enable(gl.BLEND);
+			gl.blendFunc(gl.ONE,gl.ONE);
+			Rastgl.copyframe(emiTexture,0,0,WIDTH/1024*emiSize,HEIGHT/1024*emiSize); //メイン画面に合成
+		}
+//メインのバッファのアルファ値を1にする
+		gl.viewport(0,0,WIDTH,HEIGHT);
+		gl.colorMask(false,false,false,true);
+		gl.clearColor(0.0,0.0,0.0,1.0);
+		gl.clear(gl.COLOR_BUFFER_BIT);
+		gl.colorMask(true,true,true,true);
+
 		gl.finish();
 		ono3d.clear();
 

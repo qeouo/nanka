@@ -86,6 +86,15 @@ def ExportOno3dObject():
         WriteMesh(mesh)
     fileoutLd()
 
+    fileout(',"lamps":')
+    fileoutLu()
+    for lamp in bpy.data.lamps:
+        fileout('')
+        if(lamp!= bpy.data.lamps[0]):fileout2(',')
+        WriteLamp(lamp)
+    fileout('')
+    fileoutLd()
+
 #    a = [Object for Object in bpy.data.meshes if Object.name.find("@") == 0 ]
 #    fileout('"Collisions":')
 #    fileoutLu()
@@ -227,7 +236,7 @@ def ExportOno3dObject():
             elif(modifier.type=="MESH_DEFORM" ):
                 fileout2(',"object":"{}"'.format(modifier.object.name))
             elif(modifier.type=="CLOTH" ):
-                fileout2(',"pin":"{}"'.format(modifier.settings.vertex_modifier_mass))
+                fileout2(',"pin":"{}"'.format(modifier.settings.vertex_group_mass))
                 fileout2(',"mass":{}'.format(modifier.settings.mass))
                 fileout2(',"structual_stiffness":{}'.format(modifier.settings.structural_stiffness))
                 fileout2(',"bending_stiffness":{}'.format(modifier.settings.bending_stiffness))
@@ -363,6 +372,15 @@ def WriteArmatureBones(Armature):
         fileoutMd()
     fileoutLd()
     fileoutMd()
+
+def WriteLamp(lamp):
+    dict = collections.OrderedDict()
+    dict["name"] = lamp.name
+    dict["type"] = lamp.type
+    dict["color"] = lamp.color[:]
+
+    fileout(json.dumps(dict,ensure_ascii=False))
+	
 
 def WriteMesh(mesh):
     import mathutils
