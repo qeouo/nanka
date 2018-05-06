@@ -2,8 +2,6 @@
 var Testact=(function(){
 	var ret={};
 	var HEIGHT=540,WIDTH=960;
-	var PI=Math.PI;
-	var OBJSLENGTH=1024;
 	var gl;
 	var onoPhy=null;
 	var objs=[];
@@ -295,11 +293,19 @@ var Testact=(function(){
 		}
 		return ret;
 	})();
+
+
+	var cameracol=new Collider.ConvexPolyhedron();
+	for(var i=0;i<8;i++){
+		cameracol.poses.push(new Vec3());
+	}
 	var GoCamera= (function(){
 		var GoCamera=function(){};
 		var ret = GoCamera;
 		inherits(ret,defObj);
 		ret.prototype.init=function(){
+
+			//onoPhy.collider.hitcheck(Collider.SPHERE,this.p);
 		}
 		ret.prototype.move=function(){
 			if(!mobj){
@@ -367,7 +373,7 @@ var Testact=(function(){
 		var o3o = field;
 		ono3d.setTargetMatrix(0);
 		ono3d.loadIdentity();
-		ono3d.rotate(-PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
+		ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
 
 		var start = o3o.objectsN["_start"];
 		Mat44.dotVec3(mobj.p,ono3d.worldMatrix,start.location);
@@ -400,7 +406,7 @@ var Testact=(function(){
 
 				ono3d.setTargetMatrix(0);
 				ono3d.loadIdentity();
-				ono3d.rotate(-PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
+				ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
 
 				//物理シミュオブジェクトの設定
 				t.phyObjs= O3o.createPhyObjs(o3o.scenes[0],onoPhy);
@@ -412,7 +418,7 @@ var Testact=(function(){
 				reset();
 				Vec3.copy(camera.p,goCamera.p)
 
-				Vec3.set(camera.a,0,PI,0)
+				Vec3.set(camera.a,0,Math.PI,0)
 
 				var m43 = Mat43.poolAlloc();
 				var goalobj = o3o.objectsN["_goal"];
@@ -500,7 +506,7 @@ var Testact=(function(){
 			 //変換マトリクス初期化
 			ono3d.setTargetMatrix(0);
 			ono3d.loadIdentity();
-			ono3d.rotate(-PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
+			ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
 
 			var scene= obj3d.scenes[0];
 			O3o.setFrame(obj3d,scene,this.t/60.0*24); //アニメーション処理
@@ -532,15 +538,16 @@ var Testact=(function(){
 			}
 		}
 		var scope=[
-			[-1,-1,0]
-			,[-1,1,0]
-			,[1,1,0]
-			,[1,-1,0]
-			,[-2,-2,-10]
+			[-1,-1,-1]
+			,[-1,1,-1]
+			,[1,1,-1]
+			,[1,-1,-1]
+			,[-1,-1,1]
 			,[-1,1,1]
 			,[1,1,1]
 			,[1,-1,1]
 		];
+		var cuboidcol = new Collider.Cuboid;
 		ret.prototype.draw=function(){
 			var obj3d=field;
 			var obj = this;
@@ -548,28 +555,60 @@ var Testact=(function(){
 
 			ono3d.setTargetMatrix(0)
 			ono3d.loadIdentity();
-			ono3d.rotate(-PI*0.5,1,0,0)
+			ono3d.rotate(-Math.PI*0.5,1,0,0)
 
 			ono3d.rf=0;
 
 			var v=Vec4.poolAlloc();
 			var im = Mat44.poolAlloc();
-			Mat44.getInv(im,ono3d.projectionMat);
-			Vec3.copy(v,scope[0]);
-			v[3]=1;
-			Mat44.dotVec4(v,im,v);
-			Vec3.copy(v,scope[4]);
-			v[3]=1;
-			Mat44.dotVec4(v,ono3d.projectionMat,v);
+			Mat44.dot(im,ono3d.projectionMat,ono3d.viewMatrix);
+			Mat44.getInv(im,im);
+			for(var i=0;i<8;i++){
+				Vec3.copy(v,scope[i]);
+				v[3]=1;
+				if(v[2]<0){
+					Vec4.mul(v,v,ono3d.znear);
+				}else{
+					Vec4.mul(v,v,ono3d.zfar);
+				}
+				Mat44.dotVec4(v,im,v);
+				Vec3.copy(cameracol.poses[i],v);
+			}
 			Vec4.poolFree(1);
 			Mat44.poolFree(1);
-			camera.p;
 
+
+			var m43 = Mat43.poolAlloc();
 			if(obj3d){
 				if(obj3d.scenes.length>0){
 					var objects = obj3d.scenes[0].objects;
 					for(var i=0;i<objects.length;i++){
 						if(objects[i].hide_render){
+							continue;
+						}
+						var b = obj.bound_box;
+						var b =objects[i].bound_box;
+						Mat43.setInit(m43);
+						m43[0]=(b[3] - b[0])*0.5;
+						m43[4]=(b[4] - b[1])*0.5;
+						m43[8]=(b[5] - b[2])*0.5;
+						m43[9]=b[0]+m43[0];
+						m43[10]=b[1]+m43[4];
+						m43[11]=b[2]+m43[8];
+						var phyObj = null;
+						if(globalParam.physics){
+							var name = objects[i].name;
+							phyObj= phyObjs.find(function(a){return a.name===name});
+						}
+						if(phyObj){
+							Mat43.dot(cuboidcol.matrix,phyObj.matrix,m43);
+						}else{
+							Mat43.dot(m43,objects[i].mixedmatrix,m43);
+							Mat43.dotMat44Mat43(cuboidcol.matrix,ono3d.worldMatrix,m43);
+						}
+						Mat43.getInv(cuboidcol.inv_matrix,cuboidcol.matrix);
+						var l = Collider.checkHit(cameracol,cuboidcol);
+						if(l>0){
 							continue;
 						}
 						if(globalParam.physics){
@@ -579,8 +618,8 @@ var Testact=(function(){
 						}
 					}
 				}
-//
 			}
+			Mat43.poolFree(1);
 		}
 		return ret;
 	})();
@@ -622,7 +661,7 @@ var Testact=(function(){
 
 				ono3d.setTargetMatrix(0);
 				ono3d.loadIdentity();
-				ono3d.rotate(-PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
+				ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
 				ono3d.translate(obj.p[0],obj.p[1],obj.p[2]);
 				t.phyObjs= O3o.createPhyObjs(o3o.scenes[0],onoPhy);
 				var phyObj = t.phyObjs[0];
@@ -717,7 +756,7 @@ var Testact=(function(){
 
 			ono3d.setTargetMatrix(0)
 			ono3d.loadIdentity();
-			ono3d.rotate(-PI*0.5,1,0,0)
+			ono3d.rotate(-Math.PI*0.5,1,0,0)
 
 			ono3d.rf=0;
 			ono3d.lineWidth=1.2;
