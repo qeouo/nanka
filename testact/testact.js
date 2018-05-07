@@ -159,6 +159,9 @@ var Testact=(function(){
 		ret.prototype.init=function(){};
 		ret.prototype.move=function(){};
 		ret.prototype.draw=function(){};
+		ret.prototype.drawShadow=function(){
+			this.draw();
+		};
 		ret.prototype.hit=function(){};
 		ret.prototype.delete=function(){};
 		ret.prototype.drawhud=function(){};
@@ -295,10 +298,61 @@ var Testact=(function(){
 	})();
 
 
-	var cameracol=new Collider.ConvexPolyhedron();
-	for(var i=0;i<8;i++){
-		cameracol.poses.push(new Vec3());
-	}
+	var Camera= (function(){
+		var Camera = function(){
+			this.p=new Vec3();
+			this.a=new Vec3();
+			this.zoom = 0.577;
+			this.cameracol=new Collider.ConvexPolyhedron();
+			for(var i=0;i<8;i++){
+				this.cameracol.poses.push(new Vec3());
+			}
+		}
+		var ret = Camera;
+		var scope=[
+			[-1,-1,-1]
+			,[-1,1,-1]
+			,[1,1,-1]
+			,[1,-1,-1]
+			,[-1,-1,1]
+			,[-1,1,1]
+			,[1,1,1]
+			,[1,-1,1]
+		];
+		ret.prototype.calcMatrix=function(){
+			ono3d.setPers(this.zoom,HEIGHT/WIDTH);
+			ono3d.setTargetMatrix(1);
+			ono3d.loadIdentity();
+			ono3d.rotate(-this.a[2],0,0,1);
+			ono3d.rotate(-this.a[0],1,0,0);
+			ono3d.rotate(-this.a[1]+Math.PI,0,1,0);
+			ono3d.translate(-this.p[0],-this.p[1],-this.p[2]);
+			ono3d.setAov(this.zoom);
+		}
+		ret.prototype.calcCollision=function(){
+			var v4=Vec4.poolAlloc();
+			var im = Mat44.poolAlloc();
+			Mat44.dot(im,ono3d.projectionMat,ono3d.viewMatrix);
+			Mat44.getInv(im,im);
+			for(var i=0;i<8;i++){
+				Vec3.copy(v4,scope[i]);
+				v4[3]=1;
+				if(v4[2]<0){
+					Vec4.mul(v4,v4,ono3d.znear);
+				}else{
+					Vec4.mul(v4,v4,ono3d.zfar);
+				}
+				Mat44.dotVec4(v4,im,v4);
+				Vec3.copy(this.cameracol.poses[i],v4);
+			}
+			Vec4.poolFree(1);
+			Mat44.poolFree(1);
+		}
+
+		return ret;
+	})();
+	var camera = new Camera();
+
 	var GoCamera= (function(){
 		var GoCamera=function(){};
 		var ret = GoCamera;
@@ -537,16 +591,6 @@ var Testact=(function(){
 				}
 			}
 		}
-		var scope=[
-			[-1,-1,-1]
-			,[-1,1,-1]
-			,[1,1,-1]
-			,[1,-1,-1]
-			,[-1,-1,1]
-			,[-1,1,1]
-			,[1,1,1]
-			,[1,-1,1]
-		];
 		var cuboidcol = new Collider.Cuboid;
 		ret.prototype.draw=function(){
 			var obj3d=field;
@@ -559,23 +603,6 @@ var Testact=(function(){
 
 			ono3d.rf=0;
 
-			var v=Vec4.poolAlloc();
-			var im = Mat44.poolAlloc();
-			Mat44.dot(im,ono3d.projectionMat,ono3d.viewMatrix);
-			Mat44.getInv(im,im);
-			for(var i=0;i<8;i++){
-				Vec3.copy(v,scope[i]);
-				v[3]=1;
-				if(v[2]<0){
-					Vec4.mul(v,v,ono3d.znear);
-				}else{
-					Vec4.mul(v,v,ono3d.zfar);
-				}
-				Mat44.dotVec4(v,im,v);
-				Vec3.copy(cameracol.poses[i],v);
-			}
-			Vec4.poolFree(1);
-			Mat44.poolFree(1);
 
 
 			var m43 = Mat43.poolAlloc();
@@ -607,7 +634,7 @@ var Testact=(function(){
 							Mat43.dotMat44Mat43(cuboidcol.matrix,ono3d.worldMatrix,m43);
 						}
 						Mat43.getInv(cuboidcol.inv_matrix,cuboidcol.matrix);
-						var l = Collider.checkHit(cameracol,cuboidcol);
+						var l = Collider.checkHit(camera.cameracol,cuboidcol);
 						if(l>0){
 							continue;
 						}
@@ -871,8 +898,6 @@ var Testact=(function(){
 	var mobj = null;
 
 	
-	var camera;
-	var camerazoom=0.577;
 	var span;
 	var oldTime = 0;
 	var mseccount=0;
@@ -909,14 +934,6 @@ var Testact=(function(){
 
 
 
-		ono3d.setTargetMatrix(1)
-		ono3d.loadIdentity()
-		//ono3d.scale(camerazoom,camerazoom,1)
-		ono3d.rotate(-camera.a[2],0,0,1)
-		ono3d.rotate(-camera.a[0],1,0,0)
-		ono3d.rotate(-camera.a[1]+Math.PI,0,1,0)
-		ono3d.translate(-camera.p[0],-camera.p[1],-camera.p[2])
-		ono3d.setAov(camerazoom);
 
 		var cursorr = new Vec2();
 		cursorr[0] =Util.cursorX/WIDTH*2-1;
@@ -977,8 +994,56 @@ var Testact=(function(){
 
 		O3o.useCustomMaterial = globalParam.cMaterial;
 
+//シャドウマップ描画
+		gl.bindFramebuffer(gl.FRAMEBUFFER,Rastgl.frameBuffer);
+		gl.viewport(0,0,1024,1024);
+		gl.depthMask(true);
+		gl.clearColor(1., 1., 1.,1.0);
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		if(globalParam.shadow){
+			var lightSource = ono3d.lightSources.find(
+				function(a){return a.type===Rastgl.LT_DIRECTION;});
+			if(lightSource){
+
+				ono3d.setOrtho(20.0,20.0,1.0,20.0)
+				Mat44.setInit(lightSource.matrix);
+				Mat44.getRotVector(lightSource.matrix,lightSource.angle);
+				var mat44 = ono3d.viewMatrix;//Mat44.poolAlloc();
+				Mat44.setInit(mat44);
+				mat44[12]=-lightSource.pos[0]
+				mat44[13]=-lightSource.pos[1]
+				mat44[14]=-lightSource.pos[2]
+
+				Mat44.dot(mat44,lightSource.matrix,mat44);
+				Mat44.dot(ono3d.pvMat,ono3d.projectionMat,mat44);
+				Mat44.copy(lightSource.matrix,ono3d.pvMat);
+				//Mat44.poolFree(1);
+				
+				camera.calcCollision();
+
+				for(i=0;i<objMan.objs.length;i++){
+					obj = objMan.objs[i];
+					ono3d.setTargetMatrix(1)
+					ono3d.push();
+					ono3d.setTargetMatrix(0)
+					ono3d.loadIdentity()
+					ono3d.rf=0;
+					obj.drawShadow();
+					ono3d.setTargetMatrix(1)
+					ono3d.pop();
+				}
+				gl.enable(gl.DEPTH_TEST);
+				Shadow.draw(ono3d);
+			}
+			gl.finish();
+			ono3d.clear();
+		}
+
+
 		var start = Date.now();
 
+		camera.calcMatrix();
+		camera.calcCollision();
 		for(i=0;i<objMan.objs.length;i++){
 			obj = objMan.objs[i];
 			ono3d.setTargetMatrix(1)
@@ -993,35 +1058,7 @@ var Testact=(function(){
 		var drawgeometry=Date.now()-start;
 
 		start=Date.now();
-//シャドウマップ描画
-		gl.bindFramebuffer(gl.FRAMEBUFFER,Rastgl.frameBuffer);
-		gl.viewport(0,0,1024,1024);
-		gl.depthMask(true);
-		gl.clearColor(1., 1., 1.,1.0);
-		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-		if(globalParam.shadow){
-			gl.enable(gl.DEPTH_TEST);
-			
-			ono3d.setOrtho(20.0,20.0,1.0,20.0)
-			var lightSource = ono3d.lightSources.find(
-				function(a){return a.type===Rastgl.LT_DIRECTION;});
-			if(lightSource){
-				Mat44.setInit(lightSource.matrix);
-				Mat44.getRotVector(lightSource.matrix,lightSource.angle);
-				var mat44 = Mat44.poolAlloc();
-				Mat44.setInit(mat44);
-				mat44[12]=-lightSource.pos[0]
-				mat44[13]=-lightSource.pos[1]
-				mat44[14]=-lightSource.pos[2]
 
-				Mat44.dot(mat44,lightSource.matrix,mat44);
-				Mat44.dot(ono3d.pvMat,ono3d.projectionMat,mat44);
-				Mat44.copy(lightSource.matrix,ono3d.pvMat);
-				Mat44.poolFree(1);
-				
-				Shadow.draw(ono3d);
-			}
-		}
 		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
 		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1024,1024);
 		
@@ -1321,7 +1358,6 @@ var Testact=(function(){
 		objMan = new ObjMan();
 
 		goMain = objMan.createObj(GoMain);
-		camera = objMan.createObj();
 		inittime=Date.now();
 
 		span=document.getElementById("cons");
