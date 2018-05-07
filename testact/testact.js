@@ -593,9 +593,7 @@ var Testact=(function(){
 		}
 		var cuboidcol = new Collider.Cuboid;
 		ret.prototype.draw=function(){
-			var obj3d=field;
-			var obj = this;
-			var phyObjs = obj.phyObjs;
+			var phyObjs = this.phyObjs;
 
 			ono3d.setTargetMatrix(0)
 			ono3d.loadIdentity();
@@ -603,17 +601,14 @@ var Testact=(function(){
 
 			ono3d.rf=0;
 
-
-
 			var m43 = Mat43.poolAlloc();
-			if(obj3d){
-				if(obj3d.scenes.length>0){
-					var objects = obj3d.scenes[0].objects;
+			if(field){
+				if(field.scenes.length>0){
+					var objects = field.scenes[0].objects;
 					for(var i=0;i<objects.length;i++){
 						if(objects[i].hide_render){
 							continue;
 						}
-						var b = obj.bound_box;
 						var b =objects[i].bound_box;
 						Mat43.setInit(m43);
 						m43[0]=(b[3] - b[0])*0.5;
@@ -777,6 +772,12 @@ var Testact=(function(){
 			Mat43.poolFree(1);
 			Vec3.poolFree(1);
 
+
+			var l = phyObj.v[0]*phyObj.v[0] + phyObj.v[2]*phyObj.v[2];
+			if(l>0.1 && this.ground){
+				motionT+=16;
+			}	
+
 			this.ground=false;//接地フラグ
 		}
 		ret.prototype.draw=function(){
@@ -792,10 +793,6 @@ var Testact=(function(){
 				var phyObj = this.phyObjs[0];
 
 				var oldT = motionT/1000;
-				var l = phyObj.v[0]*phyObj.v[0] + phyObj.v[2]*phyObj.v[2];
-				if(l>0.1 && this.ground){
-					motionT+=16;
-				}	
 				var T = motionT/1000;
 				var d = (T|0) - (oldT|0);
 
@@ -806,12 +803,14 @@ var Testact=(function(){
 				sourceArmature.setAction(obj3d.actions[1],motionT/1000.0*24);
 				referenceArmature.setAction(obj3d.actions[2],motionT/1000.0*24);
 			
-				var vec4 = Vec4.poolAlloc();
 				var vec3 = Vec3.poolAlloc();
-				Vec4.qmul(vec4,phyObj.rotq,-1);
+				Vec3.set(vec3,0,0,0);
 				if(mobj.ground){
+					var vec4 = Vec4.poolAlloc();
+					Vec4.qmul(vec4,phyObj.rotq,-1);
 					Vec3.sub(vec3,phyObj.v,groundVelocity);
 					Vec4.rotVec3(vec3,vec4,vec3);
+					Vec4.poolFree(1);
 				}
 
 
@@ -825,7 +824,6 @@ var Testact=(function(){
 				O3o.PoseArmature.add(dst,sourceArmature,dst);
 
 				Vec3.poolFree(1);
-				Vec4.poolFree(1);
 
 				ono3d.loadIdentity();
 				var m = Mat43.poolAlloc();
