@@ -28,6 +28,7 @@ var Testact=(function(){
 	var txt2="ALL CLEAR!!";
 	var objMan;
 	var goMain;
+	var mobj = null;
 
 
 	var ObjMan= (function(){
@@ -757,9 +758,6 @@ var Testact=(function(){
 
 			}else{
 				Vec3.mul(vec,vec,0.05);
-				//vec[0]=0;
-				//vec[1]=0;
-				//vec[2]=0;
 			}
 			Vec3.poolFree(1);
 			vec[1]=0;
@@ -893,8 +891,6 @@ var Testact=(function(){
 			}
 		}
 	
-	var mobj = null;
-
 	
 	var span;
 	var oldTime = 0;
@@ -1230,12 +1226,8 @@ var Testact=(function(){
 			var ii=1;
 			var fazy=Math.atan2(envsizeorg/envsize,envsizeorg*0.5)/(Math.PI*0.5)*2.0;
 			for(var i=0;i<envs.length;i++){
-				//envsize=envsize>>1;
 				var tex = gl.createTexture();
 				gl.bindTexture(gl.TEXTURE_CUBE_MAP,tex);
-			
-				//envs[i]=Math.atan2(ii,envsizeorg*0.5)/(Math.PI*0.5);
-				//ii*=2;
 
 				Rough.draw(tex,image.gltexture,envs[i],envsizeorg,envsizeorg);
 				var tex2 = gl.createTexture();
