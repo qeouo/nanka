@@ -423,7 +423,7 @@ var Testact=(function(){
 			this.p[0]=Math.sin(this.a[1])*this.p[2];
 			this.p[2]=Math.cos(this.a[1])*this.p[2];
 
-			Vec3.mul(this.p,this.p,7);
+			Vec3.mul(this.p,this.p,10);
 			this.p[1]+=3;
 
 
@@ -433,25 +433,12 @@ var Testact=(function(){
 			var vec3=Vec3.poolAlloc();
 			Vec3.set(vec3,0,1,0);
 			homingCamera(camera.a,vec3,camera.p);
-			//var nangle=function(a){
-			//	if(a>Math.PI){a-=Math.PI*2};
-			//	if(a<-Math.PI){a+=Math.PI*2};
-			//	return a;
-			//}
-			//for(var i=0;i<3;i++){
-			//	this.a[i]=nangle(this.a[i]);
-			//	camera.a[i]=nangle(camera.a[i]);
-			//}
-			//camera.a[0] +=nangle(this.a[0]-camera.a[0])*0.1;
-			//camera.a[1] +=nangle(this.a[1]-camera.a[1])*0.1;
-			//camera.a[2] +=nangle(this.a[2]-camera.a[2])*0.1;
-
 
 			if(ono3d.lightSources.length>1){
 				var light = ono3d.lightSources[1];
 				Vec3.copy(vec3,light.angle);
 				Vec3.norm(vec3);
-				Vec3.madd(light.pos,this.p,vec3,-10);
+				Vec3.madd(light.pos,Vec3.ZERO,vec3,-10);
 			}
 			Vec3.poolFree(1);
 		}
@@ -490,40 +477,6 @@ var Testact=(function(){
 
 				Vec3.set(camera.a,0,Math.PI,0)
 
-				var m43 = Mat43.poolAlloc();
-				var goalobj = o3o.objectsN["_goal"];
-				var goal= onoPhy.collider.createCollision(Collider.SPHERE);
-				Mat43.dotMat44Mat43(m43,ono3d.worldMatrix,goalobj.mixedmatrix);
-				Mat43.toLSR(goal.location,goal.scale,goal.rotq,m43);
-				goal.groups=2;
-				goal.bold=1;
-				goal.name="goal";
-				goal.callbackFunc=function(col1,col2,pos1,pos2){
-					if(!col2.parent)return;
-					if(col2.parent.name!=="jiki"){
-						return;
-					}
-					onoPhy.collider.deleteCollision(col1);
-					if(stage<stages.length-1){
-						objMan.createObj(GoMsg);
-					}else{
-						objMan.createObj(GoMsg2);
-					}
-				}
-				var borderObj= o3o.objectsN["_border"];
-				var collision= onoPhy.collider.createCollision(Collider.CUBOID);
-				Mat44.dotVec3(collision.location,ono3d.worldMatrix,borderObj.location);
-				Vec3.copy(collision.scale,borderObj.scale);
-				var m = Mat44.poolAlloc();
-				Mat44.setInit(m);
-				Mat44.dotMat43(m,m,borderObj.matrix);
-				Mat44.dot(m,ono3d.worldMatrix,m);
-				Vec4.fromMat44(collision.rotq,m);
-				collision.groups=2;
-				collision.bold=0;
-				collision.name="border";
-				Mat44.poolFree(1);
-
 				var light=null;
 				ono3d.lightSources.splice(0,ono3d.lightSources.length);
 
@@ -533,6 +486,7 @@ var Testact=(function(){
 				Vec3.set(light.color,0.4,0.4,0.4);
 
 				var scene = o3o.scenes[0];
+				var m=Mat43.poolAlloc();
 				for(var i=0;i<scene.objects.length;i++){
 					var object = scene.objects[i];
 					if(object.type!=="LAMP")continue;
@@ -546,7 +500,6 @@ var Testact=(function(){
 					}
 
 					Vec3.set(light.angle,0,0,-1);
-					var m=Mat43.poolAlloc();
 					Mat43.fromLSE(m,object.location,object.scale,object.rotation);
 					Mat43.dotMat33Vec3(light.angle,m,light.angle);
 					Mat44.dotMat33Vec3(light.angle,ono3d.worldMatrix,light.angle);
@@ -558,10 +511,9 @@ var Testact=(function(){
 					Vec3.copy(light.color,ol.color);
 					Vec3.norm(light.angle)
 
-					Mat43.poolFree(1);
 				}
-
 				Mat43.poolFree(1);
+
 
 			});
 		}
@@ -649,6 +601,12 @@ var Testact=(function(){
 						if(l>0){
 							continue;
 						}
+						ono3d.rf&=~Ono3d.RF_OUTLINE;
+						if(globalParam.outline_bold){
+							ono3d.lineWidth=globalParam.outline_bold;
+							ono3d.rf|=Ono3d.RF_OUTLINE;
+							Util.hex2rgb(ono3d.lineColor,globalParam.outline_color);
+						}
 						if(bane){
 							if(bane.con2.name == objects[i].name){
 								ono3d.lineWidth=1;
@@ -684,8 +642,8 @@ var Testact=(function(){
 	}
 
 		var url=location.search.substring(1,location.search.length)
-		globalParam.outlineWidth=0;
-		globalParam.outlineColor="000000";
+		globalParam.outline_bold=0;
+		globalParam.outline_color="000000";
 		globalParam.lightColor1="808080";
 		globalParam.lightColor2="808080";;
 		globalParam.lightThreshold1=0.;
@@ -953,7 +911,7 @@ var Testact=(function(){
 			gl.bindTexture(gl.TEXTURE_2D, Rastgl.fTexture2);
 			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
 
-			var emiSize=0.25;
+			var emiSize=1;
 			//疑似HDRぼかし(α値が0が通常、1に近いほど光る)
 			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
 			gl.viewport(0,0,WIDTH*emiSize,HEIGHT*emiSize);
@@ -962,15 +920,20 @@ var Testact=(function(){
 			gl.clear(gl.COLOR_BUFFER_BIT);
 			gl.disable(gl.DEPTH_TEST);
 			gl.disable(gl.BLEND);
-			Rastgl.copyframe(Rastgl.fTexture2,0,0,WIDTH/1024,HEIGHT/1024); //今回の
+			Rastgl.copyframe(Rastgl.fTexture2
+				,0,0
+				,WIDTH/1024,HEIGHT/1024); //今回の
 			gl.enable(gl.BLEND);
 			gl.blendFuncSeparate(gl.CONSTANT_ALPHA,gl.DST_ALPHA,gl.ZERO,gl.ZERO);
-			gl.blendColor(0,0,0,0.7);
-			Rastgl.copyframe(emiTexture,0,0,WIDTH/1024*emiSize,HEIGHT/1024*emiSize); //既存の光テクスチャを重ねる
+			gl.blendColor(0,0,0,0.4);
+			Rastgl.copyframe(emiTexture
+					,(Math.random()-0.5)/1024.0
+					,(Math.random()-0.5)/1024.0
+					,WIDTH/1024*emiSize,HEIGHT/1024*emiSize); //既存の光テクスチャを重ねる
 			gl.disable(gl.BLEND);
 			gl.bindTexture(gl.TEXTURE_2D, emiTexture);
 			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH*emiSize,HEIGHT*emiSize);//結果を光テクスチャに書き込み
-			Gauss.filter(emiTexture,emiTexture,10,2.0/1024,1024.0*emiSize); //光テクスチャをぼかす
+			//Gauss.filter(emiTexture,emiTexture,10,2.0/1024,1024.0*emiSize); //光テクスチャをぼかす
 
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 			gl.viewport(0,0,WIDTH,HEIGHT);
@@ -1090,13 +1053,6 @@ var Testact=(function(){
 		Util.setFps(globalParam.fps,mainloop);
 		Util.fpsman();
 	
-		var checkbox=document.getElementById("notstereo");
-		if(globalParam.stereomode==-1){
-			checkbox=document.getElementById("parallel");
-		}else if(globalParam.stereomode==1){
-			checkbox=document.getElementById("cross");
-		}
-		checkbox.checked=1;
 			
 		var inputs = Array.prototype.slice.call(document.getElementsByTagName("input"));
 		var selects= Array.prototype.slice.call(document.getElementsByTagName("select"));
@@ -1104,12 +1060,9 @@ var Testact=(function(){
 		inputs = inputs.concat(selects);
 
 		for(var i=0;i<inputs.length;i++){
-			var tag = inputs[i].id;
-			if(!tag){
-				continue;
-			}
-			(function(tag){
-				var element = document.getElementById(tag);
+			(function(element){
+				var tag = element.id;
+				element.title = tag;
 				if(element.className=="colorpicker"){
 					element.value=globalParam[tag];
 					element.addEventListener("change",function(evt){globalParam[tag] = this.value},false);
@@ -1122,9 +1075,20 @@ var Testact=(function(){
 					if(!element.value){
 						return;
 					}
+				}else if(element.type==="radio"){
+					var name = element.name;
+					if(element.value === ""+globalParam[name]){
+						element.checked=1;
+					}else{
+						element.checked=0;
+					}
+					element.addEventListener("change",function(evt){globalParam[name] = parseFloat(this.value)},false);
+					if(!element.checked){
+						return;
+					}
 				}
 				Util.fireEvent(element,"change");
-			})(tag);
+			})(inputs[i]);
 		}
 
 	}
