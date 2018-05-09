@@ -14,8 +14,8 @@ var Testact=(function(){
 	var customBumps=[];
 	var bdf;
 	var bdfimage=null;
-	var bane= null;
 	var soundbuffer=null;
+	var bane= null;
 	var tsukamiZ=100;
 
 	var obj3d=null,field=null;
@@ -209,6 +209,131 @@ var Testact=(function(){
 			goCamera = objMan.createObj(GoCamera);
 			goField= objMan.createObj(GoField);
 		
+		}
+		ret.prototype.move=function(){
+			var mat44 = Mat44.poolAlloc();
+			var vec4 = Vec4.poolAlloc();
+			var cursorr = Vec2.poolAlloc();
+
+			cursorr[0] =Util.cursorX/WIDTH*2-1;
+			cursorr[1] =Util.cursorY/HEIGHT*2-1;
+			if(globalParam.stereomode!=0){
+				cursorr[0]*=2;
+				if(cursorr[0]<0){
+					cursorr[0]+=1;
+
+					ono3d.projectionMat[12]=globalParam.stereo;
+					Mat44.dot(ono3d.pvMat,ono3d.projectionMat,ono3d.viewMatrix);
+				}else{
+					cursorr[0]-=1;
+				}
+			}
+			if(Util.pressCount == 1){
+				var p0 = Vec3.poolAlloc();
+				var p1 = Vec3.poolAlloc();
+				var bV2 = Vec3.poolAlloc();
+
+				Mat44.getInv(mat44,ono3d.pvMat);
+				Vec4.set(vec4,cursorr[0],-cursorr[1],-1,1);
+				Mat44.dotVec4(vec4,mat44,vec4);
+				Vec3.set(p0,vec4[0],vec4[1],vec4[2]);
+
+				Vec4.set(vec4,cursorr[0],-cursorr[1],1,1);
+				Vec4.mul(vec4,vec4,80);
+				Mat44.dotVec4(vec4,mat44,vec4);
+				Vec3.set(p1,vec4[0],vec4[1],vec4[2]);
+
+				bane= null;
+				tsukamiZ= 1;
+				var targetPhyObj = null;
+				var res2={};
+				var phyObjs = goField.phyObjs;
+				for(var i=0;i<phyObjs.length;i++){
+					var phyObj = phyObjs[i];
+					if(phyObj.type===OnoPhy.CLOTH){
+						var res={};
+						var z = phyObj.ray(res,p0,p1);
+						if(z>0&& z>-1){
+							if(z<tsukamiZ){
+								tsukamiZ = z;
+								res2.face=res.face;
+								res2.p1=res.p1;
+								res2.p2=res.p2;
+								res2.p3=res.p3;
+								targetPhyObj = phyObj;
+							}
+						}
+
+					}else{
+						if(phyObj.fix){
+							continue;
+						}
+						var collision= phyObj.collision;
+						if(!collision){
+							continue;
+							
+						}
+						var z = collision.ray(p0,p1);
+						if(z>0&& z>-1){
+							if(z<tsukamiZ){
+								tsukamiZ = z;
+								targetPhyObj = collision.parent;
+							}
+						}
+					}
+				}
+				if(targetPhyObj){
+					bane = onoPhy.createSpring();
+					bane.con1 = null;
+					bane.defaultLength=0;
+					bane.f=50*targetPhyObj.mass;
+					bane.c=1*targetPhyObj.mass;
+
+					Vec3.sub(bV2,p1,p0);
+					Vec3.madd(bV2,p0,bV2,tsukamiZ);
+
+					if(targetPhyObj.type===OnoPhy.CLOTH){
+						bane.con2=targetPhyObj.getPhyFace(res2.p1,res2.p2,res2.p3,res2.face,bV2);
+						Vec3.set(bane.con2Pos,0,0,0);
+					}else{
+						bane.con2 = targetPhyObj;
+						var im=Mat43.poolAlloc();
+						Mat43.getInv(im,targetPhyObj.matrix);
+						Mat43.dotVec3(bane.con2Pos,im,bV2);
+						Mat43.poolFree(1);
+					}
+
+				}
+				Vec3.poolFree(3);
+			}
+
+			if(bane){
+				if(!Util.pressOn){
+					if(bane.con2.type===OnoPhy.FACE){
+						OnoPhy.Cloth.disablePhyFace.push(bane.con2);
+					}
+					onoPhy.deleteSpring(bane);
+					bane= null;
+
+				}else{
+					Mat44.getInv(mat44,ono3d.pvMat);
+			
+					var w=(tsukamiZ*79+1);
+					var z =  -ono3d.projectionMat[10] + ono3d.projectionMat[14]/w;
+					Vec4.set(vec4,cursorr[0],-cursorr[1],z,1);
+					Vec4.mul(vec4,vec4,w);
+					Mat44.dotVec4(vec4,mat44,vec4);
+					Vec3.copy(bane.p0,vec4);
+
+					if(Util.pressCount==1){
+						Vec3.copy(bane._p0,vec4);
+					}
+				}
+				
+			}
+			Vec4.poolFree(1);
+			Vec2.poolFree(1);
+			Mat44.poolFree(1);
 		}
 		ret.prototype.delete=function(){
 		}
@@ -523,6 +648,13 @@ var Testact=(function(){
 						var l = Collider.checkHit(camera.cameracol,cuboidcol);
 						if(l>0){
 							continue;
+						}
+						if(bane){
+							if(bane.con2.name == objects[i].name){
+								ono3d.lineWidth=1;
+								ono3d.rf|=Ono3d.RF_OUTLINE;
+								Vec4.set(ono3d.lineColor,1,4,1,0);
+							}
 						}
 						if(globalParam.physics){
 							O3o.drawObject(objects[i],phyObjs);
@@ -966,19 +1098,16 @@ var Testact=(function(){
 		}
 		checkbox.checked=1;
 			
-		var tags=["smoothing"
-			,"lightColor1"
-			,"lightColor2"
-			,"lightThreshold1"
-			,"lightThreshold2"
-			,"outlineWidth"
-			,"outlineColor"
-			,"stereoVolume"
-			,"shadow"
-			,"hdr"
+		var inputs = Array.prototype.slice.call(document.getElementsByTagName("input"));
+		var selects= Array.prototype.slice.call(document.getElementsByTagName("select"));
+		
+		inputs = inputs.concat(selects);
 
-		];
-		for(var i=0;i<tags.length;i++){
+		for(var i=0;i<inputs.length;i++){
+			var tag = inputs[i].id;
+			if(!tag){
+				continue;
+			}
 			(function(tag){
 				var element = document.getElementById(tag);
 				if(element.className=="colorpicker"){
@@ -987,7 +1116,7 @@ var Testact=(function(){
 				}else if(element.type=="checkbox"){
 					element.checked=Boolean(globalParam[tag]);
 					element.addEventListener("change",function(evt){globalParam[tag] = this.checked},false);
-				}else{
+				}else if(element.type==="text" || element.tag==="select"){
 					element.value=globalParam[tag];
 					element.addEventListener("change",function(evt){globalParam[tag] = parseFloat(this.value)},false);
 					if(!element.value){
@@ -995,14 +1124,7 @@ var Testact=(function(){
 					}
 				}
 				Util.fireEvent(element,"change");
-			})(tags[i]);
-		}
-
-		var userAgent = window.navigator.userAgent.toLowerCase();
-		if (navigator.platform.indexOf("Win") != -1) {
-			globalParam.windows=true;
-		}else{
-			globalParam.windows=false;
+			})(tag);
 		}
 
 	}
