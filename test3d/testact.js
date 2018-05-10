@@ -352,7 +352,7 @@ var Testact=(function(){
 			this.p=new Vec3();
 			this.a=new Vec3();
 			this.zoom = 0.577;
-			this.cameracol=new Collider.ConvexPolyhedron();
+			this.cameracol=new Collider.ConvexHull();
 			for(var i=0;i<8;i++){
 				this.cameracol.poses.push(new Vec3());
 			}
@@ -394,6 +394,7 @@ var Testact=(function(){
 				Mat44.dotVec4(v4,im,v4);
 				Vec3.copy(this.cameracol.poses[i],v4);
 			}
+			this.cameracol.update();
 			Vec4.poolFree(1);
 			Mat44.poolFree(1);
 		}
@@ -464,6 +465,9 @@ var Testact=(function(){
 			var t = this;
 
 			field =O3o.load(globalParam.model,function(o3o){
+
+				var scene= o3o.scenes[0];
+				O3o.setFrame(o3o,scene,0); //アニメーション処理
 
 				ono3d.setTargetMatrix(0);
 				ono3d.loadIdentity();
@@ -596,7 +600,7 @@ var Testact=(function(){
 							Mat43.dot(m43,objects[i].mixedmatrix,m43);
 							Mat43.dotMat44Mat43(cuboidcol.matrix,ono3d.worldMatrix,m43);
 						}
-						Mat43.getInv(cuboidcol.inv_matrix,cuboidcol.matrix);
+						cuboidcol.update();
 						var l = Collider.checkHit(camera.cameracol,cuboidcol);
 						if(l>0){
 							continue;

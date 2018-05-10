@@ -2149,6 +2149,8 @@
     ]
   }
 ]
+,"lamps":[
+    {"name": "Lamp", "type": "SUN", "color": [1.0, 1.0, 1.0]}  ]
 ,"armatures":[
 ]
 ,"framerate":24
@@ -2282,7 +2284,7 @@
     "name":"Scene"
     ,"frame_start":1
     ,"frame_end":60
-    ,"objects":["Camera.001","立方体","モンキー.001","モンキー.002","モンキー.003","モンキー","Lamp","Camera"]
+    ,"objects":["Camera.001","立方体","モンキー.002","モンキー.001","モンキー.003","モンキー","Lamp","Camera"]
   }
 ]
 }
