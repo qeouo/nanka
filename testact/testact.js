@@ -304,7 +304,7 @@ var Testact=(function(){
 			this.p=new Vec3();
 			this.a=new Vec3();
 			this.zoom = 0.577;
-			this.cameracol=new Collider.ConvexPolyhedron();
+			this.cameracol=new Collider.ConvexHull();
 			for(var i=0;i<8;i++){
 				this.cameracol.poses.push(new Vec3());
 			}
@@ -477,9 +477,9 @@ var Testact=(function(){
 
 				var m43 = Mat43.poolAlloc();
 				var goalobj = o3o.objectsN["_goal"];
-				var goal= onoPhy.collider.createCollision(Collider.SPHERE);
-				Mat43.dotMat44Mat43(m43,ono3d.worldMatrix,goalobj.mixedmatrix);
-				Mat43.toLSR(goal.location,goal.scale,goal.rotq,m43);
+				var goal= new Collider.Sphere();
+				onoPhy.collider.addCollision(goal);
+				Mat43.dotMat44Mat43(goal.matrix,ono3d.worldMatrix,goalobj.mixedmatrix);
 				goal.groups=2;
 				goal.bold=1;
 				goal.name="goal";
@@ -495,19 +495,16 @@ var Testact=(function(){
 						objMan.createObj(GoMsg2);
 					}
 				}
+				goal.update();
+
 				var borderObj= o3o.objectsN["_border"];
-				var collision= onoPhy.collider.createCollision(Collider.CUBOID);
-				Mat44.dotVec3(collision.location,ono3d.worldMatrix,borderObj.location);
-				Vec3.copy(collision.scale,borderObj.scale);
-				var m = Mat44.poolAlloc();
-				Mat44.setInit(m);
-				Mat44.dotMat43(m,m,borderObj.matrix);
-				Mat44.dot(m,ono3d.worldMatrix,m);
-				Vec4.fromMat44(collision.rotq,m);
+				var collision= new Collider.Cuboid();
+				onoPhy.collider.addCollision(collision);
+				Mat43.dotMat44Mat43(collision.matrix,ono3d.worldMatrix,borderObj.mixedmatrix);
 				collision.groups=2;
 				collision.bold=0;
 				collision.name="border";
-				Mat44.poolFree(1);
+				collision.update();
 
 				var light=null;
 				ono3d.lightSources.splice(0,ono3d.lightSources.length);
