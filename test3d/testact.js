@@ -794,6 +794,8 @@ var Testact=(function(){
 		O3o.useCustomMaterial = globalParam.cMaterial;
 
 //シャドウマップ描画
+		var start = Date.now();
+
 		gl.bindFramebuffer(gl.FRAMEBUFFER,Rastgl.frameBuffer);
 		gl.viewport(0,0,1024,1024);
 		gl.depthMask(true);
@@ -834,12 +836,10 @@ var Testact=(function(){
 				gl.enable(gl.DEPTH_TEST);
 				Shadow.draw(ono3d);
 			}
-			gl.finish();
 			ono3d.clear();
 		}
 
 
-		var start = Date.now();
 
 		camera.calcMatrix();
 		camera.calcCollision();
@@ -912,7 +912,7 @@ var Testact=(function(){
 			gl.clearColor(0.0,0.0,0.0,0.0);
 			gl.clear(gl.COLOR_BUFFER_BIT);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-			gl.bindTexture(gl.TEXTURE_2D, Rastgl.fTexture2);
+			gl.bindTexture(gl.TEXTURE_2D, bufTexture);
 			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
 
 			var emiSize=1;
@@ -924,7 +924,7 @@ var Testact=(function(){
 			gl.clear(gl.COLOR_BUFFER_BIT);
 			gl.disable(gl.DEPTH_TEST);
 			gl.disable(gl.BLEND);
-			Rastgl.copyframe(Rastgl.fTexture2
+			Rastgl.copyframe(bufTexture
 				,0,0
 				,WIDTH/1024,HEIGHT/1024); //今回の
 			gl.enable(gl.BLEND);
@@ -946,12 +946,12 @@ var Testact=(function(){
 			Rastgl.copyframe(emiTexture,0,0,WIDTH/1024*emiSize,HEIGHT/1024*emiSize); //メイン画面に合成
 		}
 //メインのバッファのアルファ値を1にする
-		gl.viewport(0,0,WIDTH,HEIGHT);
 		gl.colorMask(false,false,false,true);
 		gl.clearColor(0.0,0.0,0.0,1.0);
 		gl.clear(gl.COLOR_BUFFER_BIT);
 		gl.colorMask(true,true,true,true);
 
+		gl.flush();
 		gl.finish();
 		ono3d.clear();
 
@@ -967,6 +967,7 @@ var Testact=(function(){
 			ono3d.pop();
 		}
 
+		gl.getParameter(gl.VIEWPORT);
 		var drawrasterise=Date.now()-start;
 
 		mseccount += (Date.now() - nowTime)
@@ -1057,42 +1058,43 @@ var Testact=(function(){
 		Util.setFps(globalParam.fps,mainloop);
 		Util.fpsman();
 	
-			
-		var inputs = Array.prototype.slice.call(document.getElementsByTagName("input"));
-		var selects= Array.prototype.slice.call(document.getElementsByTagName("select"));
+		var control = document.getElementById("control");
+		var inputs = Array.prototype.slice.call(control.getElementsByTagName("input"));
+		var selects= Array.prototype.slice.call(control.getElementsByTagName("select"));
 		
 		inputs = inputs.concat(selects);
 
 		for(var i=0;i<inputs.length;i++){
-			(function(element){
-				var tag = element.id;
-				element.title = tag;
-				if(element.className=="colorpicker"){
-					element.value=globalParam[tag];
-					element.addEventListener("change",function(evt){globalParam[tag] = this.value},false);
-				}else if(element.type=="checkbox"){
-					element.checked=Boolean(globalParam[tag]);
-					element.addEventListener("change",function(evt){globalParam[tag] = this.checked},false);
-				}else if(element.type==="text" || element.tag==="select"){
-					element.value=globalParam[tag];
-					element.addEventListener("change",function(evt){globalParam[tag] = parseFloat(this.value)},false);
-					if(!element.value){
-						return;
-					}
-				}else if(element.type==="radio"){
-					var name = element.name;
-					if(element.value === ""+globalParam[name]){
-						element.checked=1;
-					}else{
-						element.checked=0;
-					}
-					element.addEventListener("change",function(evt){globalParam[name] = parseFloat(this.value)},false);
-					if(!element.checked){
-						return;
-					}
+			var element = inputs[i];
+			var tag = element.id;
+			if(!tag)continue;
+
+			element.title = tag;
+			if(element.className=="colorpicker"){
+				element.value=globalParam[tag];
+				element.addEventListener("change",function(evt){globalParam[tag] = this.value},false);
+			}else if(element.type=="checkbox"){
+				element.checked=Boolean(globalParam[tag]);
+				element.addEventListener("change",function(evt){globalParam[tag] = this.checked},false);
+			}else if(element.type==="text" || element.tag==="select"){
+				element.value=globalParam[tag];
+				element.addEventListener("change",function(evt){globalParam[tag] = parseFloat(this.value)},false);
+				if(!element.value){
+					continue;
 				}
-				Util.fireEvent(element,"change");
-			})(inputs[i]);
+			}else if(element.type==="radio"){
+				var name = element.name;
+				if(element.value === ""+globalParam[name]){
+					element.checked=1;
+				}else{
+					element.checked=0;
+				}
+				element.addEventListener("change",function(evt){globalParam[name] = parseFloat(this.value)},false);
+				if(!element.checked){
+					continue;
+				}
+			}
+			Util.fireEvent(element,"change");
 		}
 
 	}

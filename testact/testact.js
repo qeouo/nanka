@@ -1104,7 +1104,7 @@ var Testact=(function(){
 			gl.clearColor(0.0,0.0,0.0,0.0);
 			gl.clear(gl.COLOR_BUFFER_BIT);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-			gl.bindTexture(gl.TEXTURE_2D, Rastgl.fTexture2);
+			gl.bindTexture(gl.TEXTURE_2D, bufTexture);
 			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
 
 			var emiSize=0.25;
@@ -1116,7 +1116,7 @@ var Testact=(function(){
 			gl.clear(gl.COLOR_BUFFER_BIT);
 			gl.disable(gl.DEPTH_TEST);
 			gl.disable(gl.BLEND);
-			Rastgl.copyframe(Rastgl.fTexture2,0,0,WIDTH/1024,HEIGHT/1024); //今回の
+			Rastgl.copyframe(bufTexture,0,0,WIDTH/1024,HEIGHT/1024); //今回の
 			gl.enable(gl.BLEND);
 			gl.blendFuncSeparate(gl.CONSTANT_ALPHA,gl.DST_ALPHA,gl.ZERO,gl.ZERO);
 			gl.blendColor(0,0,0,0.7);
