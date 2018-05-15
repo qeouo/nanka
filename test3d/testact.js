@@ -833,7 +833,6 @@ var Testact=(function(){
 					ono3d.setTargetMatrix(1)
 					ono3d.pop();
 				}
-				gl.enable(gl.DEPTH_TEST);
 				Shadow.draw(ono3d);
 			}
 			ono3d.clear();
