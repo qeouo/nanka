@@ -1071,13 +1071,13 @@ var Testact=(function(){
 			element.title = tag;
 			if(element.className=="colorpicker"){
 				element.value=globalParam[tag];
-				element.addEventListener("change",function(evt){globalParam[tag] = this.value},false);
+				element.addEventListener("change",function(evt){globalParam[evt.target.id] = this.value},false);
 			}else if(element.type=="checkbox"){
 				element.checked=Boolean(globalParam[tag]);
-				element.addEventListener("change",function(evt){globalParam[tag] = this.checked},false);
+				element.addEventListener("change",function(evt){globalParam[evt.target.id] = this.checked},false);
 			}else if(element.type==="text" || element.tag==="select"){
 				element.value=globalParam[tag];
-				element.addEventListener("change",function(evt){globalParam[tag] = parseFloat(this.value)},false);
+				element.addEventListener("change",function(evt){globalParam[evt.target.id] = parseFloat(this.value)},false);
 				if(!element.value){
 					continue;
 				}
@@ -1088,7 +1088,7 @@ var Testact=(function(){
 				}else{
 					element.checked=0;
 				}
-				element.addEventListener("change",function(evt){globalParam[name] = parseFloat(this.value)},false);
+				element.addEventListener("change",function(evt){globalParam[evt.target.name] = parseFloat(this.value)},false);
 				if(!element.checked){
 					continue;
 				}
