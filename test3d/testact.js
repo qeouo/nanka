@@ -222,8 +222,8 @@ var Testact=(function(){
 				if(cursorr[0]<0){
 					cursorr[0]+=1;
 
-					ono3d.projectionMat[12]=globalParam.stereo;
-					Mat44.dot(ono3d.pvMat,ono3d.projectionMat,ono3d.viewMatrix);
+					ono3d.projectionMatrix[12]=globalParam.stereo;
+					Mat44.dot(ono3d.pvMatrix,ono3d.projectionMatrix,ono3d.viewMatrix);
 				}else{
 					cursorr[0]-=1;
 				}
@@ -233,7 +233,7 @@ var Testact=(function(){
 				var p1 = Vec3.poolAlloc();
 				var bV2 = Vec3.poolAlloc();
 
-				Mat44.getInv(mat44,ono3d.pvMat);
+				Mat44.getInv(mat44,ono3d.pvMatrix);
 				Vec4.set(vec4,cursorr[0],-cursorr[1],-1,1);
 				Mat44.dotVec4(vec4,mat44,vec4);
 				Vec3.set(p0,vec4[0],vec4[1],vec4[2]);
@@ -316,10 +316,10 @@ var Testact=(function(){
 					bane= null;
 
 				}else{
-					Mat44.getInv(mat44,ono3d.pvMat);
+					Mat44.getInv(mat44,ono3d.pvMatrix);
 			
 					var w=(tsukamiZ*79+1);
-					var z =  -ono3d.projectionMat[10] + ono3d.projectionMat[14]/w;
+					var z =  -ono3d.projectionMatrix[10] + ono3d.projectionMatrix[14]/w;
 					Vec4.set(vec4,cursorr[0],-cursorr[1],z,1);
 					Vec4.mul(vec4,vec4,w);
 					Mat44.dotVec4(vec4,mat44,vec4);
@@ -381,7 +381,7 @@ var Testact=(function(){
 		ret.prototype.calcCollision=function(){
 			var v4=Vec4.poolAlloc();
 			var im = Mat44.poolAlloc();
-			Mat44.dot(im,ono3d.projectionMat,ono3d.viewMatrix);
+			Mat44.dot(im,ono3d.projectionMatrix,ono3d.viewMatrix);
 			Mat44.getInv(im,im);
 			for(var i=0;i<8;i++){
 				Vec3.copy(v4,scope[i]);
@@ -435,12 +435,6 @@ var Testact=(function(){
 			Vec3.set(vec3,0,1,0);
 			homingCamera(camera.a,vec3,camera.p);
 
-			if(ono3d.lightSources.length>1){
-				var light = ono3d.lightSources[1];
-				Vec3.copy(vec3,light.angle);
-				Vec3.norm(vec3);
-				Vec3.madd(light.pos,Vec3.ZERO,vec3,-10);
-			}
 			Vec3.poolFree(1);
 		}
 		ret.prototype.draw=function(){
@@ -503,17 +497,13 @@ var Testact=(function(){
 						light.type = Ono3d.LT_AMBIENT;
 					}
 
-					Vec3.set(light.angle,0,0,-1);
-					Mat43.fromLSE(m,object.location,object.scale,object.rotation);
-					Mat43.dotMat33Vec3(light.angle,m,light.angle);
-					Mat44.dotMat33Vec3(light.angle,ono3d.worldMatrix,light.angle);
+					Mat43.fromLSE(object.matrix,object.location,object.scale,object.rotation);
+					Mat44.dotMat43(light.matrix,ono3d.worldMatrix,object.matrix);
+					Mat43.fromRotVector(m,Math.PI,1,0,0);
+					Mat44.dotMat43(light.matrix,light.matrix,m);
 
-					Vec3.set(light.pos,0,0,0);
-					Mat43.dotVec3(light.pos,m,light.pos);
-					Mat44.dotVec3(light.pos,ono3d.worldMatrix,light.pos);
 					light.power=1;
 					Vec3.copy(light.color,ol.color);
-					Vec3.norm(light.angle)
 
 				}
 				Mat43.poolFree(1);
@@ -742,8 +732,8 @@ var Testact=(function(){
 			if(cursorr[0]<0){
 				cursorr[0]+=1;
 
-				ono3d.projectionMat[12]=globalParam.stereo;
-				Mat44.dot(ono3d.pvMat,ono3d.projectionMat,ono3d.viewMatrix);
+				ono3d.projectionMatrix[12]=globalParam.stereo;
+				Mat44.dot(ono3d.pvMatrix,ono3d.projectionMatrix,ono3d.viewMatrix);
 			}else{
 				cursorr[0]-=1;
 			}
@@ -807,18 +797,9 @@ var Testact=(function(){
 			if(lightSource){
 
 				ono3d.setOrtho(20.0,20.0,1.0,20.0)
-				Mat44.setInit(lightSource.matrix);
-				Mat44.getRotVector(lightSource.matrix,lightSource.angle);
 				var mat44 = ono3d.viewMatrix;//Mat44.poolAlloc();
-				Mat44.setInit(mat44);
-				mat44[12]=-lightSource.pos[0]
-				mat44[13]=-lightSource.pos[1]
-				mat44[14]=-lightSource.pos[2]
-
-				Mat44.dot(mat44,lightSource.matrix,mat44);
-				Mat44.dot(ono3d.pvMat,ono3d.projectionMat,mat44);
-				Mat44.copy(lightSource.matrix,ono3d.pvMat);
-				//Mat44.poolFree(1);
+				Mat44.getInv(mat44,lightSource.matrix);
+				Mat44.dot(lightSource.viewmatrix,ono3d.projectionMatrix,mat44);
 				
 				camera.calcCollision();
 
@@ -950,6 +931,9 @@ var Testact=(function(){
 		gl.clear(gl.COLOR_BUFFER_BIT);
 		gl.colorMask(true,true,true,true);
 
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.viewport(0,0,WIDTH,HEIGHT);
+		gl.disable(gl.BLEND);
 		gl.flush();
 		gl.finish();
 		ono3d.clear();
