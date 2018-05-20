@@ -815,6 +815,9 @@ var Testact=(function(){
 					ono3d.pop();
 				}
 				Shadow.draw(ono3d);
+
+				gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
+				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1024,1024);
 			}
 			ono3d.clear();
 		}
@@ -838,8 +841,6 @@ var Testact=(function(){
 
 		start=Date.now();
 
-		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
-		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1024,1024);
 		
 		globalParam.stereo=-globalParam.stereoVolume * globalParam.stereomode*0.4;
 
@@ -885,45 +886,33 @@ var Testact=(function(){
 
 
 		if(globalParam.hdr){
-			//描画結果をメインのバッファにコピー
-			gl.depthMask(false);
-			gl.disable(gl.DEPTH_TEST);
-			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-			gl.clearColor(0.0,0.0,0.0,0.0);
-			gl.clear(gl.COLOR_BUFFER_BIT);
+			//疑似HDRぼかし(α値が0が通常、1に近いほど光る)
+
+			//描画結果をバッファにコピー
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 			gl.bindTexture(gl.TEXTURE_2D, bufTexture);
 			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
 
-			var emiSize=1;
-			//疑似HDRぼかし(α値が0が通常、1に近いほど光る)
+			var emiSize=0.5;
 			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
 			gl.viewport(0,0,WIDTH*emiSize,HEIGHT*emiSize);
 			gl.depthMask(false);
-			gl.clearColor(0.0,0.0,0.0,0.0);
-			gl.clear(gl.COLOR_BUFFER_BIT);
 			gl.disable(gl.DEPTH_TEST);
 			gl.disable(gl.BLEND);
-			Rastgl.copyframe(bufTexture
-				,0,0
-				,WIDTH/1024,HEIGHT/1024); //今回の
+			Rastgl.copyframe(bufTexture ,0,0 ,WIDTH/1024,HEIGHT/1024); //今回結果を書き込み
 			gl.enable(gl.BLEND);
 			gl.blendFuncSeparate(gl.CONSTANT_ALPHA,gl.DST_ALPHA,gl.ZERO,gl.ZERO);
 			gl.blendColor(0,0,0,0.4);
-			Rastgl.copyframe(emiTexture
-					,(Math.random()-0.5)/1024.0
-					,(Math.random()-0.5)/1024.0
-					,WIDTH/1024*emiSize,HEIGHT/1024*emiSize); //既存の光テクスチャを重ねる
-			gl.disable(gl.BLEND);
+			Rastgl.copyframe(emiTexture ,0,0 ,WIDTH/1024,HEIGHT/1024); //前回の結果を重ねる
 			gl.bindTexture(gl.TEXTURE_2D, emiTexture);
 			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH*emiSize,HEIGHT*emiSize);//結果を光テクスチャに書き込み
-			//Gauss.filter(emiTexture,emiTexture,10,2.0/1024,1024.0*emiSize); //光テクスチャをぼかす
+			Gauss.filter(emiTexture,emiTexture,10,2.0/1024,1024.0*emiSize); //光テクスチャをぼかす
 
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 			gl.viewport(0,0,WIDTH,HEIGHT);
 			gl.enable(gl.BLEND);
 			gl.blendFunc(gl.ONE,gl.ONE);
-			Rastgl.copyframe(emiTexture,0,0,WIDTH/1024*emiSize,HEIGHT/1024*emiSize); //メイン画面に合成
+			Rastgl.copyframe(emiTexture,0,0,WIDTH/1024,HEIGHT/1024); //メイン画面に合成
 		}
 //メインのバッファのアルファ値を1にする
 		gl.colorMask(false,false,false,true);
@@ -1035,7 +1024,7 @@ var Testact=(function(){
 			gl.bindTexture(gl.TEXTURE_2D, null);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		});
-		emiTexture = Rastgl.createTexture(null,1024,1024);
+		emiTexture = Rastgl.createTexture(null,512,512);
 
 		
 		Util.setFps(globalParam.fps,mainloop);
