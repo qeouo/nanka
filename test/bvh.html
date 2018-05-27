@@ -7,11 +7,14 @@ width:48px;
 	コリジョン数<input  type="number" id="num" value="50" /><br />
 	コリジョン最大サイズ<input type="number" id="size" value="50" /><br />
 	<input type="button" value="コリジョンリセット"	id="resetCol" /><br />
-	<input type="button" value="BVH生成"	id="resetBVH" /><br />
+	<input type="button" value="BVH生成"	id="resetBVH" />
+	<input type="button" value="BVH生成2"	id="resetBVH2" /><br />
 	<span id="result" /></span><br />
 	<canvas width="800px" height="800px" id ="c">
 	</canvas>
 </body>
+
+<script type="text/javascript" src="../lib/sort.js"></script>
 <script>
 cvs = document.getElementById("c");
 ctx = cvs.getContext("2d");
@@ -71,6 +74,40 @@ var resetAABBnodes=function(num){
 	counter=new Array(1<<Math.ceil(Math.log2(containers.length,2)));
 }
 
+	var _createAABBTree = function(list,first,last,axis){
+		if(first === last){
+			return list[first];
+		}
+		var node = new AABBnode();
+		var max=0;
+		var min=0;
+		var mmax=0;
+		for(var i=0;i<DIMENSION;i++){
+			min=list[first].AABB.min[i];
+			max=list[first].AABB.max[i];
+			for(var j=first+1;j<=last;j++){
+				min=Math.min(min,list[j].AABB.min[i]);
+				max=Math.max(max,list[j].AABB.max[i]);
+			}
+			if(mmax<max-min){
+				mmax = max-min;
+				axis=i;
+			}
+
+		}
+		Sort.qSort(list,first,last,function(a,b){return a.AABB.min[axis] - b.AABB.min[axis]});
+		var center = (last+first)/2|0;
+		axis=[1,0,0][axis];
+		node.children.push(_createAABBTree(list,first,center,axis));
+		node.children.push(_createAABBTree(list,center+1,last,axis));
+		addAABB(node.AABB,node.children[0].AABB,node.children[1].AABB);
+
+		return node;
+	}
+var createBVH2=function(AABBnodes){
+	return _createAABBTree(AABBnodes,0,AABBnodes.length-1,0);
+
+}
 var createBVH=function(AABBs){
 	for(var i=0;i<AABBs.length;i++){
 		containers[i].element=AABBs[i];
@@ -220,13 +257,20 @@ var sweepAndPrune_=function(list,axis){
 	for(var i=0;i<list.length;i++){
 		for(var j=i;j<list.length;j++){
 			checkCount++;
-			if(list[i].element.AABB.max[axis]<list[j].element.AABB.max[axis]){
+			if(list[i].AABB.max[axis]<list[j].AABB.max[axis]){
 				break;
 			}
 		}
 	}
 }
 var sweepAndPrune=function(){
+
+	for(var i=0;i<DIMENSION;i++){
+		for(var j=0;j<AABBnodes.length;j++){
+			sortLists[i][j]=AABBnodes[j];
+		}
+		sortLists[i].sort(function(a,b){return a.AABB.min[i]-b.AABB.min[i];});
+	}
 	for(var i=0;i<DIMENSION;i++){
 		sweepAndPrune_(sortLists[i],i);
 	}
@@ -239,11 +283,25 @@ var resetCol = document.getElementById("resetCol").onclick= function(){
 	hitResults=[];
 	draw();
 }
+var resetBVH = document.getElementById("resetBVH2").onclick=function(){
+	var start = Date.now();
+	rootNode = createBVH2(AABBnodes);
+	var result =  "BVH生成時間"+(Date.now()-start)+"ms";
+	document.getElementById("result").innerHTML =result;
+	aaa();
+	
+}
 var resetBVH = document.getElementById("resetBVH").onclick=function(){
 	var start = Date.now();
 	rootNode = createBVH(AABBnodes);
 	var result =  "BVH生成時間"+(Date.now()-start)+"ms";
+	document.getElementById("result").innerHTML =result;
+	
+	aaa();
+}
+var aaa=function(){
 	var sou=AABBnodes.length*(AABBnodes.length-1)/2;
+	var result="";
 	result +="<BR />総当りした場合のAABB判定回数 n*(n-1)/2="+sou;
 	checkCount=0;
 	stat=Date.now();
@@ -253,7 +311,7 @@ var resetBVH = document.getElementById("resetBVH").onclick=function(){
 	checkCount=0;
 	sweepAndPrune();
 	result +="<BR />(参考)軸別スイープ&プルーンした場合の総判定回数 ="+checkCount;
-	document.getElementById("result").innerHTML =result;
+	document.getElementById("result").innerHTML +=result;
 	draw();
 }
 resetCol();
