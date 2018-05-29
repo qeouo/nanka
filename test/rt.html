@@ -1,4 +1,4 @@
-<canvas id="c" width="512" height="256"></canvas>
+<canvas id="c" width="512" height="256" style="opacity:0.1;"></canvas>
 <div id="cnt"></div>
 
 <script>
@@ -12,6 +12,7 @@ var data=imagedata.data;
 
 var MAXDIST=10000;
 var Px,Py,Pz,Vx,Vy,Vz,MinDist,MinObj;
+var MinObjOld;
 var vertices=[0,17,-0,-41,56,71,40,56,71,82,56,0,41,56,-71,-40,56,-71,-82,56,
 -0,-46,13,80,46,13,80,92,13,0,46,13,-80,-46,13,-80,-92,13,-0,-39,-55,67,38,
 -55,67,78,-55,0,39,-55,-67,-38,-55,-67,-78,-55,-0,0,-55,0,0,-30,123,25,13,
@@ -21,6 +22,11 @@ var vertices=[0,17,-0,-41,56,71,40,56,71,82,56,0,41,56,-71,-40,56,-71,-82,56,
 -142,14,-44,-74,14,-25,-79,14,-4,-121,14,31,-108,14,31,-77,0,78,-0,-31,53,
 53,30,53,53,62,53,0,31,53,-53,-30,53,-53,-62,53,-0,0,87,-15,15,87,0,-0,87,
 15,-15,87,0,0,81,0,0,87,0];
+for(i=0;i<vertices.length;i+=3){
+	 vertices[i]*=-0.1;
+	 vertices[i+1]*=0.1;
+	 vertices[i+2]*=-0.1;
+}
 
 var faces=[0,2,1,0,3,2,0,4,3,0,5,4,0,6,5,0,1,6,19,13,14,19,14,15,19,15,16,
 19,16,17,19,17,18,19,18,13,39,38,32,38,33,32,38,34,33,38,37,34,37,35,34,37,
@@ -163,7 +169,7 @@ var createBVH=function(AABBnodes){
 	return createBVH_(AABBnodes,0,AABBnodes.length-1,0);
 
 }
-var hitCheckLine= function(a,p0,v){
+var hitCheckLine= function(a,p0,v,res){
 	//AABBと線分p0vが接触しているか
 	var min,max;
 	var _min,_max;
@@ -196,6 +202,8 @@ var hitCheckLine= function(a,p0,v){
 		}
 	}
 	if(max<0)return false;
+	res.min = min;
+	 res.max=max;
 	return (min<=max);
 }
 var rootNode;
@@ -204,42 +212,46 @@ for(i=0;i<maxf;i+=3){
 	var idx1=faces[i+1]*3;
 	var idx2=faces[i+2]*3;
 	var face=calcFace(
-			 -vertices[idx0+2]
+			 vertices[idx0+2]
 			,vertices[idx0+1]
-			,-vertices[idx0+0]
-			,-(vertices[idx1+2]-vertices[idx0+2])
+			,vertices[idx0+0]
+			,(vertices[idx1+2]-vertices[idx0+2])
 			,(vertices[idx1+1]-vertices[idx0+1])
-			,-(vertices[idx1+0]-vertices[idx0+0])
-			,-(vertices[idx2+2]-vertices[idx0+2])
+			,(vertices[idx1+0]-vertices[idx0+0])
+			,(vertices[idx2+2]-vertices[idx0+2])
 			,(vertices[idx2+1]-vertices[idx0+1])
-			,-(vertices[idx2+0]-vertices[idx0+0])
+			,(vertices[idx2+0]-vertices[idx0+0])
 		)
 	f.push(face);
 
 	var aabbnode =new AABBnode();
-	aabbnode.AABB.min[0] = -vertices[faces[i]*3+2]
+	aabbnode.AABB.min[0] = vertices[faces[i]*3+2]
 	aabbnode.AABB.min[1] = vertices[faces[i]*3+1]
-	aabbnode.AABB.min[2] = -vertices[faces[i]*3+0]
-	aabbnode.AABB.max[0] = -vertices[faces[i]*3+2]
+	aabbnode.AABB.min[2] = vertices[faces[i]*3+0]
+	aabbnode.AABB.max[0] = vertices[faces[i]*3+2]
 	aabbnode.AABB.max[1] = vertices[faces[i]*3+1]
-	aabbnode.AABB.max[2] = -vertices[faces[i]*3+0]
+	aabbnode.AABB.max[2] = vertices[faces[i]*3+0]
 	for(var k=1;k<3;k++){
-		aabbnode.AABB.min[0] = Math.min(aabbnode.AABB.min[0],-vertices[faces[i+k]*3+2]);
+		aabbnode.AABB.min[0] = Math.min(aabbnode.AABB.min[0],vertices[faces[i+k]*3+2]);
 		aabbnode.AABB.min[1] = Math.min(aabbnode.AABB.min[1],vertices[faces[i+k]*3+1]);
-		aabbnode.AABB.min[2] = Math.min(aabbnode.AABB.min[2],-vertices[faces[i+k]*3+0]);
-		aabbnode.AABB.max[0] = Math.max(aabbnode.AABB.max[0],-vertices[faces[i+k]*3+2]);
+		aabbnode.AABB.min[2] = Math.min(aabbnode.AABB.min[2],vertices[faces[i+k]*3+0]);
+		aabbnode.AABB.max[0] = Math.max(aabbnode.AABB.max[0],vertices[faces[i+k]*3+2]);
 		aabbnode.AABB.max[1] = Math.max(aabbnode.AABB.max[1],vertices[faces[i+k]*3+1]);
-		aabbnode.AABB.max[2] = Math.max(aabbnode.AABB.max[2],-vertices[faces[i+k]*3+0]);
+		aabbnode.AABB.max[2] = Math.max(aabbnode.AABB.max[2],vertices[faces[i+k]*3+0]);
 	}
 	aabbnode.element = face;
 	face.AABB = aabbnode.AABB;
 	AABBnodes.push(aabbnode);
 	rootNode = createBVH(AABBnodes);
 }
+	 var res={min:0,max:0};
 var hitCheck=function(node,line1,line2,func){
-	if(!hitCheckLine(node.AABB,line1,line2)){
+	if(!hitCheckLine(node.AABB,line1,line2,res)){
 		return;
 	}
+	if(res.min>MinDist){
+	 return;
+	 }
 	for(var i=0;i<node.children.length;i++){
 		hitCheck(node.children[i],line1,line2,func);
 	}
@@ -318,9 +330,9 @@ var Mesh=(function(){
 	};
     Mesh.prototype.distance=function(){
 		var min=MinDist;
-		var xx = (Px - this.x)*10;
-		var yy = (Py - this.y)*10;
-		var zz = (Pz - this.z)*10;
+		var xx = (Px - this.x);
+		var yy = (Py - this.y);
+		var zz = (Pz - this.z);
 		var sin=Math.sin(this.angle);
 		var cos=Math.cos(this.angle);
 		var px=cos*xx + sin*zz;
@@ -352,15 +364,15 @@ var Mesh=(function(){
 		}
 		hitCheck(rootNode,line1,line2, function(face){
 			var l2= (face.x-px)*face.nx + (face.y-py)*face.ny + (face.z-pz)*face.nz;
-			if(l2==0){ 
-				return;
-			}
 			var l=vx*face.nx + vy*face.ny + vz*face.nz;
-			if(l==0){
+			if(l===0){
 				return;
 			}
 			var h=l2/l;
-			if(h*0.1>min|| h<=0){ 
+			if(h>min|| h<=0){ 
+				return;
+			}
+			if(h<0.001 && MinObjOld===this_){
 				return;
 			}
 			var dx=px + vx*h - face.x;
@@ -371,15 +383,15 @@ var Mesh=(function(){
 			l2= (dx*face.tx + dy*face.ty + dz*face.tz)
 	 
 			if(l>=0. && l2>=0. && (l+l2)<=1.0){ 
-				if(min>h*0.1){
-					min=h*0.1
-					this_.h=face;
-				}
+				min=h
+				MinDist = min;
+				this_.h=face;
+				MinObj = this_;
 			} 
 		});
-		if(min>=MinDist){
-			min=MAXDIST;
-		}
+		//if(min>=MinDist){
+		//	min=MAXDIST;
+		//}
 		return min;
 	} 
 	Mesh.prototype.material=function(){
@@ -469,7 +481,6 @@ objs.push(obj);
 
 var flg=0;
 var calc=function(){
-	var MinObjOld;
 	MinObj=null;
 	for(var i=8;;i--){
 		if(i<=0){
