@@ -1,4 +1,4 @@
-<canvas id="c" width="512" height="256" style="opacity:0.1;"></canvas>
+<canvas id="c" width="512" height="256" ></canvas>
 <div id="cnt"></div>
 
 <script>
@@ -246,16 +246,41 @@ for(i=0;i<maxf;i+=3){
 }
 	 var res={min:0,max:0};
 var hitCheck=function(node,line1,line2,func){
-	if(!hitCheckLine(node.AABB,line1,line2,res)){
-		return;
-	}
-	if(res.min>MinDist){
-	 return;
-	 }
-	for(var i=0;i<node.children.length;i++){
-		hitCheck(node.children[i],line1,line2,func);
-	}
-	if(node.element){
+	//if(!hitCheckLine(node.AABB,line1,line2,res)){
+	//	return;
+	//}
+	//if(res.min>MinDist){
+	// return;
+	// }
+	//for(var i=0;i<node.children.length;i++){
+	//	hitCheck(node.children[i],line1,line2,func);
+	//}
+
+	if(node.children.length){
+		var ret1 = hitCheckLine(node.children[0].AABB,line1,line2,res);
+		var a=res.min;
+		if(a>MinDist){ret1=false;}
+		var ret2 = hitCheckLine(node.children[1].AABB,line1,line2,res);
+		var b=res.min;
+		if(b>MinDist){ret2=false;}
+		if(ret1&&ret2){
+			if(a<b){
+				hitCheck(node.children[0],line1,line2,func);
+				if(b<MinDist){
+					hitCheck(node.children[1],line1,line2,func);
+				}
+			}else{
+				hitCheck(node.children[1],line1,line2,func);
+				if(a<MinDist){
+					hitCheck(node.children[0],line1,line2,func);
+				}
+			}
+		}else if(ret1){
+			hitCheck(node.children[0],line1,line2,func);
+		}else if(ret2){
+			hitCheck(node.children[1],line1,line2,func);
+		}
+	}else{
 		func(node.element);
 	}
 }
@@ -329,12 +354,11 @@ var Mesh=(function(){
 		this.s=s;
 	};
     Mesh.prototype.distance=function(){
-		var min=MinDist;
 		var xx = (Px - this.x);
 		var yy = (Py - this.y);
 		var zz = (Pz - this.z);
-		var sin=Math.sin(this.angle);
-		var cos=Math.cos(this.angle);
+		var sin=this.sin;
+		var cos=this.cos;
 		var px=cos*xx + sin*zz;
 		var py=yy;
 		var pz=-sin*xx + cos*zz;
@@ -346,9 +370,6 @@ var Mesh=(function(){
 		var d1=px*vx+py*vy+pz*vz;
 		var r=this.s - ((px*px+py*py+pz*pz)-d1*d1) ;
 		if(r<0){
-			return MAXDIST;
-		}
-		if(d1 - Math.sqrt(r) >MinDist){
 			return MAXDIST;
 		}
 		var this_ =this;
@@ -365,14 +386,14 @@ var Mesh=(function(){
 		hitCheck(rootNode,line1,line2, function(face){
 			var l2= (face.x-px)*face.nx + (face.y-py)*face.ny + (face.z-pz)*face.nz;
 			var l=vx*face.nx + vy*face.ny + vz*face.nz;
-			if(l===0){
+			if(l2*l<=0){
+				return;
+			}
+			if(l2*l2>MinDist*l*MinDist*l){ 
 				return;
 			}
 			var h=l2/l;
-			if(h>min|| h<=0){ 
-				return;
-			}
-			if(h<0.001 && MinObjOld===this_){
+			if(h<=0.1&& MinObjOld===this_){
 				return;
 			}
 			var dx=px + vx*h - face.x;
@@ -380,19 +401,14 @@ var Mesh=(function(){
 			var dz=pz + vz*h - face.z;
 
 			l= (dx*face.sx + dy*face.sy + dz*face.sz) 
+			if(l<0)return;
 			l2= (dx*face.tx + dy*face.ty + dz*face.tz)
-	 
-			if(l>=0. && l2>=0. && (l+l2)<=1.0){ 
-				min=h
-				MinDist = min;
-				this_.h=face;
-				MinObj = this_;
-			} 
+			if(l2<0 || (l+l2)>1.0)return;
+			MinDist = h;
+			this_.h=face;
+			MinObj = this_;
 		});
-		//if(min>=MinDist){
-		//	min=MAXDIST;
-		//}
-		return min;
+		return MinDist;
 	} 
 	Mesh.prototype.material=function(){
 		var sin=Math.sin(-this.angle);
@@ -473,10 +489,14 @@ objs.push(obj);
 //objs.push(obj);
 obj=new Mesh(-5,-3.5,60);
 obj.r=0.8;obj.g=0.8;obj.b=0.25;obj.a=0.1;obj.refract=1.4;obj.spc=0.2;
+obj.sin=Math.sin(obj.angle);
+obj.cos=Math.cos(obj.angle);
 objs.push(obj);
 obj=new Mesh(10,-3.5,80);
 obj.r=0.5;obj.g=0.9;obj.b=0.9;obj.a=1;obj.refract=1.4;obj.spc=0.0;
 obj.angle=2.5;
+obj.sin=Math.sin(obj.angle);
+obj.cos=Math.cos(obj.angle);
 objs.push(obj);
 
 var flg=0;
