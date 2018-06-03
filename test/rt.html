@@ -393,9 +393,9 @@ var Mesh=(function(){
 				return;
 			}
 			var h=l2/l;
-			if(h<=0.1&& MinObjOld===this_){
-				return;
-			}
+			//if(h<=0.0000001&& MinObjOld===this_){
+			//	return;
+			//}
 			var dx=px + vx*h - face.x;
 			var dy=py + vy*h - face.y;
 			var dz=pz + vz*h - face.z;
@@ -502,7 +502,7 @@ objs.push(obj);
 var flg=0;
 var calc=function(){
 	MinObj=null;
-	for(var i=8;;i--){
+	for(var i=32;;i--){
 		if(i<=0){
 			R=0;G=0;B=0;
 			return;
@@ -512,11 +512,15 @@ var calc=function(){
 		MinObjOld=MinObj;
 		MinObj=null;
 
+		Px+=Vx*0.00000001;
+		Py+=Vy*0.00000001;
+		Pz+=Vz*0.00000001;
+
 		for(var j=objs.length;j--;){
 			var dist=objs[j].distance();
-			if(dist<0.001 && MinObjOld==objs[j]){
-				continue;
-			}
+			//if(dist<0.000001 && MinObjOld==objs[j]){
+			//	continue;
+			//}
 			if(dist<MinDist){
 				MinDist=dist;
 				MinObj=objs[j];

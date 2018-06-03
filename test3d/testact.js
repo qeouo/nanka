@@ -727,18 +727,17 @@ var Testact=(function(){
 		objMan.update();
 
 		objMan.move();
-		var phytime=0;
+		var physicsTime=Date.now();
 		if(globalParam.physics){
 			for(var i=0;i<globalParam.step;i++){
-				var s=Date.now();
 				onoPhy.calc(1.0/globalParam.fps/globalParam.step);
-				phytime=Date.now()-s;
 			}
 			globalParam.physics_=1;
 		}
+		physicsTime=Date.now()-physicsTime;
 
 
-
+		var drawTime=Date.now();
 
 		var cursorr = new Vec2();
 		cursorr[0] =Util.cursorX/WIDTH*2-1;
@@ -758,12 +757,6 @@ var Testact=(function(){
 		ono3d.rf=0;
 		ono3d.lineWidth=1.0;
 		ono3d.smoothing=globalParam.smoothing;
-
-		//var light=ono3d.lightSources[0];
-		//Util.hex2rgb(light.color,globalParam.lightColor1);
-
-		//light=ono3d.lightSources[1];
-		//Util.hex2rgb(light.color,globalParam.lightColor2);
 
 		ono3d.lightThreshold1=globalParam.lightThreshold1;
 		ono3d.lightThreshold2=globalParam.lightThreshold2;
@@ -896,7 +889,8 @@ var Testact=(function(){
 		ono3d.setViewport(0,0,WIDTH,HEIGHT);
 
 		if(envtexes){
-			MainShader.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
+			//MainShader.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
+			MainShader2.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
 		}
 		Plain.draw(ono3d);
 		gl.finish();
@@ -960,6 +954,8 @@ var Testact=(function(){
 
 		var drawrasterise=Date.now()-start;
 
+		drawTime =Date.now()-drawTime;
+
 		mseccount += (Date.now() - nowTime)
 		framecount++
 		if(nowTime-oldTime > 1000){
@@ -967,13 +963,14 @@ var Testact=(function(){
 			var fps = framecount*1000/(nowTime-oldTime)
 			if(framecount!==0)mspf = mseccount/framecount
 			
-			Util.setText(span,fps.toFixed(2) + "fps " + mspf.toFixed(2) + "msec/f"
-				   +"\n AABB " + onoPhy.collider.AABBTime+"ms(" + onoPhy.collider.collisions.length + ")"
-				   +"\n Collision " + onoPhy.collider.collisionTime + "ms(" + onoPhy.collider.collisionCount+ ")"
-				   +"\n Impulse " + onoPhy.impulseTime+"ms ,repetition " + onoPhy.repetition
-				   +"\n PhyTime" + phytime
-				   +"\n draw geometry " + drawgeometry +"ms"
-				   +"\n draw rasterise " + drawrasterise +"ms" 
+			Util.setText(span,fps.toFixed(2) + "fps " + mspf.toFixed(2) + "ms/frame"
+				   +"\nPhyisics " + physicsTime +"ms"
+				   +"\n AABB " + onoPhy.collider.AABBTime+"ms (Object " + onoPhy.collider.collisions.length + ")"
+				   +"\n Collision " + onoPhy.collider.collisionTime + "ms (Target " + onoPhy.collider.collisionCount+ ")"
+				   +"\n Impulse " + onoPhy.impulseTime+"ms (repetition " + onoPhy.repetition +")"
+				   +"\nDrawTime " + drawTime +"ms"
+				   +"\n geometry " + drawgeometry +"ms"
+				   +"\n rasterise " + drawrasterise +"ms" 
 				   )
 	
 			framecount = 0
