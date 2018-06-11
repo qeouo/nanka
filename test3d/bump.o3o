@@ -5,7 +5,7 @@
   ,{"name":"テクスチャ.002","typ":"IMAGE","path":"//rainbow.jpg"}
 ]
 ,"materials":[
-    {"name": "マテリアル", "r": 0.8000000715255737, "g": 0.762370765209198, "b": 0.7157228589057922, "a": 1.0, "dif": 1.0, "emt": 0.0, "use_transparency": false, "ior": 1.0, "filter": 0.0, "trans_rough": 0.0, "use_mirror": false, "reflect": 0.5, "rough": 0.0, "texture_slots": [{"texture": "テクスチャ.002", "uv_layer": "UVマップ"}]}
+    {"name": "マテリアル", "r": 0.8000000715255737, "g": 0.762370765209198, "b": 0.7157228589057922, "a": 1.0, "dif": 1.0, "emt": 0.0, "use_transparency": false, "ior": 1.0, "filter": 0.0, "trans_rough": 0.0, "use_mirror": false, "reflect": 0.5, "rough": 0.2, "texture_slots": [{"texture": "テクスチャ.002", "uv_layer": "UVマップ"}]}
   ,  {"name": "木", "r": 1.0, "g": 0.8829374313354492, "b": 0.8829374313354492, "a": 1.0, "dif": 0.800000011920929, "emt": 0.0, "use_transparency": false, "ior": 1.0, "filter": 0.0, "trans_rough": 0.0, "use_mirror": true, "reflect": 0.10000000149011612, "rough": 0.07142859697341919, "texture_slots": [{"texture": "テクスチャ"}, {"normal": 1.0, "texture": "テクスチャ.001", "uv_layer": "UVマップ"}]}
   ,  {"name": "透明", "r": 0.016437780112028122, "g": 0.49431318044662476, "b": 0.8000000715255737, "a": 0.0, "dif": 0.800000011920929, "emt": 0.0, "use_transparency": true, "ior": 1.0, "filter": 1.0, "trans_rough": 0.0, "use_mirror": false, "reflect": 0.0, "rough": 0.0, "texture_slots": []}
 ]
