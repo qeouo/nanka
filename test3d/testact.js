@@ -936,8 +936,8 @@ var Testact=(function(){
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.viewport(0,0,WIDTH,HEIGHT);
 		gl.disable(gl.BLEND);
-		gl.flush();
-		gl.finish();
+		//gl.flush();
+		//gl.finish();
 		ono3d.clear();
 
 		for(i=0;i<objMan.objs.length;i++){
