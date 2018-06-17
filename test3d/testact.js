@@ -1,7 +1,7 @@
 "use strict"
 var Testact=(function(){
 	var ret={};
-	var HEIGHT=540,WIDTH=960;
+	var HEIGHT=480,WIDTH=960;
 	var gl;
 	var onoPhy=null;
 	var objs=[];
@@ -936,8 +936,6 @@ var Testact=(function(){
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.viewport(0,0,WIDTH,HEIGHT);
 		gl.disable(gl.BLEND);
-		//gl.flush();
-		//gl.finish();
 		ono3d.clear();
 
 		for(i=0;i<objMan.objs.length;i++){
@@ -952,6 +950,7 @@ var Testact=(function(){
 			ono3d.pop();
 		}
 
+		gl.getParameter(gl.VIEWPORT);
 		var drawrasterise=Date.now()-start;
 
 		drawTime =Date.now()-drawTime;
@@ -1110,6 +1109,7 @@ var Testact=(function(){
 		}
 		globalParam.gl=gl;
 
+		canvasgl.style.zoom="1.0";
 
 		if(globalParam.enableGL){
 			Rastgl.init(gl,ono3d);
