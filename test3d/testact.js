@@ -6,6 +6,7 @@ var Testact=(function(){
 	var onoPhy=null;
 	var objs=[];
 	var sky=null;
+	var sky2=null;
 	var envtexes=null;
 	var shadowTexture;
 	var bufTexture;
@@ -871,7 +872,8 @@ var Testact=(function(){
 			if(globalParam.stereomode==0){
 				ono3d.setPers(0.577,HEIGHT/WIDTH,1,20);
 				gl.viewport(0,0,WIDTH,HEIGHT);
-				Env.env(envtexes[1]);
+				//Env.env(envtexes[1]);
+				Env2D.draw(sky2.gltexture);
 			}else{
 				ono3d.setPers(0.577,HEIGHT/WIDTH*2,1,20);
 				gl.viewport(0,0,WIDTH/2,HEIGHT);
@@ -889,8 +891,8 @@ var Testact=(function(){
 		ono3d.setViewport(0,0,WIDTH,HEIGHT);
 
 		if(envtexes){
-			//MainShader.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
-			MainShader2.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
+			MainShader.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
+			//MainShader2.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
 		}
 		Plain.draw(ono3d);
 		gl.finish();
@@ -1007,6 +1009,38 @@ var Testact=(function(){
 		var select = document.getElementById("cTexture");
 		var option;
 		//soundbuffer = WebAudio.loadSound('se.mp3');
+		sky2 =  Ono3d.loadTexture("sky.jpg",function(image){
+			var envsize=16;
+
+			sky2 = Rastgl.createTexture(null,1024,1024);
+
+			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+			
+			EnvSet2D.draw(image.gltexture,image.width,image.height);
+			gl.bindTexture(gl.TEXTURE_2D, image.gltexture);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,image.width,image.height);
+
+			var envsizeorg=envsize;
+			var fazy=Math.atan2(envsizeorg/envsize,envsizeorg*0.5)/(Math.PI*0.5)*2.0;
+			var width=image.width;
+			var height=image.height;
+			for(var i=0;i<1;i++){
+				var tex = gl.createTexture();
+				width>>=1;
+				height>>=1;
+
+				Rough2D.draw(sky2.gltexture,512,(i+1)/4,width,height);
+				gl.bindTexture(gl.TEXTURE_2D,image.gltexture);
+				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,image.width,image.height);
+				//var tex2 = gl.createTexture();
+				//gl.bindTexture(gl.TEXTURE_CUBE_MAP,tex2);
+				//Rough.draw(tex2,tex,fazy,envsize,envsize);
+
+			}
+			
+			gl.bindTexture(gl.TEXTURE_2D, null);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		});
 		sky = Ono3d.loadCubemap("skybox.jpg",function(image){
 			var envsize=16;
 
