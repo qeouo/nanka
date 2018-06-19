@@ -1012,7 +1012,7 @@ var Testact=(function(){
 		sky2 =  Ono3d.loadTexture("sky.jpg",function(image){
 			var envsize=16;
 
-			sky2 = Rastgl.createTexture(null,1024,1024);
+			//sky2.gltexture = Rastgl.createTexture(null,1024,512);
 
 			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
 			
@@ -1024,14 +1024,16 @@ var Testact=(function(){
 			var fazy=Math.atan2(envsizeorg/envsize,envsizeorg*0.5)/(Math.PI*0.5)*2.0;
 			var width=image.width;
 			var height=image.height;
+			var rough=0.5;
 			for(var i=0;i<1;i++){
 				var tex = gl.createTexture();
-				width>>=1;
-				height>>=1;
+				//width>>=1;
+				//height>>=1;
 
-				Rough2D.draw(sky2.gltexture,512,(i+1)/4,width,height);
+				Rough2D.draw(image.gltexture,rough,width,height);
 				gl.bindTexture(gl.TEXTURE_2D,image.gltexture);
 				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,image.width,image.height);
+				rough*=2;
 				//var tex2 = gl.createTexture();
 				//gl.bindTexture(gl.TEXTURE_CUBE_MAP,tex2);
 				//Rough.draw(tex2,tex,fazy,envsize,envsize);
@@ -1054,7 +1056,6 @@ var Testact=(function(){
 			envsize=image.images[0].width;
 			envsize=16;
 			var envsizeorg=envsize;
-			var ii=1;
 			var fazy=Math.atan2(envsizeorg/envsize,envsizeorg*0.5)/(Math.PI*0.5)*2.0;
 			for(var i=0;i<envs.length;i++){
 				var tex = gl.createTexture();
