@@ -1011,12 +1011,14 @@ var Testact=(function(){
 		//soundbuffer = WebAudio.loadSound('se.mp3');
 		sky2 =  Ono3d.loadTexture("sky.jpg",function(image){
 			var envsize=16;
+			gl.colorMask(true,true,true,true);
 
 			//sky2.gltexture = Rastgl.createTexture(null,1024,512);
 
 			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
 			
 			EnvSet2D.draw(image.gltexture,image.width,image.height);
+
 			gl.bindTexture(gl.TEXTURE_2D, image.gltexture);
 			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,image.width,image.height);
 
