@@ -7,6 +7,7 @@ var Testact=(function(){
 	var objs=[];
 	var sky=null;
 	var sky2=null;
+	var env2dtex=null;
 	var envtexes=null;
 	var shadowTexture;
 	var bufTexture;
@@ -891,7 +892,8 @@ var Testact=(function(){
 		ono3d.setViewport(0,0,WIDTH,HEIGHT);
 
 		if(envtexes){
-			MainShader.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
+			//MainShader.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
+			MainShader3.draw(ono3d,shadowTexture,env2dtex,camera.p,globalParam.frenel);
 			//MainShader2.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
 		}
 		Plain.draw(ono3d);
@@ -929,6 +931,9 @@ var Testact=(function(){
 			gl.blendFunc(gl.ONE,gl.ONE);
 			Rastgl.copyframe(emiTexture,0,0,WIDTH/1024,HEIGHT/1024); //メイン画面に合成
 		}
+
+		gl.disable(gl.BLEND);
+		Rastgl.copyframe(env2dtex,0,0,1,1);
 //メインのバッファのアルファ値を1にする
 		gl.colorMask(false,false,false,true);
 		gl.clearColor(0.0,0.0,0.0,1.0);
@@ -1013,29 +1018,35 @@ var Testact=(function(){
 			var envsize=16;
 			gl.colorMask(true,true,true,true);
 
-			//sky2.gltexture = Rastgl.createTexture(null,1024,512);
+			env2dtex= Rastgl.createTexture(null,1024,1024);
 
 			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-			
 			EnvSet2D.draw(image.gltexture,image.width,image.height);
-
 			gl.bindTexture(gl.TEXTURE_2D, image.gltexture);
 			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,image.width,image.height);
 
 			var envsizeorg=envsize;
-			var fazy=Math.atan2(envsizeorg/envsize,envsizeorg*0.5)/(Math.PI*0.5)*2.0;
 			var width=image.width;
 			var height=image.height;
-			var rough=0.5;
-			for(var i=0;i<1;i++){
+			var rough=0.125;
+			var h=0;
+			gl.bindTexture(gl.TEXTURE_2D,env2dtex);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,h,0,0,width,height);
+			h+=height;
+			width>>=1;
+			height>>=1;
+			var envs=[0.05,0.2,0.5,1.0];
+			for(var i=0;i<envs.length;i++){
+				rough=envs[i];
 				var tex = gl.createTexture();
-				//width>>=1;
-				//height>>=1;
 
 				Rough2D.draw(image.gltexture,rough,width,height);
-				gl.bindTexture(gl.TEXTURE_2D,image.gltexture);
-				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,image.width,image.height);
-				rough*=2;
+				gl.bindTexture(gl.TEXTURE_2D,env2dtex);
+				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,h,0,0,width,height);
+				h+=height;
+				width>>=1;
+				height>>=1;
+				//var fazy=Math.atan2(envsizeorg/envsize,envsizeorg*0.5)/(Math.PI*0.5)*2.0;
 				//var tex2 = gl.createTexture();
 				//gl.bindTexture(gl.TEXTURE_CUBE_MAP,tex2);
 				//Rough.draw(tex2,tex,fazy,envsize,envsize);
