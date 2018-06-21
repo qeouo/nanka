@@ -793,6 +793,7 @@ var Testact=(function(){
 		}
 
 		O3o.useCustomMaterial = globalParam.cMaterial;
+			
 
 //シャドウマップ描画
 		var start = Date.now();
@@ -899,8 +900,6 @@ var Testact=(function(){
 		Plain.draw(ono3d);
 		gl.finish();
 		
-		//gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
-
 
 		if(globalParam.hdr){
 			//疑似HDRぼかし(α値が0が通常、1に近いほど光る)
@@ -923,7 +922,7 @@ var Testact=(function(){
 			Rastgl.copyframe(emiTexture ,0,0 ,WIDTH/1024,HEIGHT/1024); //前回の結果を重ねる
 			gl.bindTexture(gl.TEXTURE_2D, emiTexture);
 			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH*emiSize,HEIGHT*emiSize);//結果を光テクスチャに書き込み
-			Gauss.filter(emiTexture,emiTexture,10,2.0/1024,1024.0*emiSize); //光テクスチャをぼかす
+			Gauss.filter(emiTexture,emiTexture,10,2.0/1024,1024.0*emiSize,1024.0*emiSize); //光テクスチャをぼかす
 
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 			gl.viewport(0,0,WIDTH,HEIGHT);
@@ -933,7 +932,7 @@ var Testact=(function(){
 		}
 
 		gl.disable(gl.BLEND);
-		Rastgl.copyframe(env2dtex,0,0,1,1);
+		//Rastgl.copyframe(env2dtex,0,0,1,1);
 //メインのバッファのアルファ値を1にする
 		gl.colorMask(false,false,false,true);
 		gl.clearColor(0.0,0.0,0.0,1.0);
@@ -1029,27 +1028,32 @@ var Testact=(function(){
 			var width=image.width;
 			var height=image.height;
 			var rough=0.125;
-			var h=0;
 			gl.bindTexture(gl.TEXTURE_2D,env2dtex);
-			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,h,0,0,width,height);
-			h+=height;
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,width,height);
 			width>>=1;
 			height>>=1;
-			var envs=[0.05,0.2,0.5,1.0];
+
+			var envs=[0.06,0.24,0.54,1.0];
 			for(var i=0;i<envs.length;i++){
 				rough=envs[i];
 				var tex = gl.createTexture();
 
 				Rough2D.draw(image.gltexture,rough,width,height);
+				
+				//if(i==envs.length-1){
+					var tex2 = Rastgl.createTexture(null,width,height);
+					gl.bindTexture(gl.TEXTURE_2D,tex2);
+					gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+					gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,width,height);
+					Gauss.filter(tex2,tex2,5,1,width,height); 
+					gl.deleteTexture(tex2);
+				//}
 				gl.bindTexture(gl.TEXTURE_2D,env2dtex);
-				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,h,0,0,width,height);
-				h+=height;
+				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,1024-height*2,0,0,width,height);
+				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,width,1024-height*2,0,0,width,height);
+				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,1024-width,1024-height*2,0,0,width,height);
 				width>>=1;
 				height>>=1;
-				//var fazy=Math.atan2(envsizeorg/envsize,envsizeorg*0.5)/(Math.PI*0.5)*2.0;
-				//var tex2 = gl.createTexture();
-				//gl.bindTexture(gl.TEXTURE_CUBE_MAP,tex2);
-				//Rough.draw(tex2,tex,fazy,envsize,envsize);
 
 			}
 			
