@@ -676,6 +676,7 @@ var Testact=(function(){
 		globalParam.cReflection= 0;
 		globalParam.cReflectionColor= "ffffff";
 		globalParam.cRoughness= 0;
+		globalParam.cInnerRoughness= 0;
 		globalParam.frenel = 0;
 		globalParam.cAlpha= 1.0;
 		globalParam.cRefraction = 1.1;
@@ -773,8 +774,9 @@ var Testact=(function(){
 		cMat.a=globalParam.cAlpha;
 		cMat.emt=globalParam.cEmi;
 		cMat.reflect=globalParam.cReflection;
-		cMat.refract=globalParam.cRefraction;
+		cMat.ior=globalParam.cRefraction;
 		cMat.rough=globalParam.cRoughness;
+		cMat.innerRough=globalParam.cInnerRoughness;
 		Util.hex2rgb(cMat.reflectionColor,globalParam.cReflectionColor);
 		cMat.texture=globalParam.cRoughness;
 		cMat.texture_slots=[];
@@ -849,11 +851,11 @@ var Testact=(function(){
 				//}
 				Shadow.draw(ono3d,lightSource.viewmatrix);
 
-				gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
-				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1024,1024);
 				//ono3d.clear();
 			}
 		}
+		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
+		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1024,1024);
 
 
 		
@@ -922,7 +924,17 @@ var Testact=(function(){
 			Rastgl.copyframe(emiTexture ,0,0 ,WIDTH/1024,HEIGHT/1024); //前回の結果を重ねる
 			gl.bindTexture(gl.TEXTURE_2D, emiTexture);
 			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH*emiSize,HEIGHT*emiSize);//結果を光テクスチャに書き込み
-			Gauss.filter(emiTexture,emiTexture,10,2.0/1024,1024.0*emiSize,1024.0*emiSize); //光テクスチャをぼかす
+
+			//gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+			//gl.viewport(0,0,WIDTH*emiSize,HEIGHT*emiSize);
+			gl.clearColor(0.0,0.0,0.0,1.0);
+			gl.clear(gl.COLOR_BUFFER_BIT);
+			gl.disable(gl.DEPTH_TEST);
+			gl.disable(gl.BLEND);
+			Gauss.filter(emiTexture,10,512,512); //光テクスチャをぼかす
+			
+			gl.bindTexture(gl.TEXTURE_2D,emiTexture);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH*emiSize,HEIGHT*emiSize);
 
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 			gl.viewport(0,0,WIDTH,HEIGHT);
@@ -1045,7 +1057,7 @@ var Testact=(function(){
 					gl.bindTexture(gl.TEXTURE_2D,tex2);
 					gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 					gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,width,height);
-					Gauss.filter(tex2,tex2,5,1,width,height); 
+					//Gauss.filter(tex2,tex2,5,1,width,height); 
 					gl.deleteTexture(tex2);
 				//}
 				gl.bindTexture(gl.TEXTURE_2D,env2dtex);
