@@ -6,7 +6,6 @@ var Testact=(function(){
 	var onoPhy=null;
 	var objs=[];
 	var sky=null;
-	var sky2=null;
 	var env2dtex=null;
 	var envtexes=null;
 	var shadowTexture;
@@ -19,6 +18,8 @@ var Testact=(function(){
 	var soundbuffer=null;
 	var bane= null;
 	var tsukamiZ=100;
+	var lightSun;
+	var lightAmbient
 
 	var obj3d=null,field=null;
 	var goField,goCamera;
@@ -181,7 +182,7 @@ var Testact=(function(){
 				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 				gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);//1024x1024
-				gl.viewport(0,0,1024,1024);
+				ono3d.setViewport(0,0,1024,1024);
 				gl.clearColor(.8,0.2,0.6,0.0);
 				gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
 				gl.enable(gl.BLEND);
@@ -485,12 +486,6 @@ var Testact=(function(){
 				Vec3.set(camera.a,0,Math.PI,0)
 
 				var light=null;
-				ono3d.lightSources.splice(0,ono3d.lightSources.length);
-
-				light = new ono3d.LightSource();
-				ono3d.lightSources.push(light);
-				light.type =Ono3d.LT_AMBIENT;
-				Vec3.set(light.color,0.4,0.4,0.4);
 
 				var scene = o3o.scenes[0];
 				var m=Mat43.poolAlloc();
@@ -498,13 +493,17 @@ var Testact=(function(){
 					var object = scene.objects[i];
 					if(object.type!=="LAMP")continue;
 					var ol = object.data;
-					light = new ono3d.LightSource();
-					ono3d.lightSources.push(light);
+					var element;
 					if(ol.type==="SUN"){
-						light.type = Ono3d.LT_DIRECTION;
+						light = lightSun;
+						element =document.getElementById("lightColor1");
 					}else{
-						light.type = Ono3d.LT_AMBIENT;
+						light = lightAmbient;
+						element =document.getElementById("lightColor2");
 					}
+					light.power=1;
+					element.value=Util.rgb(ol.color[0],ol.color[1],ol.color[2]).slice(1);
+					Util.fireEvent(element,"change");
 
 					Mat43.fromLSE(object.matrix,object.location,object.scale,object.rotation);
 					Mat44.dotMat43(light.matrix,ono3d.worldMatrix,object.matrix);
@@ -516,8 +515,6 @@ var Testact=(function(){
 					Mat44.getInv(mat44,light.matrix);
 					Mat44.dot(light.viewmatrix,ono3d.projectionMatrix,mat44);
 
-					light.power=1;
-					Vec3.copy(light.color,ol.color);
 
 				}
 				Mat43.poolFree(1);
@@ -676,7 +673,7 @@ var Testact=(function(){
 		globalParam.cReflection= 0;
 		globalParam.cReflectionColor= "ffffff";
 		globalParam.cRoughness= 0;
-		globalParam.cInnerRoughness= 0;
+		globalParam.cTransRoughness= 0;
 		globalParam.frenel = 0;
 		globalParam.cAlpha= 1.0;
 		globalParam.cRefraction = 1.1;
@@ -764,7 +761,9 @@ var Testact=(function(){
 		ono3d.lightThreshold1=globalParam.lightThreshold1;
 		ono3d.lightThreshold2=globalParam.lightThreshold2;
 
-	
+		Util.hex2rgb(lightSun.color,globalParam.lightColor1)
+		Util.hex2rgb(lightAmbient.color,globalParam.lightColor2)
+
 		var cMat = O3o.customMaterial;
 		var a=new Vec3();
 		Util.hex2rgb(a,globalParam.cColor);
@@ -776,7 +775,7 @@ var Testact=(function(){
 		cMat.reflect=globalParam.cReflection;
 		cMat.ior=globalParam.cRefraction;
 		cMat.rough=globalParam.cRoughness;
-		cMat.innerRough=globalParam.cInnerRoughness;
+		cMat.transRough=globalParam.cTransRoughness;
 		Util.hex2rgb(cMat.reflectionColor,globalParam.cReflectionColor);
 		cMat.texture=globalParam.cRoughness;
 		cMat.texture_slots=[];
@@ -826,7 +825,7 @@ var Testact=(function(){
 		start=Date.now();
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER,Rastgl.frameBuffer);
-		gl.viewport(0,0,1024,1024);
+		ono3d.setViewport(0,0,1024,1024);
 		gl.depthMask(true);
 		gl.clearColor(1., 1., 1.,1.0);
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -866,29 +865,28 @@ var Testact=(function(){
 		gl.disable(gl.DEPTH_TEST);
 		gl.disable(gl.BLEND);
 		gl.depthMask(true);
-		gl.viewport(0,0,1024,1024);
+		ono3d.setViewport(0,0,1024,1024);
 		gl.clearColor(0.0,0.0,0.0,0.0);
 		gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
 		gl.depthMask(false);
-		gl.colorMask(true,true,true,true);
 		gl.disable(gl.BLEND);
 		if(sky.gltexture){
 			if(globalParam.stereomode==0){
 				ono3d.setPers(0.577,HEIGHT/WIDTH,1,20);
-				gl.viewport(0,0,WIDTH,HEIGHT);
+				ono3d.setViewport(0,0,WIDTH,HEIGHT);
 				//Env.env(envtexes[1]);
-				Env2D.draw(sky2.gltexture);
+				Env2D.draw(env2dtex,0,0,1,0.5);
 			}else{
 				ono3d.setPers(0.577,HEIGHT/WIDTH*2,1,20);
-				gl.viewport(0,0,WIDTH/2,HEIGHT);
+				ono3d.setViewport(0,0,WIDTH/2,HEIGHT);
 				Env.env(envtexes[1]);
-				gl.viewport(WIDTH/2,0,WIDTH/2,HEIGHT);
+				ono3d.setViewport(WIDTH/2,0,WIDTH/2,HEIGHT);
 				Env.env(envtexes[1]);
 				
 			}
 		}
 
-		gl.viewport(0,0,WIDTH,HEIGHT);
+		ono3d.setViewport(0,0,WIDTH,HEIGHT);
 //オブジェクト描画
 		gl.depthMask(true);
 		gl.enable(gl.DEPTH_TEST);
@@ -913,7 +911,7 @@ var Testact=(function(){
 
 			var emiSize=0.5;
 			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-			gl.viewport(0,0,WIDTH*emiSize,HEIGHT*emiSize);
+			ono3d.setViewport(0,0,WIDTH*emiSize,HEIGHT*emiSize);
 			gl.depthMask(false);
 			gl.disable(gl.DEPTH_TEST);
 			gl.disable(gl.BLEND);
@@ -925,19 +923,18 @@ var Testact=(function(){
 			gl.bindTexture(gl.TEXTURE_2D, emiTexture);
 			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH*emiSize,HEIGHT*emiSize);//結果を光テクスチャに書き込み
 
-			//gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-			//gl.viewport(0,0,WIDTH*emiSize,HEIGHT*emiSize);
 			gl.clearColor(0.0,0.0,0.0,1.0);
 			gl.clear(gl.COLOR_BUFFER_BIT);
 			gl.disable(gl.DEPTH_TEST);
 			gl.disable(gl.BLEND);
-			Gauss.filter(emiTexture,10,512,512); //光テクスチャをぼかす
+			Gauss.filter(WIDTH*emiSize,HEIGHT*emiSize,10
+				,emiTexture,0,0,WIDTH*emiSize/512,HEIGHT*emiSize/512,512,512); //光テクスチャをぼかす
 			
 			gl.bindTexture(gl.TEXTURE_2D,emiTexture);
 			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH*emiSize,HEIGHT*emiSize);
 
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-			gl.viewport(0,0,WIDTH,HEIGHT);
+			ono3d.setViewport(0,0,WIDTH,HEIGHT);
 			gl.enable(gl.BLEND);
 			gl.blendFunc(gl.ONE,gl.ONE);
 			Rastgl.copyframe(emiTexture,0,0,WIDTH/1024,HEIGHT/1024); //メイン画面に合成
@@ -952,7 +949,7 @@ var Testact=(function(){
 		gl.colorMask(true,true,true,true);
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		gl.viewport(0,0,WIDTH,HEIGHT);
+		ono3d.setViewport(0,0,WIDTH,HEIGHT);
 		gl.disable(gl.BLEND);
 		ono3d.clear();
 
@@ -1025,9 +1022,11 @@ var Testact=(function(){
 		var select = document.getElementById("cTexture");
 		var option;
 		//soundbuffer = WebAudio.loadSound('se.mp3');
-		sky2 =  Ono3d.loadTexture("sky.jpg",function(image){
+		Ono3d.loadTexture("sky.jpg",function(image){
 			var envsize=16;
 			gl.colorMask(true,true,true,true);
+			gl.disable(gl.BLEND);
+			gl.disable(gl.DEPTH_TEST);
 
 			env2dtex= Rastgl.createTexture(null,1024,1024);
 
@@ -1050,7 +1049,7 @@ var Testact=(function(){
 				rough=envs[i];
 				var tex = gl.createTexture();
 
-				Rough2D.draw(image.gltexture,rough,width,height);
+				Rough2D.draw(width,height,rough,image.gltexture);
 				
 				//if(i==envs.length-1){
 					var tex2 = Rastgl.createTexture(null,width,height);
@@ -1146,6 +1145,8 @@ var Testact=(function(){
 			}
 			Util.fireEvent(element,"change");
 		}
+		
+		goMain = objMan.createObj(GoMain);
 
 	}
 		var canvas =document.createElement("canvas");
@@ -1158,6 +1159,7 @@ var Testact=(function(){
 		parentnode.appendChild(canvasgl);
 		var ctx=canvas.getContext("2d");
 		gl = canvasgl.getContext('webgl') || canvasgl.getContext('experimental-webgl');
+
 
 		Util.enablePad = 0;
 		Util.init(canvas,canvasgl,parentnode);
@@ -1185,9 +1187,18 @@ var Testact=(function(){
 			canvas.style.display="inline";
 		}
 
-		gl.clearColor(1, 1, 1,1.0);
-		gl.clearColor(0.0,0.0,0.0,1.0);
-		gl.clear(gl.COLOR_BUFFER_BIT);
+
+		ono3d.lightSources.splice(0,ono3d.lightSources.length);
+
+		lightAmbient = new ono3d.LightSource();
+		ono3d.lightSources.push(lightAmbient);
+		lightAmbient.type =Ono3d.LT_AMBIENT;
+		Vec3.set(lightAmbient.color,0.4,0.4,0.4);
+
+		lightSun= new ono3d.LightSource();
+		ono3d.lightSources.push(lightSun);
+		lightSun.type =Ono3d.LT_DIRECTION;
+		Vec3.set(lightSun.color,0.6,0.6,0.6);
 	
 		shadowTexture=Rastgl.createTexture(null,1024,1024);
 		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
@@ -1202,7 +1213,6 @@ var Testact=(function(){
 		onoPhy = new OnoPhy();
 		objMan = new ObjMan();
 
-		goMain = objMan.createObj(GoMain);
 		inittime=Date.now();
 
 		span=document.getElementById("cons");
