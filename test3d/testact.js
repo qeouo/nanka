@@ -1198,7 +1198,13 @@ var Testact=(function(){
 		lightSun= new ono3d.LightSource();
 		ono3d.lightSources.push(lightSun);
 		lightSun.type =Ono3d.LT_DIRECTION;
-		Vec3.set(lightSun.color,0.6,0.6,0.6);
+		var a = Vec3.poolAlloc();
+		Vec3.set(a,-1,-1,0);
+		Vec3.norm(a);
+		lightSun.matrix[8]=a[0];
+		lightSun.matrix[9]=a[1];
+		lightSun.matrix[10]=a[2];
+		Vec3.poolFree(1);
 	
 		shadowTexture=Rastgl.createTexture(null,1024,1024);
 		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
