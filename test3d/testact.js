@@ -1029,16 +1029,22 @@ var Testact=(function(){
 			gl.disable(gl.DEPTH_TEST);
 
 			env2dtex= Rastgl.createTexture(null,1024,1024);
+			gl.clearColor(1.0,0.0,0.0,1.0);
+			gl.clear(gl.COLOR_BUFFER_BIT);
+			gl.bindTexture(gl.TEXTURE_2D,env2dtex);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1024,1024);
 
 			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
 			EnvSet2D.draw(image.gltexture,image.width,image.height);
 			gl.bindTexture(gl.TEXTURE_2D, image.gltexture);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,image.width,image.height);
 
 			var envsizeorg=envsize;
 			var width=image.width;
 			var height=image.height;
 			var rough=0.125;
+
 			gl.bindTexture(gl.TEXTURE_2D,env2dtex);
 			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,width,height);
 			width>>=1;
@@ -1047,18 +1053,17 @@ var Testact=(function(){
 			var envs=[0.06,0.24,0.54,1.0];
 			for(var i=0;i<envs.length;i++){
 				rough=envs[i];
-				var tex = gl.createTexture();
+				var tex = Rastgl.createTexture(0,width,height);
 
+				ono3d.setViewport(0,0,width,height);
 				Rough2D.draw(width,height,rough,image.gltexture);
+
+				gl.bindTexture(gl.TEXTURE_2D,tex);
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,width,height);
 				
-				//if(i==envs.length-1){
-					var tex2 = Rastgl.createTexture(null,width,height);
-					gl.bindTexture(gl.TEXTURE_2D,tex2);
-					gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-					gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,width,height);
-					//Gauss.filter(tex2,tex2,5,1,width,height); 
-					gl.deleteTexture(tex2);
-				//}
+				Gauss.filter(width,height,10,tex,0,0,1,1,width,height); 
+
 				gl.bindTexture(gl.TEXTURE_2D,env2dtex);
 				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,1024-height*2,0,0,width,height);
 				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,width,1024-height*2,0,0,width,height);
