@@ -894,8 +894,9 @@ var Testact=(function(){
 
 		if(envtexes){
 			//MainShader.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
-			//MainShader3.draw(ono3d,shadowTexture,env2dtex,camera.p,globalParam.frenel);
-			MainShader2.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
+			MainShader3.draw(ono3d,shadowTexture,env2dtex,camera.p,globalParam.frenel);
+			//MainShader2.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
+			//MainShader4.draw(ono3d,shadowTexture,env2dtex,camera.p,globalParam.frenel);
 		}
 		Plain.draw(ono3d);
 		gl.finish();
