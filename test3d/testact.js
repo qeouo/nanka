@@ -865,7 +865,7 @@ var Testact=(function(){
 		gl.disable(gl.DEPTH_TEST);
 		gl.disable(gl.BLEND);
 		gl.depthMask(true);
-		ono3d.setViewport(0,0,1024,1024);
+		ono3d.setViewport(0,0,WIDTH,HEIGHT);
 		gl.clearColor(0.0,0.0,0.0,0.0);
 		gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
 		gl.depthMask(false);
@@ -894,9 +894,9 @@ var Testact=(function(){
 
 		if(envtexes){
 			//MainShader.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
-			//MainShader3.draw(ono3d,shadowTexture,env2dtex,camera.p,globalParam.frenel);
+			MainShader3.draw(ono3d,shadowTexture,env2dtex,camera.p,globalParam.frenel);
 			//MainShader2.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
-			MainShader4.draw(ono3d,shadowTexture,env2dtex,camera.p,globalParam.frenel);
+			//MainShader4.draw(ono3d,shadowTexture,env2dtex,camera.p,globalParam.frenel);
 		}
 		Plain.draw(ono3d);
 		gl.finish();
