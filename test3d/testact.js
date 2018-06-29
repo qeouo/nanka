@@ -679,6 +679,7 @@ var Testact=(function(){
 		globalParam.cRefraction = 1.1;
 		globalParam.cNormal= 1.0;
 		globalParam.cEmi= 0.0;
+		globalParam.shader= 0;
 		
 		globalParam.source=0;
 		globalParam.target=0;
@@ -894,9 +895,12 @@ var Testact=(function(){
 
 		if(envtexes){
 			//MainShader.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
-			MainShader3.draw(ono3d,shadowTexture,env2dtex,camera.p,globalParam.frenel);
 			//MainShader2.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
-			//MainShader4.draw(ono3d,shadowTexture,env2dtex,camera.p,globalParam.frenel);
+			if(globalParam.shader===0){
+				MainShader3.draw(ono3d,shadowTexture,env2dtex,camera.p,globalParam.frenel);
+			}else{
+				MainShader4.draw(ono3d,shadowTexture,env2dtex,camera.p,globalParam.frenel);
+			}
 		}
 		Plain.draw(ono3d);
 		gl.finish();
@@ -1131,7 +1135,7 @@ var Testact=(function(){
 			}else if(element.type=="checkbox"){
 				element.checked=Boolean(globalParam[tag]);
 				element.addEventListener("change",function(evt){globalParam[evt.target.id] = this.checked},false);
-			}else if(element.type==="text" || element.tag==="select"){
+			}else if(element.type==="text" || element.tagName ==="SELECT"){
 				element.value=globalParam[tag];
 				element.addEventListener("change",function(evt){globalParam[evt.target.id] = parseFloat(this.value)},false);
 				if(!element.value){
