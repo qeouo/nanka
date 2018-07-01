@@ -336,6 +336,8 @@ def WriteMaterial( Material=None):
         texture["texture"] = texture_slot.texture.name
         if(texture_slot.use_map_normal):
             texture["normal"] = texture_slot.normal_factor
+        if(texture_slot.use_map_specular):
+            texture["pbr"] = texture_slot.specular_factor
         if(texture_slot.uv_layer):
             texture["uv_layer"] = texture_slot.uv_layer
     if(Material.animation_data):

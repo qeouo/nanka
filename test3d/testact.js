@@ -5,7 +5,7 @@ var Testact=(function(){
 	var gl;
 	var onoPhy=null;
 	var objs=[];
-	var sky=null;
+	//var sky=null;
 	var env2dtex=null;
 	var envtexes=null;
 	var shadowTexture;
@@ -418,9 +418,14 @@ var Testact=(function(){
 		var ret = GoCamera;
 		inherits(ret,defObj);
 		ret.prototype.init=function(){
+			Vec3.set(this.p,0,0,20);
 
 		}
 		ret.prototype.move=function(){
+			var vec3=Vec3.poolAlloc();
+			Vec3.set(vec3,0,0,0);
+			var cameralen = Vec3.len(this.p,vec3);
+
 
 			if(Util.pressOn && !bane){
 				this.a[1]+=(-(Util.cursorX-Util.oldcursorX)/WIDTH);
@@ -434,15 +439,13 @@ var Testact=(function(){
 			this.p[0]=Math.sin(this.a[1])*this.p[2];
 			this.p[2]=Math.cos(this.a[1])*this.p[2];
 
-			Vec3.mul(this.p,this.p,10);
-			this.p[1]+=3;
+			Vec3.mul(this.p,this.p,cameralen);
+			//this.p[1]+=3;
 
 
 			camera.p[0]+=(this.p[0]-camera.p[0])*0.1
 			camera.p[1]+=(this.p[1]-camera.p[1])*0.1
 			camera.p[2]+=(this.p[2]-camera.p[2])*0.1
-			var vec3=Vec3.poolAlloc();
-			Vec3.set(vec3,0,1,0);
 			homingCamera(camera.a,vec3,camera.p);
 
 			Vec3.poolFree(1);
@@ -481,14 +484,23 @@ var Testact=(function(){
 				t.phyObjs= O3o.createPhyObjs(o3o.scenes[0],onoPhy);
 
 
-				Vec3.copy(camera.p,goCamera.p)
-
-				Vec3.set(camera.a,0,Math.PI,0)
 
 				var light=null;
 
 				var scene = o3o.scenes[0];
 				var m=Mat43.poolAlloc();
+
+				var co= scene.objects.find(function(a){return a.type==="CAMERA";});
+				if(co){
+					//Vec3.copy(goCamera.p,co.location);
+					Vec3.set(goCamera.p,co.location[0],co.location[2],-co.location[1]);
+					goCamera.a[1]=Math.atan2(goCamera.p[0],goCamera.p[2]);
+					goCamera.a[0]=Math.atan2(goCamera.p[1],Math.sqrt(goCamera.p[2]*goCamera.p[2]+goCamera.p[0]*goCamera.p[0]));
+					goCamera.a[2]=0;
+				}
+				Vec3.mul(camera.p,goCamera.p,2)
+				Vec3.copy(camera.a,goCamera.a)
+
 				for(var i=0;i<scene.objects.length;i++){
 					var object = scene.objects[i];
 					if(object.type!=="LAMP")continue;
@@ -871,7 +883,7 @@ var Testact=(function(){
 		gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
 		gl.depthMask(false);
 		gl.disable(gl.BLEND);
-		if(sky.gltexture){
+		if(env2dtex){
 			if(globalParam.stereomode==0){
 				ono3d.setPers(0.577,HEIGHT/WIDTH,1,20);
 				ono3d.setViewport(0,0,WIDTH,HEIGHT);
@@ -893,7 +905,7 @@ var Testact=(function(){
 		gl.enable(gl.DEPTH_TEST);
 		ono3d.setViewport(0,0,WIDTH,HEIGHT);
 
-		if(envtexes){
+		if(env2dtex){
 			//MainShader.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
 			//MainShader2.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
 			if(globalParam.shader===0){
@@ -1081,36 +1093,36 @@ var Testact=(function(){
 			gl.bindTexture(gl.TEXTURE_2D, null);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		});
-		sky = Ono3d.loadCubemap("skybox.jpg",function(image){
-			var envsize=16;
-
-			var envs=[0.1,0.2,0.4,0.8,1.0];
-			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-			envtexes=[];
-			envtexes.push(0);
-			envtexes.push(image.gltexture);
-			
-
-			envsize=image.images[0].width;
-			envsize=16;
-			var envsizeorg=envsize;
-			var fazy=Math.atan2(envsizeorg/envsize,envsizeorg*0.5)/(Math.PI*0.5)*2.0;
-			for(var i=0;i<envs.length;i++){
-				var tex = gl.createTexture();
-				gl.bindTexture(gl.TEXTURE_CUBE_MAP,tex);
-
-				Rough.draw(tex,image.gltexture,envs[i],envsizeorg,envsizeorg);
-				var tex2 = gl.createTexture();
-				gl.bindTexture(gl.TEXTURE_CUBE_MAP,tex2);
-				Rough.draw(tex2,tex,fazy,envsize,envsize);
-				envtexes.push(envs[i]);
-				envtexes.push(tex2);
-
-			}
-			
-			gl.bindTexture(gl.TEXTURE_2D, null);
-			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		});
+//		sky = Ono3d.loadCubemap("skybox.jpg",function(image){
+//			var envsize=16;
+//
+//			var envs=[0.1,0.2,0.4,0.8,1.0];
+//			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+//			envtexes=[];
+//			envtexes.push(0);
+//			envtexes.push(image.gltexture);
+//			
+//
+//			envsize=image.images[0].width;
+//			envsize=16;
+//			var envsizeorg=envsize;
+//			var fazy=Math.atan2(envsizeorg/envsize,envsizeorg*0.5)/(Math.PI*0.5)*2.0;
+//			for(var i=0;i<envs.length;i++){
+//				var tex = gl.createTexture();
+//				gl.bindTexture(gl.TEXTURE_CUBE_MAP,tex);
+//
+//				Rough.draw(tex,image.gltexture,envs[i],envsizeorg,envsizeorg);
+//				var tex2 = gl.createTexture();
+//				gl.bindTexture(gl.TEXTURE_CUBE_MAP,tex2);
+//				Rough.draw(tex2,tex,fazy,envsize,envsize);
+//				envtexes.push(envs[i]);
+//				envtexes.push(tex2);
+//
+//			}
+//			
+//			gl.bindTexture(gl.TEXTURE_2D, null);
+//			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+//		});
 		emiTexture = Rastgl.createTexture(null,512,512);
 
 		
