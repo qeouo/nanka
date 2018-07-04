@@ -715,16 +715,15 @@ var Testact=(function(){
 			}
 		}
 	
-	
+	var physicsTime;
 	var span;
 	var oldTime = 0;
 	var mseccount=0;
 	var framecount=0;
 	var inittime=0;
 	var timer=0;
+	var afID=0;
 	var mainloop=function(){
-		var nowTime = Date.now()
-		timer=nowTime-inittime;
 		
 		var obj;
 
@@ -740,7 +739,7 @@ var Testact=(function(){
 		objMan.update();
 
 		objMan.move();
-		var physicsTime=Date.now();
+		physicsTime=Date.now();
 		if(globalParam.physics){
 			for(var i=0;i<globalParam.step;i++){
 				onoPhy.calc(1.0/globalParam.fps/globalParam.step);
@@ -749,23 +748,23 @@ var Testact=(function(){
 		}
 		physicsTime=Date.now()-physicsTime;
 
+		if(afID){
+			window.cancelAnimationFrame(afID);
+		}
+		afID = window.requestAnimationFrame(drawFunc);
+
+	}
+	var parentnode = (function (scripts) {
+		return scripts[scripts.length - 1].parentNode;
+	}) (document.scripts || document.getElementsByTagName('script'));
+
+	var drawFunc = function(){
+		afID = 0;
+		var nowTime = Date.now()
+		timer=nowTime-inittime;
 
 		var drawTime=Date.now();
 
-		var cursorr = new Vec2();
-		cursorr[0] =Util.cursorX/WIDTH*2-1;
-		cursorr[1] =Util.cursorY/HEIGHT*2-1;
-		if(globalParam.stereomode!=0){
-			cursorr[0]*=2;
-			if(cursorr[0]<0){
-				cursorr[0]+=1;
-
-				ono3d.projectionMatrix[12]=globalParam.stereo;
-				Mat44.dot(ono3d.pvMatrix,ono3d.projectionMatrix,ono3d.viewMatrix);
-			}else{
-				cursorr[0]-=1;
-			}
-		}
 
 		ono3d.rf=0;
 		ono3d.lineWidth=1.0;
@@ -822,7 +821,7 @@ var Testact=(function(){
 			}
 		}
 		for(i=0;i<objMan.objs.length;i++){
-			obj = objMan.objs[i];
+			var obj = objMan.objs[i];
 			ono3d.setTargetMatrix(1)
 			ono3d.push();
 			ono3d.setTargetMatrix(0)
@@ -1009,10 +1008,6 @@ var Testact=(function(){
 			oldTime = nowTime
 		}
 	}
-	var parentnode = (function (scripts) {
-		return scripts[scripts.length - 1].parentNode;
-	}) (document.scripts || document.getElementsByTagName('script'));
-
 
 	ret.loadModel=function(){
 		obj3d=O3o.load(globalParam.model,function(){
@@ -1171,79 +1166,80 @@ var Testact=(function(){
 		goMain = objMan.createObj(GoMain);
 
 	}
-		var canvas =document.createElement("canvas");
-		canvas.width=WIDTH;
-		canvas.height=HEIGHT;
-		parentnode.appendChild(canvas);
-		var canvasgl =document.createElement("canvas");
-		canvasgl.width=WIDTH;
-		canvasgl.height=HEIGHT;
-		parentnode.appendChild(canvasgl);
-		var ctx=canvas.getContext("2d");
-		gl = canvasgl.getContext('webgl') || canvasgl.getContext('experimental-webgl');
+
+	var canvas =document.createElement("canvas");
+	canvas.width=WIDTH;
+	canvas.height=HEIGHT;
+	parentnode.appendChild(canvas);
+	var canvasgl =document.createElement("canvas");
+	canvasgl.width=WIDTH;
+	canvasgl.height=HEIGHT;
+	parentnode.appendChild(canvasgl);
+	var ctx=canvas.getContext("2d");
+	gl = canvasgl.getContext('webgl') || canvasgl.getContext('experimental-webgl');
 
 
-		Util.enablePad = 0;
-		Util.init(canvas,canvasgl,parentnode);
-		var ono3d = new Ono3d()
-		O3o.setOno3d(ono3d)
-		ono3d.init(canvas,ctx);
+	Util.enablePad = 0;
+	Util.init(canvas,canvasgl,parentnode);
+	var ono3d = new Ono3d()
+	O3o.setOno3d(ono3d)
+	ono3d.init(canvas,ctx);
 
-		ono3d.rendercanvas=canvas;
-		if(gl){
-			globalParam.enableGL=true;
-		}else{
-			globalParam.enableGL=false;
-		}
-		globalParam.gl=gl;
+	ono3d.rendercanvas=canvas;
+	if(gl){
+		globalParam.enableGL=true;
+	}else{
+		globalParam.enableGL=false;
+	}
+	globalParam.gl=gl;
 
-		canvasgl.style.zoom="1.0";
+	canvasgl.style.zoom="1.0";
 
-		if(globalParam.enableGL){
-			Rastgl.init(gl,ono3d);
-			canvas.style.width="0px";
-			canvasgl.style.display="inline";
-			Ono3d.setDrawMethod(3);
-		}else{
-			canvasgl.style.display="none";
-			canvas.style.display="inline";
-		}
+	if(globalParam.enableGL){
+		Rastgl.init(gl,ono3d);
+		canvas.style.width="0px";
+		canvasgl.style.display="inline";
+		Ono3d.setDrawMethod(3);
+	}else{
+		canvasgl.style.display="none";
+		canvas.style.display="inline";
+	}
 
 
-		ono3d.lightSources.splice(0,ono3d.lightSources.length);
+	ono3d.lightSources.splice(0,ono3d.lightSources.length);
 
-		lightAmbient = new ono3d.LightSource();
-		ono3d.lightSources.push(lightAmbient);
-		lightAmbient.type =Ono3d.LT_AMBIENT;
-		Vec3.set(lightAmbient.color,0.4,0.4,0.4);
+	lightAmbient = new ono3d.LightSource();
+	ono3d.lightSources.push(lightAmbient);
+	lightAmbient.type =Ono3d.LT_AMBIENT;
+	Vec3.set(lightAmbient.color,0.4,0.4,0.4);
 
-		lightSun= new ono3d.LightSource();
-		ono3d.lightSources.push(lightSun);
-		lightSun.type =Ono3d.LT_DIRECTION;
-		var a = Vec3.poolAlloc();
-		Vec3.set(a,-1,-1,0);
-		Vec3.norm(a);
-		lightSun.matrix[8]=a[0];
-		lightSun.matrix[9]=a[1];
-		lightSun.matrix[10]=a[2];
-		Vec3.poolFree(1);
+	lightSun= new ono3d.LightSource();
+	ono3d.lightSources.push(lightSun);
+	lightSun.type =Ono3d.LT_DIRECTION;
+	var a = Vec3.poolAlloc();
+	Vec3.set(a,-1,-1,0);
+	Vec3.norm(a);
+	lightSun.matrix[8]=a[0];
+	lightSun.matrix[9]=a[1];
+	lightSun.matrix[10]=a[2];
+	Vec3.poolFree(1);
 	
-		shadowTexture=Rastgl.createTexture(null,1024,1024);
-		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+	shadowTexture=Rastgl.createTexture(null,1024,1024);
+	gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-		bufTexture=Rastgl.createTexture(null,1024,1024);
-		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-		
-		onoPhy = new OnoPhy();
-		objMan = new ObjMan();
+	bufTexture=Rastgl.createTexture(null,1024,1024);
+	gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+	
+	onoPhy = new OnoPhy();
+	objMan = new ObjMan();
 
-		inittime=Date.now();
+	inittime=Date.now();
 
-		span=document.getElementById("cons");
+	span=document.getElementById("cons");
 		
 	return ret;
 })()
