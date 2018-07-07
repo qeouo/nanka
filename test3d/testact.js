@@ -815,7 +815,7 @@ var Testact=(function(){
 
 		if(globalParam.shadow){
 			var lightSource = ono3d.lightSources.find(
-				function(a){return a.type===Rastgl.LT_DIRECTION;});
+				function(a){return a.type===Ono3d.LT_DIRECTION;});
 			if(lightSource){
 				camera.calcCollision(camera.cameracol2,lightSource.veiwmatrix);
 			}
@@ -843,7 +843,7 @@ var Testact=(function(){
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 		if(globalParam.shadow){
 			var lightSource = ono3d.lightSources.find(
-				function(a){return a.type===Rastgl.LT_DIRECTION;});
+				function(a){return a.type=== Ono3d.LT_DIRECTION;});
 			if(lightSource){
 
 				
@@ -1210,7 +1210,7 @@ var Testact=(function(){
 
 	lightAmbient = new ono3d.LightSource();
 	ono3d.lightSources.push(lightAmbient);
-	lightAmbient.type =Ono3d.LT_AMBIENT;
+	lightAmbient.type = Ono3d.LT_AMBIENT;
 	Vec3.set(lightAmbient.color,0.4,0.4,0.4);
 
 	lightSun= new ono3d.LightSource();
