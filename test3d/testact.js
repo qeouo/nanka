@@ -718,6 +718,7 @@ var Testact=(function(){
 	var physicsTime;
 	var span;
 	var oldTime = 0;
+	var nowTime =0;
 	var mseccount=0;
 	var framecount=0;
 	var inittime=0;
@@ -725,6 +726,7 @@ var Testact=(function(){
 	var afID=0;
 	var mainloop=function(){
 		
+		nowTime = Date.now()
 		var obj;
 
 		pad[0] = Util.padX + (Util.keyflag[2] || Util.keyflag[10])-(Util.keyflag[0] || Util.keyflag[8]);
@@ -748,10 +750,11 @@ var Testact=(function(){
 		}
 		physicsTime=Date.now()-physicsTime;
 
-		if(afID){
-			window.cancelAnimationFrame(afID);
-		}
-		afID = window.requestAnimationFrame(drawFunc);
+		//if(afID){
+		//	window.cancelAnimationFrame(afID);
+		//}
+		//afID = window.requestAnimationFrame(drawFunc);
+		drawFunc();
 
 	}
 	var parentnode = (function (scripts) {
@@ -760,7 +763,6 @@ var Testact=(function(){
 
 	var drawFunc = function(){
 		afID = 0;
-		var nowTime = Date.now()
 		timer=nowTime-inittime;
 
 		var drawTime=Date.now();
