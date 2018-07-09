@@ -614,10 +614,17 @@ var Testact=(function(){
 							Mat43.dotMat44Mat43(cuboidcol.matrix,ono3d.worldMatrix,m43);
 						}
 						cuboidcol.update();
-						var l = Collider.checkHit(camera.cameracol,cuboidcol);
+						var l = 1;
+						if(AABB.hitCheck(camera.cameracol.AABB,cuboidcol.AABB)){
+							//l=-1;
+							l = Collider.checkHit(camera.cameracol,cuboidcol);
+						}
 						var l2 = 1;
 						if(globalParam.shadow){
-							l2 = Collider.checkHit(camera.cameracol2,cuboidcol);
+							if(AABB.hitCheck(camera.cameracol2.AABB,cuboidcol.AABB)){
+								//l2=-1;
+								l2 = Collider.checkHit(camera.cameracol2,cuboidcol);
+							}
 						}
 						if(l>0 && l2>0){
 							continue;
