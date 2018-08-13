@@ -7,7 +7,6 @@ var Testact=(function(){
 	var objs=[];
 	//var sky=null;
 	var env2dtex=null;
-	var envtexes=null;
 	var shadowTexture;
 	var bufTexture;
 	var emiTexture;
@@ -900,9 +899,11 @@ var Testact=(function(){
 			}else{
 				ono3d.setPers(0.577,HEIGHT/WIDTH*2,1,20);
 				ono3d.setViewport(0,0,WIDTH/2,HEIGHT);
-				Env.env(envtexes[1]);
+				Env2D.draw(env2dtex,0,0,1,0.5);
+				//Env.env(envtexes[1]);
 				ono3d.setViewport(WIDTH/2,0,WIDTH/2,HEIGHT);
-				Env.env(envtexes[1]);
+				Env2D.draw(env2dtex,0,0,1,0.5);
+				//Env.env(envtexes[1]);
 				
 			}
 		}
@@ -917,9 +918,9 @@ var Testact=(function(){
 			//MainShader.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
 			//MainShader2.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
 			if(globalParam.shader===0){
-				MainShader3.draw(ono3d,shadowTexture,env2dtex,camera.p,globalParam.frenel);
+				MainShader3.draw(ono3d,shadowTexture,env2dtex,camera.p);
 			}else{
-				MainShader4.draw(ono3d,shadowTexture,env2dtex,camera.p,globalParam.frenel);
+				MainShader4.draw(ono3d,shadowTexture,env2dtex,camera.p);
 			}
 		}
 		Plain.draw(ono3d);
@@ -1225,13 +1226,6 @@ var Testact=(function(){
 	lightSun= new ono3d.LightSource();
 	ono3d.lightSources.push(lightSun);
 	lightSun.type =Ono3d.LT_DIRECTION;
-	var a = Vec3.poolAlloc();
-	Vec3.set(a,-1,-1,0);
-	Vec3.norm(a);
-	lightSun.matrix[8]=a[0];
-	lightSun.matrix[9]=a[1];
-	lightSun.matrix[10]=a[2];
-	Vec3.poolFree(1);
 	
 	shadowTexture=Rastgl.createTexture(null,1024,1024);
 	gl.bindTexture(gl.TEXTURE_2D, shadowTexture);

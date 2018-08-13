@@ -5,8 +5,7 @@ var Testact=(function(){
 	var gl;
 	var onoPhy=null;
 	var objs=[];
-	var sky=null;
-	var envtexes=null;
+	var env2dtex=null;
 	var shadowTexture;
 	var bufTexture;
 	var emiTexture;
@@ -29,6 +28,9 @@ var Testact=(function(){
 	var objMan;
 	var goMain;
 	var mobj = null;
+
+	var lightSun;
+	var lightAmbient
 
 
 	var ObjMan= (function(){
@@ -333,7 +335,7 @@ var Testact=(function(){
 		ret.prototype.calcCollision=function(){
 			var v4=Vec4.poolAlloc();
 			var im = Mat44.poolAlloc();
-			Mat44.dot(im,ono3d.projectionMat,ono3d.viewMatrix);
+			Mat44.dot(im,ono3d.projectionMatrix,ono3d.viewMatrix);
 			Mat44.getInv(im,im);
 			for(var i=0;i<8;i++){
 				Vec3.copy(v4,scope[i]);
@@ -401,12 +403,12 @@ var Testact=(function(){
 			camera.a[2] +=nangle(this.a[2]-camera.a[2])*0.1;
 
 
-			if(ono3d.lightSources.length>1){
-				var light = ono3d.lightSources[1];
-				Vec3.copy(vec3,light.angle);
-				Vec3.norm(vec3);
-				Vec3.madd(light.pos,mobj.p,vec3,-10);
-			}
+			//if(ono3d.lightSources.length>1){
+			//	var light = ono3d.lightSources[1];
+			//	Vec3.copy(vec3,light.angle);
+			//	Vec3.norm(vec3);
+			//	Vec3.madd(light.pos,mobj.p,vec3,-10);
+			//}
 			Vec3.poolFree(1);
 		}
 		ret.prototype.draw=function(){
@@ -507,40 +509,43 @@ var Testact=(function(){
 				collision.update();
 
 				var light=null;
-				ono3d.lightSources.splice(0,ono3d.lightSources.length);
+				//ono3d.lightSources.splice(0,ono3d.lightSources.length);
 
-				light = new ono3d.LightSource();
-				ono3d.lightSources.push(light);
-				light.type =Ono3d.LT_AMBIENT;
-				Vec3.set(light.color,0.4,0.4,0.4);
+				//light = new ono3d.LightSource();
+				//ono3d.lightSources.push(light);
+				//light.type =Ono3d.LT_AMBIENT;
+				//Vec3.set(light.color,0.4,0.4,0.4);
 
 				var scene = o3o.scenes[0];
+				var m=Mat43.poolAlloc();
+
 				for(var i=0;i<scene.objects.length;i++){
 					var object = scene.objects[i];
 					if(object.type!=="LAMP")continue;
 					var ol = object.data;
-					light = new ono3d.LightSource();
-					ono3d.lightSources.push(light);
+					var element;
 					if(ol.type==="SUN"){
-						light.type = Ono3d.LT_DIRECTION;
+						light = lightSun;
+						element =document.getElementById("lightColor1");
 					}else{
-						light.type = Ono3d.LT_AMBIENT;
+						light = lightAmbient;
+						element =document.getElementById("lightColor2");
 					}
-
-					Vec3.set(light.angle,0,0,-1);
-					var m=Mat43.poolAlloc();
-					Mat43.fromLSE(m,object.location,object.scale,object.rotation);
-					Mat43.dotMat33Vec3(light.angle,m,light.angle);
-					Mat44.dotMat33Vec3(light.angle,ono3d.worldMatrix,light.angle);
-
-					Vec3.set(light.pos,0,0,0);
-					Mat43.dotVec3(light.pos,m,light.pos);
-					Mat44.dotVec3(light.pos,ono3d.worldMatrix,light.pos);
 					light.power=1;
-					Vec3.copy(light.color,ol.color);
-					Vec3.norm(light.angle)
+					element.value=Util.rgb(ol.color[0],ol.color[1],ol.color[2]).slice(1);
+					Util.fireEvent(element,"change");
 
-					Mat43.poolFree(1);
+					Mat43.fromLSE(object.matrix,object.location,object.scale,object.rotation);
+					Mat44.dotMat43(light.matrix,ono3d.worldMatrix,object.matrix);
+					Mat43.fromRotVector(m,Math.PI,1,0,0);
+					Mat44.dotMat43(light.matrix,light.matrix,m);
+
+					ono3d.setOrtho(10.0,10.0,1.0,20.0)
+					var mat44 = ono3d.viewMatrix;//Mat44.poolAlloc();
+					Mat44.getInv(mat44,light.matrix);
+					Mat44.dot(light.viewmatrix,ono3d.projectionMatrix,mat44);
+
+
 				}
 
 				Mat43.poolFree(1);
@@ -865,6 +870,7 @@ var Testact=(function(){
 		globalParam.cRefraction = 1.1;
 		globalParam.cNormal= 1.0;
 		globalParam.cEmi= 0.0;
+		globalParam.shader=0;
 		
 		globalParam.source=0;
 		globalParam.target=0;
@@ -954,6 +960,9 @@ var Testact=(function(){
 		ono3d.lightThreshold1=globalParam.lightThreshold1;
 		ono3d.lightThreshold2=globalParam.lightThreshold2;
 
+		Util.hex2rgb(lightSun.color,globalParam.lightColor1)
+		Util.hex2rgb(lightAmbient.color,globalParam.lightColor2)
+
 	
 		var cMat = O3o.customMaterial;
 		var a=new Vec3();
@@ -986,57 +995,19 @@ var Testact=(function(){
 		O3o.useCustomMaterial = globalParam.cMaterial;
 
 //シャドウマップ描画
-		gl.bindFramebuffer(gl.FRAMEBUFFER,Rastgl.frameBuffer);
-		gl.viewport(0,0,1024,1024);
-		gl.depthMask(true);
-		gl.clearColor(1., 1., 1.,1.0);
-		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		var start = Date.now();
+		camera.calcMatrix();
+		camera.calcCollision(camera.cameracol);
+
 		if(globalParam.shadow){
 			var lightSource = ono3d.lightSources.find(
-				function(a){return a.type===Rastgl.LT_DIRECTION;});
+				function(a){return a.type===Ono3d.LT_DIRECTION;});
 			if(lightSource){
-
-				ono3d.setOrtho(20.0,20.0,1.0,20.0)
-				Mat44.setInit(lightSource.matrix);
-				Mat44.getRotVector(lightSource.matrix,lightSource.angle);
-				var mat44 = ono3d.viewMatrix;//Mat44.poolAlloc();
-				Mat44.setInit(mat44);
-				mat44[12]=-lightSource.pos[0]
-				mat44[13]=-lightSource.pos[1]
-				mat44[14]=-lightSource.pos[2]
-
-				Mat44.dot(mat44,lightSource.matrix,mat44);
-				Mat44.dot(ono3d.pvMat,ono3d.projectionMat,mat44);
-				Mat44.copy(lightSource.matrix,ono3d.pvMat);
-				//Mat44.poolFree(1);
-				
-				camera.calcCollision();
-
-				for(i=0;i<objMan.objs.length;i++){
-					obj = objMan.objs[i];
-					ono3d.setTargetMatrix(1)
-					ono3d.push();
-					ono3d.setTargetMatrix(0)
-					ono3d.loadIdentity()
-					ono3d.rf=0;
-					obj.drawShadow();
-					ono3d.setTargetMatrix(1)
-					ono3d.pop();
-				}
-				gl.enable(gl.DEPTH_TEST);
-				Shadow.draw(ono3d);
+				camera.calcCollision(camera.cameracol2,lightSource.veiwmatrix);
 			}
-			gl.finish();
-			ono3d.clear();
 		}
-
-
-		var start = Date.now();
-
-		camera.calcMatrix();
-		camera.calcCollision();
 		for(i=0;i<objMan.objs.length;i++){
-			obj = objMan.objs[i];
+			var obj = objMan.objs[i];
 			ono3d.setTargetMatrix(1)
 			ono3d.push();
 			ono3d.setTargetMatrix(0)
@@ -1046,10 +1017,40 @@ var Testact=(function(){
 			ono3d.setTargetMatrix(1)
 			ono3d.pop();
 		}
+
 		var drawgeometry=Date.now()-start;
 
 		start=Date.now();
 
+		gl.bindFramebuffer(gl.FRAMEBUFFER,Rastgl.frameBuffer);
+		ono3d.setViewport(0,0,1024,1024);
+		gl.depthMask(true);
+		gl.clearColor(1., 1., 1.,1.0);
+		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+		if(globalParam.shadow){
+			var lightSource = ono3d.lightSources.find(
+				function(a){return a.type=== Ono3d.LT_DIRECTION;});
+			if(lightSource){
+
+				
+				//camera.calcCollision(camera.cameracol2,lightSource.veiwmatrix);
+
+				//for(i=0;i<objMan.objs.length;i++){
+				//	obj = objMan.objs[i];
+				//	ono3d.setTargetMatrix(1)
+				//	ono3d.push();
+				//	ono3d.setTargetMatrix(0)
+				//	ono3d.loadIdentity()
+				//	ono3d.rf=0;
+				//	obj.drawShadow();
+				//	ono3d.setTargetMatrix(1)
+				//	ono3d.pop();
+				//}
+				Shadow.draw(ono3d,lightSource.viewmatrix);
+
+				//ono3d.clear();
+			}
+		}
 		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
 		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1024,1024);
 		
@@ -1066,17 +1067,18 @@ var Testact=(function(){
 		gl.depthMask(false);
 		gl.colorMask(true,true,true,true);
 		gl.disable(gl.BLEND);
-		if(sky.gltexture){
+
+		if(env2dtex){
 			if(globalParam.stereomode==0){
 				ono3d.setPers(0.577,HEIGHT/WIDTH,1,20);
-				gl.viewport(0,0,WIDTH,HEIGHT);
-				Env.env(envtexes[1]);
+				ono3d.setViewport(0,0,WIDTH,HEIGHT);
+				Env2D.draw(env2dtex,0,0,1,0.5);
 			}else{
 				ono3d.setPers(0.577,HEIGHT/WIDTH*2,1,20);
-				gl.viewport(0,0,WIDTH/2,HEIGHT);
-				Env.env(envtexes[1]);
-				gl.viewport(WIDTH/2,0,WIDTH/2,HEIGHT);
-				Env.env(envtexes[1]);
+				ono3d.setViewport(0,0,WIDTH/2,HEIGHT);
+				Env2D.draw(env2dtex,0,0,1,0.5);
+				ono3d.setViewport(WIDTH/2,0,WIDTH/2,HEIGHT);
+				Env2D.draw(env2dtex,0,0,1,0.5);
 				
 			}
 		}
@@ -1087,8 +1089,12 @@ var Testact=(function(){
 		gl.enable(gl.DEPTH_TEST);
 		ono3d.setViewport(0,0,WIDTH,HEIGHT);
 
-		if(envtexes){
-			MainShader.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
+		if(env2dtex){
+			if(globalParam.shader===0){
+				MainShader3.draw(ono3d,shadowTexture,env2dtex,camera.p);
+			}else{
+				MainShader4.draw(ono3d,shadowTexture,env2dtex,camera.p);
+			}
 		}
 		Plain.draw(ono3d);
 		gl.finish();
@@ -1097,40 +1103,42 @@ var Testact=(function(){
 
 
 		if(globalParam.hdr){
-			//描画結果をメインのバッファにコピー
-			gl.depthMask(false);
-			gl.disable(gl.DEPTH_TEST);
-			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-			gl.clearColor(0.0,0.0,0.0,0.0);
-			gl.clear(gl.COLOR_BUFFER_BIT);
+			//疑似HDRぼかし(α値が0が通常、1に近いほど光る)
+
+			//描画結果をバッファにコピー
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 			gl.bindTexture(gl.TEXTURE_2D, bufTexture);
 			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
 
-			var emiSize=0.25;
-			//疑似HDRぼかし(α値が0が通常、1に近いほど光る)
+			var emiSize=0.5;
 			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-			gl.viewport(0,0,WIDTH*emiSize,HEIGHT*emiSize);
+			ono3d.setViewport(0,0,WIDTH*emiSize,HEIGHT*emiSize);
 			gl.depthMask(false);
-			gl.clearColor(0.0,0.0,0.0,0.0);
+			gl.disable(gl.DEPTH_TEST);
+			gl.disable(gl.BLEND);
+			Rastgl.copyframe(bufTexture ,0,0 ,WIDTH/1024,HEIGHT/1024); //今回結果を書き込み
+			gl.enable(gl.BLEND);
+			gl.blendFuncSeparate(gl.CONSTANT_ALPHA,gl.DST_ALPHA,gl.ZERO,gl.ZERO);
+			gl.blendColor(0,0,0,0.4);
+			Rastgl.copyframe(emiTexture ,0,0 ,WIDTH/1024,HEIGHT/1024); //前回の結果を重ねる
+			gl.bindTexture(gl.TEXTURE_2D, emiTexture);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH*emiSize,HEIGHT*emiSize);//結果を光テクスチャに書き込み
+
+			gl.clearColor(0.0,0.0,0.0,1.0);
 			gl.clear(gl.COLOR_BUFFER_BIT);
 			gl.disable(gl.DEPTH_TEST);
 			gl.disable(gl.BLEND);
-			Rastgl.copyframe(bufTexture,0,0,WIDTH/1024,HEIGHT/1024); //今回の
-			gl.enable(gl.BLEND);
-			gl.blendFuncSeparate(gl.CONSTANT_ALPHA,gl.DST_ALPHA,gl.ZERO,gl.ZERO);
-			gl.blendColor(0,0,0,0.7);
-			Rastgl.copyframe(emiTexture,0,0,WIDTH/1024*emiSize,HEIGHT/1024*emiSize); //既存の光テクスチャを重ねる
-			gl.disable(gl.BLEND);
-			gl.bindTexture(gl.TEXTURE_2D, emiTexture);
-			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH*emiSize,HEIGHT*emiSize);//結果を光テクスチャに書き込み
-			Gauss.filter(emiTexture,emiTexture,10,2.0/1024,1024.0*emiSize); //光テクスチャをぼかす
+			Gauss.filter(WIDTH*emiSize,HEIGHT*emiSize,10
+				,emiTexture,0,0,WIDTH*emiSize/512,HEIGHT*emiSize/512,512,512); //光テクスチャをぼかす
+			
+			gl.bindTexture(gl.TEXTURE_2D,emiTexture);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH*emiSize,HEIGHT*emiSize);
 
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-			gl.viewport(0,0,WIDTH,HEIGHT);
+			ono3d.setViewport(0,0,WIDTH,HEIGHT);
 			gl.enable(gl.BLEND);
 			gl.blendFunc(gl.ONE,gl.ONE);
-			Rastgl.copyframe(emiTexture,0,0,WIDTH/1024*emiSize,HEIGHT/1024*emiSize); //メイン画面に合成
+			Rastgl.copyframe(emiTexture,0,0,WIDTH/1024,HEIGHT/1024); //メイン画面に合成
 		}
 //メインのバッファのアルファ値を1にする
 		gl.viewport(0,0,WIDTH,HEIGHT);
@@ -1206,39 +1214,61 @@ var Testact=(function(){
 	ret.start = function(){
 		var select = document.getElementById("cTexture");
 		var option;
-		//soundbuffer = WebAudio.loadSound('se.mp3');
-		sky = Ono3d.loadCubemap("skybox.jpg",function(image){
+
+		Ono3d.loadTexture("sky.jpg",function(image){
 			var envsize=16;
+			gl.colorMask(true,true,true,true);
+			gl.disable(gl.BLEND);
+			gl.disable(gl.DEPTH_TEST);
+			env2dtex= Rastgl.createTexture(null,1024,1024);
+			gl.clearColor(1.0,0.0,0.0,1.0);
+			gl.clear(gl.COLOR_BUFFER_BIT);
+			gl.bindTexture(gl.TEXTURE_2D,env2dtex);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1024,1024);
 
-			var envs=[0.1,0.2,0.4,0.8,1.0];
 			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-			envtexes=[];
-			envtexes.push(0);
-			envtexes.push(image.gltexture);
-			
+			EnvSet2D.draw(image.gltexture,image.width,image.height);
+			gl.bindTexture(gl.TEXTURE_2D, image.gltexture);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,image.width,image.height);
 
-			envsize=image.images[0].width;
-			envsize=16;
 			var envsizeorg=envsize;
-			var ii=1;
-			var fazy=Math.atan2(envsizeorg/envsize,envsizeorg*0.5)/(Math.PI*0.5)*2.0;
-			for(var i=0;i<envs.length;i++){
-				var tex = gl.createTexture();
-				gl.bindTexture(gl.TEXTURE_CUBE_MAP,tex);
+			var width=image.width;
+			var height=image.height;
+			var rough=0.125;
 
-				Rough.draw(tex,image.gltexture,envs[i],envsizeorg,envsizeorg);
-				var tex2 = gl.createTexture();
-				gl.bindTexture(gl.TEXTURE_CUBE_MAP,tex2);
-				Rough.draw(tex2,tex,fazy,envsize,envsize);
-				envtexes.push(envs[i]);
-				envtexes.push(tex2);
+			gl.bindTexture(gl.TEXTURE_2D,env2dtex);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,width,height);
+			width>>=1;
+			height>>=1;
+
+			var envs=[0.06,0.24,0.54,1.0];
+			for(var i=0;i<envs.length;i++){
+				rough=envs[i];
+				var tex = Rastgl.createTexture(0,width,height);
+
+				ono3d.setViewport(0,0,width,height);
+				Rough2D.draw(width,height,rough,image.gltexture);
+
+				gl.bindTexture(gl.TEXTURE_2D,tex);
+				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,width,height);
+				
+				Gauss.filter(width,height,10,tex,0,0,1,1,width,height); 
+
+				gl.bindTexture(gl.TEXTURE_2D,env2dtex);
+				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,1024-height*2,0,0,width,height);
+				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,width,1024-height*2,0,0,width,height);
+				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,1024-width,1024-height*2,0,0,width,height);
+				width>>=1;
+				height>>=1;
 
 			}
 			
 			gl.bindTexture(gl.TEXTURE_2D, null);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		});
-		emiTexture = Rastgl.createTexture(null,1024,1024);
+		emiTexture = Rastgl.createTexture(null,512,512);
 
 		
 		Util.setFps(globalParam.fps,mainloop);
@@ -1326,6 +1356,18 @@ var Testact=(function(){
 			canvasgl.style.display="none";
 			canvas.style.display="inline";
 		}
+
+		ono3d.lightSources.splice(0,ono3d.lightSources.length);
+
+		lightAmbient = new ono3d.LightSource();
+		ono3d.lightSources.push(lightAmbient);
+		lightAmbient.type = Ono3d.LT_AMBIENT;
+		Vec3.set(lightAmbient.color,0.4,0.4,0.4);
+
+		lightSun= new ono3d.LightSource();
+		ono3d.lightSources.push(lightSun);
+		lightSun.type =Ono3d.LT_DIRECTION;
+
 
 		gl.clearColor(1, 1, 1,1.0);
 		gl.clearColor(0.0,0.0,0.0,1.0);
