@@ -1,4 +1,18 @@
 "use strict"
+	var defObj = (function(){
+		var defObj = function(){};
+		var ret = defObj;
+		ret.prototype.init=function(){};
+		ret.prototype.move=function(){};
+		ret.prototype.draw=function(){};
+		ret.prototype.drawShadow=function(){
+			this.draw();
+		};
+		ret.prototype.hit=function(){};
+		ret.prototype.delete=function(){};
+		ret.prototype.drawhud=function(){};
+		return ret;
+	})();
 var Testact=(function(){
 	var ret={};
 	var HEIGHT=540,WIDTH=960;
@@ -10,21 +24,22 @@ var Testact=(function(){
 	var emiTexture;
 	var bdf;
 	var bdfimage=null;
-	var bane= null;
 	var soundbuffer=null;
-	var tsukamiZ=100;
 
 	var obj3d=null,field=null;
-	var goField,goCamera;
+	var goField
+		,goCamera
+		,goJiki
+		,goMain
+	;
+	var objMan;
 
 	var i;
 	var pad =new Vec2();
+	ret.pad = pad;
 
 	var txt="STAGE CLEAR!!";
 	var txt2="ALL CLEAR!!";
-	var objMan;
-	var goMain;
-	var mobj = null;
 
 	var lightSun;
 	var lightAmbient
@@ -153,20 +168,6 @@ var Testact=(function(){
 	})();
 	
 
-	var defObj = (function(){
-		var defObj = function(){};
-		var ret = defObj;
-		ret.prototype.init=function(){};
-		ret.prototype.move=function(){};
-		ret.prototype.draw=function(){};
-		ret.prototype.drawShadow=function(){
-			this.draw();
-		};
-		ret.prototype.hit=function(){};
-		ret.prototype.delete=function(){};
-		ret.prototype.drawhud=function(){};
-		return ret;
-	})();
 
 	var stage =0;
 	var stages=[
@@ -352,28 +353,29 @@ var Testact=(function(){
 		return ret;
 	})();
 	var camera = new Camera();
+	ret.camera = camera;
 
 	var GoCamera= (function(){
 		var GoCamera=function(){};
 		var ret = GoCamera;
 		inherits(ret,defObj);
 		ret.prototype.init=function(){
-
 			//onoPhy.collider.hitcheck(Collider.SPHERE,this.p);
 		}
 		ret.prototype.move=function(){
 
-			if(!mobj){
+			if(!goJiki){
 				return;
 			}
 			var vec3=Vec3.poolAlloc();
-			Vec3.copy(vec3,mobj.p);
+			Vec3.copy(vec3,goJiki.p);
 
-			var cameralen = Vec3.len(this.p,vec3);
+			var cameralen = 5;//Vec3.len(this.p,vec3);
+			camera.zoom=0.6;
 
-			if(Util.pressOn && !bane){
-				this.a[1]+=(-(Util.cursorX-Util.oldcursorX)/WIDTH);
-				this.a[0]+=(-(Util.cursorY-Util.oldcursorY)/HEIGHT);
+			if(Util.pressOn){
+				this.a[1]+=(-(Util.cursorX-Util.oldcursorX)/WIDTH)*2;
+				this.a[0]+=(-(Util.cursorY-Util.oldcursorY)/HEIGHT)*2;
 
 			}
 			this.a[0] =Math.min(this.a[0],Math.PI/2);
@@ -384,7 +386,7 @@ var Testact=(function(){
 			this.p[2]=Math.cos(this.a[1])*this.p[2];
 
 			Vec3.mul(this.p,this.p,-cameralen);
-			Vec3.add(this.p,this.p,mobj.p);
+			Vec3.add(this.p,this.p,goJiki.p);
 
 			camera.p[0]+=(this.p[0]-camera.p[0])*0.1
 			camera.p[1]+=(this.p[1]-camera.p[1])*0.1
@@ -429,23 +431,26 @@ var Testact=(function(){
 		ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
 
 		var start = o3o.objectsN["_start"];
-		Mat44.dotVec3(mobj.p,ono3d.worldMatrix,start.location);
+		Mat44.dotVec3(goJiki.p,ono3d.worldMatrix,start.location);
 		var m = Mat44.poolAlloc();
 		Mat44.setInit(m);
 		Mat44.dotMat43(m,m,start.matrix);
 		Mat44.dot(m,ono3d.worldMatrix,m);
-		Vec4.fromMat44(mobj.rotq,m);
+		Vec4.fromMat44(goJiki.rotq,m);
 
 		Mat44.poolFree(1);
 
-		if(mobj.phyObjs.length){
-			Vec3.copy(mobj.phyObjs[0].location,mobj.p);
+		if(goJiki.phyObjs.length){
+			Vec3.copy(goJiki.phyObjs[0].location,goJiki.p);
 		}
 
-		Vec3.set(goCamera.p,0,6,2)
-		var start = o3o.objectsN["_start"];
-		Mat43.dotVec3(goCamera.p,start.matrix,goCamera.p);
-		Mat44.dotVec3(goCamera.p,ono3d.worldMatrix,goCamera.p);
+		//Vec3.set(goCamera.p,0,6,2)
+		//var start = o3o.objectsN["_start"];
+		//Mat43.dotVec3(goCamera.p,start.matrix,goCamera.p);
+		//Mat44.dotVec3(goCamera.p,ono3d.worldMatrix,goCamera.p);
+		//Vec3.set(goCamera.a,start.rotation);
+		goCamera.a[1]=start.rotation[2];
+		Vec3.copy(goCamera.p,goJiki.p);
 
 	}
 	var GoField= (function(){
@@ -465,11 +470,12 @@ var Testact=(function(){
 				t.phyObjs= O3o.createPhyObjs(o3o.scenes[0],onoPhy);
 
 				ono3d.push();
-				mobj=objMan.createObj(GoJiki);
+				goJiki=objMan.createObj(GoJiki);
 				ono3d.pop();
 
 				reset();
 				Vec3.copy(camera.p,goCamera.p)
+				Vec3.copy(camera.a,goCamera.a)
 
 				Vec3.set(camera.a,0,Math.PI,0)
 
@@ -647,10 +653,9 @@ var Testact=(function(){
 
 	var sourceArmature=null;
 	var referenceArmature=null;
-	var motionT=0;
 
 
-	var assetload = function(obj3d,path,func){
+	ret.assetload = function(obj3d,path,func){
 		if(obj3d){
 			func(obj3d);
 			return obj3d;
@@ -659,185 +664,6 @@ var Testact=(function(){
 
 	}
 
-	var groundNormal = new Vec3();
-	var groundVelocity = new Vec3();
-	var GoJiki = (function(){
-		var GoJiki =function(){
-		};
-		var ret = GoJiki;
-		inherits(ret,defObj);
-
-		ret.prototype.init = function(){
-			var obj = this;
-
-			var t=this;
-			obj3d = assetload(obj3d,"human.o3o",function(obj3d){
-				var o3o= obj3d;
-				for(var i=0;i<obj3d.objects.length;i++){
-					var object=obj3d.objects[i];
-				}
-
-				sourceArmature= new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
-				referenceArmature= new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
-
-				ono3d.setTargetMatrix(0);
-				ono3d.loadIdentity();
-				ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
-				ono3d.translate(obj.p[0],obj.p[1],obj.p[2]);
-				t.phyObjs= O3o.createPhyObjs(o3o.scenes[0],onoPhy);
-				var phyObj = t.phyObjs[0];
-				Vec3.copy(phyObj.location,t.p);
-				Mat33.set(phyObj.inertiaTensorBase,1,0,0,0,1,0,0,0,1);
-				Mat33.mul(phyObj.inertiaTensorBase,phyObj.inertiaTensorBase,99999999);
-
-				phyObj.collision.groups|=3;
-				phyObj.collision.callbackFunc=function(col1,col2,pos1,pos2){
-					if(col2.name==="border"){
-						reset();
-						return;
-					}
-					if(!col2.parent){
-						return;
-					}
-					var vec3 = Vec3.poolAlloc();
-					Vec3.sub(vec3,pos2,pos1);
-					Vec3.norm(vec3);
-					if(vec3[1]>0.8){
-						mobj.ground=true;//接地フラグ
-						Vec3.copy(groundNormal,vec3);//接触点角度
-						//接触点速度
-						var phyObj = col2.parent;
-						phyObj.calcVelocity(groundVelocity,pos1);
-
-					}
-					Vec3.poolFree(1);
-				};
-			});
-			Vec4.fromRotVector(this.rotq,-Math.PI*0.5,1,0,0);
-		}
-		ret.prototype.move=function(){
-			var obj = this;
-			if(obj3d.scenes.length===0){
-				return;
-			}
-			var phyObj = this.phyObjs[0];
-			Vec3.copy(this.p,phyObj.location);
-
-			var vec = Vec3.poolAlloc();
-			var mat43 = Mat43.poolAlloc();
-			vec[0]=pad[0];
-			vec[2]=pad[1];
-			vec[1]=0;
-			var l = Vec3.scalar(vec);
-			Mat43.fromRotVector(mat43,camera.a[1]-Math.PI,0,1,0)
-			Mat43.dotVec3(vec,mat43,vec);
-
-			if(vec[0]*vec[0] + vec[2]*vec[2]){
-				var r = Math.atan2(vec[0],vec[2]);
-				var q = Vec4.poolAlloc();
-				Vec4.fromRotVector(this.rotq,-Math.PI*0.5,1,0,0);
-				Vec4.fromRotVector(q,r,0,1,0);
-				Vec4.qdot(this.rotq,q,this.rotq);
-				Vec4.poolFree(1);
-			}
-			Vec4.copy(phyObj.rotq,this.rotq);
-
-			var v2 = Vec3.poolAlloc();
-			if(this.ground){
-				Vec3.cross(vec,groundNormal,vec);
-				Vec3.cross(vec,vec,groundNormal);
-				Vec3.norm(vec);
-
-				Vec3.mul(vec,vec,4*l);
-				Vec3.sub(v2,phyObj.v,groundVelocity);
-				Vec3.sub(v2,vec,v2);
-				Vec3.mul(vec,v2,0.1);
-
-
-			}else{
-				Vec3.mul(vec,vec,0.05);
-			}
-			Vec3.poolFree(1);
-			vec[1]=0;
-
-			if(Util.keyflag[4]==1 && !Util.keyflagOld[4] && this.ground){
-				vec[1]=6;
-			}
-			Vec3.add(phyObj.v,phyObj.v,vec);
-
-			Mat43.poolFree(1);
-			Vec3.poolFree(1);
-
-
-			var l = phyObj.v[0]*phyObj.v[0] + phyObj.v[2]*phyObj.v[2];
-			if(l>0.1 && this.ground){
-				motionT+=16;
-			}	
-
-			this.ground=false;//接地フラグ
-		}
-		ret.prototype.draw=function(){
-
-			ono3d.setTargetMatrix(0)
-			ono3d.loadIdentity();
-			ono3d.rotate(-Math.PI*0.5,1,0,0)
-
-			ono3d.rf=0;
-			ono3d.lineWidth=1.2;
-			ono3d.rf|=Ono3d.RF_OUTLINE;
-			if(obj3d.scenes.length){
-				var phyObj = this.phyObjs[0];
-
-				var oldT = motionT/1000;
-				var T = motionT/1000;
-				var d = (T|0) - (oldT|0);
-
-				var dst = obj3d.objectsN["アーマチュア"].poseArmature;
-				sourceArmature.reset();
-				referenceArmature.reset();
-
-				sourceArmature.setAction(obj3d.actions[1],motionT/1000.0*24);
-				referenceArmature.setAction(obj3d.actions[2],motionT/1000.0*24);
-			
-				var vec3 = Vec3.poolAlloc();
-				Vec3.set(vec3,0,0,0);
-				if(mobj.ground){
-					var vec4 = Vec4.poolAlloc();
-					Vec4.qmul(vec4,phyObj.rotq,-1);
-					Vec3.sub(vec3,phyObj.v,groundVelocity);
-					Vec4.rotVec3(vec3,vec4,vec3);
-					Vec4.poolFree(1);
-				}
-
-
-
-				dst.setAction(obj3d.actions[0],0);
-				O3o.PoseArmature.sub(sourceArmature,sourceArmature,dst);
-				O3o.PoseArmature.sub(referenceArmature,referenceArmature,dst);
-				O3o.PoseArmature.mul(sourceArmature,sourceArmature,vec3[1]*0.3);
-				O3o.PoseArmature.mul(referenceArmature,referenceArmature,vec3[0]*0.3);
-				O3o.PoseArmature.add(dst,referenceArmature,dst);
-				O3o.PoseArmature.add(dst,sourceArmature,dst);
-
-				Vec3.poolFree(1);
-
-				ono3d.loadIdentity();
-				var m = Mat43.poolAlloc();
-				Mat43.fromLSR(m,phyObj.location,phyObj.scale,phyObj.rotq);
-				Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
-
-
-				var e =obj3d.objectsN["jiki"];
-				Mat43.getInv(m,e.mixedmatrix);
-				Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
-				O3o.drawObject(obj3d.objectsN["human"]);
-				Mat43.poolFree(1);
-
-			}
-		}
-		return ret;
-		//return defObj(obj,msg,param);
-	})();
 		var url=location.search.substring(1,location.search.length)
 		globalParam.outlineWidth=0;
 		globalParam.outlineColor="000000";
@@ -1015,11 +841,11 @@ var Testact=(function(){
 
 		if(env2dtex){
 			if(globalParam.stereomode==0){
-				ono3d.setPers(0.577,HEIGHT/WIDTH,1,20);
+				ono3d.setPers(camera.zoom,HEIGHT/WIDTH,1,20);
 				ono3d.setViewport(0,0,WIDTH,HEIGHT);
 				Env2D.draw(env2dtex,0,0,1,0.5);
 			}else{
-				ono3d.setPers(0.577,HEIGHT/WIDTH*2,1,20);
+				ono3d.setPers(camera.zoom,HEIGHT/WIDTH*2,1,20);
 				ono3d.setViewport(0,0,WIDTH/2,HEIGHT);
 				Env2D.draw(env2dtex,0,0,1,0.5);
 				ono3d.setViewport(WIDTH/2,0,WIDTH/2,HEIGHT);
@@ -1154,6 +980,7 @@ var Testact=(function(){
 				sceneSelect.appendChild(option);
 			}
 		});
+		ret.obj3d = obj3d;
 		
 	}
 	ret.start = function(){
@@ -1281,6 +1108,7 @@ var Testact=(function(){
 		Util.enableVirtualPad=true;
 		Util.init(canvas,canvasgl,parentnode);
 		var ono3d = new Ono3d()
+		ret.ono3d = ono3d;
 		O3o.setOno3d(ono3d)
 		ono3d.init(canvas,ctx);
 
@@ -1330,6 +1158,7 @@ var Testact=(function(){
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 		
 		onoPhy = new OnoPhy();
+		ret.onoPhy = onoPhy;
 		objMan = new ObjMan();
 
 		goMain = objMan.createObj(GoMain);
