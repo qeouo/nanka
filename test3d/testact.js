@@ -1189,7 +1189,6 @@ var Testact=(function(){
 	gl = canvasgl.getContext('webgl') || canvasgl.getContext('experimental-webgl');
 
 
-	Util.enablePad = 0;
 	Util.init(canvas,canvasgl,parentnode);
 	var ono3d = new Ono3d()
 	O3o.setOno3d(ono3d)

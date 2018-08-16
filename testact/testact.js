@@ -4,13 +4,10 @@ var Testact=(function(){
 	var HEIGHT=540,WIDTH=960;
 	var gl;
 	var onoPhy=null;
-	var objs=[];
 	var env2dtex=null;
 	var shadowTexture;
 	var bufTexture;
 	var emiTexture;
-	var customTextures=[];
-	var customBumps=[];
 	var bdf;
 	var bdfimage=null;
 	var bane= null;
@@ -121,7 +118,7 @@ var Testact=(function(){
 			}
 		}
 		ret.prototype.update=function(){
-			objs = this.objs;
+			var objs = this.objs;
 			for(var i=0;i<this.objs.length;i++){
 
 				if(objs[i].stat===STAT_CREATE){
@@ -365,29 +362,34 @@ var Testact=(function(){
 			//onoPhy.collider.hitcheck(Collider.SPHERE,this.p);
 		}
 		ret.prototype.move=function(){
+
 			if(!mobj){
 				return;
 			}
+			var vec3=Vec3.poolAlloc();
+			Vec3.copy(vec3,mobj.p);
 
-			var v3 = Vec3.poolAlloc();
-			Vec3.set(v3,0,6,1);
-			Mat43.dotVec3(v3,mobj.phyObjs[0].matrix,v3);
-			Vec3.sub(v3,v3,this.p);
-			Vec3.madd(this.p,this.p,v3,0.02);
+			var cameralen = Vec3.len(this.p,vec3);
 
+			if(Util.pressOn && !bane){
+				this.a[1]+=(-(Util.cursorX-Util.oldcursorX)/WIDTH);
+				this.a[0]+=(-(Util.cursorY-Util.oldcursorY)/HEIGHT);
 
-			Vec3.poolFree(1);
-			//onoPhy.collider.hitcheck(Collider.SPHERE,this.p);
-			Vec3.sub(this.p,this.p,mobj.p);
-			Vec3.norm(this.p);
-			Vec3.madd(this.p,mobj.p,this.p,6);
+			}
+			this.a[0] =Math.min(this.a[0],Math.PI/2);
+			this.a[0] =Math.max(this.a[0],-Math.PI/2);
+			this.p[2]=Math.cos(this.a[0]);
+			this.p[1]=Math.sin(this.a[0]);
+			this.p[0]=Math.sin(this.a[1])*this.p[2];
+			this.p[2]=Math.cos(this.a[1])*this.p[2];
 
+			Vec3.mul(this.p,this.p,-cameralen);
+			Vec3.add(this.p,this.p,mobj.p);
 
 			camera.p[0]+=(this.p[0]-camera.p[0])*0.1
 			camera.p[1]+=(this.p[1]-camera.p[1])*0.1
 			camera.p[2]+=(this.p[2]-camera.p[2])*0.1
-			var vec3=Vec3.poolAlloc();
-			Vec3.copy(vec3,mobj.p);
+
 			homingCamera(this.a,vec3,this.p);
 			var nangle=function(a){
 				if(a>Math.PI){a-=Math.PI*2};
@@ -403,12 +405,6 @@ var Testact=(function(){
 			camera.a[2] +=nangle(this.a[2]-camera.a[2])*0.1;
 
 
-			//if(ono3d.lightSources.length>1){
-			//	var light = ono3d.lightSources[1];
-			//	Vec3.copy(vec3,light.angle);
-			//	Vec3.norm(vec3);
-			//	Vec3.madd(light.pos,mobj.p,vec3,-10);
-			//}
 			Vec3.poolFree(1);
 		}
 		ret.prototype.draw=function(){
@@ -872,10 +868,6 @@ var Testact=(function(){
 		globalParam.cEmi= 0.0;
 		globalParam.shader=0;
 		
-		globalParam.source=0;
-		globalParam.target=0;
-		globalParam.reference=0;
-		globalParam.actionAlpha=0;
 
 		var args=url.split("&")
 
@@ -964,36 +956,6 @@ var Testact=(function(){
 		Util.hex2rgb(lightAmbient.color,globalParam.lightColor2)
 
 	
-		var cMat = O3o.customMaterial;
-		var a=new Vec3();
-		Util.hex2rgb(a,globalParam.cColor);
-		cMat.r=a[0];
-		cMat.g=a[1];
-		cMat.b=a[2];
-		cMat.a=globalParam.cAlpha;
-		cMat.emt=globalParam.cEmi;
-		cMat.reflect=globalParam.cReflection;
-		cMat.refract=globalParam.cRefraction;
-		cMat.rough=globalParam.cRoughness;
-		Util.hex2rgb(cMat.reflectionColor,globalParam.cReflectionColor);
-		cMat.texture=globalParam.cRoughness;
-		cMat.texture_slots=[];
-		if(globalParam.cTexture>=0){
-			var texture_slot = new O3o.Texture_slot();
-
-			cMat.texture_slots.push(texture_slot);
-			texture_slot.texture = customTextures[globalParam.cTexture];
-		}
-		if(globalParam.cBump>=0){
-			var texture_slot = new O3o.Texture_slot();
-
-			cMat.texture_slots.push(texture_slot);
-			texture_slot.texture = customBumps[globalParam.cBump];
-			texture_slot.normal= globalParam.cNormal;
-		}
-
-		O3o.useCustomMaterial = globalParam.cMaterial;
-
 //シャドウマップ描画
 		var start = Date.now();
 		camera.calcMatrix();
@@ -1031,24 +993,7 @@ var Testact=(function(){
 			var lightSource = ono3d.lightSources.find(
 				function(a){return a.type=== Ono3d.LT_DIRECTION;});
 			if(lightSource){
-
-				
-				//camera.calcCollision(camera.cameracol2,lightSource.veiwmatrix);
-
-				//for(i=0;i<objMan.objs.length;i++){
-				//	obj = objMan.objs[i];
-				//	ono3d.setTargetMatrix(1)
-				//	ono3d.push();
-				//	ono3d.setTargetMatrix(0)
-				//	ono3d.loadIdentity()
-				//	ono3d.rf=0;
-				//	obj.drawShadow();
-				//	ono3d.setTargetMatrix(1)
-				//	ono3d.pop();
-				//}
 				Shadow.draw(ono3d,lightSource.viewmatrix);
-
-				//ono3d.clear();
 			}
 		}
 		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
@@ -1333,6 +1278,7 @@ var Testact=(function(){
 		var ctx=canvas.getContext("2d");
 		gl = canvasgl.getContext('webgl') || canvasgl.getContext('experimental-webgl');
 
+		Util.enableVirtualPad=true;
 		Util.init(canvas,canvasgl,parentnode);
 		var ono3d = new Ono3d()
 		O3o.setOno3d(ono3d)
