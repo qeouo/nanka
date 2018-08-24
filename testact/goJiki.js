@@ -1,11 +1,12 @@
 	var GoJiki = (function(){
+		var ono3d = Testact.ono3d;
 		var groundNormal = new Vec3();
 		var groundVelocity = new Vec3();
+		var jikiPhy = null;
 		var obj3d;
-		var ono3d = Testact.ono3d;
 		var motionT=0;
-		var GoJiki =function(){
-		};
+
+		var GoJiki =function(){};
 		var ret = GoJiki;
 		inherits(ret,defObj);
 
@@ -27,13 +28,13 @@
 				ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
 				ono3d.translate(obj.p[0],obj.p[1],obj.p[2]);
 				t.phyObjs= O3o.createPhyObjs(o3o.scenes[0],Testact.onoPhy);
-				var phyObj = t.phyObjs[0];
-				Vec3.copy(phyObj.location,t.p);
-				Mat33.set(phyObj.inertiaTensorBase,1,0,0,0,1,0,0,0,1);
-				Mat33.mul(phyObj.inertiaTensorBase,phyObj.inertiaTensorBase,99999999);
+				jikiPhy = t.phyObjs.find(function(o){return o.name ==="jiki"});
+				Vec3.copy(jikiPhy.location,t.p);
+				Mat33.set(jikiPhy.inertiaTensorBase,1,0,0,0,1,0,0,0,1);
+				Mat33.mul(jikiPhy.inertiaTensorBase,jikiPhy.inertiaTensorBase,99999999);
 
-				phyObj.collision.groups|=3;
-				phyObj.collision.callbackFunc=function(col1,col2,pos1,pos2){
+				jikiPhy.collision.groups|=3;
+				jikiPhy.collision.callbackFunc=function(col1,col2,pos1,pos2){
 					if(col2.name==="border"){
 						reset();
 						return;
@@ -62,8 +63,7 @@
 			if(obj3d.scenes.length===0){
 				return;
 			}
-			var phyObj = this.phyObjs[0];
-			Vec3.copy(this.p,phyObj.location);
+			Vec3.copy(this.p,jikiPhy.location);
 
 			var vec = Vec3.poolAlloc();
 			var mat43 = Mat43.poolAlloc();
@@ -82,7 +82,7 @@
 				Vec4.qdot(this.rotq,q,this.rotq);
 				Vec4.poolFree(1);
 			}
-			Vec4.copy(phyObj.rotq,this.rotq);
+			Vec4.copy(jikiPhy.rotq,this.rotq);
 
 			var v2 = Vec3.poolAlloc();
 			if(this.ground){
@@ -91,7 +91,7 @@
 				Vec3.norm(vec);
 
 				Vec3.mul(vec,vec,4*l);
-				Vec3.sub(v2,phyObj.v,groundVelocity);
+				Vec3.sub(v2,jikiPhy.v,groundVelocity);
 				Vec3.sub(v2,vec,v2);
 				Vec3.mul(vec,v2,0.1);
 
@@ -105,13 +105,13 @@
 			if(Util.keyflag[4]==1 && !Util.keyflagOld[4] && this.ground){
 				vec[1]=6;
 			}
-			Vec3.add(phyObj.v,phyObj.v,vec);
+			Vec3.add(jikiPhy.v,jikiPhy.v,vec);
 
 			Mat43.poolFree(1);
 			Vec3.poolFree(1);
 
 
-			var l = phyObj.v[0]*phyObj.v[0] + phyObj.v[2]*phyObj.v[2];
+			var l = jikiPhy.v[0]*jikiPhy.v[0] + jikiPhy.v[2]*jikiPhy.v[2];
 			if(l>0.1 && this.ground){
 				motionT+=16;
 			}	
@@ -128,7 +128,6 @@
 			ono3d.lineWidth=1.2;
 			ono3d.rf|=Ono3d.RF_OUTLINE;
 			if(obj3d.scenes.length){
-				var phyObj = this.phyObjs[0];
 
 				var oldT = motionT/1000;
 				var T = motionT/1000;
@@ -145,8 +144,8 @@
 				Vec3.set(vec3,0,0,0);
 				if(this.ground){
 					var vec4 = Vec4.poolAlloc();
-					Vec4.qmul(vec4,phyObj.rotq,-1);
-					Vec3.sub(vec3,phyObj.v,groundVelocity);
+					Vec4.qmul(vec4,jikiPhy.rotq,-1);
+					Vec3.sub(vec3,jikiPhy.v,groundVelocity);
 					Vec4.rotVec3(vec3,vec4,vec3);
 					Vec4.poolFree(1);
 				}
@@ -165,7 +164,7 @@
 
 				ono3d.loadIdentity();
 				var m = Mat43.poolAlloc();
-				Mat43.fromLSR(m,phyObj.location,phyObj.scale,phyObj.rotq);
+				Mat43.fromLSR(m,jikiPhy.location,jikiPhy.scale,jikiPhy.rotq);
 				Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
 
 
