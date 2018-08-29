@@ -468,6 +468,17 @@ var Testact=(function(){
 
 				//物理シミュオブジェクトの設定
 				t.phyObjs= O3o.createPhyObjs(o3o.scenes[0],onoPhy);
+				t.collisions= O3o.createCollisions(o3o.scenes[0],onoPhy.collider);
+
+				var border = t.collisions.find(function(o){return o.name==="_border";});
+				if(border){
+					border.callbackFunc=function(col1,col2,pos1,pos2){
+						if(col2.name==="jiki"){
+							//画面外侵入時
+							reset();
+						}
+					}
+				}
 
 				ono3d.push();
 				goJiki=objMan.createObj(GoJiki);
@@ -480,35 +491,33 @@ var Testact=(function(){
 				Vec3.set(camera.a,0,Math.PI,0)
 
 				var m43 = Mat43.poolAlloc();
-				var goalobj = o3o.objectsN["_goal"];
-				var goal= new Collider.Sphere();
-				onoPhy.collider.addCollision(goal);
-				Mat43.dotMat44Mat43(goal.matrix,ono3d.worldMatrix,goalobj.mixedmatrix);
-				goal.groups=2;
-				goal.bold=1;
-				goal.name="goal";
-				goal.callbackFunc=function(col1,col2,pos1,pos2){
-					if(!col2.parent)return;
-					if(col2.parent.name!=="jiki"){
-						return;
-					}
-					onoPhy.collider.deleteCollision(col1);
-					if(stage<stages.length-1){
-						objMan.createObj(GoMsg);
-					}else{
-						objMan.createObj(GoMsg2);
-					}
-				}
-				goal.update();
+				//var goal= t.collisions.find(function(o){return o.name==="_goal";});
+				//var goalobj = o3o.objectsN["_goal"];
+				//onoPhy.collider.addCollision(goal);
+				//Mat43.dotMat44Mat43(goal.matrix,ono3d.worldMatrix,goalobj.mixedmatrix);
+				//goal.groups=2;
+				//goal.bold=1;
+				//goal.name="goal";
+				//goal.callbackFunc=function(col1,col2,pos1,pos2){
+				//	if(!col2.parent)return;
+				//	if(col2.parent.name!=="jiki"){
+				//		return;
+				//	}
+				//	onoPhy.collider.deleteCollision(col1);
+				//	if(stage<stages.length-1){
+				//		objMan.createObj(GoMsg);
+				//	}else{
+				//		objMan.createObj(GoMsg2);
+				//	}
+				//}
+				//goal.update();
 
-				var borderObj= o3o.objectsN["_border"];
-				var collision= new Collider.Cuboid();
-				onoPhy.collider.addCollision(collision);
-				Mat43.dotMat44Mat43(collision.matrix,ono3d.worldMatrix,borderObj.mixedmatrix);
-				collision.groups=2;
-				collision.bold=0;
-				collision.name="border";
-				collision.update();
+				//var collision= this.collisions.find(function(o){return o.name==="border";});
+				//Mat43.dotMat44Mat43(collision.matrix,ono3d.worldMatrix,borderObj.mixedmatrix);
+				//collision.groups=2;
+				//collision.bold=0;
+				//collision.name="border";
+				//collision.update();
 
 				var light=null;
 				//ono3d.lightSources.splice(0,ono3d.lightSources.length);
@@ -570,6 +579,12 @@ var Testact=(function(){
 			var scene= obj3d.scenes[0];
 			O3o.setFrame(obj3d,scene,this.t/60.0*24); //アニメーション処理
 
+			//コリジョンにアニメーション結果を反映させる
+			for(var i=0;i<this.collisions.length;i++){
+				var collision = this.collisions[i];
+				var object = obj3d.objects.find(function(o){return o.name === collision.name;});
+				O3o.moveCollision(collision,object,ono3d)
+			}
 			if(phyObjs && globalParam.physics){
 				//物理シミュ有効の場合は物理オブジェクトにアニメーション結果を反映させる
 				for(var i=0;i<scene.objects.length;i++){

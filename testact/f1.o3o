@@ -305,6 +305,14 @@
     ,"type":"MESH"
     ,"data":"立方体.008"
     ,"bound_box":[-1.000000,-1.000000,-1.000000, 1.000000, 1.000000, 1.000000]
+    ,"rigid_body":{
+      "type":"PASSIVE"
+      ,"mass":1.0
+      ,"collision_shape":"BOX"
+      ,"friction": 0.500000
+      ,"restitution": 0.000000
+      ,"collision_groups":2
+    }
     ,"modifiers":[
     ]
   }
