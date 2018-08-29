@@ -6,6 +6,9 @@
 		var coJump = null;
 		var obj3d;
 		var motionT=0;
+		var armature=null;
+		var e =null;
+		var human=null;
 
 		var GoJiki =function(){};
 		var ret = GoJiki;
@@ -22,8 +25,12 @@
 					var object=obj3d.objects[i];
 				}
 
-				sourceArmature= new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
-				referenceArmature= new O3o.PoseArmature(obj3d.objectsN["アーマチュア"].data);
+				armature=obj3d.objects.find(function(o){return o.name==="アーマチュア";});
+				e =obj3d.objects.find(function(o){return o.name==="jiki";});
+				human=obj3d.objects.find(function(o){return o.name==="human";});
+
+				sourceArmature= new O3o.PoseArmature(armature.data);
+				referenceArmature= new O3o.PoseArmature(armature.data);
 
 				ono3d.setTargetMatrix(0);
 				ono3d.loadIdentity();
@@ -136,7 +143,7 @@
 				var T = motionT/1000;
 				var d = (T|0) - (oldT|0)
 
-				var dst = obj3d.objectsN["アーマチュア"].poseArmature;
+				var dst = armature.poseArmature;
 				sourceArmature.reset();
 				referenceArmature.reset();
 
@@ -171,10 +178,9 @@
 				Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
 
 
-				var e =obj3d.objectsN["jiki"];
 				Mat43.getInv(m,e.mixedmatrix);
 				Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
-				O3o.drawObject(obj3d.objectsN["human"]);
+				O3o.drawObject(human);
 				Mat43.poolFree(1);
 
 			}

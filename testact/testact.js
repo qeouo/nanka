@@ -430,7 +430,7 @@ var Testact=(function(){
 		ono3d.loadIdentity();
 		ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
 
-		var start = o3o.objectsN["_start"];
+		var start = o3o.objects.find(function(o){return o.name==="_start";});
 		Mat44.dotVec3(goJiki.p,ono3d.worldMatrix,start.location);
 		var m = Mat44.poolAlloc();
 		Mat44.setInit(m);
