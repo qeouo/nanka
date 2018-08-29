@@ -587,14 +587,13 @@ var Testact=(function(){
 			}
 			if(phyObjs && globalParam.physics){
 				//物理シミュ有効の場合は物理オブジェクトにアニメーション結果を反映させる
-				for(var i=0;i<scene.objects.length;i++){
+				for(var i=0;i<phyObjs.length;i++){
+					var phyObj = phyObjs[i];
 					//物理オブジェクトにアニメーション結果を反映
 					//(前回の物理シミュ無効の場合は強制反映する)
-					if(scene.objects[i].phyObj){
-						O3o.movePhyObj(scene.objects[i]
-							,1.0/globalParam.fps
-							,!globalParam.physics_);
-					}
+					O3o.movePhyObj(phyObj,phyObj.parent
+						,1.0/globalParam.fps
+						,!globalParam.physics_);
 				}
 			}
 
@@ -607,7 +606,8 @@ var Testact=(function(){
 					aabb = phyObj.collision.AABB;
 				}
 				if(aabb.max[1]<-10){
-					O3o.movePhyObj(phyObj.parent,0,phyObj,true);
+					//リセット
+					O3o.movePhyObj(phyObj,phyObj.parent,0,true);
 				}
 			}
 		}
