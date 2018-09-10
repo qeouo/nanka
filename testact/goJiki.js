@@ -111,6 +111,10 @@
 			Vec3.poolFree(1);
 
 			vec[1]=0;
+			var jumpCollision= this.phyObjs.find(function(o){return o.name ==="_jumpCollision"});
+			//if(jumpCollision){
+			//	onoPhy.collider.checkHit(jumpCollision)
+			//}
 			if(Util.keyflag[4]==1 && !Util.keyflagOld[4] && this.ground){
 				//ジャンプ力
 				vec[1]=6;

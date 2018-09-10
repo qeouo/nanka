@@ -479,6 +479,21 @@ var Testact=(function(){
 						}
 					}
 				}
+				var goal = t.collisions.find(function(o){return o.name==="_goal";});
+				if(goal){
+					border.callbackFunc=function(col1,col2,pos1,pos2){
+						if(!col2.parent)return;
+						if(col2.parent.name!=="jiki"){
+							return;
+						}
+						onoPhy.collider.deleteCollision(col1);
+						if(stage<stages.length-1){
+							objMan.createObj(GoMsg);
+						}else{
+							objMan.createObj(GoMsg2);
+						}
+					}
+				}
 
 				ono3d.push();
 				goJiki=objMan.createObj(GoJiki);
@@ -491,41 +506,8 @@ var Testact=(function(){
 				Vec3.set(camera.a,0,Math.PI,0)
 
 				var m43 = Mat43.poolAlloc();
-				//var goal= t.collisions.find(function(o){return o.name==="_goal";});
-				//var goalobj = o3o.objectsN["_goal"];
-				//onoPhy.collider.addCollision(goal);
-				//Mat43.dotMat44Mat43(goal.matrix,ono3d.worldMatrix,goalobj.mixedmatrix);
-				//goal.groups=2;
-				//goal.bold=1;
-				//goal.name="goal";
-				//goal.callbackFunc=function(col1,col2,pos1,pos2){
-				//	if(!col2.parent)return;
-				//	if(col2.parent.name!=="jiki"){
-				//		return;
-				//	}
-				//	onoPhy.collider.deleteCollision(col1);
-				//	if(stage<stages.length-1){
-				//		objMan.createObj(GoMsg);
-				//	}else{
-				//		objMan.createObj(GoMsg2);
-				//	}
-				//}
-				//goal.update();
-
-				//var collision= this.collisions.find(function(o){return o.name==="border";});
-				//Mat43.dotMat44Mat43(collision.matrix,ono3d.worldMatrix,borderObj.mixedmatrix);
-				//collision.groups=2;
-				//collision.bold=0;
-				//collision.name="border";
-				//collision.update();
 
 				var light=null;
-				//ono3d.lightSources.splice(0,ono3d.lightSources.length);
-
-				//light = new ono3d.LightSource();
-				//ono3d.lightSources.push(light);
-				//light.type =Ono3d.LT_AMBIENT;
-				//Vec3.set(light.color,0.4,0.4,0.4);
 
 				var scene = o3o.scenes[0];
 				var m=Mat43.poolAlloc();
