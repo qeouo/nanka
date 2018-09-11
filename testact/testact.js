@@ -123,8 +123,9 @@ var Testact=(function(){
 			
 		}
 		ret.prototype.deleteObj=function(obj){
-			for(var i=0;i<this.objs.length;i++){
-				if(obj === this.objs[i]){
+			var objs = this.objs;
+			for(var i=0;i<objs.length;i++){
+				if(obj === objs[i]){
 					obj.stat=-10;
 					this.pool.unshift(objs[i]);
 					objs.splice(i,1);
@@ -468,7 +469,10 @@ var Testact=(function(){
 
 				//物理シミュオブジェクトの設定
 				t.phyObjs= O3o.createPhyObjs(o3o.scenes[0],onoPhy);
-				t.collisions= O3o.createCollisions(o3o.scenes[0],onoPhy.collider);
+				t.collisions= O3o.createCollisions(o3o.scenes[0]);
+				for(var i=0;i<t.collisions.length;i++){
+					onoPhy.collider.addCollision(t.collisions[i]);
+				}
 
 				var border = t.collisions.find(function(o){return o.name==="_border";});
 				if(border){
@@ -481,7 +485,7 @@ var Testact=(function(){
 				}
 				var goal = t.collisions.find(function(o){return o.name==="_goal";});
 				if(goal){
-					border.callbackFunc=function(col1,col2,pos1,pos2){
+					goal.callbackFunc=function(col1,col2,pos1,pos2){
 						if(!col2.parent)return;
 						if(col2.parent.name!=="jiki"){
 							return;

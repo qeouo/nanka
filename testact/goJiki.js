@@ -37,6 +37,7 @@
 				ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
 				ono3d.translate(obj.p[0],obj.p[1],obj.p[2]);
 				t.phyObjs= O3o.createPhyObjs(o3o.scenes[0],Testact.onoPhy);
+				t.collisions= O3o.createCollisions(o3o.scenes[0]);
 				poJiki = t.phyObjs.find(function(o){return o.name ==="jiki"});
 				Vec3.copy(poJiki.location,t.p);
 				Mat33.set(poJiki.inertiaTensorBase,1,0,0,0,1,0,0,0,1);
@@ -111,14 +112,26 @@
 			Vec3.poolFree(1);
 
 			vec[1]=0;
-			var jumpCollision= this.phyObjs.find(function(o){return o.name ==="_jumpCollision"});
-			//if(jumpCollision){
-			//	onoPhy.collider.checkHit(jumpCollision)
-			//}
-			if(Util.keyflag[4]==1 && !Util.keyflagOld[4] && this.ground){
-				//ジャンプ力
+			var jump=false;
+
+			if(this.ground){
+				var jumpCollision= this.collisions.find(function(o){return o.name ==="_jumpCollision"});
+				if(jumpCollision){
+					var onoPhy = Testact.onoPhy;
+					var list = onoPhy.collider.checkHit(jumpCollision);
+					if(list.length>0){
+						jump=true;
+					}
+				}
+				if(Util.keyflag[4]==1 && !Util.keyflagOld[4] && this.ground){
+					jump=true;
+				}
+			}
+			if(jump){
+					//ジャンプ力
 				vec[1]=6;
 			}
+
 			Vec3.add(poJiki.v,poJiki.v,vec);//加速力足す
 
 			Mat43.poolFree(1);
