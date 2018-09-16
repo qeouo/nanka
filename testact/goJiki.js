@@ -9,6 +9,7 @@
 		var armature=null;
 		var e =null;
 		var human=null;
+		var jumpC;
 
 		var GoJiki =function(){};
 		var ret = GoJiki;
@@ -28,6 +29,7 @@
 				armature=obj3d.objects.find(function(o){return o.name==="アーマチュア";});
 				e =obj3d.objects.find(function(o){return o.name==="jiki";});
 				human=obj3d.objects.find(function(o){return o.name==="human";});
+				jumpC = obj3d.objects.find(function(o){return o.name === "_jumpCollision";});
 
 				sourceArmature= new O3o.PoseArmature(armature.data);
 				referenceArmature= new O3o.PoseArmature(armature.data);
@@ -52,11 +54,14 @@
 						Vec3.norm(vec3);
 						if(vec3[1]>0.8){
 							//垂直方向に接地した場合
-							t.ground=true;//接地フラグ
 							Vec3.copy(groundNormal,vec3);//接触法線
 							//接触点相対速度
 							var phyObj = col2.parent;
 							phyObj.calcVelocity(groundVelocity,pos1);
+
+							if(poJiki.v[1]- groundVelocity[1]<0.1){
+								t.ground=true;//接地フラグ
+							}
 
 						}
 						Vec3.poolFree(1);
@@ -117,13 +122,26 @@
 			if(this.ground){
 				var jumpCollision= this.collisions.find(function(o){return o.name ==="_jumpCollision"});
 				if(jumpCollision){
+
+					var m = Mat43.poolAlloc();
+					ono3d.setTargetMatrix(0)
+					ono3d.loadIdentity();
+					Mat43.fromLSR(m,poJiki.location,poJiki.scale,poJiki.rotq);
+					Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
+
+					Mat43.getInv(m,e.mixedmatrix);
+					Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
+					Mat43.poolFree(1);
+
+					O3o.moveCollision(jumpCollision,jumpC,ono3d)
 					var onoPhy = Testact.onoPhy;
 					var list = onoPhy.collider.checkHit(jumpCollision);
-					if(list.length>0){
+					if(onoPhy.collider.hitListIndex==0){
 						jump=true;
+
 					}
 				}
-				if(Util.keyflag[4]==1 && !Util.keyflagOld[4] && this.ground){
+				if(Util.keyflag[4]==1 && !Util.keyflagOld[4]){
 					jump=true;
 				}
 			}
@@ -198,6 +216,7 @@
 				Mat43.getInv(m,e.mixedmatrix);
 				Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
 				O3o.drawObject(human);
+				O3o.drawObject(jumpC);
 				Mat43.poolFree(1);
 
 			}
