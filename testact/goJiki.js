@@ -55,13 +55,16 @@
 						if(vec3[1]>0.8){
 							//垂直方向に接地した場合
 							Vec3.copy(groundNormal,vec3);//接触法線
-							//接触点相対速度
+							//接触点速度
 							var phyObj = col2.parent;
 							phyObj.calcVelocity(groundVelocity,pos1);
+							var vec32 = Vec3.poolAlloc();
+							Vec3.sub(vec32,poJiki.v,groundVelocity);
 
-							if(poJiki.v[1]- groundVelocity[1]<0.1){
+							if(Vec3.dot(vec3,vec32)<0.1){
 								t.ground=true;//接地フラグ
 							}
+							Vec3.poolFree(1);
 
 						}
 						Vec3.poolFree(1);
@@ -216,6 +219,7 @@
 				Mat43.getInv(m,e.mixedmatrix);
 				Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
 				O3o.drawObject(human);
+	//			O3o.drawObject(e);
 				O3o.drawObject(jumpC);
 				Mat43.poolFree(1);
 
