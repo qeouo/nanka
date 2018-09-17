@@ -138,10 +138,12 @@
 
 					O3o.moveCollision(jumpCollision,jumpC,ono3d)
 					var onoPhy = Testact.onoPhy;
-					var list = onoPhy.collider.checkHit(jumpCollision);
-					if(onoPhy.collider.hitListIndex==0){
-						jump=true;
-
+					var list = onoPhy.collider.checkHitAll(jumpCollision);
+					jump=true;
+					for(var i=0;i<onoPhy.collider.hitListIndex;i++){
+						if(list[i].col2.name !=="jiki"){
+							jump=false;
+						}
 					}
 				}
 				if(Util.keyflag[4]==1 && !Util.keyflagOld[4]){
