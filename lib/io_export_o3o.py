@@ -318,10 +318,12 @@ def WriteMaterial( Material=None):
     dict["dif"] = Material.diffuse_intensity
     dict["emt"] = Material.emit
     dict["use_transparency"] = Material.use_transparency
+    dict["use_nodes"] = Material.use_nodes
     if(Material.raytrace_transparency):
         dict["ior"] = Material.raytrace_transparency.ior
         dict["filter"] = Material.raytrace_transparency.filter
         dict["trans_rough"] = (1.0-Material.raytrace_transparency.gloss_factor)
+        dict["fresnel"] = (1.0-Material.raytrace_transparency.fresnel)
     if(Material.raytrace_mirror):
         dict["use_mirror"] = Material.raytrace_mirror.use
         lst = list(Material.mirror_color)
