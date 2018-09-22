@@ -915,12 +915,10 @@ var Testact=(function(){
 		ono3d.setViewport(0,0,WIDTH,HEIGHT);
 
 		if(env2dtex){
-			//MainShader.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
-			//MainShader2.draw(ono3d,shadowTexture,envtexes,camera.p,globalParam.frenel);
 			if(globalParam.shader===0){
-				MainShader3.draw(ono3d,shadowTexture,env2dtex,camera.p);
+				MainShader.draw(ono3d,shadowTexture,env2dtex,camera.p);
 			}else{
-				MainShader4.draw(ono3d,shadowTexture,env2dtex,camera.p);
+				MainShader2.draw(ono3d,shadowTexture,env2dtex,camera.p);
 			}
 		}
 		Plain.draw(ono3d);
