@@ -318,7 +318,10 @@ def WriteMaterial( Material=None):
     dict["dif"] = Material.diffuse_intensity
     dict["emt"] = Material.emit
     dict["use_transparency"] = Material.use_transparency
-    dict["use_nodes"] = Material.use_nodes
+    for key in Material.keys():
+        if(key != "_RNA_UI"):
+            dict[key] = Material.get(key)
+
     if(Material.raytrace_transparency):
         dict["ior"] = Material.raytrace_transparency.ior
         dict["filter"] = Material.raytrace_transparency.filter
