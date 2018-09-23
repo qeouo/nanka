@@ -863,7 +863,8 @@ var Testact=(function(){
 
 		if(env2dtex){
 			if(globalParam.shader===0){
-				MainShader.draw(ono3d,shadowTexture,env2dtex,camera.p);
+				//MainShader.draw(ono3d,shadowTexture,env2dtex,camera.p);
+				ono3d.render(shadowTexture,env2dtex,camera.p);
 			}else{
 				MainShader2.draw(ono3d,shadowTexture,env2dtex,camera.p);
 			}
@@ -1108,12 +1109,7 @@ var Testact=(function(){
 
 		Util.enableVirtualPad=true;
 		Util.init(canvas,canvasgl,parentnode);
-		var ono3d = new Ono3d()
-		ret.ono3d = ono3d;
-		O3o.setOno3d(ono3d)
-		ono3d.init(canvas,ctx);
 
-		ono3d.rendercanvas=canvas;
 		if(gl){
 			globalParam.enableGL=true;
 		}else{
@@ -1123,14 +1119,20 @@ var Testact=(function(){
 
 
 		if(globalParam.enableGL){
-			Rastgl.init(gl,ono3d);
+			Rastgl.init(gl);
 			canvas.style.width="0px";
 			canvasgl.style.display="inline";
-			Ono3d.setDrawMethod(3);
+			//Ono3d.setDrawMethod(3);
 		}else{
 			canvasgl.style.display="none";
 			canvas.style.display="inline";
 		}
+		var ono3d = new Ono3d()
+		ret.ono3d = ono3d;
+		O3o.setOno3d(ono3d)
+		ono3d.init(canvas,ctx);
+		ono3d.rendercanvas=canvas;
+		Rastgl.ono3d = ono3d;
 
 		ono3d.lightSources.splice(0,ono3d.lightSources.length);
 
