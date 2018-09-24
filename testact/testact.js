@@ -370,8 +370,9 @@ var Testact=(function(){
 			}
 			var vec3=Vec3.poolAlloc();
 			Vec3.copy(vec3,goJiki.p);
+			vec3[1]+=1;
 
-			var cameralen = 5;//Vec3.len(this.p,vec3);
+			var cameralen = 8;//Vec3.len(this.p,vec3);
 			camera.zoom=0.6;
 
 			if(Util.pressOn){
@@ -388,6 +389,7 @@ var Testact=(function(){
 
 			Vec3.mul(this.p,this.p,-cameralen);
 			Vec3.add(this.p,this.p,goJiki.p);
+			this.p[1]+=1;
 
 			camera.p[0]+=(this.p[0]-camera.p[0])*0.1
 			camera.p[1]+=(this.p[1]-camera.p[1])*0.1

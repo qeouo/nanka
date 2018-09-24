@@ -966,6 +966,7 @@ var Testact=(function(){
 		}
 
 		gl.disable(gl.BLEND);
+		//Rastgl.copyframe(env2dtex,0,0,1,1); //メイン画面に合成
 		//Rastgl.copyframe(env2dtex,0,0,1,1);
 //メインのバッファのアルファ値を1にする
 		gl.colorMask(false,false,false,true);
@@ -1097,36 +1098,6 @@ var Testact=(function(){
 			gl.bindTexture(gl.TEXTURE_2D, null);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		});
-//		sky = Ono3d.loadCubemap("skybox.jpg",function(image){
-//			var envsize=16;
-//
-//			var envs=[0.1,0.2,0.4,0.8,1.0];
-//			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-//			envtexes=[];
-//			envtexes.push(0);
-//			envtexes.push(image.gltexture);
-//			
-//
-//			envsize=image.images[0].width;
-//			envsize=16;
-//			var envsizeorg=envsize;
-//			var fazy=Math.atan2(envsizeorg/envsize,envsizeorg*0.5)/(Math.PI*0.5)*2.0;
-//			for(var i=0;i<envs.length;i++){
-//				var tex = gl.createTexture();
-//				gl.bindTexture(gl.TEXTURE_CUBE_MAP,tex);
-//
-//				Rough.draw(tex,image.gltexture,envs[i],envsizeorg,envsizeorg);
-//				var tex2 = gl.createTexture();
-//				gl.bindTexture(gl.TEXTURE_CUBE_MAP,tex2);
-//				Rough.draw(tex2,tex,fazy,envsize,envsize);
-//				envtexes.push(envs[i]);
-//				envtexes.push(tex2);
-//
-//			}
-//			
-//			gl.bindTexture(gl.TEXTURE_2D, null);
-//			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-//		});
 		emiTexture = Rastgl.createTexture(null,512,512);
 
 		
