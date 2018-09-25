@@ -15,7 +15,7 @@
 	})();
 var Testact=(function(){
 	var ret={};
-	var HEIGHT=540,WIDTH=960;
+	var HEIGHT=512,WIDTH=960;
 	var gl;
 	var onoPhy=null;
 	var env2dtex=null;
@@ -915,6 +915,8 @@ var Testact=(function(){
 			gl.blendFunc(gl.ONE,gl.ONE);
 			Rastgl.copyframe(emiTexture,0,0,WIDTH/1024,HEIGHT/1024); //メイン画面に合成
 		}
+		gl.disable(gl.BLEND);
+		//Rastgl.copyframe(ono3d.transTexture,0,0,1,1); //メイン画面に合成
 //メインのバッファのアルファ値を1にする
 		gl.viewport(0,0,WIDTH,HEIGHT);
 		gl.colorMask(false,false,false,true);
