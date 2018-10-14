@@ -2,8 +2,8 @@
 ,"textures":[
 ]
 ,"materials":[
-    {"name": "マテリアル", "r": 0.9335126280784607, "g": 0.9702335000038147, "b": 1.0, "a": 0.13636364042758942, "dif": 0.800000011920929, "emt": 0.0, "use_transparency": true, "ior": 1.2999999523162842, "filter": 1.0, "trans_rough": 0.0, "use_mirror": true, "reflect": 0.0833333358168602, "rough": 0.009999990463256836, "texture_slots": []}
-  ,  {"name": "マテリアル.001", "r": 0.0020606983453035355, "g": 0.8000000715255737, "b": 0.0, "a": 1.0, "dif": 0.800000011920929, "emt": 0.0, "use_transparency": false, "ior": 1.0, "filter": 0.0, "trans_rough": 0.0, "use_mirror": true, "reflect": 0.09848485141992569, "rough": 0.053030312061309814, "texture_slots": []}
+    {"name": "マテリアル", "r": 0.9335126280784607, "g": 0.9702335000038147, "b": 1.0, "a": 0.13636364042758942, "dif": 0.800000011920929, "emt": 0.0, "use_transparency": true, "ior": 1.2999999523162842, "filter": 1.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": true, "reflect": 0.0833333358168602, "rough": 0.009999990463256836, "texture_slots": []}
+  ,  {"name": "マテリアル.001", "r": 0.0020606983453035355, "g": 0.8000000715255737, "b": 0.0, "a": 1.0, "dif": 0.800000011920929, "emt": 0.0, "use_transparency": false, "ior": 1.0, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": true, "reflect": 0.09848485141992569, "rough": 0.053030312061309814, "texture_slots": []}
 ]
 ,"meshes":[
   {
