@@ -571,7 +571,7 @@ var Testact=(function(){
 					aabb = phyObj.collision.AABB;
 				}
 				if(aabb.max[1]<-10){
-					O3o.movePhyObj(phyObj.parent,0,phyObj,true);
+					O3o.movePhyObj(phyObj,phyObj.parent,0,true);
 				}
 			}
 		}
