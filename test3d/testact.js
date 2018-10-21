@@ -915,6 +915,7 @@ var Testact=(function(){
 		ono3d.setViewport(0,0,WIDTH,HEIGHT);
 
 		if(env2dtex){
+			Plain.draw(ono3d,0);
 			if(globalParam.shader===0){
 				//MainShader.draw(ono3d,shadowTexture,env2dtex,camera.p);
 				ono3d.render(shadowTexture,env2dtex,camera.p);
@@ -922,7 +923,6 @@ var Testact=(function(){
 				MainShader2.draw(ono3d,shadowTexture,env2dtex,camera.p);
 			}
 		}
-		Plain.draw(ono3d);
 		gl.finish();
 		
 

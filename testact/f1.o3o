@@ -5,7 +5,7 @@
   ,{"name":"テクスチャ.002","typ":"IMAGE","path":"//bump.png"}
 ]
 ,"materials":[
-    {"name": "hoge", "r": 0.9372472167015076, "g": 0.9335126280784607, "b": 1.0, "a": 0.0, "dif": 0.800000011920929, "emt": 0.0, "use_transparency": false, "shader": "testshader", "ior": 1.0, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": false, "reflect": 0.20000000298023224, "rough": 0.0, "texture_slots": [{"texture": "テクスチャ"}, {"texture": "テクスチャ.002", "normal": 1.0}]}
+    {"name": "hoge", "r": 0.9372472167015076, "g": 0.9335126280784607, "b": 1.0, "a": 1.0, "dif": 0.800000011920929, "emt": 0.0, "use_transparency": false, "shader": "testshader", "ior": 1.0, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": false, "reflect": 0.20000000298023224, "rough": 0.0, "texture_slots": [{"texture": "テクスチャ"}, {"texture": "テクスチャ.002", "normal": 1.0}]}
   ,  {"name": "hogehoge", "r": 0.995568037033081, "g": 1.0, "b": 0.024460796266794205, "a": 1.0, "dif": 0.800000011920929, "emt": 0.0, "use_transparency": false, "ior": 1.0, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": false, "reflect": 0.0, "rough": 0.0, "texture_slots": []}
   ,  {"name": "マテリアル", "r": 0.23428647220134735, "g": 0.7820376753807068, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.9300000071525574, "use_transparency": false, "ior": 1.0, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": false, "reflect": 0.0, "rough": 0.0, "texture_slots": []}
   ,  {"name": "マテリアル.001", "r": 0.0, "g": 0.8000000715255737, "b": 0.008240314200520515, "a": 1.0, "dif": 0.800000011920929, "emt": 0.0, "use_transparency": false, "ior": 1.0, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": false, "reflect": 0.0, "rough": 0.0, "texture_slots": []}
