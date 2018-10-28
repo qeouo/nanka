@@ -969,10 +969,15 @@ var Testact=(function(){
 		//Rastgl.copyframe(env2dtex,0,0,1,1); //メイン画面に合成
 		//Rastgl.copyframe(env2dtex,0,0,1,1);
 //メインのバッファのアルファ値を1にする
-		gl.colorMask(false,false,false,true);
-		gl.clearColor(0.0,0.0,0.0,1.0);
-		gl.clear(gl.COLOR_BUFFER_BIT);
-		gl.colorMask(true,true,true,true);
+		//gl.colorMask(false,false,false,true);
+		//gl.clearColor(0.0,0.0,0.0,1.0);
+		//gl.clear(gl.COLOR_BUFFER_BIT);
+		//gl.colorMask(true,true,true,true);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.bindTexture(gl.TEXTURE_2D, bufTexture);
+		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
+		Rastgl.copyframe(bufTexture ,0,0 ,WIDTH/1024,HEIGHT/1024,Ono3d.postShaders[0]); 
+		
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		ono3d.setViewport(0,0,WIDTH,HEIGHT);
@@ -991,7 +996,7 @@ var Testact=(function(){
 			ono3d.pop();
 		}
 
-		gl.getParameter(gl.VIEWPORT);
+		//gl.getParameter(gl.VIEWPORT);
 		var drawrasterise=Date.now()-start;
 
 		drawTime =Date.now()-drawTime;
@@ -1084,7 +1089,7 @@ var Testact=(function(){
 				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,width,height);
 				
-				Gauss.filter(width,height,10,tex,0,0,1,1,width,height); 
+				//Gauss.filter(width,height,10,tex,0,0,1,1,width,height); 
 
 				gl.bindTexture(gl.TEXTURE_2D,env2dtex);
 				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,1024-height*2,0,0,width,height);
