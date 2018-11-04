@@ -1,7 +1,7 @@
 "use strict"
 var Testact=(function(){
 	var ret={};
-	var HEIGHT=480,WIDTH=960;
+	var HEIGHT=512,WIDTH=960;
 	var gl;
 	var onoPhy=null;
 	var objs=[];
@@ -934,35 +934,46 @@ var Testact=(function(){
 			gl.bindTexture(gl.TEXTURE_2D, bufTexture);
 			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
 
-			var emiSize=0.5;
-			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-			ono3d.setViewport(0,0,WIDTH*emiSize,HEIGHT*emiSize);
-			gl.depthMask(false);
-			gl.disable(gl.DEPTH_TEST);
-			gl.disable(gl.BLEND);
-			Rastgl.copyframe(bufTexture ,0,0 ,WIDTH/1024,HEIGHT/1024); //今回結果を書き込み
-			gl.enable(gl.BLEND);
-			gl.blendFuncSeparate(gl.CONSTANT_ALPHA,gl.DST_ALPHA,gl.ZERO,gl.ZERO);
-			gl.blendColor(0,0,0,0.4);
-			Rastgl.copyframe(emiTexture ,0,0 ,WIDTH/1024,HEIGHT/1024); //前回の結果を重ねる
-			gl.bindTexture(gl.TEXTURE_2D, emiTexture);
-			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH*emiSize,HEIGHT*emiSize);//結果を光テクスチャに書き込み
-
-			gl.clearColor(0.0,0.0,0.0,1.0);
-			gl.clear(gl.COLOR_BUFFER_BIT);
-			gl.disable(gl.DEPTH_TEST);
-			gl.disable(gl.BLEND);
-			Gauss.filter(WIDTH*emiSize,HEIGHT*emiSize,10
-				,emiTexture,0,0,WIDTH*emiSize/512,HEIGHT*emiSize/512,512,512); //光テクスチャをぼかす
+			gl.useProgram(addShader.program);
+			gl.uniform1i(addShader.unis["uSampler2"],1);
+			gl.activeTexture(gl.TEXTURE1);
+			gl.bindTexture(gl.TEXTURE_2D,bufTexture);
+			gl.uniform1f(addShader.unis["v1"],3);
+			gl.uniform1f(addShader.unis["v2"],0.);
 			
-			gl.bindTexture(gl.TEXTURE_2D,emiTexture);
-			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH*emiSize,HEIGHT*emiSize);
+			Rastgl.postEffect(bufTexture ,0,0 ,WIDTH/1024,HEIGHT/1024,addShader); 
+			gl.bindTexture(gl.TEXTURE_2D, bufTexture);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
 
-			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-			ono3d.setViewport(0,0,WIDTH,HEIGHT);
-			gl.enable(gl.BLEND);
-			gl.blendFunc(gl.ONE,gl.ONE);
-			Rastgl.copyframe(emiTexture,0,0,WIDTH/1024,HEIGHT/1024); //メイン画面に合成
+//			var emiSize=0.5;
+//			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+//			ono3d.setViewport(0,0,WIDTH*emiSize,HEIGHT*emiSize);
+//			gl.depthMask(false);
+//			gl.disable(gl.DEPTH_TEST);
+//			gl.disable(gl.BLEND);
+//			Rastgl.copyframe(bufTexture ,0,0 ,WIDTH/1024,HEIGHT/1024); //今回結果を書き込み
+//			gl.enable(gl.BLEND);
+//			gl.blendFuncSeparate(gl.CONSTANT_ALPHA,gl.DST_ALPHA,gl.ZERO,gl.ZERO);
+//			gl.blendColor(0,0,0,0.4);
+//			Rastgl.copyframe(emiTexture ,0,0 ,WIDTH/1024,HEIGHT/1024); //前回の結果を重ねる
+//			gl.bindTexture(gl.TEXTURE_2D, emiTexture);
+//			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH*emiSize,HEIGHT*emiSize);//結果を光テクスチャに書き込み
+//
+//			gl.clearColor(0.0,0.0,0.0,1.0);
+//			gl.clear(gl.COLOR_BUFFER_BIT);
+//			gl.disable(gl.DEPTH_TEST);
+//			gl.disable(gl.BLEND);
+//			Gauss.filter(WIDTH*emiSize,HEIGHT*emiSize,10
+//				,emiTexture,0,0,WIDTH*emiSize/512,HEIGHT*emiSize/512,512,512); //光テクスチャをぼかす
+//			
+//			gl.bindTexture(gl.TEXTURE_2D,emiTexture);
+//			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH*emiSize,HEIGHT*emiSize);
+//
+//			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+//			ono3d.setViewport(0,0,WIDTH,HEIGHT);
+//			gl.enable(gl.BLEND);
+//			gl.blendFunc(gl.ONE,gl.ONE);
+//			Rastgl.copyframe(emiTexture,0,0,WIDTH/1024,HEIGHT/1024); //メイン画面に合成
 		}
 
 		gl.disable(gl.BLEND);
@@ -976,7 +987,9 @@ var Testact=(function(){
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.bindTexture(gl.TEXTURE_2D, bufTexture);
 		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
-		Rastgl.copyframe(bufTexture ,0,0 ,WIDTH/1024,HEIGHT/1024,Ono3d.postShaders[0]); 
+		//Rastgl.copyframe(bufTexture ,0,0 ,WIDTH/1024,HEIGHT/1024,decodeShader); 
+		Rastgl.postEffect(bufTexture ,0,0 ,WIDTH/1024,HEIGHT/1024,decodeShader); 
+		//Rastgl.copyframe(ono3d.transTexture,0,0 ,WIDTH/1024,1,Ono3d.postShaders[0]); 
 		
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
