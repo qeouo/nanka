@@ -861,23 +861,8 @@ var Testact=(function(){
 				function(a){return a.type=== Ono3d.LT_DIRECTION;});
 			if(lightSource){
 
-				
-				//camera.calcCollision(camera.cameracol2,lightSource.veiwmatrix);
-
-				//for(i=0;i<objMan.objs.length;i++){
-				//	obj = objMan.objs[i];
-				//	ono3d.setTargetMatrix(1)
-				//	ono3d.push();
-				//	ono3d.setTargetMatrix(0)
-				//	ono3d.loadIdentity()
-				//	ono3d.rf=0;
-				//	obj.drawShadow();
-				//	ono3d.setTargetMatrix(1)
-				//	ono3d.pop();
-				//}
 				Shadow.draw(ono3d,lightSource.viewmatrix);
 
-				//ono3d.clear();
 			}
 		}
 		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
@@ -901,16 +886,13 @@ var Testact=(function(){
 			if(globalParam.stereomode==0){
 				ono3d.setPers(0.577,HEIGHT/WIDTH,1,20);
 				ono3d.setViewport(0,0,WIDTH,HEIGHT);
-				//Env.env(envtexes[1]);
 				Env2D.draw(env2dtex,0,0,1,0.5);
 			}else{
 				ono3d.setPers(0.577,HEIGHT/WIDTH*2,1,20);
 				ono3d.setViewport(0,0,WIDTH/2,HEIGHT);
 				Env2D.draw(env2dtex,0,0,1,0.5);
-				//Env.env(envtexes[1]);
 				ono3d.setViewport(WIDTH/2,0,WIDTH/2,HEIGHT);
 				Env2D.draw(env2dtex,0,0,1,0.5);
-				//Env.env(envtexes[1]);
 				
 			}
 		}
@@ -924,7 +906,6 @@ var Testact=(function(){
 		if(env2dtex){
 			Plain.draw(ono3d,0);
 			if(globalParam.shader===0){
-				//MainShader.draw(ono3d,shadowTexture,env2dtex,camera.p);
 				ono3d.render(shadowTexture,env2dtex,camera.p);
 			}else{
 				MainShader2.draw(ono3d,shadowTexture,env2dtex,camera.p);
@@ -940,24 +921,31 @@ var Testact=(function(){
 
 		//画面平均光度算出
 		if(globalParam.autoExposure){
-			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-			ono3d.setViewport(0,512,256,512);
-			Rastgl.postEffect(averageTexture ,0 ,0,0.5,1,average2Shader); 
 
+			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
 			ono3d.setViewport(0,0,512,512);
 			gl.bindTexture(gl.TEXTURE_2D,averageTexture);
 				
 			Rastgl.postEffect(bufTexture ,(WIDTH-512)/2.0/1024,0 ,512/1024,HEIGHT/1024,averageShader); 
 			gl.bindTexture(gl.TEXTURE_2D, averageTexture);
-			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,512,1024);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,512,512);
+
+			var size = 512;
+			for(var i=0;size>1;i++){
+				ono3d.setViewport(0,0,size/2,size/2);
+				Rastgl.postEffect(averageTexture ,0 ,0,size/512,size/512,average2Shader); 
+			gl.bindTexture(gl.TEXTURE_2D, averageTexture);
+				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,size/2,size/2);
+				size/=2;
+			}
 		}else{
-			ono3d.setViewport(0,0,4,4);
+			ono3d.setViewport(0,0,1,1);
 			gl.useProgram(fillShader.program);
 			gl.uniform4f(fillShader.unis["uColor"],0.5,0.5*4,0.0,0.5);
 				
 			Rastgl.postEffect(averageTexture,0,0,0,0,fillShader); 
 			gl.bindTexture(gl.TEXTURE_2D, averageTexture);
-			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,1024-4,0,0,4,4);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1,1);
 		}
 
 
@@ -1246,7 +1234,7 @@ var Testact=(function(){
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-	averageTexture=Rastgl.createTexture(null,1024,1024);
+	averageTexture=Rastgl.createTexture(null,512,512);
 	gl.bindTexture(gl.TEXTURE_2D, averageTexture);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
