@@ -103,7 +103,7 @@ void main(void){
 	refx = pow(0.5,4.0); 
 	refV = vec2(atan(nrm.x,-nrm.z)*_PI*0.5 + 0.5 
 		,(-atan(nrm.y,length(nrm.xz))*_PI*0.95 + 0.5)*0.5); 
-	q= decode(texture2D(uEnvMap,refV*refx + vec2(0.0,1.0-refx))); 
+	q= textureRGBE(uEnvMap,texsize,refV*refx + vec2(0.0,1.0-refx)); 
 	/*表面色*/ 
 	vec3 vColor2 = baseCol* (diffuse * uLightColor + uAmbColor*q.rgb  + uEmi); 
 	/*透過合成*/ 

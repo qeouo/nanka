@@ -10,6 +10,7 @@ var Testact=(function(){
 	var shadowTexture;
 	var bufTexture;
 	var emiTexture;
+	var averageTexture;
 	var customTextures=[];
 	var customBumps=[];
 	var bdf;
@@ -19,6 +20,10 @@ var Testact=(function(){
 	var tsukamiZ=100;
 	var lightSun;
 	var lightAmbient
+	var addShader;
+	var decodeShader;
+	var averageShader;
+	var average2Shader;
 
 	var obj3d=null,field=null;
 	var goField,goCamera;
@@ -926,74 +931,77 @@ var Testact=(function(){
 		gl.finish();
 		
 
-		if(globalParam.hdr){
+		//描画結果をバッファにコピー
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.bindTexture(gl.TEXTURE_2D, bufTexture);
+		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
+
+		//画面平均光度算出
+		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+		ono3d.setViewport(0,512,256,512);
+		Rastgl.postEffect(averageTexture ,0 ,0,0.5,1,average2Shader); 
+
+		ono3d.setViewport(0,0,512,512);
+		gl.bindTexture(gl.TEXTURE_2D,averageTexture);
+			
+		Rastgl.postEffect(bufTexture ,(WIDTH-512)/2.0/1024,0 ,512/1024,HEIGHT/1024,averageShader); 
+		gl.bindTexture(gl.TEXTURE_2D, averageTexture);
+		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,512,1024);
+
+
+		if(globalParam.hdr && addShader.program){
 			//疑似HDRぼかし(α値が0が通常、1に近いほど光る)
 
-			//描画結果をバッファにコピー
-			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-			gl.bindTexture(gl.TEXTURE_2D, bufTexture);
-			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
+
+			//合成
+			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
 
 			gl.useProgram(addShader.program);
 			gl.uniform1i(addShader.unis["uSampler2"],1);
 			gl.activeTexture(gl.TEXTURE1);
 			gl.bindTexture(gl.TEXTURE_2D,bufTexture);
-			gl.uniform1f(addShader.unis["v1"],3);
-			gl.uniform1f(addShader.unis["v2"],0.);
+			gl.uniform1f(addShader.unis["v1"],0.5);
+			gl.uniform1f(addShader.unis["v2"],0.1);
 			
-			Rastgl.postEffect(bufTexture ,0,0 ,WIDTH/1024,HEIGHT/1024,addShader); 
+			var emiSize=0.5;
+			ono3d.setViewport(0,0,WIDTH*emiSize,HEIGHT*emiSize);
+			Rastgl.postEffect(emiTexture ,0,0 ,WIDTH/1024,HEIGHT/1024,addShader); 
+			gl.bindTexture(gl.TEXTURE_2D, emiTexture);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH/2,HEIGHT/2);
+
+			Gauss.filter(WIDTH*emiSize,HEIGHT*emiSize,100
+				,emiTexture,0,0,WIDTH*emiSize/512,HEIGHT*emiSize/512,512,512); //光テクスチャをぼかす
+			gl.bindTexture(gl.TEXTURE_2D, emiTexture);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH*emiSize,HEIGHT*emiSize);//結果を光テクスチャに書き込み
+
+			//合成
+			gl.bindFramebuffer(gl.FRAMEBUFFER,null );
+
+			gl.useProgram(addShader.program);
+			gl.uniform1i(addShader.unis["uSampler2"],1);
+			gl.activeTexture(gl.TEXTURE1);
+			gl.bindTexture(gl.TEXTURE_2D,emiTexture);
+			gl.uniform1f(addShader.unis["v1"],1.0);
+			gl.uniform1f(addShader.unis["v2"],1.0);
+
+			ono3d.setViewport(0,0,WIDTH,HEIGHT);
+			Rastgl.postEffect(bufTexture,0,0 ,WIDTH/1024.0,HEIGHT/1024,addShader); 
+
 			gl.bindTexture(gl.TEXTURE_2D, bufTexture);
 			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
-
-//			var emiSize=0.5;
-//			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-//			ono3d.setViewport(0,0,WIDTH*emiSize,HEIGHT*emiSize);
-//			gl.depthMask(false);
-//			gl.disable(gl.DEPTH_TEST);
-//			gl.disable(gl.BLEND);
-//			Rastgl.copyframe(bufTexture ,0,0 ,WIDTH/1024,HEIGHT/1024); //今回結果を書き込み
-//			gl.enable(gl.BLEND);
-//			gl.blendFuncSeparate(gl.CONSTANT_ALPHA,gl.DST_ALPHA,gl.ZERO,gl.ZERO);
-//			gl.blendColor(0,0,0,0.4);
-//			Rastgl.copyframe(emiTexture ,0,0 ,WIDTH/1024,HEIGHT/1024); //前回の結果を重ねる
-//			gl.bindTexture(gl.TEXTURE_2D, emiTexture);
-//			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH*emiSize,HEIGHT*emiSize);//結果を光テクスチャに書き込み
-//
-//			gl.clearColor(0.0,0.0,0.0,1.0);
-//			gl.clear(gl.COLOR_BUFFER_BIT);
-//			gl.disable(gl.DEPTH_TEST);
-//			gl.disable(gl.BLEND);
-//			Gauss.filter(WIDTH*emiSize,HEIGHT*emiSize,10
-//				,emiTexture,0,0,WIDTH*emiSize/512,HEIGHT*emiSize/512,512,512); //光テクスチャをぼかす
-//			
-//			gl.bindTexture(gl.TEXTURE_2D,emiTexture);
-//			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH*emiSize,HEIGHT*emiSize);
-//
-//			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-//			ono3d.setViewport(0,0,WIDTH,HEIGHT);
-//			gl.enable(gl.BLEND);
-//			gl.blendFunc(gl.ONE,gl.ONE);
-//			Rastgl.copyframe(emiTexture,0,0,WIDTH/1024,HEIGHT/1024); //メイン画面に合成
 		}
+		ono3d.setViewport(0,0,WIDTH,HEIGHT);
+		gl.bindFramebuffer(gl.FRAMEBUFFER,null );
 
-		gl.disable(gl.BLEND);
-		//Rastgl.copyframe(env2dtex,0,0,1,1); //メイン画面に合成
-		//Rastgl.copyframe(env2dtex,0,0,1,1);
-//メインのバッファのアルファ値を1にする
-		//gl.colorMask(false,false,false,true);
-		//gl.clearColor(0.0,0.0,0.0,1.0);
-		//gl.clear(gl.COLOR_BUFFER_BIT);
-		//gl.colorMask(true,true,true,true);
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		gl.bindTexture(gl.TEXTURE_2D, bufTexture);
-		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
-		//Rastgl.copyframe(bufTexture ,0,0 ,WIDTH/1024,HEIGHT/1024,decodeShader); 
+		gl.useProgram(decodeShader.program);
+		gl.uniform1i(decodeShader.unis["uSampler2"],1);
+		gl.activeTexture(gl.TEXTURE1);
+		gl.bindTexture(gl.TEXTURE_2D,averageTexture);
 		Rastgl.postEffect(bufTexture ,0,0 ,WIDTH/1024,HEIGHT/1024,decodeShader); 
-		//Rastgl.copyframe(ono3d.transTexture,0,0 ,WIDTH/1024,1,Ono3d.postShaders[0]); 
+		
+		//Rastgl.copyframe(averageTexture,0,0,1.0,1.0);
 		
 
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		ono3d.setViewport(0,0,WIDTH,HEIGHT);
 		gl.disable(gl.BLEND);
 		ono3d.clear();
 
@@ -1102,7 +1110,7 @@ var Testact=(function(){
 				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,width,height);
 				
-				//Gauss.filter(width,height,10,tex,0,0,1,1,width,height); 
+				Gauss.filter(width,height,10,tex,0,0,1,1,width,height); 
 
 				gl.bindTexture(gl.TEXTURE_2D,env2dtex);
 				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,1024-height*2,0,0,width,height);
@@ -1221,7 +1229,12 @@ var Testact=(function(){
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
 	bufTexture=Rastgl.createTexture(null,1024,1024);
-	gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
+	gl.bindTexture(gl.TEXTURE_2D, bufTexture);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+	averageTexture=Rastgl.createTexture(null,1024,1024);
+	gl.bindTexture(gl.TEXTURE_2D, averageTexture);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 	
@@ -1232,5 +1245,11 @@ var Testact=(function(){
 
 	span=document.getElementById("cons");
 		
+
+	addShader = Ono3d.loadShader("add","../lib/webgl/add.js");
+	decodeShader=Ono3d.loadShader("decode","../lib/webgl/decode.js");
+	averageShader = Ono3d.loadShader("average","../lib/webgl/average.shader");
+	average2Shader= Ono3d.loadShader("average2","../lib/webgl/average2.shader");
+
 	return ret;
 })()
