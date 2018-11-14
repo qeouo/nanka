@@ -1157,6 +1157,21 @@ var Testact=(function(){
 		
 		Util.setFps(globalParam.fps,mainloop);
 		Util.fpsman();
+
+		document.getElementById("autoExposure").addEventListener("change"
+			,function(evt){
+				var control = document.getElementById("exposure_setting");
+				var inputs = Array.prototype.slice.call(control.getElementsByTagName("input"));
+
+				for(var i=0;i<inputs.length;i++){
+					var element = inputs[i];
+					if(this.checked){
+						element.setAttribute("disabled","disabled");
+					}else{
+						element.removeAttribute("disabled");
+					}
+				}
+		});
 	
 		var control = document.getElementById("control");
 		var inputs = Array.prototype.slice.call(control.getElementsByTagName("input"));
@@ -1196,6 +1211,7 @@ var Testact=(function(){
 			}
 			Util.fireEvent(element,"change");
 		}
+		
 		
 		goMain = objMan.createObj(GoMain);
 
