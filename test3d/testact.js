@@ -690,7 +690,6 @@ var Testact=(function(){
 		globalParam.fps=60;
 		globalParam.scene=0;
 		globalParam.shadow=1;
-		globalParam.hdr=1;
 		globalParam.model="./f1.o3o";
 		globalParam.materialMode = false;
 		globalParam.cColor= "ffffff";
@@ -704,7 +703,12 @@ var Testact=(function(){
 		globalParam.cNormal= 1.0;
 		globalParam.cEmi= 0.0;
 		globalParam.shader= 0;
+
+	//カメラ露光
 		globalParam.autoExposure=1;
+		globalParam.exposure_level=0.5;
+		globalParam.exposure_upper=2;
+		globalParam.exposure_bloom=0.1;
 		
 		globalParam.source=0;
 		globalParam.target=0;
@@ -922,37 +926,58 @@ var Testact=(function(){
 		//画面平均光度算出
 		if(globalParam.autoExposure){
 
+			//ピクセル毎の光度と最大値を取得
 			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
 			ono3d.setViewport(0,0,512,512);
 			gl.bindTexture(gl.TEXTURE_2D,averageTexture);
-				
 			Rastgl.postEffect(bufTexture ,(WIDTH-512)/2.0/1024,0 ,512/1024,HEIGHT/1024,averageShader); 
 			gl.bindTexture(gl.TEXTURE_2D, averageTexture);
 			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,512,512);
 
+			//1/2縮小を繰り返し平均と最大値を求める
 			var size = 512;
 			for(var i=0;size>1;i++){
 				ono3d.setViewport(0,0,size/2,size/2);
 				Rastgl.postEffect(averageTexture ,0 ,0,size/512,size/512,average2Shader); 
-			gl.bindTexture(gl.TEXTURE_2D, averageTexture);
+				gl.bindTexture(gl.TEXTURE_2D, averageTexture);
 				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,size/2,size/2);
 				size/=2;
 			}
+
+			//光度計算結果を取得
+			var u8 = new Uint8Array(4);
+			var a= new Vec4();
+			var b= new Vec4();
+			gl.readPixels(0,0,1,1, gl.RGBA, gl.UNSIGNED_BYTE, u8);
+			b[0]=u8[0]/255;
+			b[1]=u8[1]/255;
+			b[2]=u8[2]/255;
+			b[3]=u8[3]/255;
+			Rastgl.decode(a,b);
+
+			//補間
+			a[0] = globalParam.exposure_level +(a[0] - globalParam.exposure_level)*0.1;
+			a[1] = globalParam.exposure_upper +(a[1] - globalParam.exposure_upper)*0.1;
+			document.getElementById("exposure_level").value = a[0];
+			document.getElementById("exposure_upper").value = a[1];
+			Util.fireEvent(document.getElementById("exposure_level"),"change");
+			Util.fireEvent(document.getElementById("exposure_upper"),"change");
 		}else{
-			ono3d.setViewport(0,0,1,1);
-			gl.useProgram(fillShader.program);
-			gl.uniform4f(fillShader.unis["uColor"],0.5,0.5*4,0.0,0.5);
-				
-			Rastgl.postEffect(averageTexture,0,0,0,0,fillShader); 
-			gl.bindTexture(gl.TEXTURE_2D, averageTexture);
-			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1,1);
+	//		ono3d.setViewport(0,0,1,1);
+	//		gl.useProgram(fillShader.program);
+	//		gl.uniform4f(fillShader.unis["uColor"]
+	//			,globalParam.exposure_level
+	//			,globalParam.exposure_upper
+	//			,0.0,0.5);
+	//			
+	//		Rastgl.postEffect(averageTexture,0,0,0,0,fillShader); 
+	//		gl.bindTexture(gl.TEXTURE_2D, averageTexture);
+	//		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1,1);
 		}
 
 
 
-		if(globalParam.hdr && addShader.program){
-			//疑似HDRぼかし(α値が0が通常、1に近いほど光る)
-
+		if(globalParam.exposure_bloom && addShader.program){
 
 			//合成
 			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
@@ -961,8 +986,8 @@ var Testact=(function(){
 			gl.uniform1i(addShader.unis["uSampler2"],1);
 			gl.activeTexture(gl.TEXTURE1);
 			gl.bindTexture(gl.TEXTURE_2D,bufTexture);
-			gl.uniform1f(addShader.unis["v1"],0.5);
-			gl.uniform1f(addShader.unis["v2"],0.1);
+			gl.uniform1f(addShader.unis["v1"],0.0);
+			gl.uniform1f(addShader.unis["v2"],globalParam.exposure_bloom);
 			
 			var emiSize=0.5;
 			ono3d.setViewport(0,0,WIDTH*emiSize,HEIGHT*emiSize);
@@ -996,6 +1021,8 @@ var Testact=(function(){
 
 		gl.useProgram(decodeShader.program);
 		gl.uniform1i(decodeShader.unis["uSampler2"],1);
+		gl.uniform1f(decodeShader.unis["uAL"],globalParam.exposure_level);
+		gl.uniform1f(decodeShader.unis["uLw"],globalParam.exposure_upper);
 		gl.activeTexture(gl.TEXTURE1);
 		gl.bindTexture(gl.TEXTURE_2D,averageTexture);
 		Rastgl.postEffect(bufTexture ,0,0 ,WIDTH/1024,HEIGHT/1024,decodeShader); 
