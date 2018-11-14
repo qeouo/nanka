@@ -962,6 +962,9 @@ var Testact=(function(){
 			document.getElementById("exposure_upper").value = a[1];
 			Util.fireEvent(document.getElementById("exposure_level"),"change");
 			Util.fireEvent(document.getElementById("exposure_upper"),"change");
+			globalParam.exposure_level = a[0];
+			globalParam.exposure_upper= a[1];
+
 		}else{
 	//		ono3d.setViewport(0,0,1,1);
 	//		gl.useProgram(fillShader.program);
