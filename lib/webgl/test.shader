@@ -41,6 +41,5 @@ void main(void){
 		l = ((nrmmap.w*2.0 -1.0  - a.z)/r.z)*0.4;
 		a = a + r * l;
 	}
-	gl_FragColor = texture2D(uBaseColMap,(a.xy * sqrt3/(sqrt3+1.0-a.z))*0.5+0.5);
-	gl_FragColor.a = 0.0;
+	gl_FragColor = encode(texture2D(uBaseColMap,(a.xy * sqrt3/(sqrt3+1.0-a.z))*0.5+0.5));
 }

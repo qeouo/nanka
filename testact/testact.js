@@ -43,6 +43,12 @@ var Testact=(function(){
 
 	var lightSun;
 	var lightAmbient
+	var addShader;
+	var decodeShader;
+	var averageShader;
+	var average2Shader;
+	var fillShader;
+	var averageTexture;
 
 
 	var ObjMan= (function(){
@@ -668,8 +674,8 @@ var Testact=(function(){
 	}
 
 		var url=location.search.substring(1,location.search.length)
-		globalParam.outlineWidth=0;
-		globalParam.outlineColor="000000";
+		globalParam.outline_bold=0;
+		globalParam.outline_color="000000";
 		globalParam.lightColor1="808080";
 		globalParam.lightColor2="808080";;
 		globalParam.lightThreshold1=0.;
@@ -683,19 +689,31 @@ var Testact=(function(){
 		globalParam.fps=60;
 		globalParam.scene=0;
 		globalParam.shadow=1;
-		globalParam.hdr=1;
-		globalParam.model="./field.o3o";
+		globalParam.model="./f1.o3o";
 		globalParam.materialMode = false;
 		globalParam.cColor= "ffffff";
 		globalParam.cReflection= 0;
 		globalParam.cReflectionColor= "ffffff";
 		globalParam.cRoughness= 0;
+		globalParam.cTransRoughness= 0;
 		globalParam.frenel = 0;
 		globalParam.cAlpha= 1.0;
 		globalParam.cRefraction = 1.1;
 		globalParam.cNormal= 1.0;
 		globalParam.cEmi= 0.0;
-		globalParam.shader=0;
+		globalParam.shader= 0;
+
+	//カメラ露光
+		globalParam.autoExposure=1;
+		globalParam.exposure_level=0.5;
+		globalParam.exposure_upper=2;
+		globalParam.exposure_bloom=0.1;
+		
+		globalParam.source=0;
+		globalParam.target=0;
+		globalParam.reference=0;
+		globalParam.actionAlpha=0;
+
 		
 
 		var args=url.split("&")
@@ -785,6 +803,7 @@ var Testact=(function(){
 		Util.hex2rgb(lightAmbient.color,globalParam.lightColor2)
 
 	
+		ono3d.envTexture = env2dtex;
 //シャドウマップ描画
 		var start = Date.now();
 		camera.calcMatrix();
@@ -857,72 +876,134 @@ var Testact=(function(){
 			}
 		}
 
-		gl.viewport(0,0,WIDTH,HEIGHT);
+		ono3d.setViewport(0,0,WIDTH,HEIGHT);
 //オブジェクト描画
 		gl.depthMask(true);
 		gl.enable(gl.DEPTH_TEST);
 		ono3d.setViewport(0,0,WIDTH,HEIGHT);
 
+
+
 		if(env2dtex){
+			Plain.draw(ono3d,0);
 			if(globalParam.shader===0){
-				//MainShader.draw(ono3d,shadowTexture,env2dtex,camera.p);
-				ono3d.render(shadowTexture,env2dtex,camera.p);
+				ono3d.render(shadowTexture,camera.p);
 			}else{
-				MainShader2.draw(ono3d,shadowTexture,env2dtex,camera.p);
+				MainShader2.draw(ono3d,shadowTexture,camera.p);
 			}
 		}
-		Plain.draw(ono3d);
 		gl.finish();
 		
-		//gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
 
+		//描画結果をバッファにコピー
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.bindTexture(gl.TEXTURE_2D, bufTexture);
+		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
 
-		if(globalParam.hdr){
-			//疑似HDRぼかし(α値が0が通常、1に近いほど光る)
+		//画面平均光度算出
+		if(globalParam.autoExposure){
 
-			//描画結果をバッファにコピー
-			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-			gl.bindTexture(gl.TEXTURE_2D, bufTexture);
-			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
-
-			var emiSize=0.5;
+			//ピクセル毎の光度と最大値を取得
 			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+			ono3d.setViewport(0,0,512,512);
+			gl.bindTexture(gl.TEXTURE_2D,averageTexture);
+			Rastgl.postEffect(bufTexture ,(WIDTH-512)/2.0/1024,0 ,512/1024,HEIGHT/1024,averageShader); 
+			gl.bindTexture(gl.TEXTURE_2D, averageTexture);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,512,512);
+
+			//1/2縮小を繰り返し平均と最大値を求める
+			var size = 512;
+			for(var i=0;size>1;i++){
+				ono3d.setViewport(0,0,size/2,size/2);
+				Rastgl.postEffect(averageTexture ,0 ,0,size/512,size/512,average2Shader); 
+				gl.bindTexture(gl.TEXTURE_2D, averageTexture);
+				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,size/2,size/2);
+				size/=2;
+			}
+
+			//光度計算結果を取得
+			var u8 = new Uint8Array(4);
+			var a= new Vec4();
+			var b= new Vec4();
+			gl.readPixels(0,0,1,1, gl.RGBA, gl.UNSIGNED_BYTE, u8);
+			b[0]=u8[0]/255;
+			b[1]=u8[1]/255;
+			b[2]=u8[2]/255;
+			b[3]=u8[3]/255;
+			Rastgl.decode(a,b);
+
+			//補間
+			a[0] = globalParam.exposure_level +(a[0] - globalParam.exposure_level)*0.1;
+			a[1] = globalParam.exposure_upper +(a[1] - globalParam.exposure_upper)*0.1;
+			document.getElementById("exposure_level").value = a[0];
+			document.getElementById("exposure_upper").value = a[1];
+			Util.fireEvent(document.getElementById("exposure_level"),"change");
+			Util.fireEvent(document.getElementById("exposure_upper"),"change");
+			globalParam.exposure_level = a[0];
+			globalParam.exposure_upper= a[1];
+
+		}else{
+	//		ono3d.setViewport(0,0,1,1);
+	//		gl.useProgram(fillShader.program);
+	//		gl.uniform4f(fillShader.unis["uColor"]
+	//			,globalParam.exposure_level
+	//			,globalParam.exposure_upper
+	//			,0.0,0.5);
+	//			
+	//		Rastgl.postEffect(averageTexture,0,0,0,0,fillShader); 
+	//		gl.bindTexture(gl.TEXTURE_2D, averageTexture);
+	//		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1,1);
+		}
+
+		if(globalParam.exposure_bloom && addShader.program){
+
+			//合成
+			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+
+			gl.useProgram(addShader.program);
+			gl.uniform1i(addShader.unis["uSampler2"],1);
+			gl.activeTexture(gl.TEXTURE1);
+			gl.bindTexture(gl.TEXTURE_2D,bufTexture);
+			gl.uniform1f(addShader.unis["v1"],0.0);
+			gl.uniform1f(addShader.unis["v2"],globalParam.exposure_bloom);
+			
+			var emiSize=0.5;
 			ono3d.setViewport(0,0,WIDTH*emiSize,HEIGHT*emiSize);
-			gl.depthMask(false);
-			gl.disable(gl.DEPTH_TEST);
-			gl.disable(gl.BLEND);
-			Rastgl.copyframe(bufTexture ,0,0 ,WIDTH/1024,HEIGHT/1024); //今回結果を書き込み
-			gl.enable(gl.BLEND);
-			gl.blendFuncSeparate(gl.CONSTANT_ALPHA,gl.DST_ALPHA,gl.ZERO,gl.ZERO);
-			gl.blendColor(0,0,0,0.4);
-			Rastgl.copyframe(emiTexture ,0,0 ,WIDTH/1024,HEIGHT/1024); //前回の結果を重ねる
+			Rastgl.postEffect(emiTexture ,0,0 ,WIDTH/1024,HEIGHT/1024,addShader); 
+			gl.bindTexture(gl.TEXTURE_2D, emiTexture);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH/2,HEIGHT/2);
+
+			Gauss.filter(WIDTH*emiSize,HEIGHT*emiSize,100
+				,emiTexture,0,0,WIDTH*emiSize/512,HEIGHT*emiSize/512,512,512); //光テクスチャをぼかす
 			gl.bindTexture(gl.TEXTURE_2D, emiTexture);
 			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH*emiSize,HEIGHT*emiSize);//結果を光テクスチャに書き込み
 
-			gl.clearColor(0.0,0.0,0.0,1.0);
-			gl.clear(gl.COLOR_BUFFER_BIT);
-			gl.disable(gl.DEPTH_TEST);
-			gl.disable(gl.BLEND);
-			Gauss.filter(WIDTH*emiSize,HEIGHT*emiSize,10
-				,emiTexture,0,0,WIDTH*emiSize/512,HEIGHT*emiSize/512,512,512); //光テクスチャをぼかす
-			
-			gl.bindTexture(gl.TEXTURE_2D,emiTexture);
-			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH*emiSize,HEIGHT*emiSize);
+			//合成
+			gl.bindFramebuffer(gl.FRAMEBUFFER,null );
 
-			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			gl.useProgram(addShader.program);
+			gl.uniform1i(addShader.unis["uSampler2"],1);
+			gl.activeTexture(gl.TEXTURE1);
+			gl.bindTexture(gl.TEXTURE_2D,emiTexture);
+			gl.uniform1f(addShader.unis["v1"],1.0);
+			gl.uniform1f(addShader.unis["v2"],1.0);
+
 			ono3d.setViewport(0,0,WIDTH,HEIGHT);
-			gl.enable(gl.BLEND);
-			gl.blendFunc(gl.ONE,gl.ONE);
-			Rastgl.copyframe(emiTexture,0,0,WIDTH/1024,HEIGHT/1024); //メイン画面に合成
+			Rastgl.postEffect(bufTexture,0,0 ,WIDTH/1024.0,HEIGHT/1024,addShader); 
+
+			gl.bindTexture(gl.TEXTURE_2D, bufTexture);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
 		}
-		gl.disable(gl.BLEND);
-		//Rastgl.copyframe(ono3d.transTexture,0,0,1,1); //メイン画面に合成
-//メインのバッファのアルファ値を1にする
-		gl.viewport(0,0,WIDTH,HEIGHT);
-		gl.colorMask(false,false,false,true);
-		gl.clearColor(0.0,0.0,0.0,1.0);
-		gl.clear(gl.COLOR_BUFFER_BIT);
-		gl.colorMask(true,true,true,true);
+		ono3d.setViewport(0,0,WIDTH,HEIGHT);
+		gl.bindFramebuffer(gl.FRAMEBUFFER,null );
+
+		gl.useProgram(decodeShader.program);
+		gl.uniform1i(decodeShader.unis["uSampler2"],1);
+		gl.uniform1f(decodeShader.unis["uAL"],globalParam.exposure_level);
+		gl.uniform1f(decodeShader.unis["uLw"],globalParam.exposure_upper);
+		gl.activeTexture(gl.TEXTURE1);
+		gl.bindTexture(gl.TEXTURE_2D,averageTexture);
+		Rastgl.postEffect(bufTexture ,0,0 ,WIDTH/1024,HEIGHT/1024,decodeShader); 
 
 		gl.finish();
 		ono3d.clear();
@@ -998,6 +1079,7 @@ var Testact=(function(){
 			gl.colorMask(true,true,true,true);
 			gl.disable(gl.BLEND);
 			gl.disable(gl.DEPTH_TEST);
+
 			env2dtex= Rastgl.createTexture(null,1024,1024);
 			gl.clearColor(1.0,0.0,0.0,1.0);
 			gl.clear(gl.COLOR_BUFFER_BIT);
@@ -1052,45 +1134,60 @@ var Testact=(function(){
 		Util.setFps(globalParam.fps,mainloop);
 		Util.fpsman();
 	
-		var checkbox=document.getElementById("notstereo");
-		if(globalParam.stereomode==-1){
-			checkbox=document.getElementById("parallel");
-		}else if(globalParam.stereomode==1){
-			checkbox=document.getElementById("cross");
-		}
-		checkbox.checked=1;
-			
-		var tags=["smoothing"
-			,"lightColor1"
-			,"lightColor2"
-			,"lightThreshold1"
-			,"lightThreshold2"
-			,"outlineWidth"
-			,"outlineColor"
-			,"stereoVolume"
-			,"shadow"
-			,"hdr"
+		document.getElementById("autoExposure").addEventListener("change"
+			,function(evt){
+				var control = document.getElementById("exposure_setting");
+				var inputs = Array.prototype.slice.call(control.getElementsByTagName("input"));
 
-		];
-		for(var i=0;i<tags.length;i++){
-			(function(tag){
-				var element = document.getElementById(tag);
-				if(element.className=="colorpicker"){
-					element.value=globalParam[tag];
-					element.addEventListener("change",function(evt){globalParam[tag] = this.value},false);
-				}else if(element.type=="checkbox"){
-					element.checked=Boolean(globalParam[tag]);
-					element.addEventListener("change",function(evt){globalParam[tag] = this.checked},false);
-				}else{
-					element.value=globalParam[tag];
-					element.addEventListener("change",function(evt){globalParam[tag] = parseFloat(this.value)},false);
-					if(!element.value){
-						return;
+				for(var i=0;i<inputs.length;i++){
+					var element = inputs[i];
+					if(this.checked){
+						element.setAttribute("disabled","disabled");
+					}else{
+						element.removeAttribute("disabled");
 					}
 				}
-				Util.fireEvent(element,"change");
-			})(tags[i]);
+		});
+	
+		var control = document.getElementById("control");
+		var inputs = Array.prototype.slice.call(control.getElementsByTagName("input"));
+		var selects= Array.prototype.slice.call(control.getElementsByTagName("select"));
+		
+		inputs = inputs.concat(selects);
+
+		for(var i=0;i<inputs.length;i++){
+			var element = inputs[i];
+			var tag = element.id;
+			if(!tag)continue;
+
+			element.title = tag;
+			if(element.className=="colorpicker"){
+				element.value=globalParam[tag];
+				element.addEventListener("change",function(evt){globalParam[evt.target.id] = this.value},false);
+			}else if(element.type=="checkbox"){
+				element.checked=Boolean(globalParam[tag]);
+				element.addEventListener("change",function(evt){globalParam[evt.target.id] = this.checked},false);
+			}else if(element.type==="text" || element.tagName ==="SELECT"){
+				element.value=globalParam[tag];
+				element.addEventListener("change",function(evt){globalParam[evt.target.id] = parseFloat(this.value)},false);
+				if(!element.value){
+					continue;
+				}
+			}else if(element.type==="radio"){
+				var name = element.name;
+				if(element.value === ""+globalParam[name]){
+					element.checked=1;
+				}else{
+					element.checked=0;
+				}
+				element.addEventListener("change",function(evt){globalParam[evt.target.name] = parseFloat(this.value)},false);
+				if(!element.checked){
+					continue;
+				}
+			}
+			Util.fireEvent(element,"change");
 		}
+		
 
 		var userAgent = window.navigator.userAgent.toLowerCase();
 		if (navigator.platform.indexOf("Win") != -1) {
@@ -1172,6 +1269,16 @@ var Testact=(function(){
 		inittime=Date.now();
 
 		span=document.getElementById("cons");
+	addShader = Ono3d.loadShader("add","../lib/webgl/add.js");
+	decodeShader=Ono3d.loadShader("decode","../lib/webgl/decode.js");
+	averageShader = Ono3d.loadShader("average","../lib/webgl/average.shader");
+	average2Shader= Ono3d.loadShader("average2","../lib/webgl/average2.shader");
+	fillShader= Ono3d.loadShader("fill","../lib/webgl/fill.shader");
+
+	averageTexture=Rastgl.createTexture(null,512,512);
+	gl.bindTexture(gl.TEXTURE_2D, averageTexture);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 		
 	return ret;
 })()

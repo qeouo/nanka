@@ -220,7 +220,7 @@ def ExportOno3dObject():
             fileoutMd()
         b = obj.bound_box
         fileout(',"bound_box":[{:9f},{:9f},{:9f},{:9f},{:9f},{:9f}]\n'.format(b[0][0],b[0][1],b[0][2],b[6][0],b[6][1],b[6][2]))
-
+        fileout(',"bound_type":"{}"\n'.format(obj.draw_bounds_type))
         fileout(',"modifiers":')
         fileoutLu()
         for modifier in obj.modifiers:

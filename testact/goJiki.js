@@ -220,8 +220,10 @@
 
 				Mat43.getInv(m,e.mixedmatrix);
 				Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
+
+
 				O3o.drawObject(human);
-	//			O3o.drawObject(e);
+
 				O3o.drawObject(jumpC);
 				Mat43.poolFree(1);
 

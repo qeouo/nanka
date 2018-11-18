@@ -80,7 +80,7 @@ void main(void){
 	float refa = (rough -refx*refx*0.06)/((((1.0+refx)*(1.0+refx))-refx*refx)*0.06); 
 	refa = min(refa,1.0); 
 	vec2 refV = vec2(atan(angle.x,-angle.z)*_PI*0.5 + 0.5 
-		,(-atan(angle.y,length(angle.xz))*_PI*0.5  + 0.25)); 
+		,(-atan(angle.y,length(angle.xz)+0.00001)*_PI*0.5*0.995  + 0.25)); 
 	vec4 refCol = textureTri(uEnvMap,texsize,refV,refx+refa); 
 	refCol.rgb *=  uReflectionColor; 
 	/*屈折*/ 
