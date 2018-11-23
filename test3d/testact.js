@@ -25,6 +25,7 @@ var Testact=(function(){
 	var averageShader;
 	var average2Shader;
 	var fillShader;
+	var customMaterial = new Ono3d.RenderMaterial();
 
 	var obj3d=null,field=null;
 	var goField,goCamera;
@@ -795,45 +796,48 @@ var Testact=(function(){
 		Util.hex2rgb(lightSun.color,globalParam.lightColor1)
 		Util.hex2rgb(lightAmbient.color,globalParam.lightColor2)
 
-		var cMat = O3o.customMaterial;
-		var a=new Vec3();
-		Util.hex2rgb(a,globalParam.cColor);
-		cMat.r=a[0];
-		cMat.g=a[1];
-		cMat.b=a[2];
-		cMat.a=globalParam.cAlpha;
-		cMat.emt=globalParam.cEmi;
-		cMat.reflect=globalParam.cReflection;
-		cMat.ior=globalParam.cRefraction;
-		cMat.rough=globalParam.cRoughness;
-		cMat.transRough=globalParam.cTransRoughness;
-		Util.hex2rgb(cMat.reflectionColor,globalParam.cReflectionColor);
-		cMat.texture=globalParam.cRoughness;
-		cMat.texture_slots=[];
-		if(globalParam.cTexture>=0){
-			var texture_slot = new O3o.Texture_slot();
+		if(globalParam.cMaterial){
+			var cMat = customMaterial;
+			var a=new Vec3();
+			Util.hex2rgb(a,globalParam.cColor);
+			cMat.r=a[0];
+			cMat.g=a[1];
+			cMat.b=a[2];
+			cMat.opacity=globalParam.cAlpha;
+			cMat.emt=globalParam.cEmi;
+			cMat.spc=globalParam.cReflection;
+			cMat.ior=globalParam.cRefraction;
+			cMat.rough=globalParam.cRoughness;
+			cMat.transRough=globalParam.cTransRoughness;
+			Util.hex2rgb(cMat.reflectionColor,globalParam.cReflectionColor);
+			cMat.texture=globalParam.cRoughness;
+			cMat.texture_slots=[];
+			if(globalParam.cTexture>=0){
+				var texture_slot = new O3o.Texture_slot();
 
-			cMat.texture_slots.push(texture_slot);
-			texture_slot.texture = customTextures[globalParam.cTexture];
+				cMat.texture_slots.push(texture_slot);
+				texture_slot.texture = customTextures[globalParam.cTexture];
+			}
+			if(globalParam.cBump>=0){
+				var texture_slot = new O3o.Texture_slot();
+
+				cMat.texture_slots.push(texture_slot);
+				texture_slot.texture = customBumps[globalParam.cBump];
+				texture_slot.normal= globalParam.cNormal;
+			}
 		}
-		if(globalParam.cBump>=0){
-			var texture_slot = new O3o.Texture_slot();
 
-			cMat.texture_slots.push(texture_slot);
-			texture_slot.texture = customBumps[globalParam.cBump];
-			texture_slot.normal= globalParam.cNormal;
-		}
-
-		O3o.useCustomMaterial = globalParam.cMaterial;
 			
 
+		ono3d.renderEnvironments[0].envTexture = env2dtex;
 //シャドウマップ描画
 		var start = Date.now();
 		camera.calcMatrix();
 		camera.calcCollision(camera.cameracol);
+		var lightSource= null;
 
 		if(globalParam.shadow){
-			var lightSource = ono3d.lightSources.find(
+			lightSource = ono3d.renderEnvironments[0].lights.find(
 				function(a){return a.type===Ono3d.LT_DIRECTION;});
 			if(lightSource){
 				camera.calcCollision(camera.cameracol2,lightSource.veiwmatrix);
@@ -860,14 +864,8 @@ var Testact=(function(){
 		gl.depthMask(true);
 		gl.clearColor(1., 1., 1.,1.0);
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-		if(globalParam.shadow){
-			var lightSource = ono3d.lightSources.find(
-				function(a){return a.type=== Ono3d.LT_DIRECTION;});
-			if(lightSource){
-
-				Shadow.draw(ono3d,lightSource.viewmatrix);
-
-			}
+		if(lightSource){
+			Shadow.draw(ono3d,lightSource.viewmatrix);
 		}
 		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
 		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1024,1024);
@@ -910,7 +908,11 @@ var Testact=(function(){
 		if(env2dtex){
 			Plain.draw(ono3d,0);
 			if(globalParam.shader===0){
-				ono3d.render(shadowTexture,env2dtex,camera.p);
+				if(globalParam.cMaterial){
+					ono3d.render(shadowTexture,camera.p,customMaterial);
+				}else{
+					ono3d.render(shadowTexture,camera.p);
+				}
 			}else{
 				MainShader2.draw(ono3d,shadowTexture,env2dtex,camera.p);
 			}
@@ -1259,15 +1261,15 @@ var Testact=(function(){
 	Rastgl.ono3d = ono3d;
 
 
-	ono3d.lightSources.splice(0,ono3d.lightSources.length);
+	var renderEnvironment = ono3d.renderEnvironments[0];
 
 	lightAmbient = new ono3d.LightSource();
-	ono3d.lightSources.push(lightAmbient);
+	renderEnvironment.lights.push(lightAmbient);
 	lightAmbient.type = Ono3d.LT_AMBIENT;
 	Vec3.set(lightAmbient.color,0.4,0.4,0.4);
 
 	lightSun= new ono3d.LightSource();
-	ono3d.lightSources.push(lightSun);
+	renderEnvironment.lights.push(lightSun);
 	lightSun.type =Ono3d.LT_DIRECTION;
 	
 	shadowTexture=Rastgl.createTexture(null,1024,1024);
