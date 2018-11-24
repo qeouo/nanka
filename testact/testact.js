@@ -33,6 +33,8 @@ var Testact=(function(){
 		,goMain
 	;
 	var objMan;
+	var probs = new Collider();
+	ret.probs = probs;
 
 	var i;
 	var pad =new Vec2();
@@ -41,8 +43,6 @@ var Testact=(function(){
 	var txt="STAGE CLEAR!!";
 	var txt2="ALL CLEAR!!";
 
-	var lightSun;
-	var lightAmbient
 	var addShader;
 	var decodeShader;
 	var averageShader;
@@ -522,23 +522,62 @@ var Testact=(function(){
 				var light=null;
 
 				var scene = o3o.scenes[0];
-				var m=Mat43.poolAlloc();
+
 
 				for(var i=0;i<scene.objects.length;i++){
 					var object = scene.objects[i];
+					if(object.name.indexOf("prob_")==0){
+						var collider= new Collider.Cuboid;
+						Mat43.dotMat44Mat43(collider.matrix
+								,ono3d.worldMatrix,object.matrix);
+						Mat43.getInv(collider.inv_matrix,collider.matrix);
+						collider.update();
+						probs.addCollision(collider);
+					}	
+				}
+				probs.sortList();
+				var m=Mat43.poolAlloc();
+
+				var renderEnvironment;
+				for(var i=0;i<scene.objects.length;i++){
+					//ライト設定
+					var object = scene.objects[i];
 					if(object.type!=="LAMP")continue;
+					if(object.parent){
+						renderEnvironment= ono3d.renderEnvironments.find(
+							function(o){return o.name === object.parent.name;});
+						if(!renderEnvironment){
+							renderEnvironment = ono3d.renderEnvironments[ono3d.renderEnvironments_index];
+							ono3d.renderEnvironments_index++;
+
+							renderEnvironment.envTexture=env2dtex;
+							var light= new ono3d.LightSource();
+							renderEnvironment.lights.push(light);
+							light.type =Ono3d.LT_DIRECTION;
+
+							light= new ono3d.LightSource();
+							renderEnvironment.lights.push(light);
+							light.type = Ono3d.LT_AMBIENT;
+							renderEnvironment.name = object.parent.name;
+						}
+					}else{
+						renderEnvironment = ono3d.renderEnvironments[0];
+					}
 					var ol = object.data;
 					var element;
 					if(ol.type==="SUN"){
-						light = lightSun;
+						light = renderEnvironment.lights[0];
 						element =document.getElementById("lightColor1");
 					}else{
-						light = lightAmbient;
+						light = renderEnvironment.lights[1];
 						element =document.getElementById("lightColor2");
 					}
 					light.power=1;
-					element.value=Util.rgb(ol.color[0],ol.color[1],ol.color[2]).slice(1);
-					Util.fireEvent(element,"change");
+					if( renderEnvironment == ono3d.renderEnvironments[0]){
+						element.value=Util.rgb(ol.color[0],ol.color[1],ol.color[2]).slice(1);
+						Util.fireEvent(element,"change");
+					}
+					Vec3.copy(light.color,ol.color);
 
 					Mat43.fromLSE(object.matrix,object.location,object.scale,object.rotation);
 					Mat44.dotMat43(light.matrix,ono3d.worldMatrix,object.matrix);
@@ -790,27 +829,22 @@ var Testact=(function(){
 		ono3d.lineWidth=1.0;
 		ono3d.smoothing=globalParam.smoothing;
 
-		//var light=ono3d.lightSources[0];
-		//Util.hex2rgb(light.color,globalParam.lightColor1);
-
-		//light=ono3d.lightSources[1];
-		//Util.hex2rgb(light.color,globalParam.lightColor2);
+		var environment = ono3d.renderEnvironments[0];
+		Util.hex2rgb(environment.lights[0].color,globalParam.lightColor1)
+		Util.hex2rgb(environment.lights[1].color,globalParam.lightColor2)
 
 		ono3d.lightThreshold1=globalParam.lightThreshold1;
 		ono3d.lightThreshold2=globalParam.lightThreshold2;
 
-		Util.hex2rgb(lightSun.color,globalParam.lightColor1)
-		Util.hex2rgb(lightAmbient.color,globalParam.lightColor2)
-
 	
-		ono3d.envTexture = env2dtex;
 //シャドウマップ描画
 		var start = Date.now();
 		camera.calcMatrix();
 		camera.calcCollision(camera.cameracol);
+		var lightSource= null;
 
 		if(globalParam.shadow){
-			var lightSource = ono3d.lightSources.find(
+			lightSource = ono3d.renderEnvironments[0].lights.find(
 				function(a){return a.type===Ono3d.LT_DIRECTION;});
 			if(lightSource){
 				camera.calcCollision(camera.cameracol2,lightSource.veiwmatrix);
@@ -837,12 +871,8 @@ var Testact=(function(){
 		gl.depthMask(true);
 		gl.clearColor(1., 1., 1.,1.0);
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-		if(globalParam.shadow){
-			var lightSource = ono3d.lightSources.find(
-				function(a){return a.type=== Ono3d.LT_DIRECTION;});
-			if(lightSource){
-				Shadow.draw(ono3d,lightSource.viewmatrix);
-			}
+		if(lightSource){
+			Shadow.draw(ono3d,lightSource.viewmatrix);
 		}
 		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
 		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1024,1024);
@@ -887,7 +917,11 @@ var Testact=(function(){
 		if(env2dtex){
 			Plain.draw(ono3d,0);
 			if(globalParam.shader===0){
-				ono3d.render(shadowTexture,camera.p);
+				if(globalParam.cMaterial){
+					ono3d.render(shadowTexture,camera.p,customMaterial);
+				}else{
+					ono3d.render(shadowTexture,camera.p);
+				}
 			}else{
 				MainShader2.draw(ono3d,shadowTexture,camera.p);
 			}
@@ -1004,6 +1038,8 @@ var Testact=(function(){
 		gl.activeTexture(gl.TEXTURE1);
 		gl.bindTexture(gl.TEXTURE_2D,averageTexture);
 		Rastgl.postEffect(bufTexture ,0,0 ,WIDTH/1024,HEIGHT/1024,decodeShader); 
+		
+
 
 		gl.finish();
 		ono3d.clear();
@@ -1127,6 +1163,9 @@ var Testact=(function(){
 			
 			gl.bindTexture(gl.TEXTURE_2D, null);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+			ono3d.renderEnvironments[0].envTexture = env2dtex;
+			ono3d.renderEnvironments[1].envTexture=env2dtex;
 		});
 		emiTexture = Rastgl.createTexture(null,512,512);
 
@@ -1235,16 +1274,17 @@ var Testact=(function(){
 		ono3d.rendercanvas=canvas;
 		Rastgl.ono3d = ono3d;
 
-		ono3d.lightSources.splice(0,ono3d.lightSources.length);
 
-		lightAmbient = new ono3d.LightSource();
-		ono3d.lightSources.push(lightAmbient);
-		lightAmbient.type = Ono3d.LT_AMBIENT;
-		Vec3.set(lightAmbient.color,0.4,0.4,0.4);
+		var renderEnvironment = ono3d.renderEnvironments[0];
+		var light;
+		light= new ono3d.LightSource();
+		renderEnvironment.lights.push(light);
+		light.type =Ono3d.LT_DIRECTION;
 
-		lightSun= new ono3d.LightSource();
-		ono3d.lightSources.push(lightSun);
-		lightSun.type =Ono3d.LT_DIRECTION;
+		light= new ono3d.LightSource();
+		renderEnvironment.lights.push(light);
+		light.type = Ono3d.LT_AMBIENT;
+		ono3d.renderEnvironments_index++;
 
 
 		gl.clearColor(1, 1, 1,1.0);

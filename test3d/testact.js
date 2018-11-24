@@ -5,7 +5,6 @@ var Testact=(function(){
 	var gl;
 	var onoPhy=null;
 	var objs=[];
-	//var sky=null;
 	var env2dtex=null;
 	var shadowTexture;
 	var bufTexture;
@@ -18,8 +17,6 @@ var Testact=(function(){
 	var soundbuffer=null;
 	var bane= null;
 	var tsukamiZ=100;
-	var lightSun;
-	var lightAmbient
 	var addShader;
 	var decodeShader;
 	var averageShader;
@@ -490,7 +487,6 @@ var Testact=(function(){
 				t.phyObjs= O3o.createPhyObjs(o3o.scenes[0],onoPhy);
 
 
-
 				var light=null;
 
 				var scene = o3o.scenes[0];
@@ -498,7 +494,6 @@ var Testact=(function(){
 
 				var co= scene.objects.find(function(a){return a.type==="CAMERA";});
 				if(co){
-					//Vec3.copy(goCamera.p,co.location);
 					Vec3.set(goCamera.p,co.location[0],co.location[2],-co.location[1]);
 					goCamera.a[1]=Math.atan2(goCamera.p[0],goCamera.p[2]);
 					goCamera.a[0]=Math.atan2(goCamera.p[1],Math.sqrt(goCamera.p[2]*goCamera.p[2]+goCamera.p[0]*goCamera.p[0]));
@@ -507,16 +502,19 @@ var Testact=(function(){
 				Vec3.mul(camera.p,goCamera.p,2)
 				Vec3.copy(camera.a,goCamera.a)
 
+				var renderEnvironment = ono3d.renderEnvironments[0];
+
 				for(var i=0;i<scene.objects.length;i++){
+					//ライト設定
 					var object = scene.objects[i];
 					if(object.type!=="LAMP")continue;
 					var ol = object.data;
 					var element;
 					if(ol.type==="SUN"){
-						light = lightSun;
+						light = renderEnvironment.lights[0];
 						element =document.getElementById("lightColor1");
 					}else{
-						light = lightAmbient;
+						light = renderEnvironment.lights[1];
 						element =document.getElementById("lightColor2");
 					}
 					light.power=1;
@@ -533,8 +531,8 @@ var Testact=(function(){
 					Mat44.getInv(mat44,light.matrix);
 					Mat44.dot(light.viewmatrix,ono3d.projectionMatrix,mat44);
 
-
 				}
+
 				Mat43.poolFree(1);
 
 
@@ -793,8 +791,9 @@ var Testact=(function(){
 		ono3d.lightThreshold1=globalParam.lightThreshold1;
 		ono3d.lightThreshold2=globalParam.lightThreshold2;
 
-		Util.hex2rgb(lightSun.color,globalParam.lightColor1)
-		Util.hex2rgb(lightAmbient.color,globalParam.lightColor2)
+		var environment = ono3d.renderEnvironments[0];
+		Util.hex2rgb(environment.lights[0].color,globalParam.lightColor1)
+		Util.hex2rgb(environment.lights[1].color,globalParam.lightColor2)
 
 		if(globalParam.cMaterial){
 			var cMat = customMaterial;
@@ -829,7 +828,6 @@ var Testact=(function(){
 
 			
 
-		ono3d.renderEnvironments[0].envTexture = env2dtex;
 //シャドウマップ描画
 		var start = Date.now();
 		camera.calcMatrix();
@@ -1131,7 +1129,7 @@ var Testact=(function(){
 			width>>=1;
 			height>>=1;
 
-			var envs=[0.06,0.24,0.54,1.0];
+			var envs=[0.06,0.24,0.54,1.0]; //i^2*0.06
 			for(var i=0;i<envs.length;i++){
 				rough=envs[i];
 				var tex = Rastgl.createTexture(0,width,height);
@@ -1156,6 +1154,8 @@ var Testact=(function(){
 			
 			gl.bindTexture(gl.TEXTURE_2D, null);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+			ono3d.renderEnvironments[0].envTexture = env2dtex;
 		});
 		emiTexture = Rastgl.createTexture(null,512,512);
 
@@ -1262,15 +1262,14 @@ var Testact=(function(){
 
 
 	var renderEnvironment = ono3d.renderEnvironments[0];
+	var light;
+	light= new ono3d.LightSource();
+	renderEnvironment.lights.push(light);
+	light.type =Ono3d.LT_DIRECTION;
 
-	lightAmbient = new ono3d.LightSource();
-	renderEnvironment.lights.push(lightAmbient);
-	lightAmbient.type = Ono3d.LT_AMBIENT;
-	Vec3.set(lightAmbient.color,0.4,0.4,0.4);
-
-	lightSun= new ono3d.LightSource();
-	renderEnvironment.lights.push(lightSun);
-	lightSun.type =Ono3d.LT_DIRECTION;
+	light= new ono3d.LightSource();
+	renderEnvironment.lights.push(light);
+	light.type = Ono3d.LT_AMBIENT;
 	
 	shadowTexture=Rastgl.createTexture(null,1024,1024);
 	gl.bindTexture(gl.TEXTURE_2D, shadowTexture);

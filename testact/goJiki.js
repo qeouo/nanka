@@ -168,6 +168,8 @@
 
 			this.ground=false;//接地フラグリセット
 		}
+		var col = new Collider.Sphere();
+		
 		ret.prototype.draw=function(){
 
 			ono3d.setTargetMatrix(0)
@@ -217,12 +219,25 @@
 				Mat43.fromLSR(m,poJiki.location,poJiki.scale,poJiki.rotq);
 				Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
 
-
 				Mat43.getInv(m,e.mixedmatrix);
 				Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
 
+				Mat43.setInit(col.matrix);
+				Mat43.mul(col.matrix,col.matrix,0);
+				col.matrix[9]=ono3d.worldMatrix[12];
+				col.matrix[10]=ono3d.worldMatrix[13];
+				col.matrix[11]=ono3d.worldMatrix[14];
+				col.update();
 
-				O3o.drawObject(human);
+				var l =Testact.probs.checkHitAll(col)
+				var env = null;
+				if(Testact.probs.hitListIndex>0){
+					env = ono3d.renderEnvironments[1];
+				}
+
+				
+
+				O3o.drawObject(human,null,env);
 
 				O3o.drawObject(jumpC);
 				Mat43.poolFree(1);

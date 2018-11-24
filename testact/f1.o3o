@@ -7,12 +7,11 @@
   ,{"name":"テクスチャ.004","typ":"IMAGE","path":"//roomt.png"}
 ]
 ,"materials":[
-    {"name": "hoge", "r": 0.9372472167015076, "g": 0.9335126280784607, "b": 1.0, "a": 1.0, "dif": 0.800000011920929, "emt": 0.0, "use_transparency": false, "shader": "testshader", "ior": 1.0, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": false, "reflect": 0.20000000298023224, "rough": 0.0, "texture_slots": [{"texture": "テクスチャ"}, {"texture": "テクスチャ.002", "normal": 1.0}]}
+    {"name": "hoge", "r": 0.9372472167015076, "g": 0.9335126280784607, "b": 1.0, "a": 1.0, "dif": 0.800000011920929, "emt": 0.0, "use_transparency": false, "shader": "testshader", "ior": 1.0, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": false, "reflect": 0.20000000298023224, "rough": 0.0, "texture_slots": [{"texture": "テクスチャ"}, {"normal": 1.0, "texture": "テクスチャ.002"}]}
   ,  {"name": "hogehoge", "r": 0.995568037033081, "g": 1.0, "b": 0.024460796266794205, "a": 1.0, "dif": 0.800000011920929, "emt": 0.0, "use_transparency": false, "ior": 1.0, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": false, "reflect": 0.0, "rough": 0.0, "texture_slots": []}
   ,  {"name": "マテリアル", "r": 0.23428647220134735, "g": 0.7820376753807068, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.9300000071525574, "use_transparency": false, "ior": 1.0, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": false, "reflect": 0.0, "rough": 0.0, "texture_slots": []}
   ,  {"name": "マテリアル.001", "r": 0.0, "g": 0.8000000715255737, "b": 0.008240314200520515, "a": 1.0, "dif": 0.800000011920929, "emt": 0.0, "use_transparency": false, "ior": 1.0, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": false, "reflect": 0.0, "rough": 0.0, "texture_slots": []}
-  ,  {"name": "マテリアル.002", "r": 0.800000011920929, "g": 0.800000011920929, "b": 0.800000011920929, "a": 1.0, "dif": 0.800000011920929, "emt": 0.0, "use_transparency": false, "ior": 1.0, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": false, "reflect": 0.0, "rough": 0.0, "texture_slots": []}
-  ,  {"name": "マテリアル.003", "r": 0.800000011920929, "g": 0.800000011920929, "b": 0.800000011920929, "a": 0.10000000149011612, "dif": 0.800000011920929, "emt": 0.0, "use_transparency": true, "ior": 1.0, "filter": 0.0, "trans_rough": 0.5, "fresnel": 1.0, "use_mirror": true, "reflect": 0.10000000149011612, "rough": 0.5, "texture_slots": [{"texture": "テクスチャ.001", "pbr": 1.0}]}
+  ,  {"name": "マテリアル.003", "r": 0.800000011920929, "g": 0.800000011920929, "b": 0.800000011920929, "a": 0.10000000149011612, "dif": 0.800000011920929, "emt": 0.0, "use_transparency": true, "ior": 1.0, "filter": 0.0, "trans_rough": 0.5, "fresnel": 1.0, "use_mirror": true, "reflect": 0.10000000149011612, "rough": 0.5, "texture_slots": [{"pbr": 1.0, "texture": "テクスチャ.001"}]}
 ]
 ,"meshes":[
   {
@@ -93,7 +92,7 @@
       ,{"pos":[ 2.179217,-0.990974, 2.740569]}
     ]
     ,"faces":[
-      {"idx":[2,3,1,0],"mat":5}
+      {"idx":[2,3,1,0],"mat":4}
     ]
     ,"uv_layers":[
       {
@@ -448,7 +447,7 @@
   }
 ]
 ,"lamps":[
-    {"name": "Lamp", "type": "SUN", "color": [0.6037704348564148, 0.6037704348564148, 0.6037704348564148]}  ,  {"name": "エリア", "type": "HEMI", "color": [0.11925311386585236, 0.11925311386585236, 0.11925311386585236]}  ]
+    {"name": "Lamp", "type": "SUN", "color": [0.6037704348564148, 0.6037704348564148, 0.6037704348564148]}  ,  {"name": "エリア", "type": "HEMI", "color": [0.11925311386585236, 0.11925311386585236, 0.11925311386585236]}  ,  {"name": "ヘミ", "type": "HEMI", "color": [1.0, 0.0, 0.00402803672477603]}  ]
 ,"armatures":[
 ]
 ,"framerate":24
@@ -640,6 +639,23 @@
     ,"type":"MESH"
     ,"data":"立方体.003"
     ,"bound_box":[-1.645254,-0.990974,-1.083903, 2.179217,-0.990974, 2.740569]
+    ,"bound_type":"BOX"
+    ,"modifiers":[
+    ]
+  }
+  ,{
+    "name":"ヘミ"
+    ,"hide_render": 1
+    ,"groups":[]
+    ,"location":[-5.805780,-6.718700, 4.151684]
+    ,"rotation":[ 0.000000, 0.000000, 0.000000]
+    ,"scale":[ 1.000000, 1.000000, 1.000000]
+    ,"matrix":[ 1.000000, 0.000000, 0.000000, 0.000000, 1.000000, 0.000000, 0.000000, 0.000000, 1.000000,-5.805780,-6.718700, 4.151684]
+    ,"parent":"prob_shade"
+    ,"iparentmatrix":[ 0.292854, 0.000000, 0.000000,-0.000000, 0.292854, 0.000000, 0.000000, 0.000000, 0.292854, 1.724224, 3.160704,-0.928306]
+    ,"type":"LAMP"
+    ,"data":"ヘミ"
+    ,"bound_box":[ 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000]
     ,"bound_type":"BOX"
     ,"modifiers":[
     ]
@@ -894,7 +910,7 @@
     "name":"Scene"
     ,"frame_start":1
     ,"frame_end":120
-    ,"objects":["prob_shade","立方体.013","立方体.006","ガラス","立方体.012","立方体.011","立方体.010","立方体.009","立方体.008","立方体.005","room","エリア","立方体.002","立方体.001","_border","goalObject","_goal","_start","立方体.004","立方体.003","立方体","Lamp","Camera"]
+    ,"objects":["prob_shade","ヘミ","立方体.013","立方体.006","ガラス","立方体.012","立方体.011","立方体.010","立方体.009","立方体.008","立方体.005","room","エリア","立方体.002","立方体.001","_border","goalObject","_goal","_start","立方体.004","立方体.003","立方体","Lamp","Camera"]
   }
 ]
 }
