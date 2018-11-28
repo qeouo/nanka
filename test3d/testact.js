@@ -487,10 +487,8 @@ var Testact=(function(){
 				t.phyObjs= O3o.createPhyObjs(o3o.scenes[0],onoPhy);
 
 
-				var light=null;
 
 				var scene = o3o.scenes[0];
-				var m=Mat43.poolAlloc();
 
 				var co= scene.objects.find(function(a){return a.type==="CAMERA";});
 				if(co){
@@ -502,39 +500,63 @@ var Testact=(function(){
 				Vec3.mul(camera.p,goCamera.p,2)
 				Vec3.copy(camera.a,goCamera.a)
 
-				var renderEnvironment = ono3d.renderEnvironments[0];
+				var m=Mat43.poolAlloc();
 
+				var renderEnvironment;
 				for(var i=0;i<scene.objects.length;i++){
 					//ライト設定
 					var object = scene.objects[i];
 					if(object.type!=="LAMP")continue;
+					if(object.parent){
+						renderEnvironment= ono3d.renderEnvironments.find(
+							function(o){return o.name === object.parent.name;});
+						if(!renderEnvironment){
+							renderEnvironment = ono3d.renderEnvironments[ono3d.renderEnvironments_index];
+							ono3d.renderEnvironments_index++;
+
+							renderEnvironment.envTexture=env2dtex;
+							var light= new ono3d.LightSource();
+							renderEnvironment.lights.push(light);
+							light.type =Ono3d.LT_DIRECTION;
+
+							light= new ono3d.LightSource();
+							renderEnvironment.lights.push(light);
+							light.type = Ono3d.LT_AMBIENT;
+							renderEnvironment.name = object.parent.name;
+						}
+					}else{
+						renderEnvironment = ono3d.renderEnvironments[0];
+					}
 					var ol = object.data;
 					var element;
 					if(ol.type==="SUN"){
 						light = renderEnvironment.lights[0];
-						element =document.getElementById("lightColor1");
 					}else{
 						light = renderEnvironment.lights[1];
-						element =document.getElementById("lightColor2");
 					}
 					light.power=1;
-					element.value=Util.rgb(ol.color[0],ol.color[1],ol.color[2]).slice(1);
-					Util.fireEvent(element,"change");
+					Vec3.copy(light.color,ol.color);
 
-					Mat43.fromLSE(object.matrix,object.location,object.scale,object.rotation);
-					Mat44.dotMat43(light.matrix,ono3d.worldMatrix,object.matrix);
-					Mat43.fromRotVector(m,Math.PI,1,0,0);
+					Mat43.fromLSE(object.matrix,object.location,object.scale,object.rotation); //ライトの姿勢行列
+					Mat44.dotMat43(light.matrix,ono3d.worldMatrix,object.matrix); //ワールド行列で変換
+					Mat43.fromRotVector(m,Math.PI,1,0,0);  //ライトはデフォルト姿勢で下向きなので補正
 					Mat44.dotMat43(light.matrix,light.matrix,m);
 
 					ono3d.setOrtho(10.0,10.0,1.0,20.0)
-					var mat44 = ono3d.viewMatrix;//Mat44.poolAlloc();
+					var mat44 = ono3d.viewMatrix;
 					Mat44.getInv(mat44,light.matrix);
-					Mat44.dot(light.viewmatrix,ono3d.projectionMatrix,mat44);
+					Mat44.dot(light.viewmatrix,ono3d.projectionMatrix,mat44);//影生成用のビュー行列
 
 				}
-
 				Mat43.poolFree(1);
 
+				var env = ono3d.renderEnvironments[0];
+				for(var i=0;i<2;i++){
+					var ol = env.lights[i];
+					var el = document.getElementById("lightColor"+(i+1));
+					el.value = Util.rgb(ol.color[0],ol.color[1],ol.color[2]).slice(1);
+					Util.fireEvent(el,"change");
+				}
 
 			});
 		}

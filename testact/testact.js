@@ -507,19 +507,6 @@ var Testact=(function(){
 					}
 				}
 
-				ono3d.push();
-				goJiki=objMan.createObj(GoJiki);
-				ono3d.pop();
-
-				reset();
-				Vec3.copy(camera.p,goCamera.p)
-				Vec3.copy(camera.a,goCamera.a)
-
-				Vec3.set(camera.a,0,Math.PI,0)
-
-				var m43 = Mat43.poolAlloc();
-
-				var light=null;
 
 				var scene = o3o.scenes[0];
 
@@ -567,32 +554,41 @@ var Testact=(function(){
 					var element;
 					if(ol.type==="SUN"){
 						light = renderEnvironment.lights[0];
-						element =document.getElementById("lightColor1");
 					}else{
 						light = renderEnvironment.lights[1];
-						element =document.getElementById("lightColor2");
 					}
 					light.power=1;
-					if( renderEnvironment == ono3d.renderEnvironments[0]){
-						element.value=Util.rgb(ol.color[0],ol.color[1],ol.color[2]).slice(1);
-						Util.fireEvent(element,"change");
-					}
 					Vec3.copy(light.color,ol.color);
 
-					Mat43.fromLSE(object.matrix,object.location,object.scale,object.rotation);
-					Mat44.dotMat43(light.matrix,ono3d.worldMatrix,object.matrix);
-					Mat43.fromRotVector(m,Math.PI,1,0,0);
+					Mat43.fromLSE(object.matrix,object.location,object.scale,object.rotation); //ライトの姿勢行列
+					Mat44.dotMat43(light.matrix,ono3d.worldMatrix,object.matrix); //ワールド行列で変換
+					Mat43.fromRotVector(m,Math.PI,1,0,0);  //ライトはデフォルト姿勢で下向きなので補正
 					Mat44.dotMat43(light.matrix,light.matrix,m);
 
 					ono3d.setOrtho(10.0,10.0,1.0,20.0)
-					var mat44 = ono3d.viewMatrix;//Mat44.poolAlloc();
+					var mat44 = ono3d.viewMatrix;
 					Mat44.getInv(mat44,light.matrix);
-					Mat44.dot(light.viewmatrix,ono3d.projectionMatrix,mat44);
-
+					Mat44.dot(light.viewmatrix,ono3d.projectionMatrix,mat44);//影生成用のビュー行列
 
 				}
-
 				Mat43.poolFree(1);
+
+				var env = ono3d.renderEnvironments[0];
+				for(var i=0;i<2;i++){
+					var ol = env.lights[i];
+					var el = document.getElementById("lightColor"+(i+1));
+					el.value = Util.rgb(ol.color[0],ol.color[1],ol.color[2]).slice(1);
+					Util.fireEvent(el,"change");
+				}
+
+				ono3d.push();
+				goJiki=objMan.createObj(GoJiki);
+				ono3d.pop();
+				Vec3.copy(camera.p,goCamera.p)
+				Vec3.copy(camera.a,goCamera.a)
+				Vec3.set(camera.a,0,Math.PI,0)
+
+				reset();
 
 			});
 		}
@@ -654,9 +650,9 @@ var Testact=(function(){
 
 			ono3d.rf=0;
 
-			var m43 = Mat43.poolAlloc();
 			if(field){
 				if(field.scenes.length>0){
+					var m43 = Mat43.poolAlloc();
 					var objects = field.scenes[0].objects;
 					for(var i=0;i<objects.length;i++){
 						if(objects[i].hide_render){
@@ -692,9 +688,9 @@ var Testact=(function(){
 							O3o.drawObject(objects[i],null);
 						}
 					}
+					Mat43.poolFree(1);
 				}
 			}
-			Mat43.poolFree(1);
 		}
 		return ret;
 	})();
