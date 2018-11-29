@@ -22,7 +22,7 @@ var Testact=(function(){
 	var averageShader;
 	var average2Shader;
 	var fillShader;
-	var customMaterial = new Ono3d.RenderMaterial();
+	var customMaterial = new Ono3d.Material();
 
 	var obj3d=null,field=null;
 	var goField,goCamera;
@@ -490,6 +490,23 @@ var Testact=(function(){
 
 				var scene = o3o.scenes[0];
 
+
+				O3o.setEnvironments(scene); //光源セット
+
+				for(var i=0;i<ono3d.environments_index;i++){
+					//環境マップ
+					ono3d.environments[i].envTexture=env2dtex;
+				}
+
+				//0番目の光源セットをコントロールに反映
+				var env = ono3d.environments[0];
+				for(var i=0;i<2;i++){
+					var ol = [env.sun,env.area][i];
+					var el = document.getElementById("lightColor"+(i+1));
+					el.value = Util.rgb(ol.color[0],ol.color[1],ol.color[2]).slice(1);
+					Util.fireEvent(el,"change");
+				}
+
 				var co= scene.objects.find(function(a){return a.type==="CAMERA";});
 				if(co){
 					Vec3.set(goCamera.p,co.location[0],co.location[2],-co.location[1]);
@@ -499,65 +516,6 @@ var Testact=(function(){
 				}
 				Vec3.mul(camera.p,goCamera.p,2)
 				Vec3.copy(camera.a,goCamera.a)
-
-				var m=Mat43.poolAlloc();
-
-				var renderEnvironment;
-				for(var i=0;i<scene.objects.length;i++){
-					//ライト設定
-					var object = scene.objects[i];
-					if(object.type!=="LAMP")continue;
-					if(object.parent){
-						renderEnvironment= ono3d.renderEnvironments.find(
-							function(o){return o.name === object.parent.name;});
-						if(!renderEnvironment){
-							renderEnvironment = ono3d.renderEnvironments[ono3d.renderEnvironments_index];
-							ono3d.renderEnvironments_index++;
-
-							renderEnvironment.envTexture=env2dtex;
-							var light= new ono3d.LightSource();
-							renderEnvironment.lights.push(light);
-							light.type =Ono3d.LT_DIRECTION;
-
-							light= new ono3d.LightSource();
-							renderEnvironment.lights.push(light);
-							light.type = Ono3d.LT_AMBIENT;
-							renderEnvironment.name = object.parent.name;
-						}
-					}else{
-						renderEnvironment = ono3d.renderEnvironments[0];
-					}
-					var ol = object.data;
-					var element;
-					if(ol.type==="SUN"){
-						light = renderEnvironment.lights[0];
-					}else{
-						light = renderEnvironment.lights[1];
-					}
-					light.power=1;
-					Vec3.copy(light.color,ol.color);
-
-					Mat43.fromLSE(object.matrix,object.location,object.scale,object.rotation); //ライトの姿勢行列
-					Mat44.dotMat43(light.matrix,ono3d.worldMatrix,object.matrix); //ワールド行列で変換
-					Mat43.fromRotVector(m,Math.PI,1,0,0);  //ライトはデフォルト姿勢で下向きなので補正
-					Mat44.dotMat43(light.matrix,light.matrix,m);
-
-					ono3d.setOrtho(10.0,10.0,1.0,20.0)
-					var mat44 = ono3d.viewMatrix;
-					Mat44.getInv(mat44,light.matrix);
-					Mat44.dot(light.viewmatrix,ono3d.projectionMatrix,mat44);//影生成用のビュー行列
-
-				}
-				Mat43.poolFree(1);
-
-				var env = ono3d.renderEnvironments[0];
-				for(var i=0;i<2;i++){
-					var ol = env.lights[i];
-					var el = document.getElementById("lightColor"+(i+1));
-					el.value = Util.rgb(ol.color[0],ol.color[1],ol.color[2]).slice(1);
-					Util.fireEvent(el,"change");
-				}
-
 			});
 		}
 		ret.prototype.move=function(){
@@ -813,9 +771,9 @@ var Testact=(function(){
 		ono3d.lightThreshold1=globalParam.lightThreshold1;
 		ono3d.lightThreshold2=globalParam.lightThreshold2;
 
-		var environment = ono3d.renderEnvironments[0];
-		Util.hex2rgb(environment.lights[0].color,globalParam.lightColor1)
-		Util.hex2rgb(environment.lights[1].color,globalParam.lightColor2)
+		var environment = ono3d.environments[0];
+		Util.hex2rgb(environment.sun.color,globalParam.lightColor1)
+		Util.hex2rgb(environment.area.color,globalParam.lightColor2)
 
 		if(globalParam.cMaterial){
 			var cMat = customMaterial;
@@ -857,8 +815,7 @@ var Testact=(function(){
 		var lightSource= null;
 
 		if(globalParam.shadow){
-			lightSource = ono3d.renderEnvironments[0].lights.find(
-				function(a){return a.type===Ono3d.LT_DIRECTION;});
+			lightSource = ono3d.environments[0].sun
 			if(lightSource){
 				camera.calcCollision(camera.cameracol2,lightSource.veiwmatrix);
 			}
@@ -1177,7 +1134,7 @@ var Testact=(function(){
 			gl.bindTexture(gl.TEXTURE_2D, null);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-			ono3d.renderEnvironments[0].envTexture = env2dtex;
+			ono3d.environments[0].envTexture=env2dtex;
 		});
 		emiTexture = Rastgl.createTexture(null,512,512);
 
@@ -1283,15 +1240,6 @@ var Testact=(function(){
 	Rastgl.ono3d = ono3d;
 
 
-	var renderEnvironment = ono3d.renderEnvironments[0];
-	var light;
-	light= new ono3d.LightSource();
-	renderEnvironment.lights.push(light);
-	light.type =Ono3d.LT_DIRECTION;
-
-	light= new ono3d.LightSource();
-	renderEnvironment.lights.push(light);
-	light.type = Ono3d.LT_AMBIENT;
 	
 	shadowTexture=Rastgl.createTexture(null,1024,1024);
 	gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
