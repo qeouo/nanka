@@ -509,8 +509,7 @@ var Testact=(function(){
 
 
 				var scene = o3o.scenes[0];
-
-
+				//光源エリア判定作成
 				for(var i=0;i<scene.objects.length;i++){
 					var object = scene.objects[i];
 					if(object.name.indexOf("prob_")==0){
@@ -523,49 +522,15 @@ var Testact=(function(){
 					}	
 				}
 				probs.sortList();
-				var m=Mat43.poolAlloc();
 
-				var environment;
-				for(var i=0;i<scene.objects.length;i++){
-					//ライト設定
-					var object = scene.objects[i];
-					if(object.type!=="LAMP")continue;
-					if(object.parent){
-						environment= ono3d.environments.find(
-							function(o){return o.name === object.parent.name;});
-						if(!environment){
-							environment = ono3d.environments[ono3d.environments_index];
-							ono3d.environments_index++;
+				O3o.setEnvironments(scene); //光源セット
 
-							environment.envTexture=env2dtex;
-							environment.name = object.parent.name;
-						}
-					}else{
-						environment = ono3d.environments[0];
-					}
-					var ol = object.data;
-					var light;
-					if(ol.type==="SUN"){
-						light = environment.sun;
-					}else{
-						light = environment.area;
-					}
-					light.power=1;
-					Vec3.copy(light.color,ol.color);
-
-					Mat43.fromLSE(object.matrix,object.location,object.scale,object.rotation); //ライトの姿勢行列
-					Mat44.dotMat43(light.matrix,ono3d.worldMatrix,object.matrix); //ワールド行列で変換
-					Mat43.fromRotVector(m,Math.PI,1,0,0);  //ライトはデフォルト姿勢で下向きなので補正
-					Mat44.dotMat43(light.matrix,light.matrix,m);
-
-					ono3d.setOrtho(10.0,10.0,1.0,20.0)
-					var mat44 = ono3d.viewMatrix;
-					Mat44.getInv(mat44,light.matrix);
-					Mat44.dot(light.viewmatrix,ono3d.projectionMatrix,mat44);//影生成用のビュー行列
-
+				for(var i=0;i<ono3d.environments_index;i++){
+					//環境マップ
+					ono3d.environments[i].envTexture=env2dtex;
 				}
-				Mat43.poolFree(1);
 
+				//0番目の光源セットをコントロールに反映
 				var env = ono3d.environments[0];
 				for(var i=0;i<2;i++){
 					var ol = [env.sun,env.area][i];
@@ -574,6 +539,7 @@ var Testact=(function(){
 					Util.fireEvent(el,"change");
 				}
 
+				//カメラ反映等
 				ono3d.push();
 				goJiki=objMan.createObj(GoJiki);
 				ono3d.pop();
