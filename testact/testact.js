@@ -525,37 +525,30 @@ var Testact=(function(){
 				probs.sortList();
 				var m=Mat43.poolAlloc();
 
-				var renderEnvironment;
+				var environment;
 				for(var i=0;i<scene.objects.length;i++){
 					//ライト設定
 					var object = scene.objects[i];
 					if(object.type!=="LAMP")continue;
 					if(object.parent){
-						renderEnvironment= ono3d.renderEnvironments.find(
+						environment= ono3d.environments.find(
 							function(o){return o.name === object.parent.name;});
-						if(!renderEnvironment){
-							renderEnvironment = ono3d.renderEnvironments[ono3d.renderEnvironments_index];
-							ono3d.renderEnvironments_index++;
+						if(!environment){
+							environment = ono3d.environments[ono3d.environments_index];
+							ono3d.environments_index++;
 
-							renderEnvironment.envTexture=env2dtex;
-							var light= new ono3d.LightSource();
-							renderEnvironment.lights.push(light);
-							light.type =Ono3d.LT_DIRECTION;
-
-							light= new ono3d.LightSource();
-							renderEnvironment.lights.push(light);
-							light.type = Ono3d.LT_AMBIENT;
-							renderEnvironment.name = object.parent.name;
+							environment.envTexture=env2dtex;
+							environment.name = object.parent.name;
 						}
 					}else{
-						renderEnvironment = ono3d.renderEnvironments[0];
+						environment = ono3d.environments[0];
 					}
 					var ol = object.data;
-					var element;
+					var light;
 					if(ol.type==="SUN"){
-						light = renderEnvironment.lights[0];
+						light = environment.sun;
 					}else{
-						light = renderEnvironment.lights[1];
+						light = environment.area;
 					}
 					light.power=1;
 					Vec3.copy(light.color,ol.color);
@@ -573,9 +566,9 @@ var Testact=(function(){
 				}
 				Mat43.poolFree(1);
 
-				var env = ono3d.renderEnvironments[0];
+				var env = ono3d.environments[0];
 				for(var i=0;i<2;i++){
-					var ol = env.lights[i];
+					var ol = [env.sun,env.area][i];
 					var el = document.getElementById("lightColor"+(i+1));
 					el.value = Util.rgb(ol.color[0],ol.color[1],ol.color[2]).slice(1);
 					Util.fireEvent(el,"change");
@@ -825,9 +818,9 @@ var Testact=(function(){
 		ono3d.lineWidth=1.0;
 		ono3d.smoothing=globalParam.smoothing;
 
-		var environment = ono3d.renderEnvironments[0];
-		Util.hex2rgb(environment.lights[0].color,globalParam.lightColor1)
-		Util.hex2rgb(environment.lights[1].color,globalParam.lightColor2)
+		var environment = ono3d.environments[0];
+		Util.hex2rgb(environment.sun.color,globalParam.lightColor1)
+		Util.hex2rgb(environment.area.color,globalParam.lightColor2)
 
 		ono3d.lightThreshold1=globalParam.lightThreshold1;
 		ono3d.lightThreshold2=globalParam.lightThreshold2;
@@ -840,8 +833,7 @@ var Testact=(function(){
 		var lightSource= null;
 
 		if(globalParam.shadow){
-			lightSource = ono3d.renderEnvironments[0].lights.find(
-				function(a){return a.type===Ono3d.LT_DIRECTION;});
+			lightSource = ono3d.environments[0].sun;
 			if(lightSource){
 				camera.calcCollision(camera.cameracol2,lightSource.veiwmatrix);
 			}
@@ -1160,8 +1152,8 @@ var Testact=(function(){
 			gl.bindTexture(gl.TEXTURE_2D, null);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-			ono3d.renderEnvironments[0].envTexture = env2dtex;
-			ono3d.renderEnvironments[1].envTexture=env2dtex;
+			ono3d.environments[0].envTexture = env2dtex;
+			ono3d.environments[1].envTexture=env2dtex;
 		});
 		emiTexture = Rastgl.createTexture(null,512,512);
 
@@ -1271,16 +1263,8 @@ var Testact=(function(){
 		Rastgl.ono3d = ono3d;
 
 
-		var renderEnvironment = ono3d.renderEnvironments[0];
-		var light;
-		light= new ono3d.LightSource();
-		renderEnvironment.lights.push(light);
-		light.type =Ono3d.LT_DIRECTION;
-
-		light= new ono3d.LightSource();
-		renderEnvironment.lights.push(light);
-		light.type = Ono3d.LT_AMBIENT;
-		ono3d.renderEnvironments_index++;
+		var environment = ono3d.environments[0];
+		ono3d.environments_index++;
 
 
 		gl.clearColor(1, 1, 1,1.0);
