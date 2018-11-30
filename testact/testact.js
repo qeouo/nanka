@@ -475,40 +475,46 @@ var Testact=(function(){
 				ono3d.loadIdentity();
 				ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
 
+				var scene = o3o.scenes[0];
+
 				//物理シミュオブジェクトの設定
-				t.phyObjs= O3o.createPhyObjs(o3o.scenes[0],onoPhy);
-				t.collisions= O3o.createCollisions(o3o.scenes[0]);
+				t.phyObjs= O3o.createPhyObjs(scene,onoPhy);
+
+
+				var object = scene.objects.find(function(o){return o.name==="_border";});
+				var collision= O3o.createCollision(object);
+				collision.groups = 1;
+				collision.callbackFunc=function(col1,col2,pos1,pos2){
+					if(col2.name==="jiki"){
+						//画面外侵入時
+						reset();
+					}
+				}
+				t.collisions=[];
+				t.collisions.push(collision);
+				
+				object = scene.objects.find(function(o){return o.name==="_goal";});
+				collision= O3o.createCollision(object);
+				collision.groups = 1;
+				collision.callbackFunc=function(col1,col2,pos1,pos2){
+					if(!col2.parent)return;
+					if(col2.parent.name!=="jiki"){
+						return;
+					}
+					onoPhy.collider.deleteCollision(col1);
+					if(stage<stages.length-1){
+						objMan.createObj(GoMsg);
+					}else{
+						objMan.createObj(GoMsg2);
+					}
+				}
+				t.collisions.push(collision);
 				for(var i=0;i<t.collisions.length;i++){
 					onoPhy.collider.addCollision(t.collisions[i]);
 				}
-
-				var border = t.collisions.find(function(o){return o.name==="_border";});
-				if(border){
-					border.callbackFunc=function(col1,col2,pos1,pos2){
-						if(col2.name==="jiki"){
-							//画面外侵入時
-							reset();
-						}
-					}
-				}
-				var goal = t.collisions.find(function(o){return o.name==="_goal";});
-				if(goal){
-					goal.callbackFunc=function(col1,col2,pos1,pos2){
-						if(!col2.parent)return;
-						if(col2.parent.name!=="jiki"){
-							return;
-						}
-						onoPhy.collider.deleteCollision(col1);
-						if(stage<stages.length-1){
-							objMan.createObj(GoMsg);
-						}else{
-							objMan.createObj(GoMsg2);
-						}
-					}
-				}
+				
 
 
-				var scene = o3o.scenes[0];
 				//光源エリア判定作成
 				for(var i=0;i<scene.objects.length;i++){
 					var object = scene.objects[i];

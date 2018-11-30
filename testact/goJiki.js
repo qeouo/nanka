@@ -39,7 +39,8 @@
 				ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
 				ono3d.translate(obj.p[0],obj.p[1],obj.p[2]);
 				t.phyObjs= O3o.createPhyObjs(o3o.scenes[0],Testact.onoPhy);
-				t.collisions= O3o.createCollisions(o3o.scenes[0]);
+				t.collisions=[];
+				t.collisions.push(O3o.createCollision(jumpC));
 				poJiki = t.phyObjs.find(function(o){return o.name ==="jiki"});
 				Vec3.copy(poJiki.location,t.p);
 				Mat33.set(poJiki.inertiaTensorBase,1,0,0,0,1,0,0,0,1);
