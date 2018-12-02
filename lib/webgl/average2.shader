@@ -13,7 +13,7 @@ precision lowp float;
 varying lowp vec2 vUv;
 uniform sampler2D uSampler;
 void main(void){
-	float size = 1024.0;
+	float size = 512.0;
 	vec4 a = decode(texture2D(uSampler,vUv));
 	vec4 b = decode(texture2D(uSampler,vUv-vec2(1.0,0.0)/size));
 	vec4 c = decode(texture2D(uSampler,vUv-vec2(0.0,1.0)/size));

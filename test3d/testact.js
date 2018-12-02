@@ -21,8 +21,10 @@ var Testact=(function(){
 	var decodeShader;
 	var averageShader;
 	var average2Shader;
+	var average3Shader;
 	var fillShader;
 	var customMaterial = new Ono3d.Material();
+	var probs = new Collider();
 
 	var obj3d=null,field=null;
 	var goField,goCamera;
@@ -426,8 +428,14 @@ var Testact=(function(){
 		}
 		ret.prototype.move=function(){
 			var vec3=Vec3.poolAlloc();
+
 			Vec3.set(vec3,0,0,0);
-			var cameralen = Vec3.len(this.p,vec3);
+
+			var object =  field.objects.find(function(a){return a.name==="モンキー";});
+			if(object){
+				Vec3.copy(vec3,object.location);
+			}
+			var cameralen=2.2;
 
 
 			if(Util.pressOn && !bane){
@@ -443,12 +451,20 @@ var Testact=(function(){
 			this.p[2]=Math.cos(this.a[1])*this.p[2];
 
 			Vec3.mul(this.p,this.p,cameralen);
+			var mat33 = Mat33.poolAlloc();
+			Mat33.rotate(mat33,-Math.PI*0.5,1,0,0);
+			Mat33.dotVec3(vec3,mat33,object.location);
+			Vec3.mul(this.p,this.p,cameralen);
+			Vec3.add(this.p,this.p,vec3);
 			//this.p[1]+=3;
+			Mat33.poolFree(1);
 
 
-			camera.p[0]+=(this.p[0]-camera.p[0])*0.1
-			camera.p[1]+=(this.p[1]-camera.p[1])*0.1
-			camera.p[2]+=(this.p[2]-camera.p[2])*0.1
+			camera.p[0]+=(this.p[0]-camera.p[0])*0.3
+			camera.p[1]+=(this.p[1]-camera.p[1])*0.3
+			camera.p[2]+=(this.p[2]-camera.p[2])*0.3
+
+
 			homingCamera(camera.a,vec3,camera.p);
 
 			Vec3.poolFree(1);
@@ -490,6 +506,21 @@ var Testact=(function(){
 
 				var scene = o3o.scenes[0];
 
+				//光源エリア判定作成
+				for(var i=0;i<scene.objects.length;i++){
+					var object = scene.objects[i];
+					if(object.name.indexOf("prob_")==0){
+						var collider= new Collider.Cuboid;
+						Mat43.dotMat44Mat43(collider.matrix
+								,ono3d.worldMatrix,object.matrix);
+						Mat43.getInv(collider.inv_matrix,collider.matrix);
+						collider.update();
+						probs.addCollision(collider);
+					}	
+				}
+				probs.sortList();
+
+				ono3d.environments_index=1;
 
 				O3o.setEnvironments(scene); //光源セット
 
@@ -507,14 +538,18 @@ var Testact=(function(){
 					Util.fireEvent(el,"change");
 				}
 
-				var co= scene.objects.find(function(a){return a.type==="CAMERA";});
+				var co=  scene.objects.find(function(a){return a.name==="Camera";});
 				if(co){
-					Vec3.set(goCamera.p,co.location[0],co.location[2],-co.location[1]);
-					goCamera.a[1]=Math.atan2(goCamera.p[0],goCamera.p[2]);
-					goCamera.a[0]=Math.atan2(goCamera.p[1],Math.sqrt(goCamera.p[2]*goCamera.p[2]+goCamera.p[0]*goCamera.p[0]));
+					goCamera.p[0]=co.mixedmatrix[9];
+					goCamera.p[1]=co.mixedmatrix[10];
+					goCamera.p[2]=co.mixedmatrix[11];
+					Mat44.dotVec3(goCamera.p,ono3d.worldMatrix,goCamera.p);
+					goCamera.a[1]=Math.PI/4;
+					goCamera.a[0]=0;
 					goCamera.a[2]=0;
 				}
-				Vec3.mul(camera.p,goCamera.p,2)
+
+				Vec3.copy(camera.p,goCamera.p)
 				Vec3.copy(camera.a,goCamera.a)
 			});
 		}
@@ -532,7 +567,7 @@ var Testact=(function(){
 			ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
 
 			var scene= obj3d.scenes[0];
-			O3o.setFrame(obj3d,scene,this.t/60.0*24); //アニメーション処理
+			O3o.setFrame(obj3d,scene,this.t/60.0*60.0); //アニメーション処理
 
 			if(phyObjs && globalParam.physics){
 				//物理シミュ有効の場合は物理オブジェクトにアニメーション結果を反映させる
@@ -561,6 +596,7 @@ var Testact=(function(){
 			}
 		}
 		var cuboidcol = new Collider.Cuboid;
+		var col = new Collider.Sphere();
 		ret.prototype.draw=function(){
 			var phyObjs = this.phyObjs;
 
@@ -626,10 +662,23 @@ var Testact=(function(){
 								Vec4.set(ono3d.lineColor,1,4,1,0);
 							}
 						}
+
+						Mat43.setInit(col.matrix);
+						Mat43.mul(col.matrix,col.matrix,0);
+						col.matrix[9]=objects[i].location[0];
+						col.matrix[10]=objects[i].location[2];
+						col.matrix[11]=-objects[i].location[1];
+						col.update();
+
+						var l =probs.checkHitAll(col)
+						var env = null;
+						if(probs.hitListIndex>0){
+							env = ono3d.environments[1];
+						}
 						if(globalParam.physics){
-							O3o.drawObject(objects[i],phyObjs);
+							O3o.drawObject(objects[i],phyObjs,env);
 						}else{
-							O3o.drawObject(objects[i],null);
+							O3o.drawObject(objects[i],null,env);
 						}
 					}
 				}
@@ -911,10 +960,10 @@ var Testact=(function(){
 			gl.bindTexture(gl.TEXTURE_2D,averageTexture);
 			Rastgl.postEffect(bufTexture ,(WIDTH-512)/2.0/1024,0 ,512/1024,HEIGHT/1024,averageShader); 
 			gl.bindTexture(gl.TEXTURE_2D, averageTexture);
-			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,512,512);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,512,511);
 
 			//1/2縮小を繰り返し平均と最大値を求める
-			var size = 512;
+			var size = 511;
 			for(var i=0;size>1;i++){
 				ono3d.setViewport(0,0,size/2,size/2);
 				Rastgl.postEffect(averageTexture ,0 ,0,size/512,size/512,average2Shader); 
@@ -922,39 +971,43 @@ var Testact=(function(){
 				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,size/2,size/2);
 				size/=2;
 			}
+			ono3d.setViewport(0,511,1,1);
+			Rastgl.postEffect(averageTexture ,0,511/512,1/512,1/512,average3Shader); 
+			gl.bindTexture(gl.TEXTURE_2D, averageTexture);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,511,0,511,1,1);
 
 			//光度計算結果を取得
-			var u8 = new Uint8Array(4);
-			var a= new Vec4();
-			var b= new Vec4();
-			gl.readPixels(0,0,1,1, gl.RGBA, gl.UNSIGNED_BYTE, u8);
-			b[0]=u8[0]/255;
-			b[1]=u8[1]/255;
-			b[2]=u8[2]/255;
-			b[3]=u8[3]/255;
-			Rastgl.decode(a,b);
+		//	var u8 = new Uint8Array(4);
+		//	var a= new Vec4();
+		//	var b= new Vec4();
+		//	gl.readPixels(0,0,1,1, gl.RGBA, gl.UNSIGNED_BYTE, u8);
+		//	b[0]=u8[0]/255;
+		//	b[1]=u8[1]/255;
+		//	b[2]=u8[2]/255;
+		//	b[3]=u8[3]/255;
+		//	Rastgl.decode(a,b);
 
-			//補間
-			a[0] = globalParam.exposure_level +(a[0] - globalParam.exposure_level)*0.1;
-			a[1] = globalParam.exposure_upper +(a[1] - globalParam.exposure_upper)*0.1;
-			document.getElementById("exposure_level").value = a[0];
-			document.getElementById("exposure_upper").value = a[1];
-			Util.fireEvent(document.getElementById("exposure_level"),"change");
-			Util.fireEvent(document.getElementById("exposure_upper"),"change");
-			globalParam.exposure_level = a[0];
-			globalParam.exposure_upper= a[1];
+		//	//補間
+		//	a[0] = globalParam.exposure_level +(a[0] - globalParam.exposure_level)*0.1;
+		//	a[1] = globalParam.exposure_upper +(a[1] - globalParam.exposure_upper)*0.1;
+		//	document.getElementById("exposure_level").value = a[0];
+		//	document.getElementById("exposure_upper").value = a[1];
+		//	Util.fireEvent(document.getElementById("exposure_level"),"change");
+		//	Util.fireEvent(document.getElementById("exposure_upper"),"change");
+		//	globalParam.exposure_level = a[0];
+		//	globalParam.exposure_upper= a[1];
 
 		}else{
-	//		ono3d.setViewport(0,0,1,1);
-	//		gl.useProgram(fillShader.program);
-	//		gl.uniform4f(fillShader.unis["uColor"]
-	//			,globalParam.exposure_level
-	//			,globalParam.exposure_upper
-	//			,0.0,0.5);
-	//			
-	//		Rastgl.postEffect(averageTexture,0,0,0,0,fillShader); 
-	//		gl.bindTexture(gl.TEXTURE_2D, averageTexture);
-	//		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1,1);
+			ono3d.setViewport(0,511,1,1);
+			gl.useProgram(fillShader.program);
+			gl.uniform4f(fillShader.unis["uColor"]
+				,globalParam.exposure_level
+				,globalParam.exposure_upper
+				,0.0,0.5);
+				
+			Rastgl.postEffect(averageTexture,0,0,0,0,fillShader); 
+			gl.bindTexture(gl.TEXTURE_2D, averageTexture);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,511,0,511,1,1);
 		}
 
 
@@ -1134,7 +1187,10 @@ var Testact=(function(){
 			gl.bindTexture(gl.TEXTURE_2D, null);
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
-			ono3d.environments[0].envTexture=env2dtex;
+			for(var i=0;i<ono3d.environments_index;i++){
+				//環境マップ
+				ono3d.environments[i].envTexture=env2dtex;
+			}
 		});
 		emiTexture = Rastgl.createTexture(null,512,512);
 
@@ -1268,6 +1324,7 @@ var Testact=(function(){
 	decodeShader=Ono3d.loadShader("decode","../lib/webgl/decode.js");
 	averageShader = Ono3d.loadShader("average","../lib/webgl/average.shader");
 	average2Shader= Ono3d.loadShader("average2","../lib/webgl/average2.shader");
+	average3Shader= Ono3d.loadShader("average2","../lib/webgl/average3.shader");
 	fillShader= Ono3d.loadShader("fill","../lib/webgl/fill.shader");
 
 	return ret;
