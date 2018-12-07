@@ -13,10 +13,9 @@ precision lowp float;
 varying lowp vec2 vUv;
 uniform sampler2D uSampler;
 void main(void){
-	float size = 512.0;
 	vec4 a = decode(texture2D(uSampler,vUv));
 	vec4 b = decode(texture2D(uSampler,vec2(0.0,0.0)));
-	a =  a*0.95 + b*0.05;
+	a =  a*0.97 + b*0.03;
 	gl_FragColor= encode(a);
 
 }

@@ -31,12 +31,9 @@ varying vec3 vLightPos;
 
 uniform vec3 uLight; 
 uniform vec3 uLightColor; 
-uniform vec3 uLightColor2; 
 uniform vec3 uAmbColor; 
-uniform vec3 uAmbColor2; 
 uniform sampler2D uShadowmap; 
 uniform sampler2D uEnvMap;  
-uniform sampler2D uEnvMap2;  
 uniform sampler2D uTransMap; 
 uniform float uEnvRatio; 
 
@@ -92,8 +89,7 @@ void main(void){
 	refa = min(refa,1.0); 
 	vec2 refV = vec2(atan(angle.x,-angle.z)*_PI*0.5 + 0.5 
 		,(-atan(angle.y,length(angle.xz)+0.00001)*_PI*0.5*0.995  + 0.25)); 
-	vec4 refCol = textureTri(uEnvMap,texsize,refV,refx+refa) * (1.0-uEnvRatio); 
-	refCol = textureTri(uEnvMap2,texsize,refV,refx+refa) * uEnvRatio; 
+	vec4 refCol = textureTri(uEnvMap,texsize,refV,refx+refa) ;
 	refCol.rgb *=  uReflectionColor; 
 
 	/*屈折*/ 
@@ -123,8 +119,7 @@ void main(void){
 	q= textureRGBE(uEnvMap,texsize,refV); 
 
 	/*表面色*/ 
-	vec3 vColor2 = (diffuse * uLightColor + uAmbColor*textureRGBE(uEnvMap,texsize,refV).rgb) * (1.0-uEnvRatio); 
-	vColor2 += (diffuse * uLightColor2 + uAmbColor*textureRGBE(uEnvMap2,texsize,refV).rgb) *(uEnvRatio); 
+	vec3 vColor2 = (diffuse * uLightColor + uAmbColor*textureRGBE(uEnvMap,texsize,refV).rgb) ;
 	vColor2 = vColor2 * baseCol + uEmi*baseCol;
 
 	/*透過合成*/ 
