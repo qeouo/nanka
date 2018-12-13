@@ -450,13 +450,16 @@ var Testact=(function(){
 			this.p[0]=Math.sin(this.a[1])*this.p[2];
 			this.p[2]=Math.cos(this.a[1])*this.p[2];
 
+			cameralen=20;
 			Vec3.mul(this.p,this.p,cameralen);
 			var mat33 = Mat33.poolAlloc();
 			Mat33.rotate(mat33,-Math.PI*0.5,1,0,0);
-			Mat33.dotVec3(vec3,mat33,object.location);
-			Vec3.mul(this.p,this.p,cameralen);
-			Vec3.add(this.p,this.p,vec3);
-			//this.p[1]+=3;
+			if(object){
+				Mat33.dotVec3(vec3,mat33,object.location);
+				Vec3.mul(this.p,this.p,cameralen);
+				Vec3.add(this.p,this.p,vec3);
+				//this.p[1]+=3;
+			}
 			Mat33.poolFree(1);
 
 
