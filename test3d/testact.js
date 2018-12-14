@@ -959,14 +959,14 @@ var Testact=(function(){
 
 			//ピクセル毎の光度と最大値を取得
 			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-			ono3d.setViewport(0,0,512,512);
+			ono3d.setViewport(0,0,256,256);
 			gl.bindTexture(gl.TEXTURE_2D,averageTexture);
 			Rastgl.postEffect(bufTexture ,(WIDTH-512)/2.0/1024,0 ,512/1024,HEIGHT/1024,averageShader); 
 			gl.bindTexture(gl.TEXTURE_2D, averageTexture);
-			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,512,511);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,256,256);
 
 			//1/2縮小を繰り返し平均と最大値を求める
-			var size = 511;
+			var size = 256;
 			for(var i=0;size>1;i++){
 				ono3d.setViewport(0,0,size/2,size/2);
 				Rastgl.postEffect(averageTexture ,0 ,0,size/512,size/512,average2Shader); 
@@ -980,23 +980,23 @@ var Testact=(function(){
 			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,511,0,511,1,1);
 
 			//光度計算結果を取得
-		//	var u8 = new Uint8Array(4);
-		//	var a= new Vec4();
-		//	var b= new Vec4();
-		//	gl.readPixels(0,0,1,1, gl.RGBA, gl.UNSIGNED_BYTE, u8);
-		//	b[0]=u8[0]/255;
-		//	b[1]=u8[1]/255;
-		//	b[2]=u8[2]/255;
-		//	b[3]=u8[3]/255;
-		//	Rastgl.decode(a,b);
+			var u8 = new Uint8Array(4);
+			var a= new Vec4();
+			var b= new Vec4();
+			gl.readPixels(0,511,1,1, gl.RGBA, gl.UNSIGNED_BYTE, u8);
+			b[0]=u8[0]/255;
+			b[1]=u8[1]/255;
+			b[2]=u8[2]/255;
+			b[3]=u8[3]/255;
+			Rastgl.decode(a,b);
 
 		//	//補間
 		//	a[0] = globalParam.exposure_level +(a[0] - globalParam.exposure_level)*0.1;
 		//	a[1] = globalParam.exposure_upper +(a[1] - globalParam.exposure_upper)*0.1;
-		//	document.getElementById("exposure_level").value = a[0];
-		//	document.getElementById("exposure_upper").value = a[1];
-		//	Util.fireEvent(document.getElementById("exposure_level"),"change");
-		//	Util.fireEvent(document.getElementById("exposure_upper"),"change");
+			document.getElementById("exposure_level").value = a[0];
+			document.getElementById("exposure_upper").value = a[1];
+			Util.fireEvent(document.getElementById("exposure_level"),"change");
+			Util.fireEvent(document.getElementById("exposure_upper"),"change");
 		//	globalParam.exposure_level = a[0];
 		//	globalParam.exposure_upper= a[1];
 
