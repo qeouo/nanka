@@ -233,12 +233,13 @@
 				var l =Testact.probs.checkHitAll(col)
 				var env = null;
 				if(Testact.probs.hitListIndex>0){
-					env = ono3d.environments[1];
+					O3o.drawObject(human,null,ono3d.environments[0],ono3d.environments[1],0.5);
+				}else{
+					O3o.drawObject(human,null,env,env,0.0);
 				}
 
 				
 
-				O3o.drawObject(human,null,env);
 
 				O3o.drawObject(jumpC);
 				Mat43.poolFree(1);
