@@ -16,5 +16,5 @@ void main(void){
 	vec4 a = decode(texture2D(uSampler,vUv));
 	a.r = (a.r + a.g + a.b)/3.0;
 	a.g = (a.r + a.g + a.b)/3.0;
-	gl_FragColor= encode(a);
+	gl_FragColor= encode2(a);
 }

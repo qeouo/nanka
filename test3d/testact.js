@@ -980,33 +980,36 @@ var Testact=(function(){
 			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,511,0,511,1,1);
 
 			//光度計算結果を取得
-			var u8 = new Uint8Array(4);
-			var a= new Vec4();
-			var b= new Vec4();
-			gl.readPixels(0,511,1,1, gl.RGBA, gl.UNSIGNED_BYTE, u8);
-			b[0]=u8[0]/255;
-			b[1]=u8[1]/255;
-			b[2]=u8[2]/255;
-			b[3]=u8[3]/255;
-			Rastgl.decode(a,b);
-
-		//	//補間
-		//	a[0] = globalParam.exposure_level +(a[0] - globalParam.exposure_level)*0.1;
-		//	a[1] = globalParam.exposure_upper +(a[1] - globalParam.exposure_upper)*0.1;
-			document.getElementById("exposure_level").value = a[0];
-			document.getElementById("exposure_upper").value = a[1];
-			Util.fireEvent(document.getElementById("exposure_level"),"change");
-			Util.fireEvent(document.getElementById("exposure_upper"),"change");
-		//	globalParam.exposure_level = a[0];
-		//	globalParam.exposure_upper= a[1];
+//			var u8 = new Uint8Array(4);
+//			var a= new Vec4();
+//			var b= new Vec4();
+//			gl.readPixels(0,0,1,1, gl.RGBA, gl.UNSIGNED_BYTE, u8);
+//			b[0]=u8[0]/255;
+//			b[1]=u8[1]/255;
+//			b[2]=u8[2]/255;
+//			b[3]=u8[3]/255;
+//			Rastgl.decode2(a,b);
+//
+//		//	//補間
+//		//	a[0] = globalParam.exposure_level +(a[0] - globalParam.exposure_level)*0.1;
+//		//	a[1] = globalParam.exposure_upper +(a[1] - globalParam.exposure_upper)*0.1;
+//			document.getElementById("exposure_level").value = a[0];
+//			document.getElementById("exposure_upper").value = a[1];
+//			Util.fireEvent(document.getElementById("exposure_level"),"change");
+//			Util.fireEvent(document.getElementById("exposure_upper"),"change");
+//		//	globalParam.exposure_level = a[0];
+//		//	globalParam.exposure_upper= a[1];
 
 		}else{
 			ono3d.setViewport(0,511,1,1);
 			gl.useProgram(fillShader.program);
-			gl.uniform4f(fillShader.unis["uColor"]
-				,globalParam.exposure_level
+			var a = new Vec4();
+			Vec4.set(a,globalParam.exposure_level
 				,globalParam.exposure_upper
-				,0.0,0.5);
+				,0.5,0.5);
+			Rastgl.encode2(a,a);
+			gl.uniform4f(fillShader.unis["uColor"]
+				,a[0],a[1],a[2],a[3]);
 				
 			Rastgl.postEffect(averageTexture,0,0,0,0,fillShader); 
 			gl.bindTexture(gl.TEXTURE_2D, averageTexture);
@@ -1314,6 +1317,7 @@ var Testact=(function(){
 	gl.bindTexture(gl.TEXTURE_2D, averageTexture);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
 	
 	onoPhy = new OnoPhy();
 	objMan = new ObjMan();
