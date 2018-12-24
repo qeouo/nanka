@@ -5,10 +5,13 @@ attribute vec3 aNormal;
 attribute vec3 aSvec; 
 attribute vec3 aTvec; 
 attribute vec2 aUv; 
+attribute float aEnvRatio;  
 varying vec2 vUv; 
 varying vec3 vEye; 
 varying mat3 vView; 
 varying vec3 vLightPos; 
+varying float vEnvRatio;  
+uniform int uEnvIndex;  
 uniform mat4 projectionMatrix; 
 uniform mat4 lightMat; 
 uniform vec3 anglePos;  
@@ -20,6 +23,7 @@ void main(void){
 	vView = mat3(normalize(aSvec - dot(aNormal,aSvec)*aNormal) 
 		,normalize(aTvec - dot(aNormal,aTvec)*aNormal) 
 		,aNormal); 
+	vEnvRatio= 1.0- aEnvRatio + float(uEnvIndex)*(2.0*aEnvRatio - 1.0);
 } 
 
 [fragmentshader]
@@ -28,6 +32,7 @@ varying vec2 vUv;
 varying vec3 vEye; 
 varying mat3 vView; 
 varying vec3 vLightPos; 
+varying float vEnvRatio;  
 
 uniform vec3 uLight; 
 uniform vec3 uLightColor; 
@@ -132,6 +137,6 @@ void main(void){
 	vColor2 = mix(vColor2,refCol.rgb,reflectPower); 
 
 	/*スケーリング*/ 
-	gl_FragColor = encode(vec4(vColor2,0.0)); 
+	gl_FragColor = encode(vec4(vColor2 * vEnvRatio,0.0)); 
 } 
 

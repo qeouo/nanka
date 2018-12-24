@@ -390,8 +390,8 @@ var Testact=(function(){
 		}
 		ret.prototype.calcCollision=function(collision,matrix){
 			var im = Mat44.poolAlloc();
+			var v4=Vec4.poolAlloc();
 			if(!matrix){
-				var v4=Vec4.poolAlloc();
 				Mat44.dot(im,ono3d.projectionMatrix,ono3d.viewMatrix);
 				Mat44.getInv(im,im);
 			}else{
@@ -869,7 +869,7 @@ var Testact=(function(){
 		if(globalParam.shadow){
 			lightSource = ono3d.environments[0].sun
 			if(lightSource){
-				camera.calcCollision(camera.cameracol2,lightSource.veiwmatrix);
+				camera.calcCollision(camera.cameracol2,lightSource.viewmatrix);
 			}
 		}
 		for(i=0;i<objMan.objs.length;i++){

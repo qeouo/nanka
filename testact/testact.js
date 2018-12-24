@@ -313,8 +313,10 @@ var Testact=(function(){
 			this.a=new Vec3();
 			this.zoom = 0.577;
 			this.cameracol=new Collider.ConvexHull();
+			this.cameracol2=new Collider.ConvexHull();
 			for(var i=0;i<8;i++){
 				this.cameracol.poses.push(new Vec3());
+				this.cameracol2.poses.push(new Vec3());
 			}
 		}
 		var ret = Camera;
@@ -338,11 +340,16 @@ var Testact=(function(){
 			ono3d.translate(-this.p[0],-this.p[1],-this.p[2]);
 			ono3d.setAov(this.zoom);
 		}
-		ret.prototype.calcCollision=function(){
-			var v4=Vec4.poolAlloc();
+		ret.prototype.calcCollision=function(collision,matrix){
 			var im = Mat44.poolAlloc();
-			Mat44.dot(im,ono3d.projectionMatrix,ono3d.viewMatrix);
-			Mat44.getInv(im,im);
+			var v4=Vec4.poolAlloc();
+			if(!matrix){
+				Mat44.dot(im,ono3d.projectionMatrix,ono3d.viewMatrix);
+				Mat44.getInv(im,im);
+			}else{
+				Mat44.getInv(im,matrix);
+			}
+
 			for(var i=0;i<8;i++){
 				Vec3.copy(v4,scope[i]);
 				v4[3]=1;
@@ -352,8 +359,9 @@ var Testact=(function(){
 					Vec4.mul(v4,v4,ono3d.zfar);
 				}
 				Mat44.dotVec4(v4,im,v4);
-				Vec3.copy(this.cameracol.poses[i],v4);
+				Vec3.copy(collision.poses[i],v4);
 			}
+			collision.update();
 			Vec4.poolFree(1);
 			Mat44.poolFree(1);
 		}
@@ -647,7 +655,13 @@ var Testact=(function(){
 						}
 						Mat43.getInv(cuboidcol.inv_matrix,cuboidcol.matrix);
 						var l = Collider.checkHit(camera.cameracol,cuboidcol);
-						if(l>0){
+						var l2 = 1;
+						if(globalParam.shadow){
+							if(AABB.hitCheck(camera.cameracol2.AABB,cuboidcol.AABB)){
+								l2 = Collider.checkHit(camera.cameracol2,cuboidcol);
+							}
+						}
+						if(l>0 && l2>0){
 							continue;
 						}
 						if(globalParam.physics){
@@ -810,7 +824,7 @@ var Testact=(function(){
 		if(globalParam.shadow){
 			lightSource = ono3d.environments[0].sun;
 			if(lightSource){
-				camera.calcCollision(camera.cameracol2,lightSource.veiwmatrix);
+				camera.calcCollision(camera.cameracol2,lightSource.viewmatrix);
 			}
 		}
 		for(i=0;i<objMan.objs.length;i++){
