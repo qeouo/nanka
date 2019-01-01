@@ -456,11 +456,6 @@ var Testact=(function(){
 			Vec3.copy(goJiki.phyObjs[0].location,goJiki.p);
 		}
 
-		//Vec3.set(goCamera.p,0,6,2)
-		//var start = o3o.objectsN["_start"];
-		//Mat43.dotVec3(goCamera.p,start.matrix,goCamera.p);
-		//Mat44.dotVec3(goCamera.p,ono3d.worldMatrix,goCamera.p);
-		//Vec3.set(goCamera.a,start.rotation);
 		goCamera.a[1]=start.rotation[2];
 		Vec3.copy(goCamera.p,goJiki.p);
 
@@ -809,7 +804,6 @@ var Testact=(function(){
 		ono3d.lightThreshold2=globalParam.lightThreshold2;
 
 	
-//シャドウマップ描画
 		var start = Date.now();
 		camera.calcMatrix();
 		camera.calcCollision(camera.cameracol);
@@ -837,18 +831,7 @@ var Testact=(function(){
 
 		start=Date.now();
 
-		gl.bindFramebuffer(gl.FRAMEBUFFER,Rastgl.frameBuffer);
-		ono3d.setViewport(0,0,1024,1024);
-		gl.depthMask(true);
-		gl.clearColor(1., 1., 1.,1.0);
-		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-		if(lightSource){
-			Shadow.draw(ono3d,lightSource.viewmatrix);
-		}
-		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
-		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1024,1024);
-		
-		globalParam.stereo=-globalParam.stereoVolume * globalParam.stereomode*0.4;
+
 
 //遠景描画
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -877,13 +860,13 @@ var Testact=(function(){
 			}
 		}
 
-		ono3d.setViewport(0,0,WIDTH,HEIGHT);
+
 //オブジェクト描画
+		ono3d.setViewport(0,0,WIDTH,HEIGHT);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.depthMask(true);
 		gl.enable(gl.DEPTH_TEST);
 		ono3d.setViewport(0,0,WIDTH,HEIGHT);
-
-
 
 		if(env2dtex){
 			Plain.draw(ono3d,0);

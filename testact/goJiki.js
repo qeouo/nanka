@@ -234,6 +234,7 @@
 
 				var env = null;
 				if(Testact.probs.hitListIndex>0){
+				//if(0){
 					var ans1 = Vec3.poolAlloc();
 					var ans2 = Vec3.poolAlloc();
 					a = Collider.calcClosest(ans1,ans2,l[0].col1,l[0].col2);
