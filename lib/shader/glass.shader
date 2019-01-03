@@ -60,7 +60,7 @@ void main(void){
 	float reflectPower = q.x;
 	float rough = q.y;
 	float transRough = q.z;
-	float refractPower = (1.0-q.w)*0.2;
+	float refractPower = q.w;
 	/*ノーマルマップ*/
 	q = texture2D(uNormalMap,uv);
 	vec3 nrm = vec3(( q.rg*2.0 - 1.0 ) * uNormpow*0.1,q.b) ;
@@ -85,7 +85,7 @@ void main(void){
 	refx = pow(0.5,refx);
 	angle = normalize(uViewMat * nrm);
 	vec2 tes = -(vView*vec3(uv*2.0-1.0,0.0)).xy;
-	refV = gl_FragCoord.xy/1024.0+ angle.xy*(refractPower-1.0)*0.01 + (tes-angle.xy)*(refractPower-1.0)*0.02;
+	refV = gl_FragCoord.xy/1024.0+ (angle.xy*0.05 + (tes-angle.xy)*0.1)*(1.0-refractPower)/length(vEye);
 	vec4 transCol = decode(texture2D(uTransMap,refV*refx + vec2(0.0,1.0-refx)));
 	q = decode(texture2D(uTransMap,refV*refx*0.5 + vec2(0.0,1.0-refx*0.5)));
 	transCol.rgb = mix(transCol.rgb,q.rgb,refa).rgb * baseCol;

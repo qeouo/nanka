@@ -17,12 +17,6 @@ var Testact=(function(){
 	var soundbuffer=null;
 	var bane= null;
 	var tsukamiZ=100;
-	var addShader;
-	var decodeShader;
-	var averageShader;
-	var average2Shader;
-	var average3Shader;
-	var fillShader;
 	var customMaterial = new Ono3d.Material();
 	var probs = new Collider();
 
@@ -450,7 +444,7 @@ var Testact=(function(){
 			this.p[0]=Math.sin(this.a[1])*this.p[2];
 			this.p[2]=Math.cos(this.a[1])*this.p[2];
 
-			cameralen=20;
+			cameralen=12;
 			Vec3.mul(this.p,this.p,cameralen);
 			var mat33 = Mat33.poolAlloc();
 			Mat33.rotate(mat33,-Math.PI*0.5,1,0,0);
@@ -887,19 +881,6 @@ var Testact=(function(){
 		var drawgeometry=Date.now()-start;
 
 		start=Date.now();
-
-		gl.bindFramebuffer(gl.FRAMEBUFFER,Rastgl.frameBuffer);
-		ono3d.setViewport(0,0,1024,1024);
-		gl.depthMask(true);
-		gl.clearColor(1., 1., 1.,1.0);
-		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-		if(lightSource){
-			Shadow.draw(ono3d,lightSource.viewmatrix);
-		}
-		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
-		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1024,1024);
-
-
 		
 		globalParam.stereo=-globalParam.stereoVolume * globalParam.stereomode*0.4;
 
@@ -935,7 +916,6 @@ var Testact=(function(){
 		ono3d.setViewport(0,0,WIDTH,HEIGHT);
 
 		if(env2dtex){
-			Plain.draw(ono3d,0);
 			if(globalParam.shader===0){
 				if(globalParam.cMaterial){
 					ono3d.render(shadowTexture,camera.p,customMaterial);
@@ -961,7 +941,7 @@ var Testact=(function(){
 			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
 			ono3d.setViewport(0,0,256,256);
 			gl.bindTexture(gl.TEXTURE_2D,averageTexture);
-			Rastgl.postEffect(bufTexture ,(WIDTH-512)/2.0/1024,0 ,512/1024,HEIGHT/1024,averageShader); 
+			Rastgl.postEffect(bufTexture ,(WIDTH-512)/2.0/1024,0 ,512/1024,HEIGHT/1024,ono3d.shaders["average"]); 
 			gl.bindTexture(gl.TEXTURE_2D, averageTexture);
 			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,256,256);
 
@@ -969,13 +949,13 @@ var Testact=(function(){
 			var size = 256;
 			for(var i=0;size>1;i++){
 				ono3d.setViewport(0,0,size/2,size/2);
-				Rastgl.postEffect(averageTexture ,0 ,0,size/512,size/512,average2Shader); 
+				Rastgl.postEffect(averageTexture ,0 ,0,size/512,size/512,ono3d.shaders["average2"]); 
 				gl.bindTexture(gl.TEXTURE_2D, averageTexture);
 				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,size/2,size/2);
 				size/=2;
 			}
 			ono3d.setViewport(0,511,1,1);
-			Rastgl.postEffect(averageTexture ,0,511/512,1/512,1/512,average3Shader); 
+			Rastgl.postEffect(averageTexture ,0,511/512,1/512,1/512,ono3d.shaders["average3"]); 
 			gl.bindTexture(gl.TEXTURE_2D, averageTexture);
 			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,511,0,511,1,1);
 
@@ -1002,22 +982,20 @@ var Testact=(function(){
 
 		}else{
 			ono3d.setViewport(0,511,1,1);
-			gl.useProgram(fillShader.program);
+			gl.useProgram(ono3d.shaders["fill"].program);
 			var a = new Vec4();
 			Vec4.set(a,globalParam.exposure_level
 				,globalParam.exposure_upper
 				,0.5,0.5);
 			Rastgl.encode2(a,a);
-			gl.uniform4f(fillShader.unis["uColor"]
+			gl.uniform4f(ono3d.shaders["fill"].unis["uColor"]
 				,a[0],a[1],a[2],a[3]);
 				
-			Rastgl.postEffect(averageTexture,0,0,0,0,fillShader); 
+			Rastgl.postEffect(averageTexture,0,0,0,0,ono3d.shaders["fill"]); 
 			gl.bindTexture(gl.TEXTURE_2D, averageTexture);
 			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,511,0,511,1,1);
 		}
-
-
-
+		var addShader = ono3d.shaders["add"];
 		if(globalParam.exposure_bloom && addShader.program){
 
 			//合成
@@ -1060,6 +1038,7 @@ var Testact=(function(){
 		ono3d.setViewport(0,0,WIDTH,HEIGHT);
 		gl.bindFramebuffer(gl.FRAMEBUFFER,null );
 
+		var decodeShader = ono3d.shaders["decode"];
 		gl.useProgram(decodeShader.program);
 		gl.uniform1i(decodeShader.unis["uSampler2"],1);
 		gl.uniform1f(decodeShader.unis["uAL"],globalParam.exposure_level);
@@ -1326,13 +1305,6 @@ var Testact=(function(){
 
 	span=document.getElementById("cons");
 		
-
-	addShader = Ono3d.loadShader("add","../lib/webgl/add.js");
-	decodeShader=Ono3d.loadShader("decode","../lib/webgl/decode.js");
-	averageShader = Ono3d.loadShader("average","../lib/webgl/average.shader");
-	average2Shader= Ono3d.loadShader("average2","../lib/webgl/average2.shader");
-	average3Shader= Ono3d.loadShader("average2","../lib/webgl/average3.shader");
-	fillShader= Ono3d.loadShader("fill","../lib/webgl/fill.shader");
 
 	return ret;
 })()
