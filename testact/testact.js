@@ -869,7 +869,7 @@ var Testact=(function(){
 		ono3d.setViewport(0,0,WIDTH,HEIGHT);
 
 		if(env2dtex){
-			Plain.draw(ono3d,0);
+			//Plain.draw(ono3d,0);
 			if(globalParam.shader===0){
 				if(globalParam.cMaterial){
 					ono3d.render(shadowTexture,camera.p,customMaterial);
