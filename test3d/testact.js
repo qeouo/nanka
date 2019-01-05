@@ -425,7 +425,7 @@ var Testact=(function(){
 
 			Vec3.set(vec3,0,0,0);
 
-			var object =  field.objects.find(function(a){return a.name==="モンキー";});
+			var object =  field.objects.find(function(a){return a.name=== this;},"モンキー");
 			if(object){
 				Vec3.copy(vec3,object.location);
 			}
@@ -535,7 +535,7 @@ var Testact=(function(){
 					Util.fireEvent(el,"change");
 				}
 
-				var co=  scene.objects.find(function(a){return a.name==="Camera";});
+				var co=  scene.objects.find(function(a){return a.name===this;},"Camera");
 				if(co){
 					goCamera.p[0]=co.mixedmatrix[9];
 					goCamera.p[1]=co.mixedmatrix[10];
@@ -621,8 +621,7 @@ var Testact=(function(){
 						m43[11]=b[2]+m43[8];
 						var phyObj = null;
 						if(globalParam.physics){
-							var name = objects[i].name;
-							phyObj= phyObjs.find(function(a){return a.name===name});
+							phyObj= phyObjs.find(function(a){return a.name===this;},objects[i].name);
 						}
 						if(phyObj){
 							Mat43.dot(cuboidcol.matrix,phyObj.matrix,m43);
