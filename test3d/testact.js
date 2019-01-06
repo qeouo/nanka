@@ -6,10 +6,10 @@ var Testact=(function(){
 	var onoPhy=null;
 	var objs=[];
 	var env2dtex=null;
-	var shadowTexture;
 	var bufTexture;
 	var emiTexture;
 	var averageTexture;
+	var envTexture;
 	var customTextures=[];
 	var customBumps=[];
 	var bdf;
@@ -548,6 +548,12 @@ var Testact=(function(){
 
 				Vec3.copy(camera.p,goCamera.p)
 				Vec3.copy(camera.a,goCamera.a)
+
+
+				drawFunc();
+				gl.bindTexture(gl.TEXTURE_2D, envTexture);
+				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,256,256);
+
 			});
 		}
 		ret.prototype.move=function(){
@@ -802,6 +808,50 @@ var Testact=(function(){
 		return scripts[scripts.length - 1].parentNode;
 	}) (document.scripts || document.getElementsByTagName('script'));
 
+	var drawSub = function(){
+
+//遠景描画
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.disable(gl.DEPTH_TEST);
+		gl.disable(gl.BLEND);
+		gl.depthMask(true);
+		ono3d.setViewport(0,0,WIDTH,HEIGHT);
+		gl.clearColor(0.0,0.0,0.0,0.0);
+		gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
+		gl.depthMask(false);
+		gl.disable(gl.BLEND);
+		if(env2dtex){
+			if(globalParam.stereomode==0){
+				ono3d.setPers(0.577,HEIGHT/WIDTH,1,20);
+				ono3d.setViewport(0,0,WIDTH,HEIGHT);
+				Env2D.draw(env2dtex,0,0,1,0.5);
+			}else{
+				ono3d.setPers(0.577,HEIGHT/WIDTH*2,1,20);
+				ono3d.setViewport(0,0,WIDTH/2,HEIGHT);
+				Env2D.draw(env2dtex,0,0,1,0.5);
+				ono3d.setViewport(WIDTH/2,0,WIDTH/2,HEIGHT);
+				Env2D.draw(env2dtex,0,0,1,0.5);
+				
+			}
+		}
+
+		ono3d.setViewport(0,0,WIDTH,HEIGHT);
+//オブジェクト描画
+		gl.depthMask(true);
+		gl.enable(gl.DEPTH_TEST);
+		ono3d.setViewport(0,0,WIDTH,HEIGHT);
+
+		if(env2dtex){
+			if(globalParam.shader===0){
+				if(globalParam.cMaterial){
+					ono3d.render(camera.p,customMaterial);
+				}else{
+					ono3d.render(camera.p);
+				}
+			}
+		}
+		gl.finish();
+	}
 	var drawFunc = function(){
 		afID = 0;
 		timer=nowTime-inittime;
@@ -852,9 +902,8 @@ var Testact=(function(){
 		}
 
 			
-
-//シャドウマップ描画
 		var start = Date.now();
+
 		camera.calcMatrix();
 		camera.calcCollision(camera.cameracol);
 		var lightSource= null;
@@ -883,49 +932,7 @@ var Testact=(function(){
 		
 		globalParam.stereo=-globalParam.stereoVolume * globalParam.stereomode*0.4;
 
-//遠景描画
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		gl.disable(gl.DEPTH_TEST);
-		gl.disable(gl.BLEND);
-		gl.depthMask(true);
-		ono3d.setViewport(0,0,WIDTH,HEIGHT);
-		gl.clearColor(0.0,0.0,0.0,0.0);
-		gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
-		gl.depthMask(false);
-		gl.disable(gl.BLEND);
-		if(env2dtex){
-			if(globalParam.stereomode==0){
-				ono3d.setPers(0.577,HEIGHT/WIDTH,1,20);
-				ono3d.setViewport(0,0,WIDTH,HEIGHT);
-				Env2D.draw(env2dtex,0,0,1,0.5);
-			}else{
-				ono3d.setPers(0.577,HEIGHT/WIDTH*2,1,20);
-				ono3d.setViewport(0,0,WIDTH/2,HEIGHT);
-				Env2D.draw(env2dtex,0,0,1,0.5);
-				ono3d.setViewport(WIDTH/2,0,WIDTH/2,HEIGHT);
-				Env2D.draw(env2dtex,0,0,1,0.5);
-				
-			}
-		}
-
-		ono3d.setViewport(0,0,WIDTH,HEIGHT);
-//オブジェクト描画
-		gl.depthMask(true);
-		gl.enable(gl.DEPTH_TEST);
-		ono3d.setViewport(0,0,WIDTH,HEIGHT);
-
-		if(env2dtex){
-			if(globalParam.shader===0){
-				if(globalParam.cMaterial){
-					ono3d.render(shadowTexture,camera.p,customMaterial);
-				}else{
-					ono3d.render(shadowTexture,camera.p);
-				}
-			}else{
-				MainShader2.draw(ono3d,shadowTexture,env2dtex,camera.p);
-			}
-		}
-		gl.finish();
+		drawSub();
 		
 
 		//描画結果をバッファにコピー
@@ -1175,6 +1182,9 @@ var Testact=(function(){
 				//環境マップ
 				ono3d.environments[i].envTexture=env2dtex;
 			}
+
+
+
 		});
 		emiTexture = Rastgl.createTexture(null,512,512);
 
@@ -1281,8 +1291,8 @@ var Testact=(function(){
 
 
 	
-	shadowTexture=Rastgl.createTexture(null,1024,1024);
-	gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
+	envTexture=Rastgl.createTexture(null,512,512);
+	gl.bindTexture(gl.TEXTURE_2D, envTexture);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
