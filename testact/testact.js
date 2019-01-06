@@ -19,7 +19,6 @@ var Testact=(function(){
 	var gl;
 	var onoPhy=null;
 	var env2dtex=null;
-	var shadowTexture;
 	var bufTexture;
 	var emiTexture;
 	var bdf;
@@ -872,12 +871,10 @@ var Testact=(function(){
 			//Plain.draw(ono3d,0);
 			if(globalParam.shader===0){
 				if(globalParam.cMaterial){
-					ono3d.render(shadowTexture,camera.p,customMaterial);
+					ono3d.render(camera.p,customMaterial);
 				}else{
-					ono3d.render(shadowTexture,camera.p);
+					ono3d.render(camera.p);
 				}
-			}else{
-				MainShader2.draw(ono3d,shadowTexture,camera.p);
 			}
 		}
 		gl.finish();
@@ -912,27 +909,6 @@ var Testact=(function(){
 			Rastgl.postEffect(averageTexture ,0,511/512,1/512,1/512,ono3d.shaders["average3"]); 
 			gl.bindTexture(gl.TEXTURE_2D, averageTexture);
 			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,511,0,511,1,1);
-
-			//光度計算結果を取得
-//			var u8 = new Uint8Array(4);
-//			var a= new Vec4();
-//			var b= new Vec4();
-//			gl.readPixels(0,0,1,1, gl.RGBA, gl.UNSIGNED_BYTE, u8);
-//			b[0]=u8[0]/255;
-//			b[1]=u8[1]/255;
-//			b[2]=u8[2]/255;
-//			b[3]=u8[3]/255;
-//			Rastgl.decode2(a,b);
-//
-//		//	//補間
-//		//	a[0] = globalParam.exposure_level +(a[0] - globalParam.exposure_level)*0.1;
-//		//	a[1] = globalParam.exposure_upper +(a[1] - globalParam.exposure_upper)*0.1;
-//			document.getElementById("exposure_level").value = a[0];
-//			document.getElementById("exposure_upper").value = a[1];
-//			Util.fireEvent(document.getElementById("exposure_level"),"change");
-//			Util.fireEvent(document.getElementById("exposure_upper"),"change");
-//		//	globalParam.exposure_level = a[0];
-//		//	globalParam.exposure_upper= a[1];
 
 		}else{
 			ono3d.setViewport(0,511,1,1);
@@ -1245,13 +1221,8 @@ var Testact=(function(){
 		gl.clearColor(0.0,0.0,0.0,1.0);
 		gl.clear(gl.COLOR_BUFFER_BIT);
 	
-		shadowTexture=Rastgl.createTexture(null,1024,1024);
-		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
 		bufTexture=Rastgl.createTexture(null,1024,1024);
-		gl.bindTexture(gl.TEXTURE_2D, shadowTexture);
+		gl.bindTexture(gl.TEXTURE_2D, bufTexture);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 		
