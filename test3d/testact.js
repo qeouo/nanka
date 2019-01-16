@@ -550,7 +550,7 @@ var Testact=(function(){
 				Vec3.copy(camera.a,goCamera.a)
 
 
-				drawFunc();
+				drawSub(0,0,WIDTH,HEIGHT);
 				gl.bindTexture(gl.TEXTURE_2D, envTexture);
 				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,256,256);
 
@@ -808,14 +808,14 @@ var Testact=(function(){
 		return scripts[scripts.length - 1].parentNode;
 	}) (document.scripts || document.getElementsByTagName('script'));
 
-	var drawSub = function(){
+	var drawSub = function(x,y,w,h){
 
 //遠景描画
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.disable(gl.DEPTH_TEST);
 		gl.disable(gl.BLEND);
 		gl.depthMask(true);
-		ono3d.setViewport(0,0,WIDTH,HEIGHT);
+		ono3d.setViewport(x,y,w,h);
 		gl.clearColor(0.0,0.0,0.0,0.0);
 		gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
 		gl.depthMask(false);
@@ -932,7 +932,7 @@ var Testact=(function(){
 		
 		globalParam.stereo=-globalParam.stereoVolume * globalParam.stereomode*0.4;
 
-		drawSub();
+		drawSub(0,0,WIDTH,HEIGHT);
 		
 
 		//描画結果をバッファにコピー
@@ -964,27 +964,6 @@ var Testact=(function(){
 			Rastgl.postEffect(averageTexture ,0,511/512,1/512,1/512,ono3d.shaders["average3"]); 
 			gl.bindTexture(gl.TEXTURE_2D, averageTexture);
 			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,511,0,511,1,1);
-
-			//光度計算結果を取得
-//			var u8 = new Uint8Array(4);
-//			var a= new Vec4();
-//			var b= new Vec4();
-//			gl.readPixels(0,0,1,1, gl.RGBA, gl.UNSIGNED_BYTE, u8);
-//			b[0]=u8[0]/255;
-//			b[1]=u8[1]/255;
-//			b[2]=u8[2]/255;
-//			b[3]=u8[3]/255;
-//			Rastgl.decode2(a,b);
-//
-//		//	//補間
-//		//	a[0] = globalParam.exposure_level +(a[0] - globalParam.exposure_level)*0.1;
-//		//	a[1] = globalParam.exposure_upper +(a[1] - globalParam.exposure_upper)*0.1;
-//			document.getElementById("exposure_level").value = a[0];
-//			document.getElementById("exposure_upper").value = a[1];
-//			Util.fireEvent(document.getElementById("exposure_level"),"change");
-//			Util.fireEvent(document.getElementById("exposure_upper"),"change");
-//		//	globalParam.exposure_level = a[0];
-//		//	globalParam.exposure_upper= a[1];
 
 		}else{
 			ono3d.setViewport(0,511,1,1);
@@ -1053,7 +1032,7 @@ var Testact=(function(){
 		gl.bindTexture(gl.TEXTURE_2D,averageTexture);
 		Rastgl.postEffect(bufTexture ,0,0 ,WIDTH/1024,HEIGHT/1024,decodeShader); 
 		
-		//Rastgl.copyframe(averageTexture,0,0,1.0,1.0);
+		Rastgl.copyframe(envTexture,0,0,1.0,1.0);
 		
 
 		gl.disable(gl.BLEND);
@@ -1183,6 +1162,7 @@ var Testact=(function(){
 				ono3d.environments[i].envTexture=env2dtex;
 			}
 
+			goMain = objMan.createObj(GoMain);
 
 
 		});
@@ -1247,7 +1227,6 @@ var Testact=(function(){
 		}
 		
 		
-		goMain = objMan.createObj(GoMain);
 
 	}
 
