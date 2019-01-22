@@ -550,9 +550,15 @@ var Testact=(function(){
 				Vec3.copy(camera.a,goCamera.a)
 
 
-				drawSub(0,0,WIDTH,HEIGHT);
+				gl.clearColor(0.0,0.0,0.0,1.0);
+				gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
+				ono3d.setAov(0.5);
+				Mat44.set(ono3d.viewMatrix,1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
+				drawSub(0,0,256,256);
+				Mat44.set(ono3d.viewMatrix,0,0,-1,0, 0,1,0,0, 1,0,0,0, 0,0,0,1);
+				drawSub(256,0,256,256);
 				gl.bindTexture(gl.TEXTURE_2D, envTexture);
-				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,256,256);
+				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,256*3,256*2);
 
 			});
 		}
@@ -816,14 +822,12 @@ var Testact=(function(){
 		gl.disable(gl.BLEND);
 		gl.depthMask(true);
 		ono3d.setViewport(x,y,w,h);
-		gl.clearColor(0.0,0.0,0.0,0.0);
-		gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
 		gl.depthMask(false);
 		gl.disable(gl.BLEND);
 		if(env2dtex){
 			if(globalParam.stereomode==0){
-				ono3d.setPers(0.577,HEIGHT/WIDTH,1,20);
-				ono3d.setViewport(0,0,WIDTH,HEIGHT);
+				//ono3d.setPers(0.577,HEIGHT/WIDTH,1,20);
+//				ono3d.setViewport(0,0,WIDTH,HEIGHT);
 				Env2D.draw(env2dtex,0,0,1,0.5);
 			}else{
 				ono3d.setPers(0.577,HEIGHT/WIDTH*2,1,20);
@@ -835,11 +839,10 @@ var Testact=(function(){
 			}
 		}
 
-		ono3d.setViewport(0,0,WIDTH,HEIGHT);
+		ono3d.setViewport(x,y,w,h);
 //オブジェクト描画
 		gl.depthMask(true);
 		gl.enable(gl.DEPTH_TEST);
-		ono3d.setViewport(0,0,WIDTH,HEIGHT);
 
 		if(env2dtex){
 			if(globalParam.shader===0){
@@ -1017,9 +1020,12 @@ var Testact=(function(){
 			ono3d.setViewport(0,0,WIDTH,HEIGHT);
 			Rastgl.postEffect(bufTexture,0,0 ,WIDTH/1024.0,HEIGHT/1024,addShader); 
 
-			gl.bindTexture(gl.TEXTURE_2D, bufTexture);
-			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
 		}
+		Rastgl.copyframe(envTexture,0,0,1.0,1.0);
+
+		gl.bindTexture(gl.TEXTURE_2D, bufTexture);
+		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
+
 		ono3d.setViewport(0,0,WIDTH,HEIGHT);
 		gl.bindFramebuffer(gl.FRAMEBUFFER,null );
 
@@ -1032,7 +1038,6 @@ var Testact=(function(){
 		gl.bindTexture(gl.TEXTURE_2D,averageTexture);
 		Rastgl.postEffect(bufTexture ,0,0 ,WIDTH/1024,HEIGHT/1024,decodeShader); 
 		
-		Rastgl.copyframe(envTexture,0,0,1.0,1.0);
 		
 
 		gl.disable(gl.BLEND);
@@ -1270,7 +1275,7 @@ var Testact=(function(){
 
 
 	
-	envTexture=Rastgl.createTexture(null,512,512);
+	envTexture=Rastgl.createTexture(null,1024,512);
 	gl.bindTexture(gl.TEXTURE_2D, envTexture);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
