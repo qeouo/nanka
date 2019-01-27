@@ -552,8 +552,9 @@ var Testact=(function(){
 
 				gl.clearColor(0.0,0.0,0.0,1.0);
 				gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
-				ono3d.setAov(0.5);
+				ono3d.setAov(1.0);
 				Mat44.set(ono3d.viewMatrix,1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
+				ono3d.getProjectionMatrix(ono3d.projectionMatrix);
 				drawSub(0,0,256,256);
 				Mat44.set(ono3d.viewMatrix,0,0,-1,0, 0,1,0,0, 1,0,0,0, 0,0,0,1);
 				drawSub(256,0,256,256);
@@ -817,11 +818,12 @@ var Testact=(function(){
 	var drawSub = function(x,y,w,h){
 
 //遠景描画
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.disable(gl.DEPTH_TEST);
 		gl.disable(gl.BLEND);
 		gl.depthMask(true);
 		ono3d.setViewport(x,y,w,h);
+//		gl.clearColor(0.0,0.0,0.0,0.0);
+//		gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
 		gl.depthMask(false);
 		gl.disable(gl.BLEND);
 		if(env2dtex){
@@ -935,6 +937,10 @@ var Testact=(function(){
 		
 		globalParam.stereo=-globalParam.stereoVolume * globalParam.stereomode*0.4;
 
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.depthMask(true);
+		gl.clearColor(0.0,0.0,0.0,0.0);
+		gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
 		drawSub(0,0,WIDTH,HEIGHT);
 		
 
