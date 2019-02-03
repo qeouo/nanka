@@ -553,13 +553,35 @@ var Testact=(function(){
 				gl.clearColor(0.0,0.0,0.0,1.0);
 				gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
 				ono3d.setAov(1.0);
-				Mat44.set(ono3d.viewMatrix,1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
-				ono3d.getProjectionMatrix(ono3d.projectionMatrix);
+
+				Mat44.set(ono3d.viewMatrix,-1,0,0,0, 0,-1,0,0, 0,0,-1,0, 0,0,0,1);
 				drawSub(0,0,256,256);
-				Mat44.set(ono3d.viewMatrix,0,0,-1,0, 0,1,0,0, 1,0,0,0, 0,0,0,1);
+				Mat44.set(ono3d.viewMatrix,0,0,1,0, 0,-1,0,0, -1,0,0,0, 0,0,0,1);
 				drawSub(256,0,256,256);
 				gl.bindTexture(gl.TEXTURE_2D, envTexture);
-				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,256*3,256*2);
+				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,256*2,256);
+
+				Mat44.set(ono3d.viewMatrix,1,0,0,0, 0,-1,0,0, 0,0,1,0, 0,0,0,1);
+				drawSub(0,0,256,256);
+				Mat44.set(ono3d.viewMatrix,0,0,-1,0, 0,-1,0,0, 1,0,0,0, 0,0,0,1);
+				drawSub(256,0,256,256);
+				gl.bindTexture(gl.TEXTURE_2D, envTexture);
+				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,512,0,0,0,256*2,256);
+
+				Mat44.set(ono3d.viewMatrix,-1,0,0,0, 0,0,1,0, 0,-1,0,0, 0,0,0,1);
+				drawSub(0,0,256,256);
+				Mat44.set(ono3d.viewMatrix,-1,0,0,0, 0,0,-1,0, 0,1,0,0, 0,0,0,1);
+				drawSub(256,0,256,256);
+				gl.bindTexture(gl.TEXTURE_2D, envTexture);
+				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,256,0,0,256*2,256);
+
+				//極座標化
+				gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+				ono3d.setViewport(0,0,1024,512);
+				Rastgl.postEffect(envTexture,0,0,1,1,ono3d.shaders["cube2polar"]); 
+				gl.bindTexture(gl.TEXTURE_2D, envTexture);
+				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1024,512);
+
 
 			});
 		}
@@ -822,6 +844,7 @@ var Testact=(function(){
 		gl.disable(gl.BLEND);
 		gl.depthMask(true);
 		ono3d.setViewport(x,y,w,h);
+		ono3d.getProjectionMatrix(ono3d.projectionMatrix);
 //		gl.clearColor(0.0,0.0,0.0,0.0);
 //		gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
 		gl.depthMask(false);
