@@ -9,6 +9,7 @@ var Testact=(function(){
 	var bufTexture;
 	var emiTexture;
 	var averageTexture;
+	var envBuf;
 	var envTexture;
 	var customTextures=[];
 	var customBumps=[];
@@ -471,6 +472,76 @@ var Testact=(function(){
 		return ret;
 	})();
 
+	var createEnv = function(tex,x,y,z){
+		gl.clearColor(0.0,0.0,0.0,1.0);
+		gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
+		ono3d.setAov(1.0);
+
+		//前、右
+		Mat44.set(ono3d.viewMatrix,-1,0,0,0, 0,-1,0,0, 0,0,-1,0, -x,-y,-z,1);
+		drawSub(0,0,256,256);
+		Mat44.set(ono3d.viewMatrix,0,0,1,0, 0,-1,0,0, -1,0,0,0, -x,-y,-z,1);
+		drawSub(256,0,256,256);
+		gl.bindTexture(gl.TEXTURE_2D, envBuf);
+		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,256*2,256);
+
+		//後、左
+		Mat44.set(ono3d.viewMatrix,1,0,0,0, 0,-1,0,0, 0,0,1,0, -x,-y,-z,1);
+		drawSub(0,0,256,256);
+		Mat44.set(ono3d.viewMatrix,0,0,-1,0, 0,-1,0,0, 1,0,0,0, -x,-y,-z,1);
+		drawSub(256,0,256,256);
+		gl.bindTexture(gl.TEXTURE_2D, envBuf);
+		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,512,0,0,0,256*2,256);
+
+		//下、上
+		Mat44.set(ono3d.viewMatrix,-1,0,0,0, 0,0,1,0, 0,-1,0,0, -x,-y,-z,1);
+		drawSub(0,0,256,256);
+		Mat44.set(ono3d.viewMatrix,-1,0,0,0, 0,0,-1,0, 0,1,0,0, -x,-y,-z,1);
+		drawSub(256,0,256,256);
+
+		gl.bindTexture(gl.TEXTURE_2D, envBuf);
+		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,256,0,0,256*2,256);
+
+		//極座標化
+		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+		ono3d.setViewport(0,0,256,128);
+		Rastgl.postEffect(envBuf,0,0,1,1,ono3d.shaders["cube2polar"]); 
+		gl.bindTexture(gl.TEXTURE_2D, tex);
+		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,256,128);
+
+		var width=256;
+		var height=128;
+		var rough=0.125;
+
+		width>>=1;
+		height>>=1;
+
+		var envs=[0.06,0.24,0.54,1.0]; //i^2*0.06
+		for(var i=0;i<envs.length;i++){
+			rough=envs[i];
+			var tex2 = Rastgl.createTexture(0,width,height);
+
+			ono3d.setViewport(0,0,width,height);
+			Rough2D.draw(width,height,rough,env2dtex);
+
+			gl.bindTexture(gl.TEXTURE_2D,tex2);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,width,height);
+			
+			Gauss.filter(width,height,10,tex2,0,0,1,1,width,height); 
+
+			gl.bindTexture(gl.TEXTURE_2D,tex);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,256-height*2,0,0,width,height);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,width,256-height*2,0,0,width,height);
+			gl.copyTexSubImage2D(gl.TEXTURE_2D,0,1024-width,256-height*2,0,0,width,height);
+			width>>=1;
+			height>>=1;
+
+		}
+		
+		gl.bindTexture(gl.TEXTURE_2D, null);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+	}
 	var homingCamera=function(angle,target,camera){
 		var dx=target[0]-camera[0]
 		var dy=target[1]-camera[1]
@@ -550,38 +621,7 @@ var Testact=(function(){
 				Vec3.copy(camera.a,goCamera.a)
 
 
-				gl.clearColor(0.0,0.0,0.0,1.0);
-				gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
-				ono3d.setAov(1.0);
-
-				Mat44.set(ono3d.viewMatrix,-1,0,0,0, 0,-1,0,0, 0,0,-1,0, 0,0,0,1);
-				drawSub(0,0,256,256);
-				Mat44.set(ono3d.viewMatrix,0,0,1,0, 0,-1,0,0, -1,0,0,0, 0,0,0,1);
-				drawSub(256,0,256,256);
-				gl.bindTexture(gl.TEXTURE_2D, envTexture);
-				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,256*2,256);
-
-				Mat44.set(ono3d.viewMatrix,1,0,0,0, 0,-1,0,0, 0,0,1,0, 0,0,0,1);
-				drawSub(0,0,256,256);
-				Mat44.set(ono3d.viewMatrix,0,0,-1,0, 0,-1,0,0, 1,0,0,0, 0,0,0,1);
-				drawSub(256,0,256,256);
-				gl.bindTexture(gl.TEXTURE_2D, envTexture);
-				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,512,0,0,0,256*2,256);
-
-				Mat44.set(ono3d.viewMatrix,-1,0,0,0, 0,0,1,0, 0,-1,0,0, 0,0,0,1);
-				drawSub(0,0,256,256);
-				Mat44.set(ono3d.viewMatrix,-1,0,0,0, 0,0,-1,0, 0,1,0,0, 0,0,0,1);
-				drawSub(256,0,256,256);
-				gl.bindTexture(gl.TEXTURE_2D, envTexture);
-				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,256,0,0,256*2,256);
-
-				//極座標化
-				gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-				ono3d.setViewport(0,0,1024,512);
-				Rastgl.postEffect(envTexture,0,0,1,1,ono3d.shaders["cube2polar"]); 
-				gl.bindTexture(gl.TEXTURE_2D, envTexture);
-				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,1024,512);
-
+				createEnv(envTexture,0,0,0);
 
 			});
 		}
@@ -1303,9 +1343,13 @@ var Testact=(function(){
 	Rastgl.ono3d = ono3d;
 
 
+	envTexture=Rastgl.createTexture(null,256,256);
+	gl.bindTexture(gl.TEXTURE_2D, envBuf);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 	
-	envTexture=Rastgl.createTexture(null,1024,512);
-	gl.bindTexture(gl.TEXTURE_2D, envTexture);
+	envBuf=Rastgl.createTexture(null,1024,512);
+	gl.bindTexture(gl.TEXTURE_2D, envBuf);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
