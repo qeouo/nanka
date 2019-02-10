@@ -523,14 +523,14 @@ var Testact=(function(){
 			var tex2 = Rastgl.createTexture(0,width,height);
 
 			ono3d.setViewport(0,0,width,height);
-			Rough2D.draw(width,height,rough,tex.gltexture,0,0,1,0.5);
+			ono3d.rough(width,height,rough,tex.gltexture,0,0,1,0.5);
 	//		Ono3d.postEffect(tex,0,0 ,1.0,0.5,ono3d.shaders["rough"]); 
 
 			gl.bindTexture(gl.TEXTURE_2D,tex2);
 			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 			Ono3d.copyImage({gltexture:tex2},0,0,0,0,width,height);
 			
-			Gauss.filter(width,height,10,{gltexture:tex2},0,0,1,1,width,height); 
+			ono3d.gauss(width,height,10,{gltexture:tex2},0,0,1,1,width,height); 
 
 			Ono3d.copyImage(tex,0,texsize-height*2,0,0,width,height);
 			Ono3d.copyImage(tex,width,texsize-height*2,0,0,width,height);
@@ -1065,7 +1065,7 @@ var Testact=(function(){
 			Ono3d.postEffect(emiTexture ,0,0 ,WIDTH/1024,HEIGHT/1024,addShader); 
 			Ono3d.copyImage(emiTexture,0,0,0,0,WIDTH/2,HEIGHT/2);
 
-			Gauss.filter(WIDTH*emiSize,HEIGHT*emiSize,100
+			ono3d.gauss(WIDTH*emiSize,HEIGHT*emiSize,100
 				,emiTexture,0,0,WIDTH*emiSize/512,HEIGHT*emiSize/512,512,512); //光テクスチャをぼかす
 			Ono3d.copyImage(emiTexture,0,0,0,0,WIDTH*emiSize,HEIGHT*emiSize);//結果を光テクスチャに書き込み
 
@@ -1178,7 +1178,8 @@ var Testact=(function(){
 
 
 			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-			EnvSet2D.draw(image.gltexture,image.width,image.height);
+			gl.viewport(0,0,image.width,image.height);
+			Ono3d.postEffect(image,0,0 ,1,1,ono3d.shaders["envset"]); 
 			gl.bindTexture(gl.TEXTURE_2D, image.gltexture);
 			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 			Ono3d.copyImage(image,0,0,0,0,image.width,image.height);
