@@ -1167,35 +1167,18 @@ var Testact=(function(){
 		
 	}
 	ret.start = function(){
+
+		if(Util.getLoadingCount()>0){
+			//初期ロードが未完了の場合はメイン処理は開始しない
+			setTimeout(this.start,100);
+			return;
+		}
+
 		var select = document.getElementById("cTexture");
 		var option;
 		//soundbuffer = WebAudio.loadSound('se.mp3');
-		skyTexture = Ono3d.loadTexture("sky.jpg",function(image){
-			var envsize=16;
-			gl.colorMask(true,true,true,true);
-			gl.disable(gl.BLEND);
-			gl.disable(gl.DEPTH_TEST);
-
-
-			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-			gl.viewport(0,0,image.width,image.height);
-			Ono3d.postEffect(image,0,0 ,1,1,ono3d.shaders["envset"]); 
-			gl.bindTexture(gl.TEXTURE_2D, image.gltexture);
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-			Ono3d.copyImage(image,0,0,0,0,image.width,image.height);
-
-			gl.bindTexture(gl.TEXTURE_2D, null);
-			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-
-			goMain = objMan.createObj(GoMain);
-
-
-		});
 
 		
-		Util.setFps(globalParam.fps,mainloop);
-		Util.fpsman();
 
 		document.getElementById("autoExposure").addEventListener("change"
 			,function(evt){
@@ -1251,7 +1234,31 @@ var Testact=(function(){
 			Util.fireEvent(element,"change");
 		}
 		
-		
+		skyTexture = Ono3d.loadTexture("sky.jpg",function(image){
+			var envsize=16;
+			gl.colorMask(true,true,true,true);
+			gl.disable(gl.BLEND);
+			gl.disable(gl.DEPTH_TEST);
+
+
+			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+			gl.viewport(0,0,image.width,image.height);
+			Ono3d.postEffect(image,0,0 ,1,1,ono3d.shaders["envset"]); 
+			gl.bindTexture(gl.TEXTURE_2D, image.gltexture);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+			Ono3d.copyImage(image,0,0,0,0,image.width,image.height);
+
+			gl.bindTexture(gl.TEXTURE_2D, null);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+
+			goMain = objMan.createObj(GoMain);
+
+
+		});
+
+		Util.setFps(globalParam.fps,mainloop);
+		Util.fpsman();
 
 	}
 
