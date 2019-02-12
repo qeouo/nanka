@@ -1083,8 +1083,7 @@ var Testact=(function(){
 			Ono3d.postEffect(bufTexture,0,0 ,WIDTH/1024.0,HEIGHT/1024,addShader); 
 
 		}
-		//Rastgl.copyframe(envTexture,0,0,1.0,1.0);
-		//Ono3d.drawCopy(ono3d.transTexture,0,0,1.0,1.0);
+		//Ono3d.drawCopy(envTexture,0,0,1.0,1.0);
 
 		Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 

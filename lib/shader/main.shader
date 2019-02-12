@@ -94,7 +94,7 @@ void main(void){
 	refa = min(refa,1.0); 
 	vec2 refV = vec2(atan(angle.x,-angle.z)*_PI*0.5 + 0.5 
 		,(-atan(angle.y,length(angle.xz)+0.00001)*_PI*0.5*0.995  + 0.25)); 
-	vec4 refCol = textureTri(uEnvMap,texsize,refV,refx+refa) ;
+	vec4 refCol = textureTri(uEnvMap,vec2(256.0),refV,refx+refa) ;
 	refCol.rgb *=  uReflectionColor; 
 
 	/*屈折*/ 
