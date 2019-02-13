@@ -55,13 +55,12 @@ uniform float lightThreshold1;
 uniform float lightThreshold2; 
 uniform vec3 uReflectionColor; 
 const highp float _PI =1.0/3.14159265359; 
-const highp vec2 texsize =vec2(1024.0); 
 
 [common]
 vec4 textureTri(sampler2D texture,vec2 size,vec2 uv,float w){
 	float refx = pow(0.5,floor(w)); 
-	vec4 refCol = textureRGBE(texture,texsize,uv*refx + vec2(0.0,1.0-refx)); 
-	vec4 q = textureRGBE(texture,texsize,uv*refx*0.5 + vec2(0.0,1.0-refx*0.5)); 
+	vec4 refCol = textureRGBE(texture,size,uv*refx + vec2(0.0,1.0-refx)); 
+	vec4 q = textureRGBE(texture,size,uv*refx*0.5 + vec2(0.0,1.0-refx*0.5)); 
 	return mix(refCol,q,fract(w));
 }
 void main(void){ 
@@ -93,7 +92,7 @@ void main(void){
 	float refa = (rough -refx*refx*0.06)/((((1.0+refx)*(1.0+refx))-refx*refx)*0.06); 
 	refa = min(refa,1.0); 
 	vec2 refV = vec2(atan(angle.x,-angle.z)*_PI*0.5 + 0.5 
-		,(-atan(angle.y,length(angle.xz)+0.00001)*_PI*0.5*0.995  + 0.25)); 
+		,(-atan(angle.y,length(angle.xz))*_PI*0.5  + 0.25)); 
 	vec4 refCol = textureTri(uEnvMap,vec2(256.0),refV,refx+refa) ;
 	refCol.rgb *=  uReflectionColor; 
 
@@ -103,7 +102,7 @@ void main(void){
 	refa = min(refa,1.0); 
 	angle = normalize(uViewMat * nrm); 
 	refV = gl_FragCoord.xy/1024.0+angle.xy*(1.0-refractPower)*0.2; 
-	vec4 transCol = textureTri(uTransMap,texsize,refV,refx+refa); 
+	vec4 transCol = textureTri(uTransMap,vec2(1024.0),refV,refx+refa); 
 	transCol.rgb *=  baseCol; 
 
 	/*乱反射強度*/ 
@@ -121,11 +120,10 @@ void main(void){
 	refV = vec2(atan(nrm.x,-nrm.z)*_PI*0.5 + 0.5
 		,(-atan(nrm.y,length(nrm.xz))*_PI*0.95 + 0.5)*0.5); 
 	refV = refV*refx + vec2(0.0,1.0-refx);
-	q= textureRGBE(uEnvMap,texsize,refV); 
 
 	/*表面色*/ 
-	vec3 vColor2 = (diffuse * uLightColor + uAmbColor*textureRGBE(uEnvMap,texsize,refV).rgb) ;
-	vColor2 = vColor2 * baseCol + uEmi*baseCol;
+	vec3 vColor2 = (diffuse * uLightColor + uAmbColor*textureRGBE(uEnvMap,vec2(256.0),refV).rgb) ;
+	vColor2 = (vColor2  + uEmi)* baseCol;
 
 	/*透過合成*/ 
 	vColor2 = mix(vColor2,transCol.rgb,1.0 - uOpacity); 

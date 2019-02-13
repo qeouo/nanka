@@ -12,7 +12,6 @@ precision lowp float;
 [common]
 varying lowp vec2 vUv;
 uniform sampler2D uSampler;
-const float PI  = 3.141592653589793;
 
 vec2 boxAngle2Uv(vec3 angle){
 	float x=angle.x;

@@ -13,9 +13,9 @@ uniform sampler2D uSampler;
 uniform sampler2D uDst;
 uniform highp float uPow;
 uniform float uRough ;
-const highp float PI =3.14159265359;
 uniform highp float uSeed;
 highp float rndcount=uSeed*0.1234;
+[common]
 highp float random(){
 	rndcount = (rndcount+0.123);
 	return fract(sin(dot(vUv*rndcount,vec2(12.9898,78.233))) * 43758.5453);
@@ -34,7 +34,6 @@ const int MAX = 32;
 const highp float _PI =1.0/3.14159265359;
 uniform vec2 uOffset;
 uniform vec2 uSize;
-[common]
 void main(void){
 	vec3 svec,tvec;
 	vec3 vAngle2;
@@ -66,8 +65,8 @@ void main(void){
 	for(int i=0;i<MAX;i++){
 		vAngle2 = randvec(va,svec,tvec,uRough);
 		col = decode(texture2D(uSampler
-			,vec2(atan(vAngle2.x,-vAngle2.z)*_PI*0.5 + 0.5
-			,-atan(vAngle2.y,length(vAngle2.xz))*_PI + 0.5)*uSize + uOffset));
+			,vec2(atan2(vAngle2.x,-vAngle2.z)*_PI*0.5 + 0.5
+			,-atan2(vAngle2.y,length(vAngle2.xz))*_PI + 0.5)*uSize + uOffset));
 		color = color + col.rgb;
 	}
 	color = color / (float(MAX));
