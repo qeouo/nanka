@@ -91,8 +91,8 @@ void main(void){
 	float refx = floor(sqrt(rough/0.06)); 
 	float refa = (rough -refx*refx*0.06)/((((1.0+refx)*(1.0+refx))-refx*refx)*0.06); 
 	refa = min(refa,1.0); 
-	vec2 refV = vec2(atan(angle.x,-angle.z)*_PI*0.5 + 0.5 
-		,(-atan(angle.y,length(angle.xz))*_PI*0.5  + 0.25)); 
+	vec2 refV = vec2(atan2(angle.x,-angle.z)*_PI*0.5 + 0.5 
+		,(-atan2(angle.y,length(angle.xz))*_PI*0.5  + 0.25)); 
 	vec4 refCol = textureTri(uEnvMap,vec2(256.0),refV,refx+refa) ;
 	refCol.rgb *=  uReflectionColor; 
 

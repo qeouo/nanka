@@ -449,7 +449,7 @@ var Testact=(function(){
 			this.p[0]=Math.sin(this.a[1])*this.p[2];
 			this.p[2]=Math.cos(this.a[1])*this.p[2];
 
-			cameralen=5;
+			cameralen=10;
 			Vec3.mul(this.p,this.p,cameralen);
 			var mat33 = Mat33.poolAlloc();
 			Mat33.rotate(mat33,-Math.PI*0.5,1,0,0);
@@ -1306,7 +1306,7 @@ var Testact=(function(){
 
 	envTexture=Ono3d.createTexture(256,256);
 	gl.bindTexture(gl.TEXTURE_2D, envTexture.gltexture);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+	//gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 	
 	envBuf=Ono3d.createTexture(1024,512);
