@@ -59,6 +59,7 @@ const highp float _PI =1.0/3.14159265359;
 [common]
 vec4 textureTri(sampler2D texture,vec2 size,vec2 uv,float w){
 	float refx = pow(0.5,floor(w)); 
+	uv.t = max(min(uv.t,0.5-0.5/(refx*size.y)),0.5/(refx*size.y));
 	vec4 refCol = textureRGBE(texture,size,uv*refx + vec2(0.0,1.0-refx)); 
 	vec4 q = textureRGBE(texture,size,uv*refx*0.5 + vec2(0.0,1.0-refx*0.5)); 
 	return mix(refCol,q,fract(w));
