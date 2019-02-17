@@ -2,43 +2,43 @@
 ,"textures":[
 ]
 ,"materials":[
-    {"name": "00", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "use_transparency": true, "ior": 1.0, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": true, "reflect": 0.0, "rough": 0.0, "texture_slots": []}
-  ,  {"name": "00.001", "r": 1.0, "g": 1.0, "b": 1.0, "a": 0.5, "dif": 1.0, "emt": 0.0, "use_transparency": true, "ior": 1.100000023841858, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": true, "reflect": 0.0, "rough": 0.0, "texture_slots": []}
-  ,  {"name": "00.002", "r": 1.0, "g": 1.0, "b": 1.0, "a": 0.25, "dif": 1.0, "emt": 0.0, "use_transparency": true, "ior": 1.100000023841858, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": true, "reflect": 0.0, "rough": 0.0, "texture_slots": []}
-  ,  {"name": "00.003", "r": 1.0, "g": 1.0, "b": 1.0, "a": 0.0, "dif": 1.0, "emt": 0.0, "use_transparency": true, "ior": 1.100000023841858, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": true, "reflect": 0.0, "rough": 0.0, "texture_slots": []}
-  ,  {"name": "00.004", "r": 1.0, "g": 1.0, "b": 1.0, "a": 0.5, "dif": 1.0, "emt": 0.0, "use_transparency": true, "ior": 1.100000023841858, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": true, "reflect": 0.10000000149011612, "rough": 0.0, "texture_slots": []}
-  ,  {"name": "00.005", "r": 1.0, "g": 1.0, "b": 1.0, "a": 0.5, "dif": 1.0, "emt": 0.0, "use_transparency": true, "ior": 1.100000023841858, "filter": 0.0, "trans_rough": 0.25, "fresnel": 1.0, "use_mirror": true, "reflect": 0.0, "rough": 0.0, "texture_slots": []}
-  ,  {"name": "00.006", "r": 1.0, "g": 1.0, "b": 1.0, "a": 0.5, "dif": 1.0, "emt": 0.0, "use_transparency": true, "ior": 1.100000023841858, "filter": 0.0, "trans_rough": 0.5999999940395355, "fresnel": 1.0, "use_mirror": true, "reflect": 0.0, "rough": 0.0, "texture_slots": []}
-  ,  {"name": "00.007", "r": 1.0, "g": 1.0, "b": 1.0, "a": 0.5, "dif": 1.0, "emt": 0.0, "use_transparency": true, "ior": 1.100000023841858, "filter": 0.0, "trans_rough": 0.6200000047683716, "fresnel": 1.0, "use_mirror": true, "reflect": 0.0, "rough": 0.0, "texture_slots": []}
-  ,  {"name": "00.008", "r": 1.0, "g": 1.0, "b": 1.0, "a": 0.25, "dif": 1.0, "emt": 0.0, "use_transparency": true, "ior": 1.100000023841858, "filter": 0.0, "trans_rough": 0.25, "fresnel": 1.0, "use_mirror": true, "reflect": 0.0, "rough": 0.0, "texture_slots": []}
-  ,  {"name": "00.009", "r": 1.0, "g": 1.0, "b": 1.0, "a": 0.25, "dif": 1.0, "emt": 0.0, "use_transparency": true, "ior": 1.100000023841858, "filter": 0.0, "trans_rough": 0.5999999940395355, "fresnel": 1.0, "use_mirror": true, "reflect": 0.0, "rough": 0.0, "texture_slots": []}
-  ,  {"name": "00.010", "r": 1.0, "g": 1.0, "b": 1.0, "a": 0.0, "dif": 1.0, "emt": 0.0, "use_transparency": true, "ior": 1.100000023841858, "filter": 0.0, "trans_rough": 0.5999999940395355, "fresnel": 1.0, "use_mirror": true, "reflect": 0.0, "rough": 0.0, "texture_slots": []}
-  ,  {"name": "00.011", "r": 1.0, "g": 1.0, "b": 1.0, "a": 0.25, "dif": 1.0, "emt": 0.0, "use_transparency": true, "ior": 1.100000023841858, "filter": 0.0, "trans_rough": 0.6200000047683716, "fresnel": 1.0, "use_mirror": true, "reflect": 0.0, "rough": 0.0, "texture_slots": []}
-  ,  {"name": "00.012", "r": 1.0, "g": 1.0, "b": 1.0, "a": 0.0, "dif": 1.0, "emt": 0.0, "use_transparency": true, "ior": 1.100000023841858, "filter": 0.0, "trans_rough": 0.6200000047683716, "fresnel": 1.0, "use_mirror": true, "reflect": 0.0, "rough": 0.0, "texture_slots": []}
-  ,  {"name": "00.013", "r": 1.0, "g": 1.0, "b": 1.0, "a": 0.0, "dif": 1.0, "emt": 0.0, "use_transparency": true, "ior": 1.100000023841858, "filter": 0.0, "trans_rough": 0.25, "fresnel": 1.0, "use_mirror": true, "reflect": 0.0, "rough": 0.0, "texture_slots": []}
-  ,  {"name": "01", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "use_transparency": false, "ior": 1.0, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": true, "reflect": 0.10000000149011612, "rough": 0.0, "texture_slots": []}
-  ,  {"name": "01.002", "r": 1.0, "g": 1.0, "b": 1.0, "a": 0.25, "dif": 1.0, "emt": 0.0, "use_transparency": true, "ior": 1.100000023841858, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": true, "reflect": 0.10000000149011612, "rough": 0.0, "texture_slots": []}
-  ,  {"name": "01.003", "r": 1.0, "g": 1.0, "b": 1.0, "a": 0.0, "dif": 1.0, "emt": 0.0, "use_transparency": true, "ior": 1.100000023841858, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": true, "reflect": 0.10000000149011612, "rough": 0.0, "texture_slots": []}
-  ,  {"name": "02", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "use_transparency": false, "ior": 1.0, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": true, "reflect": 0.20000000298023224, "rough": 0.0, "texture_slots": []}
-  ,  {"name": "02.002", "r": 1.0, "g": 1.0, "b": 1.0, "a": 0.0, "dif": 1.0, "emt": 0.0, "use_transparency": true, "ior": 1.100000023841858, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": true, "reflect": 0.20000000298023224, "rough": 0.0, "texture_slots": []}
-  ,  {"name": "02.003", "r": 1.0, "g": 1.0, "b": 1.0, "a": 0.5, "dif": 1.0, "emt": 0.0, "use_transparency": true, "ior": 1.100000023841858, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": true, "reflect": 0.20000000298023224, "rough": 0.0, "texture_slots": []}
-  ,  {"name": "02.004", "r": 1.0, "g": 1.0, "b": 1.0, "a": 0.25, "dif": 1.0, "emt": 0.0, "use_transparency": true, "ior": 1.100000023841858, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": true, "reflect": 0.20000000298023224, "rough": 0.0, "texture_slots": []}
-  ,  {"name": "03", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "use_transparency": false, "ior": 1.0, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": true, "reflect": 1.0, "rough": 0.0, "texture_slots": []}
-  ,  {"name": "03.002", "r": 1.0, "g": 1.0, "b": 1.0, "a": 0.5, "dif": 1.0, "emt": 0.0, "use_transparency": true, "ior": 1.100000023841858, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": true, "reflect": 1.0, "rough": 0.0, "texture_slots": []}
-  ,  {"name": "03.003", "r": 1.0, "g": 1.0, "b": 1.0, "a": 0.25, "dif": 1.0, "emt": 0.0, "use_transparency": true, "ior": 1.100000023841858, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": true, "reflect": 1.0, "rough": 0.0, "texture_slots": []}
-  ,  {"name": "03.004", "r": 1.0, "g": 1.0, "b": 1.0, "a": 0.0, "dif": 1.0, "emt": 0.0, "use_transparency": true, "ior": 1.100000023841858, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": true, "reflect": 1.0, "rough": 0.0, "texture_slots": []}
-  ,  {"name": "10", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "use_transparency": false, "ior": 1.0, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": true, "reflect": 0.0, "rough": 0.10000002384185791, "texture_slots": []}
-  ,  {"name": "11", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "use_transparency": false, "ior": 1.0, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": true, "reflect": 0.10000000149011612, "rough": 0.10000002384185791, "texture_slots": []}
-  ,  {"name": "12", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "use_transparency": false, "ior": 1.0, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": true, "reflect": 0.20000000298023224, "rough": 0.10000002384185791, "texture_slots": []}
-  ,  {"name": "13", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "use_transparency": false, "ior": 1.0, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": true, "reflect": 1.0, "rough": 0.10000002384185791, "texture_slots": []}
-  ,  {"name": "20", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "use_transparency": false, "ior": 1.0, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": true, "reflect": 0.0, "rough": 0.19999998807907104, "texture_slots": []}
-  ,  {"name": "21", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "use_transparency": false, "ior": 1.0, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": true, "reflect": 0.10000000149011612, "rough": 0.19999998807907104, "texture_slots": []}
-  ,  {"name": "22", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "use_transparency": false, "ior": 1.0, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": true, "reflect": 0.20000000298023224, "rough": 0.19999998807907104, "texture_slots": []}
-  ,  {"name": "23", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "use_transparency": false, "ior": 1.0, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": true, "reflect": 0.20000000298023224, "rough": 0.5, "texture_slots": []}
-  ,  {"name": "30", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "use_transparency": false, "ior": 1.0, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": true, "reflect": 0.0, "rough": 0.5, "texture_slots": []}
-  ,  {"name": "31", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "use_transparency": false, "ior": 1.0, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": true, "reflect": 0.10000000149011612, "rough": 0.5, "texture_slots": []}
-  ,  {"name": "32", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "use_transparency": false, "ior": 1.0, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": true, "reflect": 1.0, "rough": 0.19999998807907104, "texture_slots": []}
-  ,  {"name": "33", "r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0, "dif": 1.0, "emt": 0.0, "use_transparency": false, "ior": 1.0, "filter": 0.0, "trans_rough": 0.0, "fresnel": 1.0, "use_mirror": true, "reflect": 1.0, "rough": 0.5, "texture_slots": []}
+    {"name": "00", "baseColor": [1.0, 1.0, 1.0, 1.0], "spc": 0.0, "rough": 0.0, "ior": 1.4500000476837158, "trans_rough": 0.0, "texture_slots": []}
+  ,  {"name": "00.001", "baseColor": [1.0, 1.0, 1.0, 0.569230854511261], "spc": 0.0, "rough": 0.0, "ior": 1.4500000476837158, "trans_rough": 0.0, "texture_slots": []}
+  ,  {"name": "00.002", "baseColor": [1.0, 1.0, 1.0, 0.26153865456581116], "spc": 0.0, "rough": 0.0, "ior": 1.4500000476837158, "trans_rough": 0.0, "texture_slots": []}
+  ,  {"name": "00.003", "baseColor": [1.0, 1.0, 1.0, 0.0], "spc": 0.0, "rough": 0.0, "ior": 1.2000000476837158, "trans_rough": 0.0, "texture_slots": []}
+  ,  {"name": "00.004", "baseColor": [1.0, 1.0, 1.0, 0.4769231677055359], "spc": 0.2818181812763214, "rough": 0.5, "ior": 1.4500000476837158, "trans_rough": 0.029999999329447746, "texture_slots": []}
+  ,  {"name": "00.005", "texture_slots": []}
+  ,  {"name": "00.006", "texture_slots": []}
+  ,  {"name": "00.007", "texture_slots": []}
+  ,  {"name": "00.008", "texture_slots": []}
+  ,  {"name": "00.009", "texture_slots": []}
+  ,  {"name": "00.010", "baseColor": [1.0, 1.0, 1.0, 0.0], "spc": 0.0, "rough": 0.5, "ior": 1.4500000476837158, "trans_rough": 0.4936363697052002, "texture_slots": []}
+  ,  {"name": "00.011", "texture_slots": []}
+  ,  {"name": "00.012", "baseColor": [1.0, 1.0, 1.0, 0.0], "spc": 0.0, "rough": 0.0, "ior": 1.2000000476837158, "trans_rough": 1.0, "texture_slots": []}
+  ,  {"name": "00.013", "baseColor": [1.0, 1.0, 1.0, 0.0], "spc": 0.0, "rough": 0.3181818127632141, "ior": 1.2000000476837158, "trans_rough": 0.2545454502105713, "texture_slots": []}
+  ,  {"name": "01", "baseColor": [1.0, 1.0, 1.0, 1.0], "spc": 0.25, "rough": 0.0, "ior": 1.4500000476837158, "trans_rough": 0.0, "texture_slots": []}
+  ,  {"name": "01.002", "texture_slots": []}
+  ,  {"name": "01.003", "baseColor": [1.0, 1.0, 1.0, 0.0], "spc": 0.23636363446712494, "rough": 0.0, "ior": 1.2000000476837158, "trans_rough": 0.0, "texture_slots": []}
+  ,  {"name": "02", "baseColor": [1.0, 1.0, 1.0, 1.0], "spc": 0.5590909123420715, "rough": 0.0, "ior": 1.4500000476837158, "trans_rough": 0.0, "texture_slots": []}
+  ,  {"name": "02.002", "baseColor": [1.0, 1.0, 1.0, 0.0], "spc": 0.5, "rough": 0.0, "ior": 1.2000000476837158, "trans_rough": 0.029999999329447746, "texture_slots": []}
+  ,  {"name": "02.003", "baseColor": [1.0, 1.0, 1.0, 0.5307692289352417], "spc": 0.550000011920929, "rough": 0.0, "ior": 1.4500000476837158, "trans_rough": 0.0, "texture_slots": []}
+  ,  {"name": "02.004", "baseColor": [1.0, 1.0, 1.0, 0.2461538314819336], "spc": 0.5363636612892151, "rough": 0.0, "ior": 1.4500000476837158, "trans_rough": 0.0, "texture_slots": []}
+  ,  {"name": "03", "baseColor": [1.0, 1.0, 1.0, 1.0], "spc": 1.0, "rough": 0.0, "ior": 1.4500000476837158, "trans_rough": 0.029999999329447746, "texture_slots": []}
+  ,  {"name": "03.002", "baseColor": [1.0, 1.0, 1.0, 0.5769229531288147], "spc": 1.0, "rough": 0.0, "ior": 1.4500000476837158, "trans_rough": 0.0, "texture_slots": []}
+  ,  {"name": "03.003", "baseColor": [1.0, 1.0, 1.0, 0.2461538314819336], "spc": 1.0, "rough": 0.0, "ior": 1.4500000476837158, "trans_rough": 0.029999999329447746, "texture_slots": []}
+  ,  {"name": "03.004", "baseColor": [1.0, 1.0, 1.0, 0.0], "spc": 1.0, "rough": 0.0, "ior": 1.4500000476837158, "trans_rough": 0.0, "texture_slots": []}
+  ,  {"name": "10", "baseColor": [1.0, 1.0, 1.0, 1.0], "spc": 0.0, "rough": 0.2454545497894287, "ior": 1.4500000476837158, "trans_rough": 0.0, "texture_slots": []}
+  ,  {"name": "11", "texture_slots": []}
+  ,  {"name": "12", "texture_slots": []}
+  ,  {"name": "13", "baseColor": [1.0, 1.0, 1.0, 1.0], "spc": 1.0, "rough": 0.27272725105285645, "ior": 1.4500000476837158, "trans_rough": 0.0, "texture_slots": []}
+  ,  {"name": "20", "baseColor": [1.0, 1.0, 1.0, 1.0], "spc": 0.0, "rough": 0.5181818008422852, "ior": 1.4500000476837158, "trans_rough": 0.0, "texture_slots": []}
+  ,  {"name": "21", "texture_slots": []}
+  ,  {"name": "22", "texture_slots": []}
+  ,  {"name": "23", "texture_slots": []}
+  ,  {"name": "30", "baseColor": [1.0, 1.0, 1.0, 1.0], "spc": 0.0, "rough": 1.0, "ior": 1.4500000476837158, "trans_rough": 0.0, "texture_slots": []}
+  ,  {"name": "31", "texture_slots": []}
+  ,  {"name": "32", "baseColor": [1.0, 1.0, 1.0, 1.0], "spc": 1.0, "rough": 0.5090909004211426, "ior": 1.4500000476837158, "trans_rough": 0.029999999329447746, "texture_slots": []}
+  ,  {"name": "33", "baseColor": [1.0, 1.0, 1.0, 1.0], "spc": 1.0, "rough": 1.0, "ior": 1.4500000476837158, "trans_rough": 0.0, "texture_slots": []}
 ]
 ,"meshes":[
   {
@@ -1559,7 +1559,7 @@
     ]
   }
 ]
-,"lamps":[
+,"lights":[
     {"name": "サン", "type": "SUN", "color": [0.41997987031936646, 0.41997987031936646, 0.41997987031936646]}  ]
 ,"armatures":[
 ]
@@ -1577,6 +1577,7 @@
     ,"type":"CAMERA"
     ,"data":"Camera"
     ,"bound_box":[ 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -1590,6 +1591,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.005"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -1603,6 +1605,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.002"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -1616,6 +1619,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.004"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -1629,6 +1633,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.003"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -1642,6 +1647,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.001"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -1655,6 +1661,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.007"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -1668,6 +1675,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.000"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -1681,6 +1689,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.006"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -1694,6 +1703,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.008"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -1707,6 +1717,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.010"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -1720,6 +1731,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.014"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -1733,6 +1745,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.013"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -1746,6 +1759,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.015"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -1759,6 +1773,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.012"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -1772,6 +1787,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.011"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -1785,6 +1801,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.009"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -1798,6 +1815,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.032"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -1811,6 +1829,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.033"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -1824,6 +1843,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.034"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -1837,6 +1857,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.035"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -1850,6 +1871,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.036"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -1863,6 +1885,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.037"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -1876,6 +1899,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.038"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -1889,6 +1913,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.039"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -1902,6 +1927,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.040"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -1915,6 +1941,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.041"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -1928,6 +1955,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.042"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -1941,6 +1969,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.043"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -1954,6 +1983,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.016"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -1967,6 +1997,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.017"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -1980,6 +2011,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.018"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -1993,6 +2025,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.019"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -2006,6 +2039,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.020"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -2019,6 +2053,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.021"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -2032,6 +2067,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.022"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -2045,6 +2081,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.023"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -2058,6 +2095,7 @@
     ,"type":"MESH"
     ,"data":"ICO球.024"
     ,"bound_box":[-0.894425,-0.850640,-1.000000, 0.894425, 0.850640, 1.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }
@@ -2068,9 +2106,10 @@
     ,"rotation":[-0.868091,-0.054738,-2.447203]
     ,"scale":[ 1.000000, 1.000000, 1.000000]
     ,"matrix":[-0.767294,-0.638958, 0.054711, 0.381485,-0.523350,-0.761954, 0.515490,-0.563771, 0.645316, 6.308669,-6.832520, 6.220943]
-    ,"type":"LAMP"
+    ,"type":"LIGHT"
     ,"data":"サン"
     ,"bound_box":[ 0.000000, 0.000000, 0.000000, 0.000000, 0.000000, 0.000000]
+    ,"bound_type":"BOX"
     ,"modifiers":[
     ]
   }

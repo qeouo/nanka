@@ -2,7 +2,7 @@ bl_info = {
     "name": "Export Ono3dObject (.o3o)",
     "author": "ono",
     "version": (0,0,1),
-    "blender": (2, 7, 0),
+    "blender": (2, 80, 0),
     "location": "File > Export > Ono3dObject (.o3o)",
     "description": "Export Ono3dObject (.o3o)",
     "warning": "",
@@ -86,12 +86,12 @@ def ExportOno3dObject():
         WriteMesh(mesh)
     fileoutLd()
 
-    fileout(',"lamps":')
+    fileout(',"lights":')
     fileoutLu()
-    for lamp in bpy.data.lamps:
+    for light in bpy.data.lights:
         fileout('')
-        if(lamp!= bpy.data.lamps[0]):fileout2(',')
-        WriteLamp(lamp)
+        if(light!= bpy.data.lights[0]):fileout2(',')
+        WriteLight(light)
     fileout('')
     fileoutLd()
 
@@ -161,12 +161,12 @@ def ExportOno3dObject():
         
         fileout(',"scale":[{:9f},{:9f},{:9f}]\n'.format(obj.scale[0],obj.scale[1],obj.scale[2]))
         if(obj.matrix_basis):
-            fileout(',"matrix":{}\n'.format(stringMatrix(obj.matrix_basis)))
+            fileout(',"matrix":{}\n'.format(stringMatrix43(obj.matrix_basis)))
         if(obj.parent):
             fileout(',"parent":"{}"\n'.format(obj.parent.name))
             if(obj.parent_bone):
                 fileout(',"parent_bone":"{}"\n'.format(obj.parent_bone))
-            fileout(',"iparentmatrix":{}\n'.format(stringMatrix(obj.matrix_parent_inverse)))
+            fileout(',"iparentmatrix":{}\n'.format(stringMatrix43(obj.matrix_parent_inverse)))
         fileout(',"type":"{}"\n'.format(obj.type))
         if(obj.data):
             fileout(',"data":"{}"\n'.format(obj.data.name))
@@ -183,7 +183,7 @@ def ExportOno3dObject():
             fileout(',"restitution":{:9f}\n'.format(obj.rigid_body.restitution))
             collision_groups=0
             for num in range(20):
-                collision_groups|= (obj.rigid_body.collision_groups[num] << num)
+                collision_groups|= (obj.rigid_body.collision_collections[num] << num)
             fileout(',"collision_groups":{}\n'.format(collision_groups))
             fileoutMd()
         if(obj.rigid_body_constraint):
@@ -220,7 +220,7 @@ def ExportOno3dObject():
             fileoutMd()
         b = obj.bound_box
         fileout(',"bound_box":[{:9f},{:9f},{:9f},{:9f},{:9f},{:9f}]\n'.format(b[0][0],b[0][1],b[0][2],b[6][0],b[6][1],b[6][2]))
-        fileout(',"bound_type":"{}"\n'.format(obj.draw_bounds_type))
+        fileout(',"bound_type":"{}"\n'.format(obj.display_bounds_type))
         fileout(',"modifiers":')
         fileoutLu()
         for modifier in obj.modifiers:
@@ -238,11 +238,10 @@ def ExportOno3dObject():
             elif(modifier.type=="CLOTH" ):
                 fileout2(',"pin":"{}"'.format(modifier.settings.vertex_group_mass))
                 fileout2(',"mass":{}'.format(modifier.settings.mass))
-                fileout2(',"structual_stiffness":{}'.format(modifier.settings.structural_stiffness))
+                fileout2(',"structual_stiffness":{}'.format(modifier.settings.tension_stiffness))
                 fileout2(',"bending_stiffness":{}'.format(modifier.settings.bending_stiffness))
-                fileout2(',"spring_damping":{}'.format(modifier.settings.spring_damping))
+                fileout2(',"spring_damping":{}'.format(modifier.settings.tension_damping))
                 fileout2(',"air_damping":{}'.format(modifier.settings.air_damping))
-                fileout2(',"vel_damping":{}'.format(modifier.settings.vel_damping))
             elif(modifier.type=="SOFT_BODY" ):
                 fileout2(',"friction":{:9f}'.format(modifier.settings.friction))
                 fileout2(',"mass":{:9f}'.format(modifier.settings.mass))
@@ -258,9 +257,9 @@ def ExportOno3dObject():
                 fileout2(',"damping":{:9f}'.format(modifier.settings.damping))
                 fileout2(',"bend":{:9f}'.format(modifier.settings.bend))
             elif(modifier.type=="MIRROR" ):
-                fileout2(',"use_x":{}'.format(int(modifier.use_x)));
-                fileout2(',"use_y":{}'.format(int(modifier.use_y)));
-                fileout2(',"use_z":{}'.format(int( modifier.use_z)));
+                fileout2(',"use_x":{}'.format(int(modifier.use_axis[0])))
+                fileout2(',"use_y":{}'.format(int(modifier.use_axis[1])))
+                fileout2(',"use_z":{}'.format(int(modifier.use_axis[2])))
             fileout2('}\n')
         fileoutLd()
         fileoutMd()
@@ -278,16 +277,13 @@ def ExportOno3dObject():
     config.File.close()
     print("Finished")
 
-def writeMatrix(matrix):
-    fileout2('"matrix":{}\n'.format(stringMatrix(matrix)))
-
-def stringMatrix2(matrix):
+def stringMatrix44(matrix):
     return '[{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f}]'.format(
          matrix[0][0], matrix[1][0], matrix[2][0], matrix[3][0]
         ,matrix[0][1], matrix[1][1], matrix[2][1], matrix[3][1]
         ,matrix[0][2], matrix[1][2], matrix[2][2], matrix[3][2]
         ,matrix[0][3], matrix[1][3], matrix[2][3], matrix[3][3])
-def stringMatrix(matrix):
+def stringMatrix43(matrix):
     return '[{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f}]'.format(
          matrix[0][0], matrix[1][0], matrix[2][0]
         ,matrix[0][1], matrix[1][1], matrix[2][1]
@@ -305,46 +301,42 @@ def WriteTexture(Texture=None):
         fileout2(',"path":"{}"'.format(Texture.image.filepath))
     fileout2('}\n')
 
+def fValue( obj ):
+    if(type(obj) in (str,int,float)): return obj
+    else: return [p for p in obj]
+    
 def WriteMaterial( Material=None):
     if Material is None :return
     dict = collections.OrderedDict()
     
     dict["name"] = Material.name
-    lst = list(Material.diffuse_color)
-    dict["r"] = lst[0]
-    dict["g"] = lst[1]
-    dict["b"] = lst[2]
-    dict["a"] = Material.alpha
-    dict["dif"] = Material.diffuse_intensity
-    dict["emt"] = Material.emit
-    dict["use_transparency"] = Material.use_transparency
-    for key in Material.keys():
-        if(key != "_RNA_UI"):
-            dict[key] = Material.get(key)
 
-    if(Material.raytrace_transparency):
-        dict["ior"] = Material.raytrace_transparency.ior
-        dict["filter"] = Material.raytrace_transparency.filter
-        dict["trans_rough"] = (1.0-Material.raytrace_transparency.gloss_factor)
-        dict["fresnel"] = (1.0-Material.raytrace_transparency.fresnel)
-    if(Material.raytrace_mirror):
-        dict["use_mirror"] = Material.raytrace_mirror.use
-        lst = list(Material.mirror_color)
-        dict["reflect"] = Material.raytrace_mirror.reflect_factor
-        dict["rough"] = (1.0-Material.raytrace_mirror.gloss_factor)
+    if(Material.use_nodes):
+        if("Principled BSDF" in Material.node_tree.nodes):
+            inputs= Material.node_tree.nodes["Principled BSDF"].inputs
+
+            dict["baseColor"] = fValue(inputs[0].default_value)
+            dict["spc"] = inputs[4].default_value
+            dict["rough"] = inputs[7].default_value
+            dict["ior"] = inputs[14].default_value
+            dict["trans_rough"] = inputs[13].default_value
+
+    for key in Material.keys():
+        if(key == "_RNA_UI" or key == "cycles"):continue
+        dict[key] = fValue(Material.get(key))
     
     dict["texture_slots"] = []
-    for texture_slot in Material.texture_slots:
-        if(texture_slot is None):continue
-        texture = {}
-        dict["texture_slots"].append(texture)
-        texture["texture"] = texture_slot.texture.name
-        if(texture_slot.use_map_normal):
-            texture["normal"] = texture_slot.normal_factor
-        if(texture_slot.use_map_specular):
-            texture["pbr"] = texture_slot.specular_factor
-        if(texture_slot.uv_layer):
-            texture["uv_layer"] = texture_slot.uv_layer
+#    for texture_slot in Material.texture_slots:
+#        if(texture_slot is None):continue
+#        texture = {}
+#        dict["texture_slots"].append(texture)
+#        texture["texture"] = texture_slot.texture.name
+#        if(texture_slot.use_map_normal):
+#            texture["normal"] = texture_slot.normal_factor
+#        if(texture_slot.use_map_specular):
+#            texture["pbr"] = texture_slot.specular_factor
+#        if(texture_slot.uv_layer):
+#            texture["uv_layer"] = texture_slot.uv_layer
     if(Material.animation_data):
         if(Material.animation_data.action):
             texture["action"] = Material.animation_data.action.name
@@ -371,8 +363,7 @@ def WriteArmatureBones(Armature):
         DataBone = Bones[Bone.name]
         BoneMatrix = DataBone.matrix_local
 
-        fileout2(',"matrix":{}\n'.format(stringMatrix(DataBone.matrix_local)))
-# fileout(',"matrix":[{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f}]\n'.format( BoneMatrix[0][0], BoneMatrix[1][0], BoneMatrix[2][0], BoneMatrix[3][0],BoneMatrix[0][1], BoneMatrix[1][1], BoneMatrix[2][1], BoneMatrix[3][1],BoneMatrix[0][2], BoneMatrix[1][2], BoneMatrix[2][2], BoneMatrix[3][2],BoneMatrix[0][3], BoneMatrix[1][3], BoneMatrix[2][3], BoneMatrix[3][3]))
+        fileout2(',"matrix":{}\n'.format(stringMatrix43(DataBone.matrix_local)))
 
         fileout(',"length":{:9f} \n'.format( Bone.length))
 
@@ -380,11 +371,11 @@ def WriteArmatureBones(Armature):
     fileoutLd()
     fileoutMd()
 
-def WriteLamp(lamp):
+def WriteLight(light):
     dict = collections.OrderedDict()
-    dict["name"] = lamp.name
-    dict["type"] = lamp.type
-    dict["color"] = lamp.color[:]
+    dict["name"] = light.name
+    dict["type"] = light.type
+    dict["color"] = light.color[:]
 
     fileout(json.dumps(dict,ensure_ascii=False))
 	
@@ -655,14 +646,20 @@ def menu_func(self, context):
     default_path = os.path.splitext(bpy.data.filepath)[0] + ".o3o"
     self.layout.operator(Ono3dObjectExporter.bl_idname, text="Ono3dObject (.o3o)").filepath = default_path
 
+
+classes = (
+	Ono3dObjectExporter,
+)
 def register():
-    bpy.utils.register_module(__name__)
-    bpy.types.INFO_MT_file_export.append(menu_func)
+    for cls in classes:
+        bpy.utils.register_class(cls)
+    bpy.types.TOPBAR_MT_file_export.append(menu_func)
 
 
 def unregister():
-    bpy.utils.unregister_module(__name__)
-    bpy.types.INFO_MT_file_export.remove(menu_func)
+    bpy.types.TOPBAR_MT_file_export.remove(menu_func)
+    for cls in classes:
+        bpy.utils.unregister_class(cls)
 
 
 if __name__ == "__main__":

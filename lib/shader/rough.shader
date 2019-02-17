@@ -32,8 +32,8 @@ highp vec3 randvec(vec3 vecN,vec3 vecS,vec3 vecT,float rand){
 }
 const int MAX = 32;
 const highp float _PI =1.0/3.14159265359;
-uniform vec2 uOffset;
-uniform vec2 uSize;
+uniform vec2 uUvOffset;
+uniform vec2 uUvScale;
 void main(void){
 	vec3 svec,tvec;
 	vec3 vAngle2;
@@ -66,11 +66,11 @@ void main(void){
 		vAngle2 = randvec(va,svec,tvec,uRough);
 		col = decode(texture2D(uSampler
 			,vec2(atan2(vAngle2.x,-vAngle2.z)*_PI*0.5 + 0.5
-			,-atan2(vAngle2.y,length(vAngle2.xz))*_PI + 0.5)*uSize + uOffset));
+			,-atan2(vAngle2.y,length(vAngle2.xz))*_PI + 0.5)*uUvScale + uUvOffset));
 		color = color + col.rgb;
 	}
 	color = color / (float(MAX));
-	col2 = decode(texture2D(uDst,vec2(-vUv.x*0.5,(vUv.y+1.0)*0.5)));
+	col2 = decode(texture2D(uDst,vec2(1.0-vUv.x,vUv.y)*0.5+0.5));
 	color = mix(col2.rgb,color,uPow);
 	gl_FragColor = encode(vec4(color,1.0));
 }

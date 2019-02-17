@@ -7,7 +7,6 @@ var Testact=(function(){
 	var objs=[];
 	var skyTexture=null;
 	var bufTexture;
-	var envBuf;
 	var customTextures=[];
 	var customBumps=[];
 	var bdf;
@@ -975,7 +974,7 @@ var Testact=(function(){
 			ono3d.setViewport(0,0,WIDTH,HEIGHT);
 			ono3d.bloom(bufTexture,globalParam.exposure_bloom);
 		}
-		//Ono3d.drawCopy(envTexture,0,0,1.0,1.0);
+		//Ono3d.drawCopy(ono3d.environments[0].envTexture,0,0,1.0,1.0);
 
 		Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 
@@ -1163,8 +1162,6 @@ var Testact=(function(){
 	Rastgl.ono3d = ono3d;
 
 	
-	envBuf=Ono3d.createTexture(1024,512);
-	gl.bindTexture(gl.TEXTURE_2D, envBuf.glTexture);
 
 	bufTexture=Ono3d.createTexture(1024,1024);
 	gl.bindTexture(gl.TEXTURE_2D, bufTexture.glTexture);
