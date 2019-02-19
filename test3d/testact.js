@@ -893,17 +893,14 @@ var Testact=(function(){
 		if(globalParam.cMaterial){
 			var cMat = customMaterial;
 			var a=new Vec3();
-			Util.hex2rgb(a,globalParam.cColor);
-			cMat.r=a[0];
-			cMat.g=a[1];
-			cMat.b=a[2];
+			Util.hex2rgb(cMat.baseColor,globalParam.cColor);
 			cMat.opacity=globalParam.cAlpha;
 			cMat.emt=globalParam.cEmi;
-			cMat.spc=globalParam.cReflection;
+			cMat.metalness=globalParam.cReflection;
 			cMat.ior=globalParam.cRefraction;
-			cMat.rough=globalParam.cRoughness;
-			cMat.transRough=globalParam.cTransRoughness;
-			Util.hex2rgb(cMat.reflectionColor,globalParam.cReflectionColor);
+			cMat.roughness=globalParam.cRoughness;
+			cMat.subRoughness=globalParam.cTransRoughness;
+			Util.hex2rgb(cMat.metalColor,globalParam.cReflectionColor);
 			cMat.texture=globalParam.cTexture;
 			cMat.texture_slots=[];
 			if(globalParam.cTexture>=0){
