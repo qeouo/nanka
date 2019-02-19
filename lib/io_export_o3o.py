@@ -312,14 +312,25 @@ def WriteMaterial( Material=None):
     dict["name"] = Material.name
 
     if(Material.use_nodes):
-        if("Principled BSDF" in Material.node_tree.nodes):
-            inputs= Material.node_tree.nodes["Principled BSDF"].inputs
+        nodes = Material.node_tree.nodes
+        targets=[node for node in nodes if node.bl_idname == "ShaderNodeBsdfPrincipled"]
+        if(len(targets)>0):
+            node = targets[0]
+            print(node.bl_idname)
+            inputs= node.inputs
 
             dict["baseColor"] = fValue(inputs[0].default_value)
             dict["spc"] = inputs[4].default_value
             dict["rough"] = inputs[7].default_value
+            if inputs[7].is_linked:
+                from_node = inputs[7].links[0].from_node
+                dict["rough"] = fValue(from_node.inputs[0].default_value)
             dict["ior"] = inputs[14].default_value
             dict["trans_rough"] = inputs[13].default_value
+
+
+        for node in Material.node_tree.nodes:
+            print(node)
 
     for key in Material.keys():
         if(key == "_RNA_UI" or key == "cycles"):continue
