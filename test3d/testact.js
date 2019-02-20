@@ -722,16 +722,18 @@ var Testact=(function(){
 		globalParam.shadow=1;
 		globalParam.model="./f1.o3o";
 		globalParam.materialMode = false;
-		globalParam.cColor= "ffffff";
-		globalParam.cReflection= 0;
-		globalParam.cReflectionColor= "ffffff";
-		globalParam.cRoughness= 0;
-		globalParam.cTransRoughness= 0;
+	//カスタムマテリアル
+		globalParam.baseColor= "ffffff";
+		globalParam.metallic= 0;
+		globalParam.metalColor= "ffffff";
+		globalParam.roughness= 0;
+		globalParam.subRoughness= 0;
 		globalParam.frenel = 0;
-		globalParam.cAlpha= 1.0;
-		globalParam.cRefraction = 1.1;
+		globalParam.opacity= 1.0;
+		globalParam.ior= 1.1;
 		globalParam.cNormal= 1.0;
-		globalParam.cEmi= 0.0;
+		globalParam.emi= 0.0;
+
 		globalParam.shader= 0;
 
 	//カメラ露光
@@ -893,14 +895,14 @@ var Testact=(function(){
 		if(globalParam.cMaterial){
 			var cMat = customMaterial;
 			var a=new Vec3();
-			Util.hex2rgb(cMat.baseColor,globalParam.cColor);
-			cMat.opacity=globalParam.cAlpha;
-			cMat.emt=globalParam.cEmi;
-			cMat.metalness=globalParam.cReflection;
-			cMat.ior=globalParam.cRefraction;
-			cMat.roughness=globalParam.cRoughness;
-			cMat.subRoughness=globalParam.cTransRoughness;
-			Util.hex2rgb(cMat.metalColor,globalParam.cReflectionColor);
+			Util.hex2rgb(cMat.baseColor,globalParam.baseColor);
+			cMat.opacity=globalParam.opacity;
+			cMat.emt=globalParam.emi;
+			cMat.metallic=globalParam.metallic;
+			cMat.ior=globalParam.ior;
+			cMat.roughness=globalParam.roughness;
+			cMat.subRoughness=globalParam.subRoughness;
+			Util.hex2rgb(cMat.metalColor,globalParam.metalColor);
 			cMat.texture=globalParam.cTexture;
 			cMat.texture_slots=[];
 			if(globalParam.cTexture>=0){
