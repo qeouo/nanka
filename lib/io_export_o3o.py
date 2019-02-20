@@ -61,13 +61,13 @@ def ExportOno3dObject():
     config.Whitespace=0
     fileout2('{"format":"Ono3dObject Version 0.2"\n')
 
-    fileout(',"textures":')
-    fileoutLu()
-    for a in bpy.data.textures:
-        fileout('')
-        if(a != bpy.data.textures[0]):fileout2(',')
-        WriteTexture(a)
-    fileoutLd()
+#    fileout(',"textures":')
+#    fileoutLu()
+#    for a in bpy.data.textures:
+#        fileout('')
+#        if(a != bpy.data.textures[0]):fileout2(',')
+#        WriteTexture(a)
+#    fileoutLd()
 
     fileout(',"materials":');
     fileoutLu()
@@ -316,21 +316,27 @@ def WriteMaterial( Material=None):
         targets=[node for node in nodes if node.bl_idname == "ShaderNodeBsdfPrincipled"]
         if(len(targets)>0):
             node = targets[0]
-            print(node.bl_idname)
             inputs= node.inputs
 
-            dict["baseColor"] = fValue(inputs[0].default_value)
-            dict["spc"] = inputs[4].default_value
-            dict["rough"] = inputs[7].default_value
-            if inputs[7].is_linked:
-                from_node = inputs[7].links[0].from_node
-                dict["rough"] = fValue(from_node.inputs[0].default_value)
+            dict["baseColor"] = inputs[0].default_value[0:3]
+            dict["opacity"] = inputs[0].default_value[3]
+            dict["metallic"] = inputs[4].default_value
+            dict["roughness"] = inputs[7].default_value
             dict["ior"] = inputs[14].default_value
-            dict["trans_rough"] = inputs[13].default_value
+            dict["subRoughness"] = inputs[13].default_value
+
+        if('pbrColor' in nodes):
+            inputs = nodes['pbrColor'].inputs
+
+            dict["metallic"] = inputs[1].default_value[0]
+            dict["roughness"] = inputs[1].default_value[1]
+            dict["ior"] = inputs[1].default_value[2]
+
+        if('pbrTexture' in nodes):
+            node = nodes['pbrTexture']
+            dict["pbrTexture"] = node.image.filepath
 
 
-        for node in Material.node_tree.nodes:
-            print(node)
 
     for key in Material.keys():
         if(key == "_RNA_UI" or key == "cycles"):continue
