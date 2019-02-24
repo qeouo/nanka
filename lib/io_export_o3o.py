@@ -323,18 +323,31 @@ def WriteMaterial( Material=None):
             dict["metallic"] = inputs[4].default_value
             dict["roughness"] = inputs[7].default_value
             dict["ior"] = inputs[14].default_value
-            dict["subRoughness"] = inputs[13].default_value
+            dict["opacity"] = 1.0 -inputs[15].default_value
+            dict["subRoughness"] = inputs[16].default_value
 
         if('pbrColor' in nodes):
             inputs = nodes['pbrColor'].inputs
 
             dict["metallic"] = inputs[1].default_value[0]
             dict["roughness"] = inputs[1].default_value[1]
-            dict["ior"] = inputs[1].default_value[2]
+            dict["opacity"] = 1.0-inputs[1].default_value[2]
+
+        if('subRoughness' in nodes):
+            inputs = nodes['subRoughness'].inputs
+            dict["subRoughness"] = 1.0-inputs[1].default_value
 
         if('pbrTexture' in nodes):
             node = nodes['pbrTexture']
             dict["pbrTexture"] = node.image.filepath
+
+        if('hightTexture' in nodes):
+            node = nodes['hightTexture']
+            dict["hightTexture"] = node.image.filepath
+
+        if('Bump' in nodes):
+            inputs = nodes['Bump'].inputs
+            dict["hightmapPower"] = inputs[0].default_value
 
 
 
@@ -342,18 +355,6 @@ def WriteMaterial( Material=None):
         if(key == "_RNA_UI" or key == "cycles"):continue
         dict[key] = fValue(Material.get(key))
     
-    dict["texture_slots"] = []
-#    for texture_slot in Material.texture_slots:
-#        if(texture_slot is None):continue
-#        texture = {}
-#        dict["texture_slots"].append(texture)
-#        texture["texture"] = texture_slot.texture.name
-#        if(texture_slot.use_map_normal):
-#            texture["normal"] = texture_slot.normal_factor
-#        if(texture_slot.use_map_specular):
-#            texture["pbr"] = texture_slot.specular_factor
-#        if(texture_slot.uv_layer):
-#            texture["uv_layer"] = texture_slot.uv_layer
     if(Material.animation_data):
         if(Material.animation_data.action):
             texture["action"] = Material.animation_data.action.name
