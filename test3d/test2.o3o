@@ -1,7 +1,7 @@
 {"format":"Ono3dObject Version 0.2"
 ,"materials":[
     {"name": "マテリアル.002", "texture_slots": []}
-  ,  {"name": "マテリアル.005", "baseColor": [0.800000011920929, 0.800000011920929, 0.800000011920929], "opacity": 0.0, "metallic": 0.0, "roughness": 0.518380343914032, "ior": 1.0000476837158, "subRoughness": 0.0, "pbrMap": "//webgl.png", "hightMap": "//webgl_b.png", "hightMapPower": 1.0} ]
+  ,  {"name": "マテリアル.005", "baseColor": [0.800000011920929, 0.800000011920929, 0.800000011920929], "opacity": 0.0, "metallic": 0.0, "roughness": 0.518380343914032, "ior": 1.2, "subRoughness": 0.5, "pbrMap": "//webgl.png", "hightMap": "//webgl_b.png", "hightMapPower": 1.0} ]
  ,"meshes":[
   {
     "name":"球"
