@@ -331,11 +331,11 @@ def WriteMaterial( Material=None):
 
             dict["metallic"] = inputs[1].default_value[0]
             dict["roughness"] = inputs[1].default_value[1]
-            dict["opacity"] = 1.0-inputs[1].default_value[2]
+            dict["subRoughness"] = inputs[1].default_value[2]
 
-        if('subRoughness' in nodes):
-            inputs = nodes['subRoughness'].inputs
-            dict["subRoughness"] = 1.0-inputs[1].default_value
+        if('ior' in nodes):
+            inputs = nodes['ior'].inputs
+            dict["ior"] = inputs[0].default_value
 
         if('pbrTexture' in nodes):
             node = nodes['pbrTexture']
