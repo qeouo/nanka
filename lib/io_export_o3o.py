@@ -337,13 +337,17 @@ def WriteMaterial( Material=None):
             inputs = nodes['ior'].inputs
             dict["ior"] = inputs[0].default_value
 
+        if('baseColorTexture' in nodes):
+            node = nodes['baseColorTexture']
+            dict["baseColorMap"] = node.image.filepath
+
         if('pbrTexture' in nodes):
             node = nodes['pbrTexture']
-            dict["pbrTexture"] = node.image.filepath
+            dict["pbrMap"] = node.image.filepath
 
         if('hightTexture' in nodes):
             node = nodes['hightTexture']
-            dict["hightTexture"] = node.image.filepath
+            dict["hightMap"] = node.image.filepath
 
         if('Bump' in nodes):
             inputs = nodes['Bump'].inputs
