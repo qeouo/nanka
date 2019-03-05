@@ -351,7 +351,7 @@ def WriteMaterial( Material=None):
 
         if('Bump' in nodes):
             inputs = nodes['Bump'].inputs
-            dict["hightmapPower"] = inputs[0].default_value
+            dict["hightMapPower"] = inputs[0].default_value
 
 
 

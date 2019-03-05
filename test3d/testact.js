@@ -445,7 +445,7 @@ var Testact=(function(){
 			this.p[0]=Math.sin(this.a[1])*this.p[2];
 			this.p[2]=Math.cos(this.a[1])*this.p[2];
 
-			cameralen=10;
+			cameralen=5;
 			Vec3.mul(this.p,this.p,cameralen);
 			var mat33 = Mat33.poolAlloc();
 			Mat33.rotate(mat33,-Math.PI*0.5,1,0,0);
