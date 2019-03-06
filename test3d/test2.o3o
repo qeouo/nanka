@@ -1,7 +1,7 @@
 {"format":"Ono3dObject Version 0.2"
 ,"materials":[
-    {"name": "マテリアル.000", "baseColor": [0.800000011920929, 0.800000011920929, 0.800000011920929], "opacity": 1.0, "metallic": 0.0, "roughness": 0.518380343914032, "ior": 1.100000023841858, "subRoughness": 1.0, "pbrMap": "//webgl.png", "hightMap": "//webgl_b.png", "hightMapPower": 1.0}
-  ,  {"name": "マテリアル.005", "baseColor": [0.800000011920929, 0.800000011920929, 0.800000011920929], "opacity": 0.0, "metallic": 0.0, "roughness": 0.518380343914032, "ior": 1.100000023841858, "subRoughness": 0.5, "pbrMap": "//webgl.png", "hightMap": "//webgl_b.png", "hightMapPower": 1.0}
+    {"name": "マテリアル.000", "baseColor": [0.800000011920929, 0.800000011920929, 0.800000011920929], "opacity": 1.0, "metallic": 0.0, "roughness": 0.518380343914032, "ior": 1.100000023841858, "subRoughness": 1.0, "pbrMap": "//webgl.png", "hightMap": "//webgl_b.png", "hightMapPower": 1.0, "uv":"UVマップ"}
+  ,  {"name": "マテリアル.005", "baseColor": [0.800000011920929, 0.800000011920929, 0.800000011920929], "opacity": 0.0, "metallic": 0.0, "roughness": 0.518380343914032, "ior": 1.100000023841858, "subRoughness": 0.5, "pbrMap": "//webgl.png", "hightMap": "//webgl_b.png", "hightMapPower": 1.0, "uv":"UVMap"}
 ]
 ,"meshes":[
   {
