@@ -5,8 +5,10 @@ attribute vec3 aNormal;
 attribute vec3 aSvec; 
 attribute vec3 aTvec; 
 attribute vec2 aUv; 
+attribute vec2 aUv2; 
 attribute float aEnvRatio;  
 varying vec2 vUv; 
+varying vec2 vUv2; 
 varying vec3 vEye; 
 varying mat3 vView; 
 varying vec3 vLightPos; 
@@ -18,6 +20,7 @@ uniform vec3 anglePos;
 void main(void){ 
 	gl_Position = projectionMatrix * vec4(aPos,1.0); 
 	vUv = aUv; 
+	vUv2 = aUv2; 
 	vLightPos= (lightMat * vec4(aPos,1.0)).xyz; 
 	vEye = aPos - anglePos ; 
 	vView = mat3(normalize(aSvec - dot(aNormal,aSvec)*aNormal) 
@@ -29,6 +32,7 @@ void main(void){
 [fragmentshader]
 precision lowp float; 
 varying vec2 vUv; 
+varying vec2 vUv2; 
 varying vec3 vEye; 
 varying mat3 vView; 
 varying vec3 vLightPos; 
@@ -41,6 +45,7 @@ uniform sampler2D uShadowmap;
 uniform sampler2D uEnvMap;  
 uniform sampler2D uTransMap; 
 uniform float uEnvRatio; 
+uniform sampler2D uLightMap;  
 
 uniform sampler2D uPbrMap; 
 uniform vec4 uPbr; 
@@ -122,9 +127,11 @@ void main(void){
 		,(-atan(nrm.y,length(nrm.xz))*_PI*0.95 + 0.5)*0.5); 
 	refV = refV*refx + vec2(0.0,1.0-refx);
 
-	/*表面色*/ 
-	vec3 vColor2 = (diffuse * uLightColor + uAmbColor*textureRGBE(uEnvMap,vec2(256.0),refV).rgb) ;
-	vColor2 = (vColor2  + uEmi)* baseCol;
+	vec3 vColor2 = diffuse*uLightColor
+		//+ uAmbColor*textureRGBE(uEnvMap,vec2(256.0),refV).rgb
+		+ texture2D(uLightMap,vUv2).rgb
+		+ uEmi;
+	vColor2 = vColor2 * baseCol;
 
 	/*透過合成*/ 
 	vColor2 = mix(vColor2,transCol.rgb,1.0 - uOpacity); 

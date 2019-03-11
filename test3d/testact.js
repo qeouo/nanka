@@ -552,6 +552,9 @@ var Testact=(function(){
 				for(var i=0;i<ono3d.environments_index;i++){
 					//環境マップ
 					ono3d.environments[i].envTexture=envTexture;
+
+					//ライトマップ
+					ono3d.environments[i].lightMap =scene.lightMap;
 				}
 
 			});
@@ -973,7 +976,8 @@ var Testact=(function(){
 			ono3d.setViewport(0,0,WIDTH,HEIGHT);
 			ono3d.bloom(bufTexture,globalParam.exposure_bloom);
 		}
-		//Ono3d.drawCopy(ono3d.environments[0].envTexture,0,0,1.0,1.0);
+	//	Ono3d.drawCopy(ono3d.environments[0].lightMap,0,0,1.0,1.0);
+	//	Ono3d.drawCopy(field.scenes[0].lightMap,0,0,1.0,1.0);
 
 		Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 
@@ -1173,7 +1177,7 @@ var Testact=(function(){
 	inittime=Date.now();
 
 	span=document.getElementById("cons");
-		
+
 
 	return ret;
 })()
