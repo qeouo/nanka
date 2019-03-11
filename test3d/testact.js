@@ -430,7 +430,7 @@ var Testact=(function(){
 			if(object){
 				Vec3.copy(vec3,object.location);
 			}
-			var cameralen=2.2;
+			var cameralen=4;
 
 
 			if(Util.pressOn && !bane){
@@ -445,7 +445,7 @@ var Testact=(function(){
 			this.p[0]=Math.sin(this.a[1])*this.p[2];
 			this.p[2]=Math.cos(this.a[1])*this.p[2];
 
-			cameralen=5;
+			cameralen=8;
 			Vec3.mul(this.p,this.p,cameralen);
 			var mat33 = Mat33.poolAlloc();
 			Mat33.rotate(mat33,-Math.PI*0.5,1,0,0);

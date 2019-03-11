@@ -611,6 +611,7 @@ def WriteScene(scene):
         if(obj != scene.objects[0]):fileout2(',')
         fileout2('"{}"'.format(obj.name));
     fileout2(']\n')
+    fileout(',"lightMap":"{}"\n'.format("//lightmap.png"))
 #fileoutLd()
     fileoutMd()
 
