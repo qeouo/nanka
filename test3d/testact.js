@@ -419,43 +419,31 @@ var Testact=(function(){
 		inherits(ret,defObj);
 		ret.prototype.init=function(){
 			Vec3.set(this.p,0,0,20);
+			this.target = new Vec3();
+			Vec3.set(this.target,0,0,0);
+			this.cameralen=8;
+
 
 		}
 		ret.prototype.move=function(){
-			var vec3=Vec3.poolAlloc();
+			var vec3=this.target;
 
-			Vec3.set(vec3,0,0,0);
 
-			var object =  field.objects.find(function(a){return a.name=== this;},"モンキー");
-			if(object){
-				Vec3.copy(vec3,object.location);
-			}
-			var cameralen=4;
 
 
 			if(Util.pressOn && !bane){
-				this.a[1]+=(-(Util.cursorX-Util.oldcursorX)/WIDTH);
-				this.a[0]+=((Util.cursorY-Util.oldcursorY)/HEIGHT);
+				this.a[1]-=(-(Util.cursorX-Util.oldcursorX)/WIDTH);
+				this.a[0]-=((Util.cursorY-Util.oldcursorY)/HEIGHT);
 
 			}
 			this.a[0] =Math.min(this.a[0],Math.PI/2);
 			this.a[0] =Math.max(this.a[0],-Math.PI/2);
 			this.p[2]=Math.cos(this.a[0]);
-			this.p[1]=Math.sin(this.a[0]);
-			this.p[0]=Math.sin(this.a[1])*this.p[2];
-			this.p[2]=Math.cos(this.a[1])*this.p[2];
+			this.p[1]=-Math.sin(this.a[0]);
+			this.p[0]=-Math.sin(this.a[1])*this.p[2];
+			this.p[2]=-Math.cos(this.a[1])*this.p[2];
 
-			cameralen=8;
-			Vec3.mul(this.p,this.p,cameralen);
-			var mat33 = Mat33.poolAlloc();
-			Mat33.rotate(mat33,-Math.PI*0.5,1,0,0);
-			if(object){
-				Mat33.dotVec3(vec3,mat33,object.location);
-				Vec3.mul(this.p,this.p,cameralen);
-				Vec3.add(this.p,this.p,vec3);
-				//this.p[1]+=3;
-			}
-			Mat33.poolFree(1);
+			Vec3.mul(this.p,this.p,this.cameralen);
 
 
 			camera.p[0]+=(this.p[0]-camera.p[0])*0.3
@@ -465,7 +453,6 @@ var Testact=(function(){
 
 			homingCamera(camera.a,vec3,camera.p);
 
-			Vec3.poolFree(1);
 		}
 		ret.prototype.draw=function(){
 		}
@@ -538,9 +525,16 @@ var Testact=(function(){
 					goCamera.p[1]=co.mixedmatrix[10];
 					goCamera.p[2]=co.mixedmatrix[11];
 					Mat44.dotVec3(goCamera.p,ono3d.worldMatrix,goCamera.p);
-					goCamera.a[1]=Math.PI/4;
-					goCamera.a[0]=0;
-					goCamera.a[2]=0;
+					goCamera.a[0]=co.mixedmatrix[6];
+					goCamera.a[1]=co.mixedmatrix[7];
+					goCamera.a[2]=co.mixedmatrix[8];
+					Mat44.dotVec3(goCamera.a,ono3d.worldMatrix,goCamera.a);
+					goCamera.target[0] = goCamera.p[0] - goCamera.a[0]* goCamera.p[2]/goCamera.a[2];
+					goCamera.target[1] =  goCamera.p[1] - goCamera.a[1]* goCamera.p[2]/goCamera.a[2];
+					goCamera.target[2] = 0;
+
+					homingCamera(goCamera.a,goCamera.target,goCamera.p);
+					
 				}
 
 				Vec3.copy(camera.p,goCamera.p)
