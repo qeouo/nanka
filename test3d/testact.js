@@ -432,7 +432,7 @@ var Testact=(function(){
 
 
 			if(Util.pressOn && !bane){
-				this.a[1]-=(-(Util.cursorX-Util.oldcursorX)/WIDTH);
+				this.a[1]-=(Util.cursorX-Util.oldcursorX)/WIDTH;
 				this.a[0]-=((Util.cursorY-Util.oldcursorY)/HEIGHT);
 
 			}
@@ -798,11 +798,11 @@ var Testact=(function(){
 		}
 		physicsTime=Date.now()-physicsTime;
 
-		if(afID){
-			window.cancelAnimationFrame(afID);
-		}
-		afID = window.requestAnimationFrame(drawFunc);
-		//drawFunc();
+		//if(!afID){
+		////	window.cancelAnimationFrame(afID);
+		//	afID = window.requestAnimationFrame(drawFunc);
+		//}
+		drawFunc();
 
 		mseccount += (Date.now() - nowTime)
 		framecount++
@@ -969,11 +969,11 @@ var Testact=(function(){
 		if(globalParam.exposure_bloom ){
 			ono3d.setViewport(0,0,WIDTH,HEIGHT);
 			ono3d.bloom(bufTexture,globalParam.exposure_bloom);
+			Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 		}
 	//	Ono3d.drawCopy(ono3d.environments[0].lightMap,0,0,1.0,1.0);
 	//	Ono3d.drawCopy(field.scenes[0].lightMap,0,0,1.0,1.0);
 
-		Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 
 		ono3d.setViewport(0,0,WIDTH,HEIGHT);
 		gl.bindFramebuffer(gl.FRAMEBUFFER,null );
@@ -1028,7 +1028,7 @@ var Testact=(function(){
 
 		if(Util.getLoadingCount()>0){
 			//初期ロードが未完了の場合はメイン処理は開始しない
-			setTimeout(this.start,100);
+			setTimeout(this.start,1000);
 			return;
 		}
 
