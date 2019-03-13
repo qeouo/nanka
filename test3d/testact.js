@@ -541,7 +541,7 @@ var Testact=(function(){
 				Vec3.copy(camera.a,goCamera.a)
 
 
-				var envTexture = ono3d.createEnv(0,0,0,drawSub);
+				var envTexture = ono3d.createEnv(null,0,0,0,drawSub);
 
 				for(var i=0;i<ono3d.environments_index;i++){
 					//環境マップ
@@ -1025,12 +1025,6 @@ var Testact=(function(){
 		
 	}
 	ret.start = function(){
-
-		if(Util.getLoadingCount()>0){
-			//初期ロードが未完了の場合はメイン処理は開始しない
-			setTimeout(this.start,1000);
-			return;
-		}
 
 		var select = document.getElementById("cTexture");
 		var option;
