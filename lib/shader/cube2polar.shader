@@ -64,7 +64,7 @@ vec2 boxAngle2Uv(vec3 angle){
 			}
 		}
 	}
-	return vec2(u,v);
+	return vec2(u,1.0-v);
 }
 void main(void){
 	vec3 angle;
