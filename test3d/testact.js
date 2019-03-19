@@ -342,6 +342,9 @@ var Testact=(function(){
 					ono3d.lightThreshold2=globalParam.lightThreshold2;
 
 					ono3d.createCubeMap(lightProbeTexture,0,0,0,128,drawSub);
+					ono3d.setViewport(0,0,512,512);
+					Ono3d.postEffect(lightProbeTexture,0,0,1,1,ono3d.shaders["cube2lightfield"]); 
+					Ono3d.copyImage(lightProbeTexture,0,0,0,0,512,252566);
 				}
 			}
 			var mat44 = Mat44.poolAlloc();
@@ -1029,10 +1032,8 @@ var Testact=(function(){
 			ono3d.bloom(bufTexture,globalParam.exposure_bloom);
 			Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 		}
-		//Ono3d.drawCopy(ono3d.environments[0].envTexture,0,0,1.0,1.0);
+		Ono3d.drawCopy(ono3d.environments[0].envTexture,0,0,1.0,1.0);
 		//Ono3d.drawCopy(0,0,1,1,lightProbeTexture,0,0,1.0,1.0);
-		//ono3d.setViewport(0,0,512,512);
-		//Ono3d.postEffect(lightProbeTexture,0,0,1,1,ono3d.shaders["cube2lightfield"]); 
 		Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 
 
