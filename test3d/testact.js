@@ -64,23 +64,30 @@ var Testact=(function(){
 			if(!c){
 				c=defObj;
 			}
-			if(this.pool.length==0){
+			var obj = null;
+			if(this.pool.length>0){
+				obj = this.pool[this.pool.length-1];
+				if(obj.stat<0){
+					//クールタイムなのは無視
+					obj=null;
+				}
+			}
+			if(!obj){
+				//プールからとってこれない場合は何個か追加する
 				for(var i=0;i<16;i++){
 					this.pool.push(new Obj());
 				}
 			}
-			var obj = this.pool[this.pool.length-1];
-			if(obj.stat<0){
-				for(var i=0;i<16;i++){
-					this.pool.push(new Obj());
-				}
-			}
-			var obj = this.pool.pop();
+			//プールからオブジェクトを移動
+			obj = this.pool.pop();
 			this.objs.push(obj);
+
 			if(this.objs.length>1024){
+				//不本意
 				alert("objs>1024!");
 			}
 
+			//初期値セット
 			Mat43.setInit(obj.matrix);
 			obj.parent=null;
 			Vec3.set(obj.scale,1,1,1);
@@ -94,20 +101,23 @@ var Testact=(function(){
 			obj.phyObjs = [];
 			obj.func=c;
 
+			//IDセット
 			obj.id=this.id;
+			this.id++;
 
 			obj.__proto__=c.prototype;
 
 			obj.init();
 
-			this.id++;
 			return obj;
 			
 		}
 		ret.prototype.deleteObj=function(obj){
 			for(var i=0;i<this.objs.length;i++){
 				if(obj === this.objs[i]){
+					//クールタイムを取る
 					obj.stat=-10;
+					//プールに移動
 					this.pool.unshift(objs[i]);
 					objs.splice(i,1);
 					break;
@@ -188,7 +198,6 @@ var Testact=(function(){
 				var ss=1/512;
 				for(var i=0;i<3;i++){
 					for(var j=0;j<3;j++){
-					//	Rastgl.copyframe(bdfimage.glTexture,-ss*i,-ss*j,scl,scl);
 						Ono3d.drawCopy(bdfimage,-ss*i,-ss*j,scl,scl);
 					}
 				}
@@ -196,7 +205,6 @@ var Testact=(function(){
 				gl.enable(gl.BLEND);
 				gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
 
-				//Rastgl.copyframe(bdfimage.glTexture,-1*ss,-1*ss,scl,scl);
 				Ono3d.drawCopy(bdfimage,-1*ss,-1*ss,scl,scl);
 				Ono3d.copyImage(bdfimage,0,0,0,0,512,512);
 
@@ -337,14 +345,11 @@ var Testact=(function(){
 						ono3d.setTargetMatrix(1)
 						ono3d.pop();
 					}
-					lightProbeTexture = Ono3d.createTexture(512,256);
 					ono3d.lightThreshold1=globalParam.lightThreshold1;
 					ono3d.lightThreshold2=globalParam.lightThreshold2;
 
-					ono3d.createCubeMap(lightProbeTexture,0,0,0,128,drawSub);
-					ono3d.setViewport(0,0,512,512);
-					Ono3d.postEffect(lightProbeTexture,0,0,1,1,ono3d.shaders["cube2lightfield"]); 
-					Ono3d.copyImage(lightProbeTexture,0,0,0,0,512,252566);
+					lightProbeTexture = Ono3d.createTexture(128,64);
+					ono3d.createLightField(lightProbeTexture,0,0,0,drawSub);
 				}
 			}
 			var mat44 = Mat44.poolAlloc();
@@ -479,8 +484,6 @@ var Testact=(function(){
 	})();
 
 	var blit = function(tex,x,y,w,h,u,v,u2,v2){
-			//Rastgl.copyframe(tex.glTexture,x,y,w*2,h*2
-			//				,u/tex.width,(v+v2)/tex.height,u2/tex.width,-v2/tex.height);
 			Ono3d.drawCopy(x,y,w*2,h*2
 							,tex,u/tex.width,(v+v2)/tex.height,u2/tex.width,-v2/tex.height);
 	}
@@ -899,7 +902,7 @@ var Testact=(function(){
 		gl.depthMask(true);
 		ono3d.setViewport(x,y,w,h);
 		ono3d.getProjectionMatrix(ono3d.projectionMatrix);
-		gl.clearColor(0.0,0.0,0.0,0.0);
+//		gl.clearColor(0.0,0.0,0.0,0.0);
 //		gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
 		gl.clear(gl.DEPTH_BUFFER_BIT);
 		gl.depthMask(false);
@@ -1005,14 +1008,15 @@ var Testact=(function(){
 
 		drawgeometryTime=Date.now()-start;
 
-		start=Date.now();
 		
+		// ステレオ描画設定
 		globalParam.stereo=-globalParam.stereoVolume * globalParam.stereomode*0.4;
+
+		start=Date.now();
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.depthMask(true);
-		gl.clearColor(0.0,0.0,0.0,0.0);
-		gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
+		gl.clear(gl.DEPTH_BUFFER_BIT);
 		drawSub(0,0,WIDTH,HEIGHT);
 		
 
@@ -1028,25 +1032,27 @@ var Testact=(function(){
 		}
 
 		if(globalParam.exposure_bloom ){
+			// ブルーム処理
 			ono3d.setViewport(0,0,WIDTH,HEIGHT);
 			ono3d.bloom(bufTexture,globalParam.exposure_bloom);
 			Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 		}
-		Ono3d.drawCopy(ono3d.environments[0].envTexture,0,0,1.0,1.0);
-		//Ono3d.drawCopy(0,0,1,1,lightProbeTexture,0,0,1.0,1.0);
+		//Ono3d.drawCopy(ono3d.environments[0].envTexture,0,0,1.0,1.0);
+		Ono3d.drawCopy(0,0,1,1,lightProbeTexture,0,0,1.0,1.0);
+		//Ono3d.drawCopy(0,0,1,1,lightProbeTexture,0,0,6.0/lightProbeTexture.width,1.0/lightProbeTexture.height);
 		Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
-
 
 		ono3d.setViewport(0,0,WIDTH,HEIGHT);
 		gl.bindFramebuffer(gl.FRAMEBUFFER,null );
 
+		//トーンマッピング
 		ono3d.toneMapping(bufTexture,WIDTH/1024,HEIGHT/1024);
 		
 
-		gl.disable(gl.BLEND);
 		ono3d.clear();
 
 		for(i=0;i<objMan.objs.length;i++){
+			//HUD描画
 			obj = objMan.objs[i];
 			ono3d.setTargetMatrix(1)
 			ono3d.push();
