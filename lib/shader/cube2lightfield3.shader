@@ -17,7 +17,7 @@ const float r = 3.141592;
 void main(void){
 	vec2 unit = vec2(1.0/1024.0,1.0/512.0);
 	int i = int(floor(vUv.s * 6.0));
-	vec4 res;
+	highp vec4 res;
 	if(i==0) {
 		//front
 		res = 
@@ -132,6 +132,6 @@ void main(void){
 			+decode(texture2D(uSampler,vec2(2.0,2.0)*unit))
 			;
 	}
-	gl_FragColor = encode(res/(2.0*PI * 16.0*16.0) );
+	gl_FragColor = encode(res/(2.0*PI ) );
 }
 

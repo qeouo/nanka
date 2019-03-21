@@ -353,6 +353,9 @@ def WriteMaterial( Material=None):
             inputs = nodes['Bump'].inputs
             dict["hightMapPower"] = inputs[0].default_value
 
+        if('LightMap' in nodes):
+            node = nodes['LightMap']
+            dict["lightMap"] = node.image.filepath
 
 
     for key in Material.keys():
@@ -611,7 +614,6 @@ def WriteScene(scene):
         if(obj != scene.objects[0]):fileout2(',')
         fileout2('"{}"'.format(obj.name));
     fileout2(']\n')
-    fileout(',"lightMap":"{}"\n'.format("//lightmap.png"))
 #fileoutLd()
     fileoutMd()
 

@@ -334,17 +334,17 @@ var Testact=(function(){
 						camera.calcCollision(camera.cameracol2,lightSource.viewmatrix);
 					}
 					
-					for(i=0;i<objMan.objs.length;i++){
-						var obj = objMan.objs[i];
-						ono3d.setTargetMatrix(1)
-						ono3d.push();
-						ono3d.setTargetMatrix(0)
-						ono3d.loadIdentity()
-						ono3d.rf=0;
-						obj.draw();
-						ono3d.setTargetMatrix(1)
-						ono3d.pop();
-					}
+					//for(i=0;i<objMan.objs.length;i++){
+					//	var obj = objMan.objs[i];
+					//	ono3d.setTargetMatrix(1)
+					//	ono3d.push();
+					//	ono3d.setTargetMatrix(0)
+					//	ono3d.loadIdentity()
+					//	ono3d.rf=0;
+					//	obj.draw();
+					//	ono3d.setTargetMatrix(1)
+					//	ono3d.pop();
+					//}
 					ono3d.lightThreshold1=globalParam.lightThreshold1;
 					ono3d.lightThreshold2=globalParam.lightThreshold2;
 
@@ -1038,9 +1038,9 @@ var Testact=(function(){
 			Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 		}
 		//Ono3d.drawCopy(ono3d.environments[0].envTexture,0,0,1.0,1.0);
-		Ono3d.drawCopy(0,0,1,1,lightProbeTexture,0,0,1.0,1.0);
+		//Ono3d.drawCopy(0,0,1,1,lightProbeTexture,0,0,1.0,1.0);
 		//Ono3d.drawCopy(0,0,1,1,lightProbeTexture,0,0,6.0/lightProbeTexture.width,1.0/lightProbeTexture.height);
-		Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
+		//Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 
 		ono3d.setViewport(0,0,WIDTH,HEIGHT);
 		gl.bindFramebuffer(gl.FRAMEBUFFER,null );

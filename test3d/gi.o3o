@@ -4,7 +4,7 @@
   ,  {"name": "Material.001", "baseColor": [1.0, 1.0, 1.0], "opacity": 1.0, "metallic": 0.0, "roughness": 0.5, "ior": 1.4500000476837158, "subRoughness": 0.0}
   ,  {"name": "Material.002", "baseColor": [1.0, 1.0, 1.0], "opacity": 1.0, "metallic": 0.0, "roughness": 0.5, "ior": 1.4500000476837158, "subRoughness": 0.0}
   ,  {"name": "Material.003", "baseColor": [0.8000000715255737, 0.0, 0.005530359223484993], "opacity": 1.0, "metallic": 0.0, "roughness": 0.5, "ior": 1.4500000476837158, "subRoughness": 0.0}
-  ,  {"name": "Material.004", "baseColor": [1.0, 1.0, 1.0], "opacity": 1.0, "metallic": 0.0, "roughness": 0.5, "ior": 1.4500000476837158, "subRoughness": 0.0, "baseColorMap": "//Standard_red_pxr128.png"}
+  ,  {"name": "Material.004", "baseColor": [1.0, 1.0, 1.0], "opacity": 1.0, "metallic": 0.0, "roughness": 0.5, "ior": 1.4500000476837158, "subRoughness": 0.0, "baseColorMap": "//../public_html/nanka/test3d/Standard_red_pxr128.png"}
 ]
 ,"meshes":[
   {
@@ -2283,7 +2283,6 @@
     ,"frame_start":1
     ,"frame_end":250
     ,"objects":["Cube","Light","Camera","Cube.001","Cube.002","Cube.003","Suzanne"]
-    ,"lightMap":"//lightmap.png"
   }
 ]
 }

@@ -129,7 +129,7 @@ void main(void){
 
 	vec3 vColor2 = diffuse*uLightColor
 		//+ uAmbColor*textureRGBE(uEnvMap,vec2(256.0),refV).rgb
-		+ texture2D(uLightMap,vUv2).rgb
+		//+ texture2D(uLightMap,vUv2).rgb
 		+ uEmi;
 	vColor2 = vColor2 * baseCol;
 

@@ -15,11 +15,12 @@ uniform sampler2D uSampler;
 
 void main(void){
 	vec2 unit = vec2(1.0/1024.0,1.0/512.0);
+	vec2 uv = (gl_FragCoord.xy-1.0) * unit * 2.0; 
 	gl_FragColor = encode(
-		decode(texture2D(uSampler,vUv)) 
-		+ decode(texture2D(uSampler,vUv+vec2(1.0,0.0)*unit))
-		+ decode(texture2D(uSampler,vUv+vec2(0.0,1.0)*unit))
-		+ decode(texture2D(uSampler,vUv+unit))
+		decode(texture2D(uSampler,uv)) 
+		+ decode(texture2D(uSampler,uv+vec2(1.0,0.0)*unit))
+		+ decode(texture2D(uSampler,uv+vec2(0.0,1.0)*unit))
+		+ decode(texture2D(uSampler,uv+unit))
 	);
 }
 
