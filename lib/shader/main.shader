@@ -122,14 +122,20 @@ void main(void){
 	diffuse = (1.0-sign(lightz*0.5+0.5-0.01 -shadowmap.z))*0.5 * diffuse; 
 
 	/*拡散反射+環境光+自己発光*/ 
-	refx = pow(0.5,4.0); 
-	refV = vec2(atan(nrm.x,-nrm.z)*_PI*0.5 + 0.5
-		,(-atan(nrm.y,length(nrm.xz))*_PI*0.95 + 0.5)*0.5); 
-	refV = refV*refx + vec2(0.0,1.0-refx);
+	//refx = pow(0.5,4.0); 
+	//refV = vec2(atan(nrm.x,-nrm.z)*_PI*0.5 + 0.5
+	//	,(-atan(nrm.y,length(nrm.xz))*_PI*0.95 + 0.5)*0.5); 
+	//refV = refV*refx + vec2(0.0,1.0-refx);
 
+	vec2 unit = vec2(1.0/1024.0);
 	vec3 vColor2 = diffuse*uLightColor
 		//+ uAmbColor*textureRGBE(uEnvMap,vec2(256.0),refV).rgb
-		//+ texture2D(uLightMap,vUv2).rgb
+		+ max(nrm.z,0.0) * texture2D(uLightMap,vec2(0.0,0.0)*unit).rgb
+		+ max(-nrm.z,0.0) * texture2D(uLightMap,vec2(0.2,0.0)*unit).rgb
+		+ max(-nrm.x,0.0) * texture2D(uLightMap,vec2(0.1,0.0)*unit).rgb
+		+ max(nrm.x,0.0) * texture2D(uLightMap,vec2(0.3,0.0)*unit).rgb
+		+ max(-nrm.y,0.0) * texture2D(uLightMap,vec2(0.4,0.0)*unit).rgb
+		+ max(nrm.y,0.0) * texture2D(uLightMap,vec2(0.5,0.0)*unit).rgb
 		+ uEmi;
 	vColor2 = vColor2 * baseCol;
 

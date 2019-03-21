@@ -314,13 +314,6 @@ var Testact=(function(){
 					gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 					var envTexture = ono3d.createEnv(null,0,0,0,drawSub);
 
-					for(var i=0;i<ono3d.environments_index;i++){
-						//環境マップ
-						ono3d.environments[i].envTexture=envTexture;
-
-						//ライトマップ
-						ono3d.environments[i].lightMap =scene.lightMap;
-					}
 
 					if(globalParam.shadow){
 						lightSource = ono3d.environments[0].sun
@@ -334,22 +327,30 @@ var Testact=(function(){
 						camera.calcCollision(camera.cameracol2,lightSource.viewmatrix);
 					}
 					
-					//for(i=0;i<objMan.objs.length;i++){
-					//	var obj = objMan.objs[i];
-					//	ono3d.setTargetMatrix(1)
-					//	ono3d.push();
-					//	ono3d.setTargetMatrix(0)
-					//	ono3d.loadIdentity()
-					//	ono3d.rf=0;
-					//	obj.draw();
-					//	ono3d.setTargetMatrix(1)
-					//	ono3d.pop();
-					//}
+					for(i=0;i<objMan.objs.length;i++){
+						var obj = objMan.objs[i];
+						ono3d.setTargetMatrix(1)
+						ono3d.push();
+						ono3d.setTargetMatrix(0)
+						ono3d.loadIdentity()
+						ono3d.rf=0;
+						obj.draw();
+						ono3d.setTargetMatrix(1)
+						ono3d.pop();
+					}
 					ono3d.lightThreshold1=globalParam.lightThreshold1;
 					ono3d.lightThreshold2=globalParam.lightThreshold2;
 
-					lightProbeTexture = Ono3d.createTexture(128,64);
+					lightProbeTexture = Ono3d.createTexture(1024,1024);
 					ono3d.createLightField(lightProbeTexture,0,0,0,drawSub);
+
+					for(var i=0;i<ono3d.environments_index;i++){
+						var env = ono3d.environments[i];
+						//環境マップ
+						env.envTexture=envTexture;
+
+						env.lightProbe=lightProbeTexture;
+					}
 				}
 			}
 			var mat44 = Mat44.poolAlloc();
