@@ -1,7 +1,7 @@
 {"format":"Ono3dObject Version 0.2"
 ,"materials":[
     {"name": "Material", "baseColor": [0.0027756309136748314, 0.8000000715255737, 0.0], "opacity": 1.0, "metallic": 0.0, "roughness": 0.5, "ior": 1.4500000476837158, "subRoughness": 0.0, "lightMap": "//../public_html/nanka/test3d/lightmap.png"}
-  ,  {"name": "Material.002", "baseColor": [1.0, 1.0, 1.0], "opacity": 1.0, "metallic": 0.0, "roughness": 0.5, "ior": 1.4500000476837158, "subRoughness": 0.0, "lightMap": "//../public_html/nanka/test3d/lightmap.png"}
+  ,  {"name": "Material.002", "baseColor": [1.0, 0.0, 0.0], "opacity": 1.0, "metallic": 0.0, "roughness": 0.5, "ior": 1.4500000476837158, "subRoughness": 0.0, "lightMap": "//../public_html/nanka/test3d/lightmap.png"}
   ,  {"name": "Material.003", "baseColor": [0.8000000715255737, 0.0, 0.005530359223484993], "opacity": 1.0, "metallic": 0.0, "roughness": 0.5, "ior": 1.4500000476837158, "subRoughness": 0.0, "lightMap": "//../public_html/nanka/test3d/lightmap.png"}
 ]
 ,"meshes":[

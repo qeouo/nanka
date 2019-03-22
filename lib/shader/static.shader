@@ -120,6 +120,8 @@ void main(void){
 	float lightz = max(min(vLightPos.z,1.0),-1.); 
 	diffuse = (1.0-sign(lightz*0.5+0.5-0.01 -shadowmap.z))*0.5 * diffuse; 
 
+
+
 	/*拡散反射+環境光+自己発光*/ 
 	refx = pow(0.5,4.0); 
 	refV = vec2(atan(nrm.x,-nrm.z)*_PI*0.5 + 0.5

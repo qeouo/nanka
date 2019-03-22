@@ -341,6 +341,12 @@ var Testact=(function(){
 					ono3d.lightThreshold1=globalParam.lightThreshold1;
 					ono3d.lightThreshold2=globalParam.lightThreshold2;
 
+					for(var i=0;i<ono3d.environments_index;i++){
+						var env = ono3d.environments[i];
+						//環境マップ
+						env.envTexture=envTexture;
+					}
+
 					lightProbeTexture = Ono3d.createTexture(1024,1024);
 					for(var px=-5;px<5;px++){
 						for(var py=-5;py<5;py++){
@@ -349,11 +355,10 @@ var Testact=(function(){
 							}
 						}
 					}
+					//ono3d.createLightField(lightProbeTexture,0,0,0,drawSub);
 
 					for(var i=0;i<ono3d.environments_index;i++){
 						var env = ono3d.environments[i];
-						//環境マップ
-						env.envTexture=envTexture;
 
 						env.lightProbe=lightProbeTexture;
 					}
