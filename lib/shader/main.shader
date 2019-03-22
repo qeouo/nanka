@@ -10,6 +10,7 @@ attribute float aEnvRatio;
 varying vec2 vUv; 
 varying vec2 vUv2; 
 varying vec3 vEye; 
+varying vec3 vPos; 
 varying mat3 vView; 
 varying vec3 vLightPos; 
 varying float vEnvRatio;  
@@ -27,6 +28,7 @@ void main(void){
 		,normalize(aTvec - dot(aNormal,aTvec)*aNormal) 
 		,aNormal); 
 	vEnvRatio= 1.0- aEnvRatio + float(uEnvIndex)*(2.0*aEnvRatio - 1.0);
+	vPos = aPos; 
 } 
 
 [fragmentshader]
@@ -35,6 +37,7 @@ varying vec2 vUv;
 varying vec2 vUv2; 
 varying vec3 vEye; 
 varying mat3 vView; 
+varying vec3 vPos; 
 varying vec3 vLightPos; 
 varying float vEnvRatio;  
 
@@ -127,15 +130,17 @@ void main(void){
 	//	,(-atan(nrm.y,length(nrm.xz))*_PI*0.95 + 0.5)*0.5); 
 	//refV = refV*refx + vec2(0.0,1.0-refx);
 
+	refV.s = (floor(vPos.x + 5.0) + floor(vPos.y + 5.0)*10.0)*6.0;
+	refV.t = floor(vPos.z + 5.0);
 	vec2 unit = vec2(1.0/1024.0);
 	vec3 vColor2 = diffuse*uLightColor
 		//+ uAmbColor*textureRGBE(uEnvMap,vec2(256.0),refV).rgb
-		+ max(nrm.z,0.0) * texture2D(uLightMap,vec2(0.0,0.0)*unit).rgb
-		+ max(-nrm.z,0.0) * texture2D(uLightMap,vec2(0.2,0.0)*unit).rgb
-		+ max(-nrm.x,0.0) * texture2D(uLightMap,vec2(0.1,0.0)*unit).rgb
-		+ max(nrm.x,0.0) * texture2D(uLightMap,vec2(0.3,0.0)*unit).rgb
-		+ max(-nrm.y,0.0) * texture2D(uLightMap,vec2(0.4,0.0)*unit).rgb
-		+ max(nrm.y,0.0) * texture2D(uLightMap,vec2(0.5,0.0)*unit).rgb
+		+ max(nrm.z,0.0) * texture2D(uLightMap,(refV+vec2(0.0,0.0))*unit).rgb
+		+ max(-nrm.x,0.0) * texture2D(uLightMap,(refV+vec2(1.0,0.0))*unit).rgb
+		+ max(-nrm.z,0.0) * texture2D(uLightMap,(refV+vec2(2.0,0.0))*unit).rgb
+		+ max(nrm.x,0.0) * texture2D(uLightMap,(refV+vec2(3.0,0.0))*unit).rgb
+		+ max(-nrm.y,0.0) * texture2D(uLightMap,(refV+vec2(4.0,0.0))*unit).rgb
+		+ max(nrm.y,0.0) * texture2D(uLightMap,(refV+vec2(5.0,0.0))*unit).rgb
 		+ uEmi;
 	vColor2 = vColor2 * baseCol;
 

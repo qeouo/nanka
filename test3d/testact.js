@@ -342,7 +342,13 @@ var Testact=(function(){
 					ono3d.lightThreshold2=globalParam.lightThreshold2;
 
 					lightProbeTexture = Ono3d.createTexture(1024,1024);
-					ono3d.createLightField(lightProbeTexture,0,0,0,drawSub);
+					for(var px=-5;px<5;px++){
+						for(var py=-5;py<5;py++){
+							for(var pz=-5;pz<5;pz++){
+								ono3d.createLightField(lightProbeTexture,px,py,pz,drawSub);
+							}
+						}
+					}
 
 					for(var i=0;i<ono3d.environments_index;i++){
 						var env = ono3d.environments[i];
@@ -377,11 +383,12 @@ var Testact=(function(){
 
 				Mat44.getInv(mat44,ono3d.pvMatrix);
 				Vec4.set(vec4,cursorr[0],-cursorr[1],-1,1);
+				Vec4.mul(vec4,vec4,ono3d.znear);
 				Mat44.dotVec4(vec4,mat44,vec4);
 				Vec3.set(p0,vec4[0],vec4[1],vec4[2]);
 
 				Vec4.set(vec4,cursorr[0],-cursorr[1],1,1);
-				Vec4.mul(vec4,vec4,80);
+				Vec4.mul(vec4,vec4,ono3d.zfar);
 				Mat44.dotVec4(vec4,mat44,vec4);
 				Vec3.set(p1,vec4[0],vec4[1],vec4[2]);
 
@@ -460,7 +467,7 @@ var Testact=(function(){
 				}else{
 					Mat44.getInv(mat44,ono3d.pvMatrix);
 			
-					var w=(tsukamiZ*79+1);
+					var w=(tsukamiZ*(ono3d.zfar-ono3d.znear)+ono3d.znear);
 					var z =  -ono3d.projectionMatrix[10] + ono3d.projectionMatrix[14]/w;
 					Vec4.set(vec4,cursorr[0],-cursorr[1],z,1);
 					Vec4.mul(vec4,vec4,w);
@@ -1039,7 +1046,7 @@ var Testact=(function(){
 			Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 		}
 		//Ono3d.drawCopy(ono3d.environments[0].envTexture,0,0,1.0,1.0);
-		//Ono3d.drawCopy(0,0,1,1,lightProbeTexture,0,0,1.0,1.0);
+		//Ono3d.drawCopy(0,0,1,1,lightProbeTexture,0,0,WIDTH/lightProbeTexture.width,HEIGHT/lightProbeTexture.height);
 		//Ono3d.drawCopy(0,0,1,1,lightProbeTexture,0,0,6.0/lightProbeTexture.width,1.0/lightProbeTexture.height);
 		//Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 
