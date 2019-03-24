@@ -6,7 +6,6 @@ var Testact=(function(){
 	var onoPhy=null;
 	var objs=[];
 	var lightProbeTexture=null;
-	var skyTexture=null;
 	var bufTexture;
 	var customTextures=[];
 	var customBumps=[];
@@ -347,20 +346,25 @@ var Testact=(function(){
 						env.envTexture=envTexture;
 					}
 
-					lightProbeTexture = Ono3d.createTexture(1024,1024);
-					for(var px=-5;px<5;px++){
-						for(var py=-5;py<5;py++){
-							for(var pz=-5;pz<5;pz++){
-								ono3d.createLightField(lightProbeTexture,px,py,pz,drawSub);
-							}
-						}
-					}
+					lightProbeTexture = true;
+					//lightProbeTexture = Ono3d.createTexture(1024,1024);
+					//for(var px=0;px<128;px++){
+					//	for(var py=0;py<128;py++){
+					//		for(var pz=0;pz<8;pz++){
+					//for(var px=60;px<70;px++){
+					//	for(var pz=60;pz<70;pz++){
+					//		for(var py=0;py<8;py++){
+					//			ono3d.createLightField(lightProbeTexture,px,py,pz,0.5,drawSub);
+					//		}
+					//	}
+					//}
 					//ono3d.createLightField(lightProbeTexture,0,0,0,drawSub);
 
 					for(var i=0;i<ono3d.environments_index;i++){
 						var env = ono3d.environments[i];
 
-						env.lightProbe=lightProbeTexture;
+						env.lightProbe=scene.world.lightProbe;
+						//env.lightProbe=lightProbeTexture;
 					}
 				}
 			}
@@ -874,11 +878,11 @@ var Testact=(function(){
 		}
 		physicsTime=Date.now()-physicsTime;
 
-		//if(!afID){
-		////	window.cancelAnimationFrame(afID);
-		//	afID = window.requestAnimationFrame(drawFunc);
-		//}
-		drawFunc();
+		if(!afID){
+		//	window.cancelAnimationFrame(afID);
+			afID = window.requestAnimationFrame(drawFunc);
+		}
+		//drawFunc();
 
 		mseccount += (Date.now() - nowTime)
 		framecount++
@@ -915,12 +919,12 @@ var Testact=(function(){
 		gl.depthMask(true);
 		ono3d.setViewport(x,y,w,h);
 		ono3d.getProjectionMatrix(ono3d.projectionMatrix);
-//		gl.clearColor(0.0,0.0,0.0,0.0);
-//		gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
+
 		gl.clear(gl.DEPTH_BUFFER_BIT);
 		gl.depthMask(false);
 		gl.disable(gl.BLEND);
-		if(skyTexture.glTexture){
+		if(field.scenes[0].world.envTexture.glTexture){
+			var skyTexture = field.scenes[0].world.envTexture;
 			if(globalParam.stereomode==0){
 				ono3d.drawCelestialSphere(skyTexture);
 			}else{
@@ -938,15 +942,14 @@ var Testact=(function(){
 		gl.depthMask(true);
 		gl.enable(gl.DEPTH_TEST);
 
-		if(skyTexture.glTexture){
-			if(globalParam.shader===0){
-				if(globalParam.cMaterial){
-					ono3d.render(camera.p,customMaterial);
-				}else{
-					ono3d.render(camera.p);
-				}
+		if(globalParam.shader===0){
+			if(globalParam.cMaterial){
+				ono3d.render(camera.p,customMaterial);
+			}else{
+				ono3d.render(camera.p);
 			}
 		}
+		
 		gl.finish();
 	}
 	var drawFunc = function(){
@@ -1050,7 +1053,7 @@ var Testact=(function(){
 			ono3d.bloom(bufTexture,globalParam.exposure_bloom);
 			Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 		}
-		//Ono3d.drawCopy(ono3d.environments[0].envTexture,0,0,1.0,1.0);
+		//Ono3d.drawCopy(0,0,1,1,ono3d.environments[0].lightProbe,0,HEIGHT/1024.0,WIDTH/1024,-HEIGHT/1024.0);
 		//Ono3d.drawCopy(0,0,1,1,lightProbeTexture,0,0,WIDTH/lightProbeTexture.width,HEIGHT/lightProbeTexture.height);
 		//Ono3d.drawCopy(0,0,1,1,lightProbeTexture,0,0,6.0/lightProbeTexture.width,1.0/lightProbeTexture.height);
 		//Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
@@ -1062,6 +1065,7 @@ var Testact=(function(){
 		ono3d.toneMapping(bufTexture,WIDTH/1024,HEIGHT/1024);
 		
 
+		gl.enable(gl.BLEND);
 		ono3d.clear();
 
 		for(i=0;i<objMan.objs.length;i++){
@@ -1167,28 +1171,7 @@ var Testact=(function(){
 			Util.fireEvent(element,"change");
 		}
 		
-		skyTexture = Ono3d.loadTexture("sky.jpg",function(image){
-			var envsize=16;
-			gl.colorMask(true,true,true,true);
-			gl.disable(gl.BLEND);
-			gl.disable(gl.DEPTH_TEST);
-
-
-			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-			gl.viewport(0,0,image.width,image.height);
-			Ono3d.postEffect(image,0,0 ,1,1,ono3d.shaders["envset"]); 
-			gl.bindTexture(gl.TEXTURE_2D, image.glTexture);
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-			Ono3d.copyImage(image,0,0,0,0,image.width,image.height);
-
-			gl.bindTexture(gl.TEXTURE_2D, null);
-			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-
-			goMain = objMan.createObj(GoMain);
-
-
-		});
+		goMain = objMan.createObj(GoMain);
 
 		Util.setFps(globalParam.fps,mainloop);
 		Util.fpsman();
@@ -1204,7 +1187,7 @@ var Testact=(function(){
 	canvasgl.height=HEIGHT;
 	parentnode.appendChild(canvasgl);
 	var ctx=canvas.getContext("2d");
-	gl = canvasgl.getContext('webgl') || canvasgl.getContext('experimental-webgl');
+	gl = canvasgl.getContext('webgl',{alpha:true}) || canvasgl.getContext('experimental-webgl');
 
 
 	Util.init(canvas,canvasgl,parentnode);

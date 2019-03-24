@@ -273,6 +273,7 @@ def ExportOno3dObject():
 
     fileoutLd()
 
+
     fileout('}')
     config.File.close()
     print("Finished")
@@ -614,6 +615,18 @@ def WriteScene(scene):
         if(obj != scene.objects[0]):fileout2(',')
         fileout2('"{}"'.format(obj.name));
     fileout2(']\n')
+
+    world = scene.world
+    fileout(',"world":')
+    fileoutMu()
+    fileout('"name":"{}"\n'.format(world.name));
+    nodes = world.node_tree.nodes
+
+    if('envTexture' in nodes):
+        node = nodes['envTexture']
+        fileout(',"envTexture":"//{}"\n'.format(re.search("[^/]*$",node.image.filepath).group(0)))
+
+    fileoutMd()
 #fileoutLd()
     fileoutMd()
 
@@ -627,20 +640,6 @@ class Ono3dObjectExporter(bpy.types.Operator):
     filter_glob = StringProperty(default="*.o3o",options={'HIDDEN'})
     filepath = StringProperty(subtype='FILE_PATH')
 
-    #Coordinate System
-#    CoordinateSystem = EnumProperty(name="System", description="Select a coordinate system to export to", items=CoordinateSystems, default="1")
-
-    #General Options
-#    RotateX = BoolProperty(name="Rotate X 90 Degrees", description="Rotate the entire scene 90 degrees around the X axis so Y is up.", default=True)
-#FlipNormals = BoolProperty(name="Flip Normals", description="", default=False)
-#    ExportAnimation = EnumProperty(name="Animations", description="Select the type of animations to export.  Only object and armature bone animations can be exported.  Full Animation exports every frame.", items=AnimationModes, default="1")
-#    AnimName = StringProperty(name="AnimName:", description="Input an animation name to export to", default="Waiting", subtype='FILENAME')
-#    MaxBoneCount = IntProperty(name="MaxVertexSkinBoneCount", description="Input a max skin bone count at one vertex", default=4, min=1, max=9)
-
- #Export Mode
-#    ExportMode = EnumProperty(name="Export", description="Select which objects to export.  Only Mesh, Empty, and Armature objects will be exported.", items=ExportModes, default="1")
-
-#    Verbose = BoolProperty(name="Verbose", description="Run the exporter in debug mode.  Check the console for output.", default=False)
     EnableDoubleSided = BoolProperty(name="Enable Double Sided", description="enable double sided", default=False)
 
     def execute(self, context):
@@ -650,13 +649,6 @@ class Ono3dObjectExporter(bpy.types.Operator):
         global config
         config = Ono3dObjectExporterSettings(context,
                                          FilePath)
-#                                         CoordinateSystem=self.CoordinateSystem,
-#                                         RotateX=self.RotateX,
-#                                         FlipNormals=self.FlipNormals,
-#                                         ExportArmatures=self.ExportArmatures,
-#                                         ExportAnimation=self.ExportAnimation,
-#                                         AnimName=self.AnimName,
-#                                         ExportMode=self.ExportMode,
         config.EnableDoubleSided=self.EnableDoubleSided
         ExportOno3dObject()
         return {"FINISHED"}
