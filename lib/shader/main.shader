@@ -125,15 +125,25 @@ void main(void){
 	diffuse = (1.0-sign(lightz*0.5+0.5-0.01 -shadowmap.z))*0.5 * diffuse; 
 
 	/*拡散反射+環境光+自己発光*/ 
-	refV.s = (min(max(floor(vPos.x/0.5+0.5+64.0),0.0),127.0))*6.0;
-	refV.t = min(max(floor(vPos.z/0.5 +0.5+ 64.0),0.0),127.0) + floor(vPos.y/0.5+0.5+4.0)*128.0;
+	float x = min(max(floor(vPos.x/0.5+0.5+64.0),0.0),127.0);
+	float y = min(max(floor(vPos.y/0.5+0.5+4.0),0.0),8.0);
+	float z = min(max(floor(vPos.z/0.5+0.5+64.0),0.0),127.0);
+	float dx = fract(x);
+	float dy = fract(y);
+	float dz = fract(z);
+	refV.s = floor(x)*6.0;
+	refV.t = floor(z) + floor(y)*128.0;
 	vec2 unit = vec2(1.0/1024.0);
 	float angx = abs(asin(nrm.y)*_PI)*2.0;
 	float angy = abs(abs(atan2(nrm.x,-nrm.z))*_PI*2.0-1.0);
 	vec3 vColor2;
-	vColor2 =  (1.0-angx) * angy        * decode(texture2D(uLightMap,(refV+vec2((1.0-sign(nrm.z))    ,0.0))*unit)).rgb;
+	vec2 unit2 = (refV+vec2((1.0-sign(nrm.z))    ,0.0))*unit;
+	for(int i=0;i<8;i++){
+		vColor2 =  (1.0-angx) * angy        * decode(texture2D(uLightMap,unit2)).rgb;
+	}
 	vColor2 +=  (1.0-angx) * (1.0-angy) * decode(texture2D(uLightMap,(refV+vec2((1.0+sign(nrm.x))+1.0,0.0))*unit)).rgb;
 	vColor2 +=  angx * decode(texture2D(uLightMap,(refV+vec2((sign(nrm.y)+1.0)*0.5+4.0,0.0))*unit)).rgb;
+
 	vColor2 += diffuse*uLightColor + uEmi;
 	vColor2 = vColor2 * baseCol;
 
