@@ -295,7 +295,7 @@ var Testact=(function(){
 					//for(var px=0;px<128;px++){
 					//	for(var py=0;py<128;py++){
 					//		for(var pz=0;pz<8;pz++){
-					px=0;py=0;pz=0;
+					px=0;py=7;pz=124;
 					var a=function(){
 						for(var px=0;px<128;px++){
 							ono3d.createLightField(lightProbeTexture,px,py,pz,0.5,drawSub);
@@ -313,8 +313,8 @@ var Testact=(function(){
 							setTimeout(a,1);
 							console.log(px,py,pz);
 						}else{
-							var canvas= document.getElementById("hoge");
-							var ctx =  canvas.getContext('2d')
+							var canvas= Util.canvas;
+							var ctx =  Util.ctx;
 							var dst = ctx.createImageData(WIDTH,HEIGHT);
 							var u8 = new Uint8Array(WIDTH*HEIGHT*4);
 							gl.readPixels(0, 0, WIDTH, HEIGHT, gl.RGBA, gl.UNSIGNED_BYTE, u8);
@@ -323,8 +323,13 @@ var Testact=(function(){
 							for(var i=0;i<WIDTH*HEIGHT*4;i++){
 								dstdata[i] = u8[i];
 							}
+
+							canvas.style.display="inline";
+							canvas.style.width= WIDTH + "px";
 							//console.log(u8);
 							ctx.putImageData(dst,0,0,0,0,WIDTH,HEIGHT);
+
+							canvasgl.style.display="none";
 						}
 					}
 					a();
