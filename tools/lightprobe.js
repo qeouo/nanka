@@ -295,7 +295,7 @@ var Testact=(function(){
 					//for(var px=0;px<128;px++){
 					//	for(var py=0;py<128;py++){
 					//		for(var pz=0;pz<8;pz++){
-					px=0;py=7;pz=124;
+					px=0;py=0;pz=0;
 					var a=function(){
 						for(var px=0;px<128;px++){
 							ono3d.createLightField(lightProbeTexture,px,py,pz,0.5,drawSub);
