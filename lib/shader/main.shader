@@ -7,6 +7,7 @@ attribute vec3 aTvec;
 attribute vec2 aUv; 
 attribute vec2 aUv2; 
 attribute float aEnvRatio;  
+attribute vec3 aLightProbe;  
 varying vec2 vUv; 
 varying vec2 vUv2; 
 varying vec3 vEye; 
@@ -14,6 +15,7 @@ varying vec3 vPos;
 varying mat3 vView; 
 varying vec3 vLightPos; 
 varying float vEnvRatio;  
+varying vec3 vLightProbe; 
 uniform int uEnvIndex;  
 uniform mat4 projectionMatrix; 
 uniform mat4 lightMat; 
@@ -29,6 +31,7 @@ void main(void){
 		,aNormal); 
 	vEnvRatio= 1.0- aEnvRatio + float(uEnvIndex)*(2.0*aEnvRatio - 1.0);
 	vPos = aPos; 
+	vLightProbe = aLightProbe;
 } 
 
 [fragmentshader]
@@ -40,6 +43,7 @@ varying mat3 vView;
 varying vec3 vPos; 
 varying vec3 vLightPos; 
 varying float vEnvRatio;  
+varying vec3 vLightProbe; 
 
 uniform vec3 uLight; 
 uniform vec3 uLightColor; 
@@ -158,6 +162,8 @@ void main(void){
 		sumcol[2] += aaa[i].z* decode(texture2D(uLightMap,(yoff+aaa[i].xy)/1024.0)).rgb;
 	}
 	vColor2 = sumcol * vec3((1.0-angx)*angy,(1.0-angx)*(1.0-angy), angx);
+
+	vColor2 = vLightProbe; 
 
 	vColor2 += diffuse*uLightColor + uEmi;
 	vColor2 = vColor2 * baseCol;

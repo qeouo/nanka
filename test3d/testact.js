@@ -180,34 +180,34 @@ var Testact=(function(){
 		inherits(ret,defObj);
 		ret.prototype.init=function(){
 
-			bdf = Bdf.load("./k8x12.bdf",null,function(){
-				bdfimage = Bdf.render("aAbBcC",bdf,false);
-				bdfimage.glTexture = Rastgl.createTexture(bdfimage);//512x512
+			//bdf = Bdf.load("./k8x12.bdf",null,function(){
+			//	bdfimage = Bdf.render("aAbBcC",bdf,false);
+			//	bdfimage.glTexture = Rastgl.createTexture(bdfimage);//512x512
 
-				gl.bindTexture(gl.TEXTURE_2D,bdfimage.glTexture);
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-				gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);//1024x1024
-				ono3d.setViewport(0,0,1024,1024);
-				gl.clearColor(.8,0.2,0.6,0.0);
-				gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
-				gl.enable(gl.BLEND);
-				gl.blendFuncSeparate(gl.ZERO,gl.ONE,gl.ONE,gl.ONE);
-				var scl=2;
-				var ss=1/512;
-				for(var i=0;i<3;i++){
-					for(var j=0;j<3;j++){
-						Ono3d.drawCopy(bdfimage,-ss*i,-ss*j,scl,scl);
-					}
-				}
-				gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
-				gl.enable(gl.BLEND);
-				gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
+			//	gl.bindTexture(gl.TEXTURE_2D,bdfimage.glTexture);
+			//	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+			//	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+			//	gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);//1024x1024
+			//	ono3d.setViewport(0,0,1024,1024);
+			//	gl.clearColor(.8,0.2,0.6,0.0);
+			//	gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
+			//	gl.enable(gl.BLEND);
+			//	gl.blendFuncSeparate(gl.ZERO,gl.ONE,gl.ONE,gl.ONE);
+			//	var scl=2;
+			//	var ss=1/512;
+			//	for(var i=0;i<3;i++){
+			//		for(var j=0;j<3;j++){
+			//			Ono3d.drawCopy(bdfimage,-ss*i,-ss*j,scl,scl);
+			//		}
+			//	}
+			//	gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
+			//	gl.enable(gl.BLEND);
+			//	gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
 
-				Ono3d.drawCopy(bdfimage,-1*ss,-1*ss,scl,scl);
-				Ono3d.copyImage(bdfimage,0,0,0,0,512,512);
+			//	Ono3d.drawCopy(bdfimage,-1*ss,-1*ss,scl,scl);
+			//	Ono3d.copyImage(bdfimage,0,0,0,0,512,512);
 
-			});
+			//});
 
 			for(var i=objMan.objs.length;i--;){
 				if(this == objMan.objs[i])continue;
@@ -347,24 +347,31 @@ var Testact=(function(){
 					}
 
 					lightProbeTexture = true;
-					//lightProbeTexture = Ono3d.createTexture(1024,1024);
-					//for(var px=0;px<128;px++){
-					//	for(var py=0;py<128;py++){
-					//		for(var pz=0;pz<8;pz++){
-					//for(var px=60;px<70;px++){
-					//	for(var pz=60;pz<70;pz++){
-					//		for(var py=0;py<8;py++){
-					//			ono3d.createLightField(lightProbeTexture,px,py,pz,0.5,drawSub);
-					//		}
-					//	}
-					//}
-					//ono3d.createLightField(lightProbeTexture,0,0,0,drawSub);
+
+
+					var lightprobe=o3o.objects.find(function(e){return e.name==="lightp"});
+					lightprobe=lightprobe.data;
+
+
+					var points=[];
+					for(var i=0;i<lightprobe.vertices.length;i++){
+						var p=new Vec3();
+						Mat44.dotVec3(p,ono3d.worldMatrix,lightprobe.vertices[i].pos);
+						points.push(p);
+
+					}
+					
+					var triangles = Delaunay.create(points);
+					var bspTree=Bsp.createBspTree(triangles);
+
 
 					for(var i=0;i<ono3d.environments_index;i++){
 						var env = ono3d.environments[i];
 
 						env.lightProbe=scene.world.lightProbe;
-						//env.lightProbe=lightProbeTexture;
+
+						env.bspTree=bspTree;
+						env.lightProbeMesh=lightprobe;
 					}
 				}
 			}
@@ -1053,10 +1060,6 @@ var Testact=(function(){
 			ono3d.bloom(bufTexture,globalParam.exposure_bloom);
 			Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 		}
-		//Ono3d.drawCopy(0,0,1,1,ono3d.environments[0].lightProbe,0,HEIGHT/1024.0,WIDTH/1024,-HEIGHT/1024.0);
-		//Ono3d.drawCopy(0,0,1,1,lightProbeTexture,0,0,WIDTH/lightProbeTexture.width,HEIGHT/lightProbeTexture.height);
-		//Ono3d.drawCopy(0,0,1,1,lightProbeTexture,0,0,6.0/lightProbeTexture.width,1.0/lightProbeTexture.height);
-		//Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 
 		ono3d.setViewport(0,0,WIDTH,HEIGHT);
 		gl.bindFramebuffer(gl.FRAMEBUFFER,null );
@@ -1086,6 +1089,7 @@ var Testact=(function(){
 
 		drawTime =Date.now()-drawTime;
 
+		mseccount += drawTime;
 	}
 
 	ret.loadModel=function(){

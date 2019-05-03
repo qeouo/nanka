@@ -264,6 +264,22 @@ def ExportOno3dObject():
         fileoutLd()
         fileoutMd()
     fileoutLd()
+
+#    fileout(',"collections":')
+#    fileoutLu()
+#    for collection in bpy.data.collections:
+#        fileout('')
+#        if(collection != bpy.data.collections[0]):fileout2(',')
+#        fileoutMu()
+#        fileout('"name":"{}"\n'.format(collection.name))
+#        fileout('"objects":[\n');
+#        for object in collection.objects:
+#            if(object != collection.objects[0]):fileout2(',')
+#            fileout('"{}"'.format(object.name))
+#        fileout2(']\n');
+#        fileoutMd()
+#    fileoutLd()
+
     fileout(',"scenes":')
     fileoutLu()
     for scene in bpy.data.scenes:
