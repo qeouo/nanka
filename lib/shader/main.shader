@@ -131,37 +131,37 @@ void main(void){
 	/*拡散反射+環境光+自己発光*/ 
 	vec3 vColor2;
 
-	vec3 cell = min(max(vPos/0.5 + vec3(64.0,4.0,64.0),0.0),vec3(127.0,7.0,127.0));
-	float angx = abs(asin(nrm.y)*_PI)*2.0;
-	float angy = abs(abs(atan2(nrm.x,-nrm.z))*_PI*2.0-1.0);
+	//vec3 cell = min(max(vPos/0.5 + vec3(64.0,4.0,64.0),0.0),vec3(127.0,7.0,127.0));
+	//float angx = abs(asin(nrm.y)*_PI)*2.0;
+	//float angy = abs(abs(atan2(nrm.x,-nrm.z))*_PI*2.0-1.0);
 
-	vec3 aaa[8];
-	aaa[0]=vec3(0.0,0.0,0.0);
-	aaa[1]=vec3(0.0,0.0,1.0);
-	aaa[2]=vec3(0.0,1.0,0.0);
-	aaa[3]=vec3(0.0,1.0,1.0);
-	aaa[4]=vec3(1.0,0.0,0.0);
-	aaa[5]=vec3(1.0,0.0,1.0);
-	aaa[6]=vec3(1.0,1.0,0.0);
-	aaa[7]=vec3(1.0,1.0,1.0);
-	for(int i=0;i<8;i++){
-		vec3 vvv = vec3(1.0) - aaa[i] + (2.0 * aaa[i] - 1.0)*fract(cell);
-		aaa[i] = aaa[i] + floor(cell);
+	//vec3 aaa[8];
+	//aaa[0]=vec3(0.0,0.0,0.0);
+	//aaa[1]=vec3(0.0,0.0,1.0);
+	//aaa[2]=vec3(0.0,1.0,0.0);
+	//aaa[3]=vec3(0.0,1.0,1.0);
+	//aaa[4]=vec3(1.0,0.0,0.0);
+	//aaa[5]=vec3(1.0,0.0,1.0);
+	//aaa[6]=vec3(1.0,1.0,0.0);
+	//aaa[7]=vec3(1.0,1.0,1.0);
+	//for(int i=0;i<8;i++){
+	//	vec3 vvv = vec3(1.0) - aaa[i] + (2.0 * aaa[i] - 1.0)*fract(cell);
+	//	aaa[i] = aaa[i] + floor(cell);
 
-		aaa[i].xy = vec2(aaa[i].x*6.0,aaa[i].z+aaa[i].y*128.0);
-		aaa[i].z= (vvv.x*vvv.y*vvv.z);
-	}
+	//	aaa[i].xy = vec2(aaa[i].x*6.0,aaa[i].z+aaa[i].y*128.0);
+	//	aaa[i].z= (vvv.x*vvv.y*vvv.z);
+	//}
 
-	mat3 sumcol=mat3(0.0);
-	vec2 zoff = vec2(1.0 - sign(nrm.z) ,0.0);
-	vec2 xoff = vec2(2.0 + sign(nrm.x) ,0.0);
-	vec2 yoff = vec2(4.0 + (sign(nrm.y)+1.0)*0.5,0.0);
-	for(int i=0;i<8;i++){
-		sumcol[0] += aaa[i].z* decode(texture2D(uLightMap,(zoff+aaa[i].xy)/1024.0)).rgb;
-		sumcol[1] += aaa[i].z* decode(texture2D(uLightMap,(xoff+aaa[i].xy)/1024.0)).rgb;
-		sumcol[2] += aaa[i].z* decode(texture2D(uLightMap,(yoff+aaa[i].xy)/1024.0)).rgb;
-	}
-	vColor2 = sumcol * vec3((1.0-angx)*angy,(1.0-angx)*(1.0-angy), angx);
+	//mat3 sumcol=mat3(0.0);
+	//vec2 zoff = vec2(1.0 - sign(nrm.z) ,0.0);
+	//vec2 xoff = vec2(2.0 + sign(nrm.x) ,0.0);
+	//vec2 yoff = vec2(4.0 + (sign(nrm.y)+1.0)*0.5,0.0);
+	//for(int i=0;i<8;i++){
+	//	sumcol[0] += aaa[i].z* decode(texture2D(uLightMap,(zoff+aaa[i].xy)/1024.0)).rgb;
+	//	sumcol[1] += aaa[i].z* decode(texture2D(uLightMap,(xoff+aaa[i].xy)/1024.0)).rgb;
+	//	sumcol[2] += aaa[i].z* decode(texture2D(uLightMap,(yoff+aaa[i].xy)/1024.0)).rgb;
+	//}
+	//vColor2 = sumcol * vec3((1.0-angx)*angy,(1.0-angx)*(1.0-angy), angx);
 
 	vColor2 = vLightProbe; 
 
