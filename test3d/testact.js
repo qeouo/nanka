@@ -637,6 +637,11 @@ var Testact=(function(){
 		ret.prototype.init=function(){
 
 			field =O3o.load(globalParam.model,function(o3o){
+					goField.flg=1;
+					ono3d.clear();
+					goField.draw2();
+					ono3d.setStatic();
+					goField.flg=1;
 
 			});
 		}
@@ -684,6 +689,38 @@ var Testact=(function(){
 		}
 		var cuboidcol = new Collider.Cuboid;
 		var col = new Collider.Sphere();
+
+		ret.prototype.draw2=function(){
+			var phyObjs = this.phyObjs;
+
+			ono3d.setTargetMatrix(0)
+			ono3d.loadIdentity();
+			ono3d.rotate(-Math.PI*0.5,1,0,0)
+
+			ono3d.rf=0;
+
+			if(field){
+				if(field.scenes.length>0){
+					var objects = field.scenes[0].objects;
+					for(var i=0;i<objects.length;i++){
+						if(objects[i].hide_render){
+							continue;
+						}
+
+						var obj=objects[i];
+						if(obj.rigid_body){
+							if(obj.rigid_body.type=="ACTIVE"){
+								continue;
+							}
+						}
+
+						var env = null;
+						O3o.drawObject(objects[i],null,env);
+						
+					}
+				}
+			}
+		}
 		ret.prototype.draw=function(){
 			var phyObjs = this.phyObjs;
 
@@ -712,6 +749,15 @@ var Testact=(function(){
 						var phyObj = null;
 						if(globalParam.physics){
 							phyObj= phyObjs.find(function(a){return a.name===this;},objects[i].name);
+						}
+
+						var obj=objects[i];
+						if(obj.rigid_body){
+							if(obj.rigid_body.type=="PASSIVE"){
+								continue;
+							}
+						}else{
+							continue;
 						}
 						if(phyObj){
 							Mat43.dot(cuboidcol.matrix,phyObj.matrix,m43);
