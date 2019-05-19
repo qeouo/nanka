@@ -262,6 +262,14 @@ def ExportOno3dObject():
                 fileout2(',"use_z":{}'.format(int(modifier.use_axis[2])))
             fileout2('}\n')
         fileoutLd()
+
+        dict = collections.OrderedDict()
+        for key in obj.keys():
+            if(key == "_RNA_UI" or key == "cycles"):continue
+            dict[key] = fValue(obj.get(key))
+        if(len(dict)>0):
+            fileout(',' + json.dumps(dict,ensure_ascii=False)[1:-1] + '\n')
+
         fileoutMd()
     fileoutLd()
 
@@ -336,11 +344,10 @@ def WriteMaterial( Material=None):
             inputs= node.inputs
 
             dict["baseColor"] = inputs[0].default_value[0:3]
-            dict["opacity"] = inputs[0].default_value[3]
+            dict["opacity"] = 1.0 -inputs[15].default_value
             dict["metallic"] = inputs[4].default_value
             dict["roughness"] = inputs[7].default_value
             dict["ior"] = inputs[14].default_value
-            dict["opacity"] = 1.0 -inputs[15].default_value
             dict["subRoughness"] = inputs[16].default_value
 
         if('pbrColor' in nodes):

@@ -310,8 +310,6 @@ var Testact=(function(){
 					camera.cameracol.update();
 					var lightSource= null;
 
-					gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-					var envTexture = ono3d.createEnv(null,0,0,0,drawSub);
 
 
 					if(globalParam.shadow){
@@ -325,6 +323,16 @@ var Testact=(function(){
 					if(lightSource){
 						camera.calcCollision(camera.cameracol2,lightSource.viewmatrix);
 					}
+
+					ono3d.clear();
+					gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+					var envTexture = ono3d.createEnv(null,0,0,0,drawSub);
+
+					ono3d.clear();
+					goField.draw2();
+					ono3d.render(camera.p);
+					ono3d.setStatic();
+
 					
 					for(i=0;i<objMan.objs.length;i++){
 						var obj = objMan.objs[i];
@@ -340,6 +348,7 @@ var Testact=(function(){
 					ono3d.lightThreshold1=globalParam.lightThreshold1;
 					ono3d.lightThreshold2=globalParam.lightThreshold2;
 
+					gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 					for(var i=0;i<ono3d.environments_index;i++){
 						var env = ono3d.environments[i];
 						//環境マップ
@@ -350,19 +359,21 @@ var Testact=(function(){
 
 
 					var lightprobe=o3o.objects.find(function(e){return e.name==="lightp"});
-					lightprobe=lightprobe.data;
+					if(lightprobe){
+						lightprobe=lightprobe.data;
 
 
-					var points=[];
-					for(var i=0;i<lightprobe.vertices.length;i++){
-						var p=new Vec3();
-						Mat44.dotVec3(p,ono3d.worldMatrix,lightprobe.vertices[i].pos);
-						points.push(p);
+						var points=[];
+						for(var i=0;i<lightprobe.vertices.length;i++){
+							var p=new Vec3();
+							Mat44.dotVec3(p,ono3d.worldMatrix,lightprobe.vertices[i].pos);
+							points.push(p);
 
+						}
+						
+						var triangles = Delaunay.create(points);
+						var bspTree=Bsp.createBspTree(triangles);
 					}
-					
-					var triangles = Delaunay.create(points);
-					var bspTree=Bsp.createBspTree(triangles);
 
 
 					for(var i=0;i<ono3d.environments_index;i++){
@@ -373,6 +384,7 @@ var Testact=(function(){
 						env.bspTree=bspTree;
 						env.lightProbeMesh=lightprobe;
 					}
+
 				}
 			}
 			var mat44 = Mat44.poolAlloc();
@@ -637,11 +649,6 @@ var Testact=(function(){
 		ret.prototype.init=function(){
 
 			field =O3o.load(globalParam.model,function(o3o){
-					goField.flg=1;
-					ono3d.clear();
-					goField.draw2();
-					ono3d.setStatic();
-					goField.flg=1;
 
 			});
 		}
@@ -706,13 +713,11 @@ var Testact=(function(){
 						if(objects[i].hide_render){
 							continue;
 						}
+						if(!objects[i].static){
+							continue;
+						}
 
 						var obj=objects[i];
-						if(obj.rigid_body){
-							if(obj.rigid_body.type=="ACTIVE"){
-								continue;
-							}
-						}
 
 						var env = null;
 						O3o.drawObject(objects[i],null,env);
