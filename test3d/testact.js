@@ -315,7 +315,7 @@ var Testact=(function(){
 					if(globalParam.shadow){
 						lightSource = ono3d.environments[0].sun
 						if(lightSource){
-							camera.calcCollision(camera.cameracol2,lightSource.viewmatrix);
+							camera.calcCollision(camera.cameracol2,lightSource.viewmatrix,1,20);
 						}
 					}
 
@@ -557,7 +557,7 @@ var Testact=(function(){
 			ono3d.translate(-this.p[0],-this.p[1],-this.p[2]);
 			ono3d.setAov(this.zoom);
 		}
-		ret.prototype.calcCollision=function(collision,matrix){
+		ret.prototype.calcCollision=function(collision,matrix,near,far){
 			var im = Mat44.poolAlloc();
 			var v4=Vec4.poolAlloc();
 			if(!matrix){
@@ -571,9 +571,9 @@ var Testact=(function(){
 				Vec3.copy(v4,scope[i]);
 				v4[3]=1;
 				if(v4[2]<0){
-					Vec4.mul(v4,v4,ono3d.znear);
+					Vec4.mul(v4,v4,near);
 				}else{
-					Vec4.mul(v4,v4,ono3d.zfar);
+					Vec4.mul(v4,v4,far);
 				}
 				Mat44.dotVec4(v4,im,v4);
 				Vec3.copy(collision.poses[i],v4);
@@ -743,6 +743,9 @@ var Testact=(function(){
 						if(objects[i].hide_render){
 							continue;
 						}
+						if(objects[i].static){
+							continue;
+						}
 						var b =objects[i].bound_box;
 						Mat43.setInit(m43);
 						m43[0]=(b[3] - b[0])*0.5;
@@ -757,13 +760,7 @@ var Testact=(function(){
 						}
 
 						var obj=objects[i];
-						if(obj.rigid_body){
-							if(obj.rigid_body.type=="PASSIVE"){
-								continue;
-							}
-						}else{
-							continue;
-						}
+
 						if(phyObj){
 							Mat43.dot(cuboidcol.matrix,phyObj.matrix,m43);
 						}else{
@@ -783,6 +780,7 @@ var Testact=(function(){
 								l2 = Collider.checkHit(camera.cameracol2,cuboidcol);
 							}
 						}
+						l=1;
 						if(l>0 && l2>0){
 							continue;
 						}
@@ -1059,13 +1057,13 @@ var Testact=(function(){
 		var start = Date.now();
 
 		camera.calcMatrix();
-		camera.calcCollision(camera.cameracol);
+		camera.calcCollision(camera.cameracol,0.1,80);
 		var lightSource= null;
 
 		if(globalParam.shadow){
 			lightSource = ono3d.environments[0].sun
 			if(lightSource){
-				camera.calcCollision(camera.cameracol2,lightSource.viewmatrix);
+				camera.calcCollision(camera.cameracol2,lightSource.viewmatrix,0.1,80);
 			}
 		}
 		for(i=0;i<objMan.objs.length;i++){
