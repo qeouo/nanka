@@ -1057,7 +1057,7 @@ var Testact=(function(){
 		var start = Date.now();
 
 		camera.calcMatrix();
-		camera.calcCollision(camera.cameracol,0.1,80);
+		camera.calcCollision(camera.cameracol,null,0.1,80);
 		var lightSource= null;
 
 		if(globalParam.shadow){
