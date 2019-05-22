@@ -311,14 +311,6 @@ var Testact=(function(){
 					var lightSource= null;
 
 
-
-					if(globalParam.shadow){
-						lightSource = ono3d.environments[0].sun
-						if(lightSource){
-							camera.calcCollision(camera.cameracol2,lightSource.viewmatrix,1,20);
-						}
-					}
-
 					lightSource = ono3d.environments[0].sun
 					if(lightSource){
 						camera.calcCollision(camera.cameracol2,lightSource.viewmatrix);
@@ -557,7 +549,7 @@ var Testact=(function(){
 			ono3d.translate(-this.p[0],-this.p[1],-this.p[2]);
 			ono3d.setAov(this.zoom);
 		}
-		ret.prototype.calcCollision=function(collision,matrix,near,far){
+		ret.prototype.calcCollision=function(collision,matrix){
 			var im = Mat44.poolAlloc();
 			var v4=Vec4.poolAlloc();
 			if(!matrix){
@@ -570,10 +562,12 @@ var Testact=(function(){
 			for(var i=0;i<8;i++){
 				Vec3.copy(v4,scope[i]);
 				v4[3]=1;
-				if(v4[2]<0){
-					Vec4.mul(v4,v4,near);
-				}else{
-					Vec4.mul(v4,v4,far);
+				if(!matrix){
+					if(v4[2]<0){
+						Vec4.mul(v4,v4,ono3d.znear);
+					}else{
+						Vec4.mul(v4,v4,ono3d.zfar);
+					}
 				}
 				Mat44.dotVec4(v4,im,v4);
 				Vec3.copy(collision.poses[i],v4);
@@ -780,7 +774,6 @@ var Testact=(function(){
 								l2 = Collider.checkHit(camera.cameracol2,cuboidcol);
 							}
 						}
-						l=1;
 						if(l>0 && l2>0){
 							continue;
 						}
@@ -1057,13 +1050,13 @@ var Testact=(function(){
 		var start = Date.now();
 
 		camera.calcMatrix();
-		camera.calcCollision(camera.cameracol,null,0.1,80);
+		camera.calcCollision(camera.cameracol);
 		var lightSource= null;
 
 		if(globalParam.shadow){
 			lightSource = ono3d.environments[0].sun
 			if(lightSource){
-				camera.calcCollision(camera.cameracol2,lightSource.viewmatrix,0.1,80);
+				camera.calcCollision(camera.cameracol2,lightSource.viewmatrix);
 			}
 		}
 		for(i=0;i<objMan.objs.length;i++){
