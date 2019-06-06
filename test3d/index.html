@@ -34,13 +34,66 @@
 <script type="text/javascript" src="../lib/colorpicker.js"></script>
 <script type="text/javascript" src="../lib/bdf.js"></script>
 <style type="text/css">
-html,body { height:100%;margin:0;font-size:small; }
+html,body { height:100%;margin:0;font-size:small;background-color:black; }
 .js-slider{ width:50px;}
 input.colorpicker{width:50px;}
 .hidden{display:none;}
 div.control a{
   color: white;
 }
+.js-slider div{
+background-color:rgba(0,0,0,0);
+
+}
+.js-slider input{
+background-color:rgba(255,255,255,0.5);
+
+}
+
+label{
+position:relative;
+}
+input[type=checkbox]+span:before{
+content:"";
+border:1px inset white;
+display:inline-block;
+width:10px;
+height:10px;
+}
+input[type=checkbox]:checked +span:after{
+content:"";
+position:absolute;
+display:block;
+left:3px;
+top:2px;
+width:6px;
+height:6px;
+	background-color:white;
+}
+
+input[type=radio]+span:before{
+content:"";
+border:1px inset white;
+display:inline-block;
+width:10px;
+height:10px;
+	   border-radius:50%;
+}
+input[type=radio]:checked +span:after{
+content:"";
+position:absolute;
+display:block;
+left:3px;
+top:2px;
+width:6px;
+height:6px;
+	background-color:white;
+	   border-radius:50%;
+}
+input[type=checkbox],input[type=radio] {
+display: none;	
+}
+
 div.control{
   float:left;position:relative;z-index:100;
   color: white;
@@ -55,6 +108,29 @@ div.control{
 			  */
 
 }
+input.colorpicker{
+  font-family:monospace;
+border:1px inset white;
+}
+input.js-output{
+text-align:right;
+}
+input[type="text"]{
+	background-color:rgba(0,0,0,0);
+  color: white;
+  font-family:monospace;
+  text-shadow:
+	  0px 0px 1px black;
+	  /*
+	  1px 1px 0 black, -1px -1px 0 black,
+              -1px 1px 0 black, 1px -1px 0 black,
+              0px 1px 0 black,  0-1px 0 black,
+              -1px 0 0 black, 1px 0 0 black;
+			  */
+ border:1px inset white;
+
+}
+
 </style>
 <script type="text/javascript">
 
@@ -66,6 +142,12 @@ div.control{
 		}else{
 			Testact.start();
 		}
+
+	var a = document.getElementById("aaa");
+	a.onresize=function(){
+
+		console.log("HOGE");
+	}
 	}
 	var debugClose=function(){
 		var element = document.getElementById("control");
@@ -87,7 +169,7 @@ div.control{
 <input type="file" id="files" name="upfile[]"  multiple  style="text-align:center;display:none;" />
 <div id="control" class="control">
 	<div style="float:left;margin-right:10px;">
-		<label><input type="checkbox" id="autoExposure"/>オート露光調整</label><br>
+		<label><input type="checkbox" id="autoExposure"/><span>オート露光調整</span></label><br>
 		<div id="exposure_setting">
 		露光レベル?<input class="slider" id="exposure_level" max="5"/><br>
 		露光上限?<input class="slider" id="exposure_upper" min="0.1" max="5"/><br>
@@ -103,17 +185,17 @@ div.control{
 		陰閾値2<input class="slider" id="lightThreshold2" /><br>
 	</div>
 	<div style="float:left;margin-right:10px;">
-		<label><input type="checkbox" id="shadow"/>影</label><br>
+		<label><input type="checkbox" id="shadow"/><span>影</span></label><br>
 		輪郭線太さ<input class="slider" id="outline_bold" max="4"/><br>
 		輪郭線色<input class="colorpicker" id="outline_color"/><br>
 		立体度<input class="slider" id="stereoVolume" max="2"/><br>
-		<label><input type="radio" id="notstereo" name="stereomode" value="0" onchange="globalParam.stereomode=parseFloat(this.value)">無効</label>
-		<label><input type="radio" id="cross" name="stereomode" value="1" onchange="globalParam.stereomode=parseFloat(this.value)">交差</label>
-		<label><input type="radio" id="parallel" name="stereomode" value="-1" onchange="globalParam.stereomode=parseFloat(this.value)">平行</label>
+		<label><input type="radio" id="notstereo" name="stereomode" value="0" onchange="globalParam.stereomode=parseFloat(this.value)"><span>無効</span></label>
+		<label><input type="radio" id="cross" name="stereomode" value="1" onchange="globalParam.stereomode=parseFloat(this.value)"><span>交差</span></label>
+		<label><input type="radio" id="parallel" name="stereomode" value="-1" onchange="globalParam.stereomode=parseFloat(this.value)"><span>平行</span></label>
 	</div>
 
 	<div style="float:left;margin-right:10px;">
-		<label><input type="checkbox" id="physics" />物理シミュ</label><br>
+		<label><input type="checkbox" id="physics" /><span>物理シミュ</span></label><br>
 		step/frame<input class="slider" id="step" min="1" max="10" step="1"/><br>
 		<!-- シーン<select id="scene"  onchange="globalParam.scene=parseInt(this.value);Testact.changeScene();"> 
 		</select><br> 
@@ -123,8 +205,8 @@ div.control{
 	<div style="float:left;margin-right:10px;">
 		<pre id="cons" ></pre><br>
 	</div>
-	<div style="clear:both;float:left;border:solid 1px black;">
-		<label><input type="checkbox" id="cMaterial"/>カスタムマテリアル</label><br>
+	<div style="clear:both;float:left;border:1px inset white;">
+		<label><input type="checkbox" id="cMaterial"/><span>カスタムマテリアル</span></label><br>
 		<div style="float:left;margin-right:10px;">
 			拡散色<input class="colorpicker" id="baseColor"/><br>
 			自己発光<input class="slider" max="2.0" id="emi"/><br>
