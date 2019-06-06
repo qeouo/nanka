@@ -38,10 +38,28 @@ html,body { height:100%;margin:0;font-size:small; }
 .js-slider{ width:50px;}
 input.colorpicker{width:50px;}
 .hidden{display:none;}
+div.control a{
+  color: white;
+}
+div.control{
+  float:left;position:relative;z-index:100;
+  color: white;
+  font-family:monospace;
+  text-shadow:
+	  0px 0px 1px black;
+	  /*
+	  1px 1px 0 black, -1px -1px 0 black,
+              -1px 1px 0 black, 1px -1px 0 black,
+              0px 1px 0 black,  0-1px 0 black,
+              -1px 0 0 black, 1px 0 0 black;
+			  */
+
+}
 </style>
 <script type="text/javascript">
 
 	var onl=function(){
+		debugOpen();
 		if(Util.getLoadingCount()>0){
 			//初期ロードが未完了の場合はメイン処理は開始しない
 			setTimeout(onl,100);
@@ -49,13 +67,25 @@ input.colorpicker{width:50px;}
 			Testact.start();
 		}
 	}
+	var debugClose=function(){
+		var element = document.getElementById("control");
+		element.classList.add("hidden");
+		element = document.getElementById("control2");
+		element.classList.remove("hidden");
+	}
+	var debugOpen=function(){
+		var element = document.getElementById("control");
+		element.classList.remove("hidden");
+		element = document.getElementById("control2");
+		element.classList.add("hidden");
+	}
 
 </script>
 
 </head>
 <body onload="onl();" style="height:100%;overflow-y: hidden;">
 <input type="file" id="files" name="upfile[]"  multiple  style="text-align:center;display:none;" />
-<div id="control" style="float:left;position:relative;z-index:100;">
+<div id="control" class="control">
 	<div style="float:left;margin-right:10px;">
 		<label><input type="checkbox" id="autoExposure"/>オート露光調整</label><br>
 		<div id="exposure_setting">
@@ -124,9 +154,12 @@ input.colorpicker{width:50px;}
 	<option value="1">遅延</option>
 	</select><br>
 	</div>
+	<a href="#" onclick="debugClose();">閉じる</a>
+</div>
+<div id="control2" class="control">
+	<a href="#" onclick="debugOpen();">開く</a>
 </div>
 
-<!-- img id="dstImg" src="chrome.png"></img -->
 
 <div id="aaa" style="clear:both;left:0;right:0;margin:0 auto;width:100%;height:100%;text-align:center;position:absolute;z-index:0">
 	<script type="text/javascript" src="./testact.js"> </script>
