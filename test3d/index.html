@@ -53,6 +53,9 @@ background-color:rgba(255,255,255,0.5);
 label{
 position:relative;
 }
+input[type=checkbox],input[type=radio] {
+display: none;	
+}
 input[type=checkbox]+span:before{
 content:"";
 border:1px inset white;
@@ -60,15 +63,9 @@ display:inline-block;
 width:10px;
 height:10px;
 }
-input[type=checkbox]:checked +span:after{
-content:"";
-position:absolute;
-display:block;
-left:3px;
-top:2px;
-width:6px;
-height:6px;
-	background-color:white;
+input[type=checkbox]:checked +span:before{
+	outline:1px solid white;
+outline-offset: -4px;
 }
 
 input[type=radio]+span:before{
@@ -90,22 +87,17 @@ height:6px;
 	background-color:white;
 	   border-radius:50%;
 }
-input[type=checkbox],input[type=radio] {
-display: none;	
-}
 
+div.close{
+transform: translateY(-100px);
+}
 div.control{
+ transition: all 300ms 0s ease;
   float:left;position:relative;z-index:100;
   color: white;
   font-family:monospace;
   text-shadow:
 	  0px 0px 1px black;
-	  /*
-	  1px 1px 0 black, -1px -1px 0 black,
-              -1px 1px 0 black, 1px -1px 0 black,
-              0px 1px 0 black,  0-1px 0 black,
-              -1px 0 0 black, 1px 0 0 black;
-			  */
 
 }
 input.colorpicker{
@@ -135,7 +127,6 @@ input[type="text"]{
 <script type="text/javascript">
 
 	var onl=function(){
-		debugOpen();
 		if(Util.getLoadingCount()>0){
 			//初期ロードが未完了の場合はメイン処理は開始しない
 			setTimeout(onl,100);
@@ -151,15 +142,11 @@ input[type="text"]{
 	}
 	var debugClose=function(){
 		var element = document.getElementById("control");
-		element.classList.add("hidden");
-		element = document.getElementById("control2");
-		element.classList.remove("hidden");
-	}
-	var debugOpen=function(){
-		var element = document.getElementById("control");
-		element.classList.remove("hidden");
-		element = document.getElementById("control2");
-		element.classList.add("hidden");
+		if( element.classList.contains('close')){
+			element.classList.remove("close");
+		}else{
+			element.classList.add("close");
+		}
 	}
 
 </script>
@@ -238,12 +225,9 @@ input[type="text"]{
 	</div>
 	<a href="#" onclick="debugClose();">閉じる</a>
 </div>
-<div id="control2" class="control">
-	<a href="#" onclick="debugOpen();">開く</a>
-</div>
 
 
-<div id="aaa" style="clear:both;left:0;right:0;margin:0 auto;width:100%;height:100%;text-align:center;position:absolute;z-index:0">
+<div id="aaa" class="hidden" style="clear:both;left:0;right:0;margin:0 auto;width:100%;height:100%;text-align:center;position:absolute;z-index:0">
 	<script type="text/javascript" src="./testact.js"> </script>
 </div>
 </body>
