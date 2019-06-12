@@ -143,6 +143,9 @@ display:none;
 <script type="text/javascript">
 
 	var onl=function(){
+		if(!globalParam.debugMenu){
+			debugClose();
+		}
 		if(Util.getLoadingCount()>0){
 			//初期ロードが未完了の場合はメイン処理は開始しない
 			setTimeout(onl,100);

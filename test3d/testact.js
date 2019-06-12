@@ -860,6 +860,7 @@ var Testact=(function(){
 		globalParam.cNormal= 1.0;
 		globalParam.emi= 0.0;
 
+		globalParam.debugMenu= 1;
 		globalParam.shader= 0;
 
 	//カメラ露光
