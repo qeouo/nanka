@@ -131,10 +131,16 @@ transform: translateY(-280px);
 div.control a{
   color: white;
 }
-div.close a.close{
+
+.open,.close{
+	cursor:pointer;
+	text-decoration:underline;
+
+}
+div.close .close{
 display:none;
 }
-div.control:not(.close) a.open{
+div.control:not(.close) .open{
 display:none;
 }
 
@@ -143,13 +149,13 @@ display:none;
 <script type="text/javascript">
 
 	var onl=function(){
-		if(!globalParam.debugMenu){
-			debugClose();
-		}
 		if(Util.getLoadingCount()>0){
 			//初期ロードが未完了の場合はメイン処理は開始しない
 			setTimeout(onl,100);
 		}else{
+			if(globalParam.debugMenu){
+				debugClose();
+			}
 			Testact.start();
 		}
 
@@ -173,7 +179,7 @@ display:none;
 </head>
 <body onload="onl();" style="height:100%;overflow-y:hidden;">
 <input type="file" id="files" name="upfile[]"  multiple  style="text-align:center;display:none;" />
-<div id="control" class="control">
+<div id="control" class="control close">
 	<div>
 	<div>
 		<label><input type="checkbox" id="autoExposure"/><span>オート露光調整</span></label><br>
@@ -244,9 +250,9 @@ display:none;
 	<option value="1">遅延</option>
 	</select><br>
 	</div -->
-	<div style="clear:both;position:absolute; bottom:0;">
-		<a href="#" class="close" onclick="debugClose();">閉じる</a>
-		<a href="#" class="open" onclick="debugClose();">開く</a>
+	<div style="clear:both;position:absolute; bottom:1px;">
+		<span class="close" onclick="debugClose();">閉じる</span>
+		<span class="open" onclick="debugClose();">開く</span>
 	</div>
 </div>
 
