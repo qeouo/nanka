@@ -643,11 +643,12 @@ def WriteScene(scene):
     fileout(',"world":')
     fileoutMu()
     fileout('"name":"{}"\n'.format(world.name));
-    nodes = world.node_tree.nodes
-
-    if('envTexture' in nodes):
-        node = nodes['envTexture']
-        fileout(',"envTexture":"//{}"\n'.format(re.search("[^/]*$",node.image.filepath).group(0)))
+    
+    if(world.node_tree):
+        nodes = world.node_tree.nodes
+        if('envTexture' in nodes):
+            node = nodes['envTexture']
+            fileout(',"envTexture":"//{}"\n'.format(re.search("[^/]*$",node.image.filepath).group(0)))
 
     fileoutMd()
 #fileoutLd()

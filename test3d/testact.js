@@ -973,7 +973,7 @@ var Testact=(function(){
 		gl.clear(gl.DEPTH_BUFFER_BIT);
 		gl.depthMask(false);
 		gl.disable(gl.BLEND);
-		if(field.scenes[0].world.envTexture.glTexture){
+		if(field.scenes[0].world.envTexture){
 			var skyTexture = field.scenes[0].world.envTexture;
 			if(globalParam.stereomode==0){
 				ono3d.drawCelestialSphere(skyTexture);
