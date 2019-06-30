@@ -3,7 +3,7 @@ attribute vec2 aPos;
 varying vec2 vUv;
 void main(void){
 	gl_Position = vec4(aPos,1.0,1.0);
-	vUv = vec2(1.0-aPos.x,aPos.y);
+	vUv = aPos.xy*0.5+0.5;
 }
 
 [fragmentshader]
@@ -31,7 +31,6 @@ highp vec3 randvec(vec3 vecN,vec3 vecS,vec3 vecT,float rand){
 	return n*vecN + s*vecS + t*vecT;
 }
 const int MAX = 32;
-const highp float _PI =1.0/3.14159265359;
 uniform vec2 uUvOffset;
 uniform vec2 uUvScale;
 void main(void){
@@ -41,10 +40,11 @@ void main(void){
 	highp vec4 col2;
 	highp vec3 color = vec3(0.0,0.0,0.0);
 	vec3 va;
-	va.y = -sin(vUv.y*PI*0.5);
-	float l = sqrt(1.0-va.y*va.y);
-	va.x = sin(vUv.x*PI)*l;
-	va.z = cos(vUv.x*PI)*l;
+	//va.y = -sin(vUv.y*PI*0.5);
+	//float l = sqrt(1.0-va.y*va.y);
+	//va.x = sin(vUv.x*PI)*l;
+	//va.z = cos(vUv.x*PI)*l;
+	va = uv2angle(vUv);
     if(abs(va.y)<0.75){
 		svec=vec3(va.z/length(va.xz)
 		,0.0
@@ -65,12 +65,11 @@ void main(void){
 	for(int i=0;i<MAX;i++){
 		vAngle2 = randvec(va,svec,tvec,uRough);
 		col = decode(texture2D(uSampler
-			,vec2(atan2(vAngle2.x,-vAngle2.z)*_PI*0.5 + 0.5
-			,-atan2(vAngle2.y,length(vAngle2.xz))*_PI + 0.5)*uUvScale + uUvOffset));
+			,angle2uv(vAngle2)*uUvScale + uUvOffset));
 		color = color + col.rgb;
 	}
 	color = color / (float(MAX));
-	col2 = decode(texture2D(uDst,vec2(1.0-vUv.x,vUv.y)*0.5+0.5));
+	col2 = decode(texture2D(uDst,vUv));
 	color = mix(col2.rgb,color,uPow);
 	gl_FragColor = encode(vec4(color,1.0));
 }

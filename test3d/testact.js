@@ -1085,6 +1085,10 @@ var Testact=(function(){
 		gl.clear(gl.DEPTH_BUFFER_BIT);
 		drawSub(0,0,WIDTH,HEIGHT);
 		
+		var env = ono3d.environments[0];
+		//環境マップ
+
+		//Ono3d.drawCopy(env.envTexture,0,0,1,1);
 
 		//描画結果をバッファにコピー
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -1104,14 +1108,13 @@ var Testact=(function(){
 			Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 		}
 
-		ono3d.setViewport(0,0,WIDTH,HEIGHT);
-		gl.bindFramebuffer(gl.FRAMEBUFFER,null );
 
 		//トーンマッピング
 		ono3d.toneMapping(bufTexture,WIDTH/1024,HEIGHT/1024);
 		
 
-		gl.enable(gl.BLEND);
+
+
 		ono3d.clear();
 
 		for(i=0;i<objMan.objs.length;i++){

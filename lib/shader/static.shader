@@ -58,7 +58,6 @@ uniform float uEmi;
 uniform float lightThreshold1; 
 uniform float lightThreshold2; 
 uniform vec3 uReflectionColor; 
-const highp float _PI =1.0/3.14159265359; 
 
 [common]
 vec4 textureTri(sampler2D texture,vec2 size,vec2 uv,float w){
@@ -96,8 +95,7 @@ void main(void){
 	float refx = floor(sqrt(rough/0.06)); 
 	float refa = (rough -refx*refx*0.06)/((((1.0+refx)*(1.0+refx))-refx*refx)*0.06); 
 	refa = min(refa,1.0); 
-	vec2 refV = vec2(atan2(angle.x,-angle.z)*_PI*0.5 + 0.5 
-		,(-atan2(angle.y,length(angle.xz))*_PI*0.5  + 0.25)); 
+	vec2 refV = angle2uv(angle) * vec2(1.0,0.5); 
 	vec4 refCol = textureTri(uEnvMap,vec2(256.0),refV,refx+refa) ;
 	refCol.rgb *=  uReflectionColor; 
 

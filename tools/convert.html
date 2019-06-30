@@ -234,13 +234,13 @@ var Polar = (function()	{
 	var ret={};
 	ret.name="Polar";
 	ret.angle2uv=function(uv,angle){
-		uv[0]=atan2(angle[0],-angle[2])*_PI05+0.5;
+		uv[0]=atan2(angle[2],angle[0])*_PI05+0.5;
 		uv[1]=-asin(angle[1])*_PI+0.5;
 	}
 	ret.uv2angle=function(angle,uv){
 		angle[1]=-Math.sin((uv[1]-0.5)*Math.PI)
 		var l=sqrt(1-angle[1]*angle[1])
-		var r=-uv[0]*Math.PI*2
+		var r=-uv[0]*Math.PI*2 - Math.PI*0.5;
 		angle[0]=Math.sin(r)*l
 		angle[2]=Math.cos(r)*l
 	}
