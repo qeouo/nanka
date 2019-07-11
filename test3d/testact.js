@@ -350,7 +350,7 @@ var Testact=(function(){
 					lightProbeTexture = true;
 
 
-					var lightprobe=o3o.objects.find(function(e){return e.name==="lightp"});
+					var lightprobe=o3o.objects.find(function(e){return e.name==="LightProbe"});
 					if(lightprobe){
 						lightprobe=lightprobe.data;
 

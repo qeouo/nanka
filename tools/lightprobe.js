@@ -296,7 +296,7 @@ var Testact=(function(){
 					//	for(var py=0;py<128;py++){
 					//		for(var pz=0;pz<8;pz++){
 
-					var lightprobe=o3o.objects.find(function(e){return e.name==="lightp"});
+					var lightprobe=o3o.objects.find(function(e){return e.name==="LightProbe"});
 					lightprobe=lightprobe.data;
 
 
@@ -409,7 +409,7 @@ var Testact=(function(){
 			,[1,-1,1]
 		];
 		ret.prototype.calcMatrix=function(){
-			ono3d.setPers(this.zoom,HEIGHT/WIDTH);
+			ono3d.setPers(this.zoom,HEIGHT/WIDTH,0.1,80);
 			ono3d.setTargetMatrix(1);
 			ono3d.loadIdentity();
 			ono3d.rotate(-this.a[2],0,0,1);

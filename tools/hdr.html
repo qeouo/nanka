@@ -19,45 +19,61 @@ display:none;
 <script type="text/javascript">
 "use strict"
 var ctx,canvas;
-var ImgObj=function(){
-	this.img=null;
-	this.data=null;
-	this.span=null;
-}
-var srcA=new ImgObj();
-var srcB=new ImgObj();
-var dst=new ImgObj();
+
+var srcA,srcB,dst;
 
 
-var calc=function(){
-	var dataA=srcA.data;
-	var dataB=srcB.data;
-	var data=dst.data;
-	for(var i=0;i<data.length;i+=4){
+//計算
+var calc=function(dst,srcA,srcB){
+
+	for(var i=0;i<dst.data.length;i+=4){
 		for(var j=0;j<3;j++){
-			data[j]=dataA[j]+dataB[j];
+			dst.data[i+j]=srcA.data[i+j]+srcB.data[i+j];
 		}
+		dst.data[i+3]=255;
 	}
-	ctx.putImageData(srcimg,0,0,0,0,width,height);
-	img.src=canvas.toDataURL("image/png");
-
 }
-var enc=function(){
-	var data = dst.data;
-	var width=dst.img.width;
-	var height=dst.img.height;
-	for(var i=0;i<width*height;i++){
-		var m = Math.max(Math.max(data[i*4],data[i*4+1]),data[i*4+2]);
+
+//RGBEエンコード
+var enc=function(dst,src){
+	var srcdata=src.data;
+	var dstdata=dst.data;
+	for(var i=0;i<srcdata.length;i+=4){
+		var m = Math.max(Math.max(srcdata[i],srcdata[i+1]),srcdata[i+2]);
 		var e = Math.log2(m/256)|0;
 		var d=1.0/Math.pow(2,e);
-		data[i*4]*=d;
-		data[i*4+1]*=d;
-		data[i*4+2]*=d;
-		data[i*4+3]=128+e;
+		for(var j=0;j<3;j++){
+			dstdata[i+j]=srcdata[i+j]*d;
+		}
+		dstdata[i+3]=128+e;
 	}
-	ctx.putImageData(srcimg,0,0,0,0,width,height);
-	img.src=canvas.toDataURL("image/png");
 
+}
+
+var loadHdr=function(url,callback){
+	var obj={};
+	Util.loadBinary(url,function(buffer){
+
+		cbloadHdr(obj,buffer);
+		callback(obj);
+
+	});
+	return obj;
+}
+
+var outputimg=function(img,obj){
+	canvas.width=obj.width;
+	canvas.height=obj.height;
+	var srcimg=ctx.getImageData(0,0,obj.width,obj.height);
+
+	var data=obj.data;
+	var srcdata=srcimg.data;
+	for(var i=0;i<data.length;i++){
+		srcdata[i]=data[i];
+	}
+
+	ctx.putImageData(srcimg,0,0,0,0,obj.width,obj.height);
+	img.src=canvas.toDataURL("image/png");
 }
 
 var onloadfunc=function(e){
@@ -67,39 +83,54 @@ var onloadfunc=function(e){
 		objs[i].addEventListener("change",function(evt){
 			var file=evt.target.files[0];
 			var img = this.parentNode.getElementsByTagName("img")[0];
+			var id=img.parentNode.getAttribute("id");
 			if(/\.hdr$/.test(file.name)){
 
 				var reader=new FileReader();
 				reader.onload=function(e){
-					Util.loadBinary(e.target.result,function(buffer){
-						var data=cbloadHdr(buffer);
-						var srcimg=ctx.getImageData(0,0,canvas.width,canvas.height);
-						var width=canvas.width;
-						var height=canvas.height;
-
-						for(var i=0;i<width*height;i++){
-							var e = Math.pow(2.0,data[i*4+3]-128);
-							data[i*4]*=e;
-							data[i*4+1]*=e;
-							data[i*4+2]*=e;
-							data[i*4+3]=255;
+					var obj=loadHdr(e.target.result,function(obj){
+						var data=obj.data;
+						for(var i=0;i<data.length;i+=4){
+							var e = Math.pow(2.0,data[i+3]-128);
+							data[i]*=e;
+							data[i+1]*=e;
+							data[i+2]*=e;
+							data[i+3]=255;
 
 						}
-						for(var i=0;i<width*height*4;i++){
-							srcimg.data[i]=data[i];
-						}
 
-						ctx.putImageData(srcimg,0,0,0,0,width,height);
-						img.src=canvas.toDataURL("image/png");
+						outputimg(img,obj);
 
-						var o=[srcA,srcB,dst];
-						for(var j=0;j<o.length;o++){
-							if(img == o[j].img){
-								o[j].data=data;
-								break;
-							}
+
+						if(srcA&&srcB){
+							dst={};
+							dst.data=new Array(obj.data.length);
+							dst.width=obj.width;
+							dst.height=obj.height;
+							calc(dst,srcA,srcB);
+							var imga = document.getElementById("dstimg");
+							outputimg(imga,dst);
+
+
+							var encobj={};
+							encobj.data=new Array(dst.data.length);
+							encobj.width=dst.width;
+							encobj.height=dst.height;
+							enc(encobj,dst);
+							imga = document.getElementById("rgbe");
+							outputimg(imga,encobj);
 						}
 					});
+					
+					if(id=="srcA"){
+						srcA=obj;
+					}
+					if(id=="srcB"){
+						srcB=obj;
+					}
+					if(id=="dst"){
+						dst=obj;
+					}
 
 				}
 				reader.readAsDataURL(file);
@@ -113,14 +144,19 @@ var onloadfunc=function(e){
 		objs[i].addEventListener("mousemove",function(e){
 			var img = this.parentNode.getElementsByTagName("img")[0];
 			var o=[srcA,srcB,dst];
+			var id=img.parentNode.getAttribute("id");
 			var data=null;
-			for(var j=0;j<o.length;o++){
-				if(img == o[j].img){
-					data=o[j].data;
-					break;
-				}
+			if(id=="srcA"){
+				data=srcA.data;
+			}else if(id=="srcB"){
+				data=srcB.data;
+			}else{
+				data=dst.data;
 			}
-			if(!data){return;}
+			if(!data){
+				return;
+			}
+
 
 			var x=e.offsetX;
 			var y=e.offsetY;
@@ -150,18 +186,6 @@ var onloadfunc=function(e){
  
 	canvas =  document.getElementById('c')
 	ctx =  canvas.getContext('2d')
-	var obj = document.getElementById("dst");
-	dst.img=obj.getElementsByTagName("img")[0];
-	dst.span=obj.getElementsByTagName("span")[0];
-
-	obj = document.getElementById("srcA");
-	srcA.img=obj.getElementsByTagName("img")[0];
-	srcA.span=obj.getElementsByTagName("span")[0];
-
-	obj = document.getElementById("srcB");
-	srcB.img=obj.getElementsByTagName("img")[0];
-	srcB.span=obj.getElementsByTagName("span")[0];
-
 }
 
 var idx;
@@ -174,7 +198,7 @@ var readTextBuf=function(){
 	}
 	return str;
 }
-var cbloadHdr = function(arrayBuffer){
+var cbloadHdr = function(obj,arrayBuffer){
 	idx=0;
 	dv = new DataView(arrayBuffer);
 
@@ -197,6 +221,8 @@ var cbloadHdr = function(arrayBuffer){
 	var strs =str.split(" ");
 	var height =parseInt(strs[1]);
 	var width=parseInt(strs[3]);
+	obj.width=width;
+	obj.height=height;
 
 	canvas.width=width;
 	canvas.height=height;
@@ -229,6 +255,7 @@ var cbloadHdr = function(arrayBuffer){
 			}
 		}
 	}
+	obj.data=data;
 	return data;
 	
 
@@ -250,16 +277,16 @@ var cbloadHdr = function(arrayBuffer){
 	<div id="srcB">
 		<input type="file">
 		srcB<br>
-		<img />
-		<span></span>
+		<img/>
+		<br><span></span>
 	</div>
 	<div id="dst">
-	dst<br>
-	<img />
+	dst = srcA+srcB<br>
+	<img id="dstimg"/>
+	<br><span></span>
 	<canvas id="c" ></canvas><br />
 	enc<br />
-	<img>
-	<span></span>
+	<img id="rgbe">
 </div>
 </div>
 </body>
