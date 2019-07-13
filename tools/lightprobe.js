@@ -360,8 +360,18 @@ var Testact=(function(){
 								obj[i] = cube;
 							}
 							content = JSON.stringify(obj);
-                var blob = new Blob([ content ], { "type" : "text/plain" });
-				 document.getElementById("download").href = window.URL.createObjectURL(blob);
+
+
+						Util.loadText(globalParam.model,function(text){
+							var o3o=JSON.parse(text);
+							var mesh=o3o.meshes.find(function(e){return e.name===this},lightprobe.name);
+							mesh.colors=obj;
+							var filename = globalParam.model.substr(globalParam.model.lastIndexOf("/")+1);
+							 document.getElementById("download").setAttribute("download",filename);
+							var blob = new Blob([JSON.stringify(o3o)], { "type" : "text/plain" });
+							 document.getElementById("download").href = window.URL.createObjectURL(blob);
+							
+						});
              
 						}
 					}

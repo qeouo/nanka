@@ -25,12 +25,22 @@ var srcA,srcB,dst;
 
 //計算
 var calc=function(dst,srcA,srcB){
+	if(srcA && srcB){
 
-	for(var i=0;i<dst.data.length;i+=4){
-		for(var j=0;j<3;j++){
-			dst.data[i+j]=srcA.data[i+j]+srcB.data[i+j];
+		for(var i=0;i<dst.data.length;i+=4){
+			for(var j=0;j<3;j++){
+				dst.data[i+j]=srcA.data[i+j]+srcB.data[i+j];
+			}
+			dst.data[i+3]=255;
 		}
-		dst.data[i+3]=255;
+	}else if(srcA){
+		for(var i=0;i<dst.data.length;i++){
+			dst.data[i]=srcA.data[i];
+		}
+	}else if(srcB){
+		for(var i=0;i<dst.data.length;i++){
+			dst.data[i]=srcB.data[i];
+		}
 	}
 }
 
@@ -40,7 +50,7 @@ var enc=function(dst,src){
 	var dstdata=dst.data;
 	for(var i=0;i<srcdata.length;i+=4){
 		var m = Math.max(Math.max(srcdata[i],srcdata[i+1]),srcdata[i+2]);
-		var e = Math.log2(m/256)|0;
+		var e = Math.ceil(Math.log2(Math.max(m,1)/255));
 		var d=1.0/Math.pow(2,e);
 		for(var j=0;j<3;j++){
 			dstdata[i+j]=srcdata[i+j]*d;
@@ -102,24 +112,22 @@ var onloadfunc=function(e){
 						outputimg(img,obj);
 
 
-						if(srcA&&srcB){
-							dst={};
-							dst.data=new Array(obj.data.length);
-							dst.width=obj.width;
-							dst.height=obj.height;
-							calc(dst,srcA,srcB);
-							var imga = document.getElementById("dstimg");
-							outputimg(imga,dst);
+						dst={};
+						dst.data=new Array(obj.data.length);
+						dst.width=obj.width;
+						dst.height=obj.height;
+						calc(dst,srcA,srcB);
+						var imga = document.getElementById("dstimg");
+						outputimg(imga,dst);
 
-
-							var encobj={};
-							encobj.data=new Array(dst.data.length);
-							encobj.width=dst.width;
-							encobj.height=dst.height;
-							enc(encobj,dst);
-							imga = document.getElementById("rgbe");
-							outputimg(imga,encobj);
-						}
+						var encobj={};
+						encobj.data=new Array(dst.data.length);
+						encobj.width=dst.width;
+						encobj.height=dst.height;
+						enc(encobj,dst);
+						imga = document.getElementById("rgbe");
+						outputimg(imga,encobj);
+						
 					});
 					
 					if(id=="srcA"){

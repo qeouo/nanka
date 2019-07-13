@@ -121,14 +121,10 @@ void main(void){
 
 
 	/*拡散反射+環境光+自己発光*/ 
-	refx = pow(0.5,4.0); 
-	refV = vec2(atan(nrm.x,-nrm.z)*_PI*0.5 + 0.5
-		,(-atan(nrm.y,length(nrm.xz))*_PI*0.95 + 0.5)*0.5); 
-	refV = refV*refx + vec2(0.0,1.0-refx);
-
 	vec3 vColor2 = diffuse*uLightColor
-		+ texture2D(uLightMap,vUv2).rgb
-		+ uEmi;
+		+ textureRGBE(uLightMap,vec2(256),vUv2).rgb
+		//+ uEmi
+		;
 
 	vColor2 = vColor2 * baseCol;
 

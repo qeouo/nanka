@@ -281,6 +281,8 @@ var Testact=(function(){
 						goCamera.target[1] =  goCamera.p[1] - goCamera.a[1]* goCamera.p[2]/goCamera.a[2];
 						goCamera.target[2] = 0;
 
+						goCamera.cameralen=Math.abs(goCamera.p[2]);
+
 						homingCamera(goCamera.a,goCamera.target,goCamera.p);
 						
 					}
@@ -540,7 +542,7 @@ var Testact=(function(){
 			,[1,-1,1]
 		];
 		ret.prototype.calcMatrix=function(){
-			ono3d.setPers(this.zoom,HEIGHT/WIDTH);
+			ono3d.setPers(this.zoom,HEIGHT/WIDTH,0.1,80);
 			ono3d.setTargetMatrix(1);
 			ono3d.loadIdentity();
 			ono3d.rotate(-this.a[2],0,0,1);
@@ -612,6 +614,8 @@ var Testact=(function(){
 			this.p[2]=-Math.cos(this.a[1])*this.p[2];
 
 			Vec3.mul(this.p,this.p,this.cameralen);
+
+			Vec3.add(this.p,this.p,this.target);
 
 
 			camera.p[0]+=(this.p[0]-camera.p[0])*0.3
@@ -865,8 +869,8 @@ var Testact=(function(){
 
 	//カメラ露光
 		globalParam.autoExposure=1;
-		globalParam.exposure_level=0.5;
-		globalParam.exposure_upper=2;
+		globalParam.exposure_level=0.18;
+		globalParam.exposure_upper=1;
 		globalParam.exposure_bloom=0.1;
 		
 		globalParam.source=0;
@@ -978,7 +982,7 @@ var Testact=(function(){
 			if(globalParam.stereomode==0){
 				ono3d.drawCelestialSphere(skyTexture);
 			}else{
-				ono3d.setPers(0.577,HEIGHT/WIDTH*2,1,20);
+				ono3d.setPers(0.577,HEIGHT/WIDTH*2,1,80);
 				ono3d.setViewport(0,0,WIDTH/2,HEIGHT);
 				ono3d.drawCelestialSphere(skyTexture);
 				ono3d.setViewport(WIDTH/2,0,WIDTH/2,HEIGHT);
