@@ -13,15 +13,15 @@ precision lowp float;
 varying lowp vec2 vUv;
 uniform sampler2D uSampler;
 uniform sampler2D uSampler2;
-uniform float uAL;
-uniform float uLw;
+uniform float uAL; //平均値
+uniform float uLw; //最大値
 float uA = 0.18;
 void main(void){
 	vec4 a = decode(texture2D(uSampler,vUv));
 	vec4 b = texture2D(uSampler,vUv);
 	vec4 c = decode2(texture2D(uSampler2,vec2(0.0,511.0)/512.0));
-	float aL = c.r;
-	float Lw = c.g;
+	float aL = c.r; //平均値
+	float Lw = c.g*1.1; //最大値
 	a.rgb= a.rgb * uA / aL;
 	Lw = Lw*uA/aL;
 	a.rgb= a.rgb / (1.0 + a.rgb)*(1.0+a.rgb/(Lw*Lw));

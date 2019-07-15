@@ -18,14 +18,10 @@ var Testact=(function(){
 	var HEIGHT=512,WIDTH=960;
 	var gl;
 	var onoPhy=null;
-	var bufTexture;
-	var envBuf;
-	var envTexture;
-	var emiTexture;
-	var skyTexture=null;
 	var bdf;
 	var bdfimage=null;
 	var soundbuffer=null;
+	var bufTexture;
 
 	var obj3d=null,field=null;
 	var goField
@@ -326,7 +322,7 @@ var Testact=(function(){
 			,[1,-1,1]
 		];
 		ret.prototype.calcMatrix=function(){
-			ono3d.setPers(this.zoom,HEIGHT/WIDTH);
+			ono3d.setPers(this.zoom,HEIGHT/WIDTH,0.1,80.0);
 			ono3d.setTargetMatrix(1);
 			ono3d.loadIdentity();
 			ono3d.rotate(-this.a[2],0,0,1);
@@ -348,10 +344,13 @@ var Testact=(function(){
 			for(var i=0;i<8;i++){
 				Vec3.copy(v4,scope[i]);
 				v4[3]=1;
-				if(v4[2]<0){
-					Vec4.mul(v4,v4,ono3d.znear);
-				}else{
-					Vec4.mul(v4,v4,ono3d.zfar);
+				if(im[15]===0){
+					//透視投影の場合
+					if(v4[2]<0){
+						Vec4.mul(v4,v4,ono3d.znear);
+					}else{
+						Vec4.mul(v4,v4,ono3d.zfar);
+					}
 				}
 				Mat44.dotVec4(v4,im,v4);
 				Vec3.copy(collision.poses[i],v4);
@@ -427,73 +426,6 @@ var Testact=(function(){
 		return ret;
 	})();
 
-	var createEnv = function(tex,x,y,z){
-		gl.clearColor(0.0,0.0,0.0,1.0);
-		gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
-		ono3d.setAov(1.0);
-
-		//前、右
-		Mat44.set(ono3d.viewMatrix,-1,0,0,0, 0,-1,0,0, 0,0,-1,0, -x,-y,-z,1);
-		drawSub(0,0,256,256);
-		Mat44.set(ono3d.viewMatrix,0,0,1,0, 0,-1,0,0, -1,0,0,0, -x,-y,-z,1);
-		drawSub(256,0,256,256);
-		Ono3d.copyImage(envBuf,0,0,0,0,256*2,256);
-
-		//後、左
-		Mat44.set(ono3d.viewMatrix,1,0,0,0, 0,-1,0,0, 0,0,1,0, -x,-y,-z,1);
-		drawSub(0,0,256,256);
-		Mat44.set(ono3d.viewMatrix,0,0,-1,0, 0,-1,0,0, 1,0,0,0, -x,-y,-z,1);
-		drawSub(256,0,256,256);
-		Ono3d.copyImage(envBuf,512,0,0,0,256*2,256);
-
-		//下、上
-		Mat44.set(ono3d.viewMatrix,-1,0,0,0, 0,0,1,0, 0,-1,0,0, -x,-y,-z,1);
-		drawSub(0,0,256,256);
-		Mat44.set(ono3d.viewMatrix,-1,0,0,0, 0,0,-1,0, 0,1,0,0, -x,-y,-z,1);
-		drawSub(256,0,256,256);
-
-		Ono3d.copyImage(envBuf,0,256,0,0,256*2,256);
-
-		//極座標化
-		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-		ono3d.setViewport(0,0,256,128);
-		Ono3d.postEffect(envBuf,0,0,1,1,ono3d.shaders["cube2polar"]); 
-		Ono3d.copyImage(tex,0,0,0,0,256,128);
-
-		var texsize=tex.width;
-		var width=texsize;
-		var height=texsize*0.5;
-		var rough=0.125;
-
-		width>>=1;
-		height>>=1;
-
-		var envs=[0.06,0.24,0.54,1.0]; //i^2*0.06
-		for(var i=0;i<envs.length;i++){
-			rough=envs[i];
-			var tex2 = Rastgl.createTexture(0,width,height);
-
-			ono3d.setViewport(0,0,width,height);
-			ono3d.rough(width,height,rough,tex.gltexture,0,0,1,0.5);
-	//		Ono3d.postEffect(tex,0,0 ,1.0,0.5,ono3d.shaders["rough"]); 
-
-			gl.bindTexture(gl.TEXTURE_2D,tex2);
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-			Ono3d.copyImage({gltexture:tex2},0,0,0,0,width,height);
-			
-			ono3d.gauss(width,height,10,{gltexture:tex2},0,0,1,1,width,height); 
-
-			Ono3d.copyImage(tex,0,texsize-height*2,0,0,width,height);
-			Ono3d.copyImage(tex,width,texsize-height*2,0,0,width,height);
-			Ono3d.copyImage(tex,texsize-width,texsize-height*2,0,0,width,height);
-			width>>=1;
-			height>>=1;
-
-		}
-		
-		gl.bindTexture(gl.TEXTURE_2D, null);
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-	}
 	var homingCamera=function(angle,target,camera){
 		var dx=target[0]-camera[0]
 		var dy=target[1]-camera[1]
@@ -512,15 +444,16 @@ var Testact=(function(){
 		gl.depthMask(true);
 		ono3d.setViewport(x,y,w,h);
 		ono3d.getProjectionMatrix(ono3d.projectionMatrix);
-//		gl.clearColor(0.0,0.0,0.0,0.0);
-//		gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
+
+		gl.clear(gl.DEPTH_BUFFER_BIT);
 		gl.depthMask(false);
 		gl.disable(gl.BLEND);
-		if(skyTexture.gltexture){
+		if(field.scenes[0].world.envTexture){
+			var skyTexture = field.scenes[0].world.envTexture;
 			if(globalParam.stereomode==0){
 				ono3d.drawCelestialSphere(skyTexture);
 			}else{
-				ono3d.setPers(0.577,HEIGHT/WIDTH*2,1,20);
+				ono3d.setPers(0.577,HEIGHT/WIDTH*2,1,80);
 				ono3d.setViewport(0,0,WIDTH/2,HEIGHT);
 				ono3d.drawCelestialSphere(skyTexture);
 				ono3d.setViewport(WIDTH/2,0,WIDTH/2,HEIGHT);
@@ -534,15 +467,14 @@ var Testact=(function(){
 		gl.depthMask(true);
 		gl.enable(gl.DEPTH_TEST);
 
-		if(skyTexture.gltexture){
-			if(globalParam.shader===0){
-				if(globalParam.cMaterial){
-					ono3d.render(camera.p,customMaterial);
-				}else{
-					ono3d.render(camera.p);
-				}
+		if(globalParam.shader===0){
+			if(globalParam.cMaterial){
+				ono3d.render(camera.p,customMaterial);
+			}else{
+				ono3d.render(camera.p);
 			}
 		}
+		
 		gl.finish();
 	}
 	var fieldpath="f1.o3o";
@@ -641,6 +573,13 @@ var Testact=(function(){
 
 				O3o.setEnvironments(scene); //光源セット
 
+				var lightSource= null;
+
+				lightSource = ono3d.environments[0].sun
+				if(lightSource){
+					camera.calcCollision(camera.cameracol2,lightSource.viewmatrix);
+				}
+
 
 				//0番目の光源セットをコントロールに反映
 				var env = ono3d.environments[0];
@@ -651,6 +590,7 @@ var Testact=(function(){
 					Util.fireEvent(el,"change");
 				}
 
+
 				//カメラ反映等
 				ono3d.push();
 				goJiki=objMan.createObj(GoJiki);
@@ -660,11 +600,38 @@ var Testact=(function(){
 				Vec3.set(camera.a,0,Math.PI,0)
 
 
-				createEnv(envTexture,0,0,0);
+				var envTexture = ono3d.createEnv(null,0,0,0,drawSub);
 
 				for(var i=0;i<ono3d.environments_index;i++){
 					//環境マップ
 					ono3d.environments[i].envTexture=envTexture;
+				}
+
+				var lightprobe=o3o.objects.find(function(e){return e.name==="LightProbe"});
+				if(lightprobe){
+					lightprobe=lightprobe.data;
+
+
+					var points=[];
+					for(var i=0;i<lightprobe.vertices.length;i++){
+						var p=new Vec3();
+						Mat44.dotVec3(p,ono3d.worldMatrix,lightprobe.vertices[i].pos);
+						points.push(p);
+
+					}
+					
+					var triangles = Delaunay.create(points);
+					var bspTree=Bsp.createBspTree(triangles);
+				}
+
+
+				for(var i=0;i<ono3d.environments_index;i++){
+					var env = ono3d.environments[i];
+
+					env.lightProbe=scene.world.lightProbe;
+
+					env.bspTree=bspTree;
+					env.lightProbeMesh=lightprobe;
 				}
 
 				reset();
@@ -854,15 +821,20 @@ var Testact=(function(){
 		}
 	
 	
+	var physicsTime;
 	var span;
 	var oldTime = 0;
+	var nowTime =0;
+	var drawgeometryTime=0;
+	var drawrasteriseTime=0;
+	var drawTime=0;
 	var mseccount=0;
 	var framecount=0;
 	var inittime=0;
-	var timer=0;
+	var afID=0;
 	var mainloop=function(){
 		var nowTime = Date.now()
-		timer=nowTime-inittime;
+		nowTime = Date.now()
 		
 		var obj;
 
@@ -889,42 +861,90 @@ var Testact=(function(){
 		}
 
 
-
-
-		var cursorr = new Vec2();
-		cursorr[0] =Util.cursorX/WIDTH*2-1;
-		cursorr[1] =Util.cursorY/HEIGHT*2-1;
-		if(globalParam.stereomode!=0){
-			cursorr[0]*=2;
-			if(cursorr[0]<0){
-				cursorr[0]+=1;
-
-				ono3d.projectionMat[12]=globalParam.stereo;
-				Mat44.dot(ono3d.pvMat,ono3d.projectionMat,ono3d.viewMatrix);
-			}else{
-				cursorr[0]-=1;
-			}
+		if(!afID){
+			afID = window.requestAnimationFrame(drawFunc);
 		}
+
+		mseccount += (Date.now() - nowTime)
+		framecount++
+		if(nowTime-oldTime > 1000){
+			var mspf=0;
+			var fps = framecount*1000/(nowTime-oldTime)
+			if(framecount!==0)mspf = mseccount/framecount
+			
+			Util.setText(span,fps.toFixed(2) + "fps " + mspf.toFixed(2) + "ms/frame"
+				   +"\nPhyisics " + physicsTime +"ms"
+				   +"\n AABB " + onoPhy.collider.AABBTime+"ms (Object " + onoPhy.collider.collisions.length + ")"
+				   +"\n Collision " + onoPhy.collider.collisionTime + "ms (Target " + onoPhy.collider.collisionCount+ ")"
+				   +"\n Impulse " + onoPhy.impulseTime+"ms (repetition " + onoPhy.repetition +")"
+				   +"\nDrawTime " + drawTime +"ms"
+				   +"\n geometry " + drawgeometryTime +"ms"
+				   +"\n rasterise " + drawrasteriseTime +"ms" 
+				   )
+	
+			framecount = 0
+			mseccount=0
+			oldTime = nowTime
+		}
+	}
+	var parentnode = (function (scripts) {
+		return scripts[scripts.length - 1].parentNode;
+	}) (document.scripts || document.getElementsByTagName('script'));
+
+	var drawFunc = function(){
+		afID = 0;
+
+		drawTime=Date.now();
+
 
 		ono3d.rf=0;
 		ono3d.lineWidth=1.0;
 		ono3d.smoothing=globalParam.smoothing;
 
+		ono3d.lightThreshold1=globalParam.lightThreshold1;
+		ono3d.lightThreshold2=globalParam.lightThreshold2;
+
 		var environment = ono3d.environments[0];
 		Util.hex2rgb(environment.sun.color,globalParam.lightColor1)
 		Util.hex2rgb(environment.area.color,globalParam.lightColor2)
 
-		ono3d.lightThreshold1=globalParam.lightThreshold1;
-		ono3d.lightThreshold2=globalParam.lightThreshold2;
+		if(globalParam.cMaterial){
+			var cMat = customMaterial;
+			var a=new Vec3();
+			Util.hex2rgb(cMat.baseColor,globalParam.baseColor);
+			cMat.opacity=globalParam.opacity;
+			cMat.emt=globalParam.emi;
+			cMat.metallic=globalParam.metallic;
+			cMat.ior=globalParam.ior;
+			cMat.roughness=globalParam.roughness;
+			cMat.subRoughness=globalParam.subRoughness;
+			Util.hex2rgb(cMat.metalColor,globalParam.metalColor);
+			cMat.texture=globalParam.cTexture;
+			cMat.texture_slots=[];
+			if(globalParam.cTexture>=0){
+				var texture_slot = new O3o.Texture_slot();
 
-	
+				cMat.texture_slots.push(texture_slot);
+				texture_slot.texture = customTextures[globalParam.cTexture];
+			}
+			if(globalParam.cBump>=0){
+				var texture_slot = new O3o.Texture_slot();
+
+				cMat.texture_slots.push(texture_slot);
+				texture_slot.texture = customBumps[globalParam.cBump];
+				texture_slot.normal= globalParam.cNormal;
+			}
+		}
+
+			
 		var start = Date.now();
+
 		camera.calcMatrix();
 		camera.calcCollision(camera.cameracol);
 		var lightSource= null;
 
 		if(globalParam.shadow){
-			lightSource = ono3d.environments[0].sun;
+			lightSource = ono3d.environments[0].sun
 			if(lightSource){
 				camera.calcCollision(camera.cameracol2,lightSource.viewmatrix);
 			}
@@ -941,113 +961,53 @@ var Testact=(function(){
 			ono3d.pop();
 		}
 
-		var drawgeometry=Date.now()-start;
+		drawgeometryTime=Date.now()-start;
+
+		
+		// ステレオ描画設定
+		globalParam.stereo=-globalParam.stereoVolume * globalParam.stereomode*0.4;
 
 		start=Date.now();
 
-
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.depthMask(true);
-		gl.clearColor(0.0,0.0,0.0,0.0);
-		gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
+		gl.clear(gl.DEPTH_BUFFER_BIT);
 		drawSub(0,0,WIDTH,HEIGHT);
 		
+		var env = ono3d.environments[0];
+		//環境マップ
+
+		//Ono3d.drawCopy(env.envTexture,0,0,1,1);
 
 		//描画結果をバッファにコピー
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		gl.bindTexture(gl.TEXTURE_2D, bufTexture.gltexture);
-		gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,WIDTH,HEIGHT);
+		Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 
 		//画面平均光度算出
 		if(globalParam.autoExposure){
-
-			//ピクセル毎の光度と最大値を取得
-			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-			ono3d.setViewport(0,0,256,256);
-			gl.bindTexture(gl.TEXTURE_2D,averageTexture.gltexture);
-			Ono3d.postEffect(bufTexture ,(WIDTH-512)/2.0/1024,0 ,512/1024,HEIGHT/1024,ono3d.shaders["average"]); 
-			Ono3d.copyImage(averageTexture,0,0,0,0,256,256);
-
-			//1/2縮小を繰り返し平均と最大値を求める
-			var size = 256;
-			for(var i=0;size>1;i++){
-				ono3d.setViewport(0,0,size/2,size/2);
-				Ono3d.postEffect(averageTexture ,0 ,0,size/512,size/512,ono3d.shaders["average2"]); 
-				Ono3d.copyImage(averageTexture,0,0,0,0,size/2,size/2);
-				size/=2;
-			}
-			ono3d.setViewport(0,511,1,1);
-			Ono3d.postEffect(averageTexture ,0,511/512,1/512,1/512,ono3d.shaders["average3"]); 
-			Ono3d.copyImage(averageTexture,0,511,0,511,1,1);
-
+			ono3d.calcExpose(bufTexture,(WIDTH-512)/2.0/1024,0 ,512/1024,HEIGHT/1024);
 		}else{
-			ono3d.setViewport(0,511,1,1);
-			gl.useProgram(ono3d.shaders["fill"].program);
-			var a = new Vec4();
-			Vec4.set(a,globalParam.exposure_level
-				,globalParam.exposure_upper
-				,0.5,0.5);
-			Ono3d.encode2(a,a);
-			gl.uniform4f(ono3d.shaders["fill"].unis["uColor"]
-				,a[0],a[1],a[2],a[3]);
-				
-			Ono3d.postEffect(averageTexture,0,0,0,0,ono3d.shaders["fill"]); 
-			Ono3d.copyImage(averageTexture,0,511,0,511,1,1);
+			ono3d.setExpose(globalParam.exposure_level,globalParam.exposure_upper);
 		}
-		var addShader = ono3d.shaders["add"];
-		if(globalParam.exposure_bloom && addShader.program){
 
-			//合成
-			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-
-			gl.useProgram(addShader.program);
-			gl.uniform1i(addShader.unis["uSampler2"],1);
-			gl.activeTexture(gl.TEXTURE1);
-			gl.bindTexture(gl.TEXTURE_2D,bufTexture.gltexture);
-			gl.uniform1f(addShader.unis["v1"],0.0);
-			gl.uniform1f(addShader.unis["v2"],globalParam.exposure_bloom);
-			
-			var emiSize=0.5;
-			ono3d.setViewport(0,0,WIDTH*emiSize,HEIGHT*emiSize);
-			Ono3d.postEffect(emiTexture ,0,0 ,WIDTH/1024,HEIGHT/1024,addShader); 
-			Ono3d.copyImage(emiTexture,0,0,0,0,WIDTH/2,HEIGHT/2);
-
-			ono3d.gauss(WIDTH*emiSize,HEIGHT*emiSize,100
-				,emiTexture,0,0,WIDTH*emiSize/512,HEIGHT*emiSize/512,512,512); //光テクスチャをぼかす
-			Ono3d.copyImage(emiTexture,0,0,0,0,WIDTH*emiSize,HEIGHT*emiSize);//結果を光テクスチャに書き込み
-
-			//合成
-			gl.bindFramebuffer(gl.FRAMEBUFFER,null );
-
-			gl.useProgram(addShader.program);
-			gl.uniform1i(addShader.unis["uSampler2"],1);
-			gl.activeTexture(gl.TEXTURE1);
-			gl.bindTexture(gl.TEXTURE_2D,emiTexture.gltexture);
-			gl.uniform1f(addShader.unis["v1"],1.0);
-			gl.uniform1f(addShader.unis["v2"],1.0);
-
+		if(globalParam.exposure_bloom ){
+			// ブルーム処理
 			ono3d.setViewport(0,0,WIDTH,HEIGHT);
-			Ono3d.postEffect(bufTexture,0,0 ,WIDTH/1024.0,HEIGHT/1024,addShader); 
-
+			ono3d.bloom(bufTexture,globalParam.exposure_bloom);
+			Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 		}
-		ono3d.setViewport(0,0,WIDTH,HEIGHT);
-		gl.bindFramebuffer(gl.FRAMEBUFFER,null );
 
-		var decodeShader = ono3d.shaders["decode"];
-		gl.useProgram(decodeShader.program);
-		gl.uniform1i(decodeShader.unis["uSampler2"],1);
-		gl.uniform1f(decodeShader.unis["uAL"],globalParam.exposure_level);
-		gl.uniform1f(decodeShader.unis["uLw"],globalParam.exposure_upper);
-		gl.activeTexture(gl.TEXTURE1);
-		gl.bindTexture(gl.TEXTURE_2D,averageTexture.gltexture);
-		Ono3d.postEffect(bufTexture ,0,0 ,WIDTH/1024,HEIGHT/1024,decodeShader); 
+
+		//トーンマッピング
+		ono3d.toneMapping(bufTexture,WIDTH/1024,HEIGHT/1024);
 		
 
 
-		gl.finish();
+
 		ono3d.clear();
 
 		for(i=0;i<objMan.objs.length;i++){
+			//HUD描画
 			obj = objMan.objs[i];
 			ono3d.setTargetMatrix(1)
 			ono3d.push();
@@ -1059,34 +1019,13 @@ var Testact=(function(){
 			ono3d.pop();
 		}
 
-		var drawrasterise=Date.now()-start;
+		//gl.getParameter(gl.VIEWPORT);
+		drawrasteriseTime=Date.now()-start;
 
-		mseccount += (Date.now() - nowTime)
-		framecount++
-		if(nowTime-oldTime > 1000){
-			var mspf=0;
-			var fps = framecount*1000/(nowTime-oldTime)
-			if(framecount!==0)mspf = mseccount/framecount
-			
-			Util.setText(span,fps.toFixed(2) + "fps " + mspf.toFixed(2) + "msec/f"
-				   +"\n AABB " + onoPhy.collider.AABBTime+"ms(" + onoPhy.collider.collisions.length + ")"
-				   +"\n Collision " + onoPhy.collider.collisionTime + "ms(" + onoPhy.collider.collisionCount+ ")"
-				   +"\n Impulse " + onoPhy.impulseTime+"ms ,repetition " + onoPhy.repetition
-				   +"\n PhyTime" + phytime
-				   +"\n draw geometry " + drawgeometry +"ms"
-				   +"\n draw rasterise " + drawrasterise +"ms" 
-				   )
-	
-			framecount = 0
-			mseccount=0
-			oldTime = nowTime
-		}
+		drawTime =Date.now()-drawTime;
+
+		mseccount += drawTime;
 	}
-	var parentnode = (function (scripts) {
-		return scripts[scripts.length - 1].parentNode;
-	}) (document.scripts || document.getElementsByTagName('script'));
-
-
 	ret.loadModel=function(){
 		obj3d=O3o.load(globalParam.model,function(){
 
@@ -1112,34 +1051,10 @@ var Testact=(function(){
 	ret.start = function(){
 		var select = document.getElementById("cTexture");
 		var option;
-
-		skyTexture = Ono3d.loadTexture("sky.jpg",function(image){
-			var envsize=16;
-			gl.colorMask(true,true,true,true);
-			gl.disable(gl.BLEND);
-			gl.disable(gl.DEPTH_TEST);
-
-
-			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-			gl.viewport(0,0,image.width,image.height);
-			Ono3d.postEffect(image,0,0 ,1,1,ono3d.shaders["envset"]); 
-			gl.bindTexture(gl.TEXTURE_2D, image.gltexture);
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-			Ono3d.copyImage(image,0,0,0,0,image.width,image.height);
-
-			gl.bindTexture(gl.TEXTURE_2D, null);
-			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-
-			goMain = objMan.createObj(GoMain);
-
-
-		});
+		//soundbuffer = WebAudio.loadSound('se.mp3');
 
 		
-		Util.setFps(globalParam.fps,mainloop);
-		Util.fpsman();
-	
+
 		document.getElementById("autoExposure").addEventListener("change"
 			,function(evt){
 				var control = document.getElementById("exposure_setting");
@@ -1194,13 +1109,10 @@ var Testact=(function(){
 			Util.fireEvent(element,"change");
 		}
 		
+		goMain = objMan.createObj(GoMain);
 
-		var userAgent = window.navigator.userAgent.toLowerCase();
-		if (navigator.platform.indexOf("Win") != -1) {
-			globalParam.windows=true;
-		}else{
-			globalParam.windows=false;
-		}
+		Util.setFps(globalParam.fps,mainloop);
+		Util.fpsman();
 
 	}
 		var canvas =document.createElement("canvas");
@@ -1242,13 +1154,8 @@ var Testact=(function(){
 		Rastgl.ono3d = ono3d;
 
 
-		var environment = ono3d.environments[0];
-		ono3d.environments_index++;
-
-
-		gl.clearColor(1, 1, 1,1.0);
-		gl.clearColor(0.0,0.0,0.0,1.0);
-		gl.clear(gl.COLOR_BUFFER_BIT);
+		bufTexture=Ono3d.createTexture(1024,1024);
+		gl.bindTexture(gl.TEXTURE_2D, bufTexture.glTexture);
 	
 		onoPhy = new OnoPhy();
 		ret.onoPhy = onoPhy;
@@ -1259,30 +1166,6 @@ var Testact=(function(){
 
 		span=document.getElementById("cons");
 
-	emiTexture = Ono3d.createTexture(512,512);
-	gl.bindTexture(gl.TEXTURE_2D, emiTexture.gltexture);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-	envTexture=Ono3d.createTexture(256,256);
-	gl.bindTexture(gl.TEXTURE_2D, envTexture.gltexture);
-	//gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-	
-	envBuf=Ono3d.createTexture(1024,512);
-	gl.bindTexture(gl.TEXTURE_2D, envBuf.gltexture);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-	bufTexture=Ono3d.createTexture(1024,1024);
-	gl.bindTexture(gl.TEXTURE_2D, bufTexture.gltexture);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-	averageTexture=Ono3d.createTexture(512,512);
-	gl.bindTexture(gl.TEXTURE_2D, averageTexture.gltexture);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 		
 	return ret;
 })()

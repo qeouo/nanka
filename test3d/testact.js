@@ -711,14 +711,17 @@ var Testact=(function(){
 						if(objects[i].hide_render){
 							continue;
 						}
-						if(!objects[i].static){
-							continue;
+						if(objects[i].rigid_body){
+							var r = objects[i].rigid_body;
+							if(r.type!=="PASSIVE"){
+								continue;
+							}
 						}
 
 						var obj=objects[i];
 
 						var env = null;
-						O3o.drawObject(objects[i],null,env);
+						obj.staticFaces=O3o.drawObjectStatic(obj,null,env);
 						
 					}
 				}
@@ -741,7 +744,8 @@ var Testact=(function(){
 						if(objects[i].hide_render){
 							continue;
 						}
-						if(objects[i].static){
+						if(objects[i].staticFaces){
+							O3o.drawStaticFaces(objects[i].staticFaces);
 							continue;
 						}
 						var b =objects[i].bound_box;

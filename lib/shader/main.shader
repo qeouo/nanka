@@ -13,7 +13,7 @@ varying vec2 vUv2;
 varying vec3 vEye; 
 varying vec3 vPos; 
 varying mat3 vView; 
-varying vec3 vLightPos; 
+varying highp vec3 vLightPos; 
 varying float vEnvRatio;  
 varying vec3 vLightProbe; 
 uniform int uEnvIndex;  
@@ -41,7 +41,7 @@ varying vec2 vUv2;
 varying vec3 vEye; 
 varying mat3 vView; 
 varying vec3 vPos; 
-varying vec3 vLightPos; 
+varying highp vec3 vLightPos; 
 varying float vEnvRatio;  
 varying vec3 vLightProbe; 
 
@@ -121,10 +121,9 @@ void main(void){
 	diffuse = clamp((diffuse-lightThreshold1)*lightThreshold2,0.0,1.0); 
 
 	/*影判定*/ 
-	vec4 shadowmap; 
-	shadowmap=texture2D(uShadowmap,vLightPos.xy*0.5+0.5); 
-	float lightz = max(min(vLightPos.z,1.0),-1.); 
-	diffuse = (1.0-sign(lightz*0.5+0.5-0.01 -shadowmap.z))*0.5 * diffuse; 
+	highp float shadowmap; 
+	shadowmap=decodeFull_(texture2D(uShadowmap,(vLightPos.xy+1.0)*0.5)); 
+	diffuse = (1.0-sign((vLightPos.z+1.0)*0.5 -0.0001 -shadowmap))*0.5 * diffuse; 
 
 	/*拡散反射+環境光+自己発光*/ 
 	vec3 vColor2;
