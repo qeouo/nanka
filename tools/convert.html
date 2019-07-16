@@ -383,103 +383,63 @@ var Cube = (function(){
 	return ret;
 })();
 
-var Ex = (function(){
-	//?
-	var ret={}; 
-	ret.name="Ex";
-	var sqrt32=Math.sqrt(32);
-	var _sqrt32=sqrt(1/32);
-	ret.uv2angle=function(angle,uv){
-		var quad=((uv[0]+0.125)*4)|0;
-		var y=1.0-2.0*uv[1];
-
-		var val=((quad&2)-1)*(uv[0]-0.25*quad)*sqrt32;
-		if(0<=(val*val)*2+y*y-1){
-			angle[0]=0;
-			angle[1]=-0.9;
-			angle[2]=0;
-		}else{
-			angle[1]=y;
-			angle[(quad&1)<<1]=val;
-			angle[((~quad)&1)<<1]=(((quad-1)&2)-1)*sqrt(1-y*y-val*val)
-		}
-	}
-	ret.angle2uv=function(uv,angle){
-		
-		uv[1]=(1-angle[1])*0.5;
-		var a=angle[0]*angle[0]*(1<<30)
-		var b=angle[2]*angle[2]*(1<<30)
-		var sign=((a-b)>>30)&1
-		var sign2=((angle[0]*(1<<30))>>30)&1
-		var sign3=((angle[2]*(1<<30))>>30)&1
-		var u =-angle[0]*(1-sign3*2)*(sign)+angle[2]*(1-sign2*2)*(1-sign)
-
-		var quad=sign3*2*sign+(1-sign)*((1-sign2)*2+1);
-		uv[0]=quad*0.25+u*_sqrt32
-		if(uv[0]<0){
-			uv[0]+=1;
-		}
-	}
-	return ret;
-})();
-var Cube2=(function(){
-	//?
-	var ret={};
-	ret.name="Cube2";
-
-	var _sqrt2=1.0/Math.sqrt(2);
-	ret.angle2uv=function(uv,angle){
-		var s1=(angle[0]*angle[0]-angle[1]*angle[1])*(1<<30)&1;
-		var s2=(angle[1]*angle[1]-angle[2]*angle[2])*(1<<30)&1;
-		var s3=(angle[1]*angle[1]-angle[2]*angle[2])*(1<<30)&1;
-		var s2=angle[0]*angle[0]-angle[2]*angle[2];
-		s2=s2*(1<<30)&1;
-		var yy=uv[1]*2|0;
-		var u=(uv[0]-(xx*0.25)-0.125)*8*_sqrt2;
-		var v=(uv[1]-(yy*0.5)-0.25)*4*_sqrt2;
-		var n=Math.sqrt(1-u*u-v*v)
-		
-		var s1=(xx&1);
-		var s4=(yy&1);
-		var s2=(1-s1)*((xx&2)-1)*(1-s4);
-		var s3=(s1)*(((xx-1)&2)-1)*(1-s4);
-		var s5=s4*((xx&2)-1)
-
-		angle[0]=(s2*u + s3*n) + (s5)*u;
-		angle[1]=(-v)*(1-s4) +s5*n;
-		angle[2]=(-s2*n + s3*u) -s4*v ;
-
-		uv[0]=u;
-		uv[1]=v;
-
-	}
-	ret.uv2angle=function(angle,uv){
-		var xx=uv[0]*4|0;
-		var yy=uv[1]*2|0;
-		var u=(uv[0]-(xx*0.25)-0.125)*8*_sqrt2;
-		var v=(uv[1]-(yy*0.5)-0.25)*4*_sqrt2;
-		var n=Math.sqrt(1-u*u-v*v)
-		
-		var s1=(xx&1);
-		var s4=(yy&1);
-		var s2=(1-s1)*((xx&2)-1)*(1-s4);
-		var s3=(s1)*(((xx-1)&2)-1)*(1-s4);
-		var s5=s4*((xx&2)-1)
-
-		angle[0]=(s2*u + s3*n) + (s5)*u;
-		angle[1]=(-v)*(1-s4) +s5*n;
-		angle[2]=(-s2*n + s3*u) -s4*v ;
-	}
-	return ret;
-})();
 
 var funcs=[
 	Polar
 	,Cube
 	,Sphere
-	,Ex
-	,Cube2
 ];
+
+var legendre=function(l,m,theta,pi){
+	
+}
+
+var kaijo=function(n){
+	var result=1;
+	for(var i=0;i<n;i++){
+		result *= (i+1);
+	}
+	return result;
+
+}
+var kaijo2=function(n){
+	var result=1;
+	for(var i=n;i>0;i-=2){
+		result *= i;
+	}
+	return result;
+
+}
+
+var K = function(m,l){
+	var a = (2*l+1)/(4*Math.PI);
+	var b = kaijo(l-Math.abs(m))/kaijo(l+Math.abs(m));
+	return Math.sqrt(a*b);
+}
+var spherical=function(m,l,theta,pi){
+	if(m>0){
+		return Math.sqrt(2)*K(m,l)*Math.cos(m*pi)*legendre(m,l,Math.cos(theta));
+	}else if(m<0){
+		return Math.sqrt(2)*K(m,l)*Math.sin(-m*pi)*legendre(-m,l,Math.cos(theta));
+	}else{
+		return K(0,l)*legendre(0,l,Math.cos(theta));
+	}
+}
+var legendre=function(m,n,x){
+	if(m===n){
+		return  Math.pow(-1,m)*kaijo2(2*m-1)*Math.pow(1-x*x,m/2);
+	}
+	if((m+1)===n){
+		return (2*m+1)*x*legendre(m,m,x);
+	}
+	return (2*n-1)*legendre(m,n-1,x)-(n+m-1)*legendre(m,n-2,x);
+	
+}
+
+console.log(spherical(0,0,0.5,0.5));
+console.log(spherical(0,1,0.5,0.5));
+console.log(spherical(1,1,0.5,0.5));
+console.log(spherical(-1,1,0.5,0.5));
 </script>
 
 <style>

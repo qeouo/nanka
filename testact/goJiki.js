@@ -153,7 +153,7 @@
 			}
 			if(jump){
 					//ジャンプ力
-				vec[1]=6;
+				vec[1]=5;
 			}
 
 			Vec3.add(poJiki.v,poJiki.v,vec);//加速力足す

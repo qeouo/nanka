@@ -113,10 +113,9 @@ void main(void){
 	diffuse = clamp((diffuse-lightThreshold1)*lightThreshold2,0.0,1.0); 
 
 	/*影判定*/ 
-	highp vec4 shadowmap; 
-	shadowmap=decode(texture2D(uShadowmap,(vLightPos.xy+1.0)*0.5)); 
-	float lightz = vLightPos.z;
-	diffuse = (1.0-sign(lightz+1.0)*0.5 -shadowmap.z)*0.5 * diffuse; 
+	highp float shadowmap; 
+	shadowmap=decodeFull_(texture2D(uShadowmap,(vLightPos.xy+1.0)*0.5)); 
+	diffuse = (1.0-sign((vLightPos.z+1.0)*0.5 -0.0001 -shadowmap))*0.5 * diffuse; 
 
 
 
