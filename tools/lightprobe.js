@@ -612,7 +612,7 @@ var Testact=(function(){
 		globalParam.fps=60;
 		globalParam.scene=0;
 		globalParam.shadow=1;
-		globalParam.model="./f1.o3o";
+		globalParam.model="";
 		globalParam.materialMode = false;
 	//カスタムマテリアル
 		globalParam.baseColor= "ffffff";
