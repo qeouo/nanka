@@ -4,17 +4,18 @@
 <meta http-equiv="X-UA-Compatible" content="IE=Edge"/>
 <meta charset="utf-8">
 <script type="text/javascript" src="../lib/inherits.js"></script>
-<script type="text/javascript" src="../lib/sort.js"></script>
 <script type="text/javascript" src="../lib/vector.js"></script>
-<script type="text/javascript" src="../lib/geono.js"></script>
-<script type="text/javascript" src="../lib/delaunay.js"></script>
-<script type="text/javascript" src="../lib/bsp.js"></script>
-<script type="text/javascript" src="../lib/util.js"></script>
 </head>
+<style>
+*{
+	font-family:monospace;
+}
+</style>
 <body >
-	m=<input type="text" value="1" onchange="createPoint()" id="m"></input><br>
-l=<input type="text" value="1" onchange="createPoint()" id="l"></input>
-<div id="output"></div>
+<div>
+m=<input type="text" value="-2" onchange="createPoint()" id="m"></input><br>
+l=<input type="text" value="4" onchange="createPoint()" id="l"></input>
+</div>
 	<canvas id="c" width=512 height=512 style="border:solid 1px black;"></canvas>
 </body>
 <script type="text/javascript">
@@ -43,23 +44,31 @@ var K = function(m,l){
 	var b = kaijo(l-Math.abs(m))/kaijo(l+Math.abs(m));
 	return Math.sqrt(a*b);
 }
-var spherical=function(m,l,theta,pi){
+var K = function(l,m){
+	var a = (2*l+1)/(4*Math.PI);
+	var b = kaijo(l-Math.abs(m))/kaijo(l+Math.abs(m));
+	return Math.sqrt(a*b);
+}
+var stack = 0;
+var spherical=function(l,m,theta,pi){
+	stack=0;
 	if(m>0){
-		return Math.sqrt(2)*K(m,l)*Math.cos(m*pi)*legendre(m,l,Math.cos(theta));
+		return Math.sqrt(2)*K(l,m)*Math.cos(m*pi)*P(l,m,Math.cos(theta));
 	}else if(m<0){
-		return Math.sqrt(2)*K(m,l)*Math.sin(-m*pi)*legendre(-m,l,Math.cos(theta));
+		return Math.sqrt(2)*K(l,m)*Math.sin(-m*pi)*P(l,-m,Math.cos(theta));
 	}else{
-		return K(0,l)*legendre(0,l,Math.cos(theta));
+		return K(l,0)*P(l,0,Math.cos(theta));
 	}
 }
-var legendre=function(m,l,x){
+var P=function(l,m,x){
+	stack++;
 	if(m===l){
 		return  Math.pow(-1,m)*kaijo2(2*m-1)*Math.pow(1-x*x,m/2);
 	}
 	if((m+1)===l){
-		return (2*m+1)*x*legendre(m,m,x);
+		return (2*m+1)*x*P(m,m,x);
 	}
-	return ((2*l-1)*x*legendre(m,l-1,x)-(l+m-1)*legendre(m,l-2,x))/(l-m);
+	return ((2*l-1)*x*P(l-1,m,x)-(l+m-1)*P(l-2,m,x))/(l-m);
 	
 }
 function createPoint(){
@@ -67,7 +76,10 @@ function createPoint(){
 	ps=[];
 	var m= parseInt(document.getElementById("m").value);
 	var l= parseInt(document.getElementById("l").value);
-	var num=32;
+	if(Math.abs(m)>l){
+		return;
+	}
+	var num=16;
 	for(var i=0;i<num;i++){
 		var pi = Math.PI*2.0*(i/num);
 		for(var j=0;j<num;j++){
@@ -77,11 +89,14 @@ function createPoint(){
 			var s = Math.sin(theta);
 			point[0]=Math.cos(pi)*s;
 			point[2]=Math.sin(pi)*s;
-			var r = spherical(m,l,theta,pi);
+	console.log(i,j);
+			var r = spherical(l|0,m|0,theta,pi);
 			point[3]=r;
 			Vec3.mul(point,point,Math.abs(r));
 			points.push(point);
 			ps.push(new Vec4());
+	console.log(stack);
+			console.log("A");
 		}
 	}
 }
@@ -99,8 +114,6 @@ function trans(p2,mat,p){
 function draw(){
 	var l=Math.sin(tim*0.02)*100+20;
 	var ctx=document.getElementById("c").getContext("2d");
-	var output=document.getElementById("output");
-	ctx.clearRect(0,0,512,512);
 	var mat = new Mat33();
 	var mat2 = new Mat33();
 	tim+=1;
@@ -114,6 +127,7 @@ function draw(){
 		trans(p2,mat,p);
 	}
 
+	ctx.clearRect(0,0,512,512);
 	a=new Vec4();
 	var col=["red","green","blue"];
 	ctx.globalAlpha=0.5;
@@ -137,7 +151,7 @@ function draw(){
 	    return a[2] < b[2];
 	});
 
-		ctx.globalAlpha=1;
+	ctx.globalAlpha=1;
 	for(var i=0;i<ps.length;i++){
 		var point=ps[i];
 		if(point[3]<0){
@@ -151,5 +165,4 @@ function draw(){
 }
 createPoint();
 draw();
-console.log(legendre(0,2,0.1));
 </script>

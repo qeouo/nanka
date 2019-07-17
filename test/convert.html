@@ -1,0 +1,341 @@
+<html>
+<head>
+<title>skycube convert</title>
+<script type="text/javascript" src="../lib/inherits.js"></script>
+<script type="text/javascript" src="../lib/util.js"></script>
+<script type="text/javascript" src="../lib/vector.js"></script>
+<script type="text/javascript" src="../lib/spharm.js"></script>
+<script type="text/javascript">
+"use strict"
+var ctx,canvas;
+var onloadfunc=function(e){
+
+	document.getElementById("selfile").addEventListener("change",function(evt){
+		var file=evt.target.files;
+		var reader=new FileReader();
+		reader.readAsDataURL(file[0]);
+		reader.onload=function(){
+			var dataUrl = reader.result;
+			document.getElementById("srcImg").src=dataUrl;
+//			convert();
+		}
+	});
+ 
+	canvas =  document.getElementById('c')
+}
+var sqrt=Math.sqrt;
+var random=Math.random;
+var acos=Math.acos;
+var _255=1./256;
+var HtoL=function(src){
+	src*=_255;
+	return src*2
+}
+var xx=0,yy=0;
+
+var convert=function(){
+	var srcImg = document.getElementById("srcImg");
+	canvas.width=srcImg.width;
+	canvas.height=srcImg.height;
+	ctx =  canvas.getContext('2d')
+	ctx.drawImage(srcImg,0,0,srcImg.width,srcImg.height,0,0,canvas.width,canvas.height);
+	canvas.style.display='inline';
+	//document.getElementById("dstImg").style.display='none';
+
+	var srcimg=ctx.getImageData(0,0,canvas.width,canvas.height);
+	var srcwidth=srcimg.width;
+	var srcheight=srcimg.height;
+	var srcdata=srcimg.data;
+
+	var dstwidth=srcwidth;
+	var dstheight=srcheight;
+	if(!dstwidth){
+		dstwidth=srcwidth;
+	}
+	if(!dstheight){
+		dstheight=srcheight;
+	}
+	var dst = ctx.createImageData(dstwidth,dstheight)
+	var dstdata=dst.data;
+
+
+
+	canvas.width=dstwidth;
+	canvas.height=dstheight;
+	ctx =  canvas.getContext('2d')
+
+	var _dstwidth=1.0/dstwidth;
+	var _dstheight=1.0/dstheight;
+
+	var total=0;
+	for(var i=0;i<512;i++){
+		total += dstwidth*Math.sin(Math.PI*(i/512))
+	}
+	total = 1/total*4*Math.PI;
+	var lmax=3;
+	var cs=new Array(lmax*lmax);
+	for(var i=0;i<cs.length;i++){
+		cs[i]=new Vec3();
+	}
+	xx=0;yy=0;
+	var func=function(){
+		var nowTime = Date.now();
+		while(1){
+			var pi=Math.PI*2*xx*_dstwidth;
+			var theta=Math.PI*yy*_dstheight;
+			
+			var idx=yy*dstwidth+xx<<2;
+			var count=0;
+			for(var i=0;i<lmax;i++){
+				for(var j=-i;j<=i;j++){
+					var a=Spharm.Y(i,j,theta,pi)*Math.sin(theta)*total/Math.PI;
+					var c=cs[count];
+					count++;
+					c[0]+=a*srcdata[idx];
+					c[1]+=a*srcdata[idx+1];
+					c[2]+=a*srcdata[idx+2];
+				}
+			}
+			xx++;
+			if(xx>=dstwidth){
+				xx=0;
+				yy++;
+			}
+			
+			if(yy>=dstheight || (Date.now()-nowTime)>100){
+				break;
+			}
+		}
+		if(yy<dstheight){
+			setTimeout(func,1);
+		}else{
+			for(var y=0;y<dstheight;y++){
+				for(var x=0;x<dstwidth;x++){
+					var pi=Math.PI*2*x*_dstwidth;
+					var theta=Math.PI*y*_dstheight;
+					var idx=y*dstwidth+x<<2;
+					var cnt=0;
+					var r=0,g=0,b=0;
+					for(var i=0;i<lmax;i++){
+						var A = Spharm.A(i);
+						for(var j=-i;j<=i;j++){
+							var k=A*Spharm.Y(i,j,theta,pi);
+							var c=cs[cnt];
+							cnt++;
+							r+=c[0]*k;
+							g+=c[1]*k;
+							b+=c[2]*k;
+						}
+					}
+					dstdata[idx]=r;
+					dstdata[idx+1]=g;
+					dstdata[idx+2]=b;
+					dstdata[idx+3]=255;
+
+				}
+			}
+
+			ctx.putImageData(dst,0,0,0,0,dstwidth,dstheight);
+			console.log(cs);
+			canvas.style.display='none';
+			document.getElementById("dstImg").src=canvas.toDataURL("image/png");
+			document.getElementById("dstImg").style.display='inline';
+		}
+	}
+		
+	func();
+	
+
+}
+var atan2=Math.atan2;
+var asin=Math.asin;
+var PI=Math.PI;
+var _PI = 1/PI;
+var _PI05=_PI*0.5;
+var sqrt=Math.sqrt;
+
+var Polar = (function()	{
+	//極座標表示
+	var ret={};
+	ret.name="Polar";
+	ret.angle2uv=function(uv,angle){
+		uv[0]=atan2(angle[2],angle[0])*_PI05+0.5;
+		uv[1]=-asin(angle[1])*_PI+0.5;
+	}
+	ret.uv2angle=function(angle,uv){
+		angle[1]=-Math.sin((uv[1]-0.5)*Math.PI)
+		var l=sqrt(1-angle[1]*angle[1])
+		var r=-uv[0]*Math.PI*2 - Math.PI*0.5;
+		angle[0]=Math.sin(r)*l
+		angle[2]=Math.cos(r)*l
+	}
+	return ret;
+})();
+var Sphere= (function(){
+	//半球x2
+	var ret={};
+	ret.name="Sphere";
+	ret.angle2uv= function(uv,angle){
+		uv[0]=angle[0]*0.5+0.5;
+		uv[1]=angle[2]*0.5+0.5;
+		uv[0]=(uv[0]+(((-angle[1]*(1<<30))>>30)&1))*0.5;
+	}
+	ret.uv2angle=function(angle,uv){
+		var u=uv[0];
+		var v=uv[1]
+		angle[2]=v*2-1;
+		if(u<0.5){
+			angle[0]=u*4-1;
+		}else{
+			angle[0]=(u-0.5)*4-1;
+		}
+		var l=1.//Math.pow(angle[0]*angle[0]+angle[2]*angle[2],1./4.);
+		angle[0]*=l;
+		angle[2]*=l;
+		
+		if(angle[0]*angle[0]+angle[2]*angle[2]>1){
+			angle[1]=0;
+			Vec3.norm(angle);
+		}else{
+			angle[1]=-sqrt(1-angle[0]*angle[0]-angle[2]*angle[2]);
+		}
+		if(u>0.5){
+			angle[1]*=-1;
+		}
+			Vec3.norm(angle);
+	}
+	return ret;
+})();
+var Cube = (function(){
+	//キューブマップ(前右後左\n下上)
+	var ret = {};
+	ret.name="Cube";
+	ret.angle2uv=function(uv,angle){
+		var x=angle[0];
+		var y=angle[1];
+		var z=angle[2];
+		var u,v;
+		if(y*y>x*x && y*y>z*z){
+			x/=Math.abs(y);
+			z/=Math.abs(y);
+			if(x>0.99)x=0.99;
+			if(x<-0.99)x=-0.99;
+			if(z>0.99)z=0.99;
+			if(z<-0.99)z=-0.99;
+			if(y>0){
+				u=0.25+0.125-x*0.125
+				v=0.5+0.25+z*0.25
+			}else{
+				u=0.125-x*0.125
+				v=0.5+0.25-z*0.25
+			}
+		}else{
+			if(x*x>z*z){
+				z/=Math.abs(x);
+				y/=Math.abs(x);
+			if(y>0.99)y=0.99;
+			if(y<-0.99)y=-0.99;
+			if(z>0.99)z=0.99;
+			if(z<-0.99)z=-0.99;
+				if(x<0){
+					u=0.25+0.125-z*0.125;
+					v=0.25-y*0.25;
+				}else{
+					u=0.25+0.5+0.125+z*0.125;
+					v=0.25-y*0.25;
+				}
+			}else{
+				x/=Math.abs(z);
+				y/=Math.abs(z);
+				if(y>0.99)y=0.99;
+				if(y<-0.99)y=-0.99;
+				if(x>0.99)x=0.99;
+				if(x<-0.99)x=-0.99;
+				if(z>0){
+					u=0.125-x*0.125;
+					v=0.25-y*0.25;
+				}else{
+					u=0.5+0.125+x*0.125;
+					v=0.25-y*0.25;
+				}
+			}
+		}
+		uv[0]=u;
+		uv[1]=v;
+	}
+	ret.uv2angle=function(angle,uv){
+		var xx=uv[0]*4;
+		var yy=uv[1]*2;
+		if(yy<1){
+			yy=-(yy*2-1);
+			angle[1]=yy;
+			if(xx<1){
+				angle[2]=1;
+				angle[0]=-(xx*2-1);
+			}else if(xx<2){
+				xx-=1;
+				angle[2]=-(xx*2-1);
+				angle[0]=-1;
+			}else if(xx<3){
+				xx-=2;
+				angle[2]=-1;
+				angle[0]=xx*2-1;
+			}else{
+				xx-=3;
+				angle[2]=(xx*2-1);
+				angle[0]=1;
+			}
+		}else{
+			yy-=1;
+			yy=-(yy*2-1);
+			if(xx<1){
+				angle[1]=-1;
+				angle[0]=-(xx*2-1);
+				angle[2]=yy;
+			}else if(xx<2){
+				xx-=1;
+				angle[1]=1;
+				angle[0]=-(xx*2-1);
+				angle[2]=-yy;
+			}else{
+				angle[1]=1;
+				angle[0]=1;
+				angle[2]=1;
+			}
+		}
+		Vec3.norm(angle);
+	}
+	return ret;
+})();
+
+
+var funcs=[
+	Polar
+	,Cube
+	,Sphere
+];
+</script>
+
+<style>
+img{
+	border:solid 1px;
+	min-width:50px;
+	min-height:50px;
+}
+canvas{
+	display:none;
+}
+</style>
+</head>
+<body onLoad="onloadfunc(event)">
+<input type="file" id="selfile">
+	<input type="button" value="convert" onclick="convert()"><br>
+<canvas id="c"></canvas><br />
+
+Source<img src="" id="srcImg"/><br />
+<br />
+Output<img id="dstImg">
+</div>
+</body>
+</html>
+
