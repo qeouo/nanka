@@ -4,7 +4,7 @@
 <script type="text/javascript" src="../lib/inherits.js"></script>
 <script type="text/javascript" src="../lib/util.js"></script>
 <script type="text/javascript" src="../lib/vector.js"></script>
-<script type="text/javascript" src="../lib/spharm.js"></script>
+<script type="text/javascript" src="../lib/sh.js"></script>
 <script type="text/javascript">
 "use strict"
 var ctx,canvas;
@@ -24,13 +24,8 @@ var onloadfunc=function(e){
 	canvas =  document.getElementById('c')
 }
 var sqrt=Math.sqrt;
-var random=Math.random;
 var acos=Math.acos;
 var _255=1./256;
-var HtoL=function(src){
-	src*=_255;
-	return src*2
-}
 var xx=0,yy=0;
 
 var convert=function(){
@@ -39,89 +34,82 @@ var convert=function(){
 	canvas.height=srcImg.height;
 	ctx =  canvas.getContext('2d')
 	ctx.drawImage(srcImg,0,0,srcImg.width,srcImg.height,0,0,canvas.width,canvas.height);
-	canvas.style.display='inline';
-	//document.getElementById("dstImg").style.display='none';
+	//canvas.style.display='inline';
 
 	var srcimg=ctx.getImageData(0,0,canvas.width,canvas.height);
 	var srcwidth=srcimg.width;
 	var srcheight=srcimg.height;
 	var srcdata=srcimg.data;
 
-	var dstwidth=srcwidth;
-	var dstheight=srcheight;
-	if(!dstwidth){
-		dstwidth=srcwidth;
-	}
-	if(!dstheight){
-		dstheight=srcheight;
-	}
-	var dst = ctx.createImageData(dstwidth,dstheight)
-	var dstdata=dst.data;
-
-
-
-	canvas.width=dstwidth;
-	canvas.height=dstheight;
+	canvas.width=srcwidth;
+	canvas.height=srcheight;
 	ctx =  canvas.getContext('2d')
 
-	var _dstwidth=1.0/dstwidth;
-	var _dstheight=1.0/dstheight;
+	var _srcwidth=1.0/srcwidth;
+	var _srcheight=1.0/srcheight;
 
 	var total=0;
-	for(var i=0;i<512;i++){
-		total += dstwidth*Math.sin(Math.PI*(i/512))
+	for(var i=0;i<srcheight;i++){
+		total += srcwidth*Math.sin(Math.PI*(i*_srcheight))
 	}
-	total = 1/total*4*Math.PI;
-	var lmax=3;
+	total = 4*Math.PI/total;
+	var lmax= parseInt(document.getElementById("l").value)+1;
 	var cs=new Array(lmax*lmax);
 	for(var i=0;i<cs.length;i++){
-		cs[i]=new Vec3();
+		cs[i]=new Float64Array(3);
 	}
 	xx=0;yy=0;
 	var func=function(){
 		var nowTime = Date.now();
+		var theta=Math.PI*yy*_srcheight;
+		var sintheta=Math.sin(theta);
 		while(1){
-			var pi=Math.PI*2*xx*_dstwidth;
-			var theta=Math.PI*yy*_dstheight;
+			var pi=Math.PI*2*xx*_srcwidth;
 			
-			var idx=yy*dstwidth+xx<<2;
-			var count=0;
+			var idx=yy*srcwidth+xx<<2;
 			for(var i=0;i<lmax;i++){
 				for(var j=-i;j<=i;j++){
-					var a=Spharm.Y(i,j,theta,pi)*Math.sin(theta)*total/Math.PI;
-					var c=cs[count];
-					count++;
+					var a=SH.Y(i,j,theta,pi)*sintheta;
+					var c=cs[(i+1)*i+j];
 					c[0]+=a*srcdata[idx];
 					c[1]+=a*srcdata[idx+1];
 					c[2]+=a*srcdata[idx+2];
 				}
 			}
 			xx++;
-			if(xx>=dstwidth){
+			if(xx>=srcwidth){
 				xx=0;
 				yy++;
+				theta=Math.PI*yy*_srcheight;
+				sintheta=Math.sin(theta);
+
 			}
 			
-			if(yy>=dstheight || (Date.now()-nowTime)>100){
+			if(yy>=srcheight || (Date.now()-nowTime)>100){
 				break;
 			}
 		}
-		if(yy<dstheight){
+		if(yy<srcheight){
 			setTimeout(func,1);
 		}else{
-			for(var y=0;y<dstheight;y++){
-				for(var x=0;x<dstwidth;x++){
-					var pi=Math.PI*2*x*_dstwidth;
-					var theta=Math.PI*y*_dstheight;
-					var idx=y*dstwidth+x<<2;
-					var cnt=0;
+			var dst = ctx.createImageData(srcwidth,srcheight)
+			var dstdata=dst.data;
+			for(var i=0;i<lmax*lmax;i++){
+				cs[i][0]*=total;
+				cs[i][1]*=total;
+				cs[i][2]*=total;
+			}
+			for(var y=0;y<srcheight;y++){
+				var theta=Math.PI*y*_srcheight;
+				for(var x=0;x<srcwidth;x++){
+					var pi=Math.PI*2*x*_srcwidth;
+					var idx=y*srcwidth+x<<2;
 					var r=0,g=0,b=0;
 					for(var i=0;i<lmax;i++){
-						var A = Spharm.A(i);
+						var A = SH.A(i)/Math.PI;
 						for(var j=-i;j<=i;j++){
-							var k=A*Spharm.Y(i,j,theta,pi);
-							var c=cs[cnt];
-							cnt++;
+							var k=A*SH.Y(i,j,theta,pi);
+							var c=cs[(i+1)*i+j];
 							r+=c[0]*k;
 							g+=c[1]*k;
 							b+=c[2]*k;
@@ -135,7 +123,7 @@ var convert=function(){
 				}
 			}
 
-			ctx.putImageData(dst,0,0,0,0,dstwidth,dstheight);
+			ctx.putImageData(dst,0,0,0,0,srcwidth,srcheight);
 			console.log(cs);
 			canvas.style.display='none';
 			document.getElementById("dstImg").src=canvas.toDataURL("image/png");
@@ -329,6 +317,7 @@ canvas{
 </head>
 <body onLoad="onloadfunc(event)">
 <input type="file" id="selfile">
+l<=<input type="text" value="2"  id="l"></input><br>
 	<input type="button" value="convert" onclick="convert()"><br>
 <canvas id="c"></canvas><br />
 

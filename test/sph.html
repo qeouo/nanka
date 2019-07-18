@@ -39,11 +39,6 @@ var kaijo2=function(n){
 	return result;
 
 }
-var K = function(m,l){
-	var a = (2*l+1)/(4*Math.PI);
-	var b = kaijo(l-Math.abs(m))/kaijo(l+Math.abs(m));
-	return Math.sqrt(a*b);
-}
 var K = function(l,m){
 	var a = (2*l+1)/(4*Math.PI);
 	var b = kaijo(l-Math.abs(m))/kaijo(l+Math.abs(m));
