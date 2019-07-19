@@ -66,19 +66,24 @@ var convert=function(){
 		var nowTime = Date.now();
 		var theta=Math.PI*yy*_srcheight;
 		var sintheta=Math.sin(theta);
+		var rgb=new Array(3);
 		while(1){
 			var pi=Math.PI*2*xx*_srcwidth;
 			
 			var idx=yy*srcwidth+xx<<2;
-			for(var i=0;i<lmax;i++){
-				for(var j=-i;j<=i;j++){
-					var a=SH.Y_2(i,j,theta,pi)*sintheta;
-					var c=cs[(i+1)*i+j];
-					c[0]+=a*srcdata[idx];
-					c[1]+=a*srcdata[idx+1];
-					c[2]+=a*srcdata[idx+2];
-				}
-			}
+			Vec3.set(rgb,srcdata[idx],srcdata[idx+1],srcdata[idx+2]);
+			Vec3.mul(rgb,rgb,sintheta);
+			//SH.encode2(cs,rgb,theta,pi);
+			SH.encode3(cs,rgb,lmax,theta,pi);
+			//for(var i=0;i<lmax;i++){
+			//	for(var j=-i;j<=i;j++){
+			//		var a=SH.Y_2(i,j,theta,pi)*sintheta;
+			//		var c=cs[(i+1)*i+j];
+			//		c[0]+=a*srcdata[idx];
+			//		c[1]+=a*srcdata[idx+1];
+			//		c[2]+=a*srcdata[idx+2];
+			//	}
+			//}
 			xx++;
 			if(xx>=srcwidth){
 				xx=0;
@@ -93,8 +98,8 @@ var convert=function(){
 				var format=function(a){
 					return ("          "+(a*total).toFixed(4)).substr(-10);
 				}
-				text="係数計算中... "+(100*(yy*srcwidth+xx)*_srcheight*_srcwidth).toFixed(2)+"% \n";
-				text+="↓係数↓ \n";
+				text="計算チュ"+(100*(yy*srcwidth+xx)*_srcheight*_srcwidth).toFixed(2)+"% \n";
+				text+="係数 \n";
 				for(var i=0;i<lmax;i++){
 					for(var j=-i;j<=i;j++){
 						var c=cs[(i+1)*i+j];
@@ -115,24 +120,32 @@ var convert=function(){
 				cs[i][1]*=total;
 				cs[i][2]*=total;
 			}
+			//SH.encode2_2(cs,lmax);
+			SH.encode3_2(cs,lmax);
 			for(var y=0;y<srcheight;y++){
 				var theta=Math.PI*y*_srcheight;
 				for(var x=0;x<srcwidth;x++){
 					var pi=Math.PI*2*x*_srcwidth;
 					var idx=y*srcwidth+x<<2;
 					var r=0,g=0,b=0;
-					for(var i=0;i<lmax;i++){
-						for(var j=-i;j<=i;j++){
-							var k=SH.Y_2(i,j,theta,pi);
-							var c=cs[(i+1)*i+j];
-							r+=c[0]*k;
-							g+=c[1]*k;
-							b+=c[2]*k;
-						}
-					}
-					dstdata[idx]=r;
-					dstdata[idx+1]=g;
-					dstdata[idx+2]=b;
+					//SH.decode2(rgb,cs,theta,pi);
+					
+					SH.decode3(rgb,cs,lmax,theta,pi);
+					//Vec3.set(rgb,0,0,0);
+					//for(var i=0;i<lmax;i++){
+					//	for(var j=-i;j<=i;j++){
+					//		var k=SH.Y_2(i,j,theta,pi);
+					//		var c=cs[(i+1)*i+j];
+	
+					//		Vec3.madd(rgb,rgb,c,k);
+					//		//r+=c[0]*k;
+					//		//g+=c[1]*k;
+					//		//b+=c[2]*k;
+					//	}
+					//}
+					dstdata[idx]=rgb[0];
+					dstdata[idx+1]=rgb[1];
+					dstdata[idx+2]=rgb[2];
 					dstdata[idx+3]=255;
 
 				}
@@ -142,33 +155,6 @@ var convert=function(){
 			canvas.style.display='none';
 			document.getElementById("dstImg").src=canvas.toDataURL("image/png");
 
-			window.setTimeout(function(){
-				for(var y=0;y<srcheight;y++){
-					var theta=Math.PI*y*_srcheight;
-					for(var x=0;x<srcwidth;x++){
-						var pi=Math.PI*2*x*_srcwidth;
-						var idx=y*srcwidth+x<<2;
-						var r=0,g=0,b=0;
-						for(var i=0;i<lmax;i++){
-							var A = SH.A(i)/Math.PI;
-							for(var j=-i;j<=i;j++){
-								var k=A*SH.Y_2(i,j,theta,pi);
-								var c=cs[(i+1)*i+j];
-								r+=c[0]*k;
-								g+=c[1]*k;
-								b+=c[2]*k;
-							}
-						}
-						dstdata[idx]=r;
-						dstdata[idx+1]=g;
-						dstdata[idx+2]=b;
-						dstdata[idx+3]=255;
-
-					}
-				}
-				ctx.putImageData(dst,0,0,0,0,srcwidth,srcheight);
-				document.getElementById("dstImg2").src=canvas.toDataURL("image/png");
-			},10);
 
 		}
 	}
@@ -196,10 +182,10 @@ l&lt;=<input type="text" value="2"  id="l"></input><br>
 	<input type="button" value="convert" onclick="convert()"><br>
 <canvas id="c"></canvas><br />
 
-Source<img src="sky.png" id="srcImg"/><br>
+Source<img src="sky.jpg" id="srcImg"/><br>
 <br />
 近似<img id="dstImg"><br>
-拡散反射光(照度)<img id="dstImg2"><br>
+拡散反射光<img id="dstImg2"><br>
 	<pre id="output"></pre>
 </div>
 </body>
