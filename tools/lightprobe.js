@@ -1,14 +1,19 @@
 "use strict"
 var Testact=(function(){
 	var ret={};
-	var HEIGHT=64,WIDTH=64;
+	var HEIGHT=256,WIDTH=512;
 	var gl;
 	var onoPhy=null;
 	var objs=[];
 	var bufTexture;
 	var lightProbeTexture=null;
 	var probs = new Collider();
-					var px,py,pz;
+	var px,py,pz;
+	var cube2lightfield1;
+	var cube2lightfield2;
+	var cube2lightfield3;
+	var shShader=[];
+	var sigmaShader;
 
 	var obj3d=null,field=null;
 	var goField;
@@ -287,11 +292,11 @@ var Testact=(function(){
 						env.envTexture=envTexture;
 					}
 
-					lightProbeTexture = Ono3d.createTexture(WIDTH,HEIGHT);
-					gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-					gl.clearColor(0,0,0,1);
-					gl.clear(gl.COLOR_BUFFER_BIT);
-					Ono3d.copyImage(lightProbeTexture,0,0,0,0,WIDTH,HEIGHT);
+					lightProbeTexture = Ono3d.createTexture(64,64);
+					//gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+					//gl.clearColor(0,0,0,1);
+					//gl.clear(gl.COLOR_BUFFER_BIT);
+					//Ono3d.copyImage(lightProbeTexture,0,0,0,0,WIDTH,HEIGHT);
 					//for(var px=0;px<128;px++){
 					//	for(var py=0;py<128;py++){
 					//		for(var pz=0;pz<8;pz++){
@@ -305,73 +310,56 @@ var Testact=(function(){
 					var a=function(){
 						for(var i=0;i<lightprobe.vertices.length;i++){
 							var v=lightprobe.vertices[i].pos;
-							ono3d.createLightField(lightProbeTexture,v[0],v[1],v[2],0.5,drawSub);
-							Ono3d.copyImage(lightProbeTexture,(i%10)*6,(i/10|0),0,0,6,1);
+							//createLightField(lightProbeTexture,v[0],v[1],v[2],0.5,drawSub);
+							createSHcoeff(v[0],v[1],v[2],0.5,drawSub);
+							Ono3d.copyImage(lightProbeTexture,(i%7)*9,(i/7|0),0,0,9,1);
 						}
 						gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-						ono3d.setViewport(0,0,WIDTH,HEIGHT);
+						ono3d.setViewport(0,0,lightProbeTexture.width,lightProbeTexture.height);
 						Ono3d.drawCopy(0,0,1,1,lightProbeTexture,0,0,1,1);
 
+						var d = new Vec4();
 						if(false){
 							setTimeout(a,1);
 							console.log(px,py,pz);
 						}else{
-							//var canvas= Util.canvas;
-							//var ctx =  Util.ctx;
-							var canvas = document.getElementById("output");
-							var ctx=canvas.getContext("2d");
 							var width=64,height=64;
-							var dst = ctx.createImageData(width,height);
 							var u8 = new Uint8Array(width*height*4);
 							gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, u8);
 
-							var dstdata=dst.data;
-							for(var i=0;i<width*height*4;i++){
-								dstdata[i] = u8[i];
-							}
-
-							canvas.style.display="inline";
-							canvas.style.width= width+ "px";
-							//console.log(u8);
-							ctx.putImageData(dst,0,0,0,0,width,height);
-
-							canvasgl.style.display="none";
-
-							var content = "";
-							var obj=[];
-							var d=[];
+							var css=[];
 							for(var i=0;i<lightprobe.vertices.length;i++){
-								var x = (i%10)*6;
-								var y= (i/10|0);
+								var x = (i%7)*9;
+								var y= (i/7|0);
 								var ii = y*64+x;
-								var cube=[];
-								for(var j=0;j<6;j++){
-									d[0] = u8[(j+ii)*4+0]/255;
-									d[1] = u8[(j+ii)*4+1]/255;
-									d[2] = u8[(j+ii)*4+2]/255;
-									d[3] = u8[(j+ii)*4+3]/255;
-									Ono3d.decode(d,d);
-									var e=[];
-									e[0]=Math.floor(d[0]*1000)/1000;
-									e[1]=Math.floor(d[1]*1000)/1000;
-									e[2]=Math.floor(d[2]*1000)/1000;
-									cube[j] = e;
+								var cs=[];
+								for(var j=0;j<9;j++){
+									d[0] = u8[(j+ii)*4+0];
+									d[1] = u8[(j+ii)*4+1];
+									d[2] = u8[(j+ii)*4+2];
+									d[3] = u8[(j+ii)*4+3];
+									var e = new Vec3();
+									Ono3d.unpackFloat(e,d);
+									e[0]=Math.floor(e[0]/256*1000)/1000;
+									e[1]=Math.floor(e[1]/256*1000)/1000;
+									e[2]=Math.floor(e[2]/256*1000)/1000;
+									cs.push(e);
 								}
-								obj[i] = cube;
+								css.push(cs);
 							}
-							content = JSON.stringify(obj);
+							var content = JSON.stringify(css);
 
 
-						Util.loadText(globalParam.model,function(text){
-							var o3o=JSON.parse(text);
-							var mesh=o3o.meshes.find(function(e){return e.name===this},lightprobe.name);
-							mesh.colors=obj;
-							var filename = globalParam.model.substr(globalParam.model.lastIndexOf("/")+1);
-							 document.getElementById("download").setAttribute("download",filename);
-							var blob = new Blob([JSON.stringify(o3o)], { "type" : "text/plain" });
-							 document.getElementById("download").href = window.URL.createObjectURL(blob);
-							
-						});
+							Util.loadText(globalParam.model,function(text){
+								var o3o=JSON.parse(text);
+								var mesh=o3o.meshes.find(function(e){return e.name===this},lightprobe.name);
+								mesh.colors=css;
+								var filename = globalParam.model.substr(globalParam.model.lastIndexOf("/")+1);
+								 document.getElementById("download").setAttribute("download",filename);
+								var blob = new Blob([JSON.stringify(o3o)], { "type" : "text/plain" });
+								 document.getElementById("download").href = window.URL.createObjectURL(blob);
+								
+							});
              
 						}
 					}
@@ -393,6 +381,101 @@ var Testact=(function(){
 		return ret;
 
 	})();
+
+	var createSHcoeff= function(x,y,z,gridsize,func){
+		var size = 32;
+		var tex;
+		if(!tex){
+			tex =Ono3d.createTexture(size*4,size*4);
+		}
+		var envBuf = ono3d.envbufTexture;
+
+		gl.bindTexture(gl.TEXTURE_2D, null);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		//キューブマップ作成
+		var a=new Vec3(x,y,z);
+		Mat44.dotVec3(a,ono3d.worldMatrix,a);
+	
+		ono3d.createCubeMap(envBuf,a[0],a[1],a[2],size,func);
+
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.clearColor(0,0,0,1);
+		gl.clear(gl.COLOR_BUFFER_BIT);
+
+		for(var i=0;i<9;i++){
+			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+			gl.clearColor(0,0,0,1);
+			gl.clear(gl.COLOR_BUFFER_BIT);
+			ono3d.setViewport(0,0,size*4,size*2);
+			Ono3d.postEffect(envBuf,0,0,size*4/envBuf.width,size*2/envBuf.height,shShader[i]); 
+
+			Ono3d.copyImage(tex,0,0,0,0,size*4,size);
+			Ono3d.copyImage(tex,0,size,0,size,size*2,size);
+
+			//gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			//gl.clearColor(0,0,0,1);
+			//gl.clear(gl.COLOR_BUFFER_BIT);
+
+			var texsize=tex.width;
+
+			//gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+
+			while(2<texsize){
+				//積分
+				texsize>>=1;
+				ono3d.setViewport(0,0,texsize,texsize);
+				Ono3d.postEffect(tex,0,0,texsize*2/tex.width,texsize*2/tex.width,sigmaShader); 
+				Ono3d.copyImage(tex,0,0,0,0,texsize,texsize);
+
+			}
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			texsize>>=1;
+			ono3d.setViewport(i,0,1,1);
+			Ono3d.postEffect(tex,0,0,texsize*2/tex.width,texsize*2/tex.width,sigmaShader); 
+			Ono3d.copyImage(tex,0,0,0,0,texsize,texsize);
+		}
+		
+		return ;
+	}
+	var createLightField= function(tex,x,y,z,gridsize,func){
+		var size = 32;
+		if(!tex){
+			tex =Ono3d.createTexture(size*4,size*2);
+		}
+		var envBuf = ono3d.envbufTexture;
+
+		gl.bindTexture(gl.TEXTURE_2D, null);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		//キューブマップ作成
+		//ono3d.createCubeMap(envBuf,(x-64)*gridsize,(y-4)*gridsize,(z-64)*gridsize,size,func);
+		var a=new Vec3(x,y,z);
+		Mat44.dotVec3(a,ono3d.worldMatrix,a);
+	
+		ono3d.createCubeMap(envBuf,a[0],a[1],a[2],size,func);
+
+		ono3d.setViewport(0,0,size*4,size*2);
+		Ono3d.postEffect(envBuf,0,0,size*4/envBuf.width,size*2/envBuf.height,cube2lightfield1); 
+		Ono3d.copyImage(envBuf,0,0,0,0,size*4,size*2);
+
+		var texsize=size;
+
+		while(2<texsize){
+			//積分
+			texsize>>=1;
+			ono3d.setViewport(0,0,texsize*4,texsize*2);
+			Ono3d.postEffect(envBuf,0,0,1,1,cube2lightfield2); 
+			Ono3d.copyImage(envBuf,0,0,0,0,texsize*4,texsize*2);
+
+		}
+
+		//積分2
+		ono3d.setViewport(0,0,6,1);
+		Ono3d.postEffect(envBuf,0,0,1,1,cube2lightfield3); 
+		//Ono3d.copyImage(tex,x*6,z+y*128,0,0,6,1);
+		
+
+		return tex;
+	}
 
 
 	var Camera= (function(){
@@ -528,6 +611,12 @@ var Testact=(function(){
 					for(var i=0;i<objects.length;i++){
 						if(objects[i].hide_render){
 							continue;
+						}
+						if(objects[i].rigid_body){
+							var r = objects[i].rigid_body;
+							if(r.type!=="PASSIVE"){
+								continue;
+							}
 						}
 						var b =objects[i].bound_box;
 						Mat43.setInit(m43);
@@ -845,7 +934,7 @@ var Testact=(function(){
 		gl.finish();
 
 		
-		//gl.clearColor(0,0,0,0.0);
+		gl.clearColor(0,0,0,0.0);
 		//gl.clear(gl.COLOR_BUFFER_BIT);
 
 		ono3d.clear();
@@ -1007,6 +1096,13 @@ gl.blendFuncSeparate(
 
 	span=document.getElementById("cons");
 
+	cube2lightfield1=Ono3d.loadShader("cube2lightfield.shader");
+	cube2lightfield2=Ono3d.loadShader("cube2lightfield2.shader");
+	cube2lightfield3=Ono3d.loadShader("cube2lightfield3.shader");
+	sigmaShader=Ono3d.loadShader("sigma.shader");
 
+	for(var i=0;i<9;i++){
+		shShader.push(Ono3d.loadShader("sh"+i+".shader"));
+	}
 	return ret;
 })()

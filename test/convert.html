@@ -1,6 +1,6 @@
 <html>
 <head>
-<title>skycube convert</title>
+<title>sh</title>
 <script type="text/javascript" src="../lib/inherits.js"></script>
 <script type="text/javascript" src="../lib/util.js"></script>
 <script type="text/javascript" src="../lib/vector.js"></script>
@@ -73,8 +73,8 @@ var convert=function(){
 			var idx=yy*srcwidth+xx<<2;
 			Vec3.set(rgb,srcdata[idx],srcdata[idx+1],srcdata[idx+2]);
 			Vec3.mul(rgb,rgb,sintheta);
-			//SH.encode2(cs,rgb,theta,pi);
-			SH.encode3(cs,rgb,lmax,theta,pi);
+			SH.encode2(cs,rgb,theta,pi);
+			//SH.encode3(cs,rgb,lmax,theta,pi);
 			//for(var i=0;i<lmax;i++){
 			//	for(var j=-i;j<=i;j++){
 			//		var a=SH.Y_2(i,j,theta,pi)*sintheta;
@@ -98,8 +98,8 @@ var convert=function(){
 				var format=function(a){
 					return ("          "+(a*total).toFixed(4)).substr(-10);
 				}
-				text="計算チュ"+(100*(yy*srcwidth+xx)*_srcheight*_srcwidth).toFixed(2)+"% \n";
-				text+="係数 \n";
+				text="計算中..."+(100*(yy*srcwidth+xx)*_srcheight*_srcwidth).toFixed(2)+"% \n";
+				text+="↓係数↓ \n";
 				for(var i=0;i<lmax;i++){
 					for(var j=-i;j<=i;j++){
 						var c=cs[(i+1)*i+j];
@@ -120,29 +120,17 @@ var convert=function(){
 				cs[i][1]*=total;
 				cs[i][2]*=total;
 			}
-			//SH.encode2_2(cs,lmax);
-			SH.encode3_2(cs,lmax);
+			SH.encode2_2(cs,lmax);
+			//SH.encode3_2(cs,lmax);
 			for(var y=0;y<srcheight;y++){
 				var theta=Math.PI*y*_srcheight;
 				for(var x=0;x<srcwidth;x++){
 					var pi=Math.PI*2*x*_srcwidth;
 					var idx=y*srcwidth+x<<2;
 					var r=0,g=0,b=0;
-					//SH.decode2(rgb,cs,theta,pi);
 					
-					SH.decode3(rgb,cs,lmax,theta,pi);
-					//Vec3.set(rgb,0,0,0);
-					//for(var i=0;i<lmax;i++){
-					//	for(var j=-i;j<=i;j++){
-					//		var k=SH.Y_2(i,j,theta,pi);
-					//		var c=cs[(i+1)*i+j];
-	
-					//		Vec3.madd(rgb,rgb,c,k);
-					//		//r+=c[0]*k;
-					//		//g+=c[1]*k;
-					//		//b+=c[2]*k;
-					//	}
-					//}
+					//SH.decode3(rgb,cs,lmax,theta,pi);
+					SH.decode2(rgb,cs,theta,pi);
 					dstdata[idx]=rgb[0];
 					dstdata[idx+1]=rgb[1];
 					dstdata[idx+2]=rgb[2];
@@ -150,10 +138,32 @@ var convert=function(){
 
 				}
 			}
-
 			ctx.putImageData(dst,0,0,0,0,srcwidth,srcheight);
 			canvas.style.display='none';
 			document.getElementById("dstImg").src=canvas.toDataURL("image/png");
+
+			window.setTimeout(function(){
+				SH.mulA(cs);
+				for(var y=0;y<srcheight;y++){
+					var theta=Math.PI*y*_srcheight;
+					for(var x=0;x<srcwidth;x++){
+						var pi=Math.PI*2*x*_srcwidth;
+						var idx=y*srcwidth+x<<2;
+						var r=0,g=0,b=0;
+						
+						//SH.decode3(rgb,cs,lmax,theta,pi);
+					SH.decode2(rgb,cs,theta,pi);
+						dstdata[idx]=rgb[0];
+						dstdata[idx+1]=rgb[1];
+						dstdata[idx+2]=rgb[2];
+						dstdata[idx+3]=255;
+
+					}
+				}
+
+				ctx.putImageData(dst,0,0,0,0,srcwidth,srcheight);
+				document.getElementById("dstImg2").src=canvas.toDataURL("image/png");
+			},10);
 
 
 		}
@@ -182,7 +192,7 @@ l&lt;=<input type="text" value="2"  id="l"></input><br>
 	<input type="button" value="convert" onclick="convert()"><br>
 <canvas id="c"></canvas><br />
 
-Source<img src="sky.jpg" id="srcImg"/><br>
+Source<img src="sky.png" id="srcImg"/><br>
 <br />
 近似<img id="dstImg"><br>
 拡散反射光<img id="dstImg2"><br>
