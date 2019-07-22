@@ -1,6 +1,6 @@
 {"format":"Ono3dObject Version 0.2"
 ,"materials":[
-    {"name": "hoge", "shader": "test"}
+    {"name": "hoge"}
   ,  {"name": "マテリアル"}
   ,  {"name": "マテリアル.003", "baseColor": [0.800000011920929, 0.800000011920929, 0.800000011920929], "opacity": 1.0, "metallic": 0.0, "roughness": 0.5, "ior": 1.4500000476837158, "subRoughness": 0.0, "lightMap": "//../public_html/nanka/testact/lightmap.png"}
 ]
