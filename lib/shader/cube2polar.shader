@@ -68,12 +68,14 @@ vec2 boxAngle2Uv(vec3 angle){
 }
 void main(void){
 	vec3 angle;
-	angle.y=-sin((vUv.y-0.5)*PI);
-	angle.y=max(-1.0,min(1.0,angle.y));
-	float l=sqrt(1.0-angle.y*angle.y);
-	float r=vUv.x*PI*2.0 + PI;
-	angle.x=cos(r)*l;
-	angle.z=sin(r)*l;
+
+	angle = uv2angle(vUv);
+//	angle.y=-sin((vUv.y-0.5)*PI);
+//	angle.y=max(-1.0,min(1.0,angle.y));
+//	float l=sqrt(1.0-angle.y*angle.y);
+//	float r=vUv.x*PI*2.0 + PI;
+//	angle.x=cos(r)*l;
+//	angle.z=sin(r)*l;
 
     gl_FragColor = encode(textureRGBE( uSampler,vec2(1024.0,512.0),boxAngle2Uv(angle)));
 }

@@ -860,7 +860,7 @@
     ,"objects":["1sun","Camera","LightProbe","prob_shade","立方体","立方体.001","立方体.005","立方体.008","立方体.009","立方体.010","立方体.011","立方体.012","立方体.013","room","ガラス","_border","_goal","_start","goalObject","立方体.003","立方体.004"]
     ,"world":{
       "name":"World"
-      ,"envTexture":"//sky.png"
+      ,"envTexture":"//sky.jpg"
     }
   }
 ]

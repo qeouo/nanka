@@ -340,9 +340,9 @@ var Testact=(function(){
 									d[3] = u8[(j+ii)*4+3];
 									var e = new Vec3();
 									Ono3d.unpackFloat(e,d);
-									e[0]=Math.pow(e[0]/256,1.0/2.2)
-									e[1]=Math.pow(e[1]/256,1.0/2.2)
-									e[2]=Math.pow(e[2]/256,1.0/2.2)
+									e[0]=e[0]/255;
+									e[1]=e[1]/255;
+									e[2]=e[2]/255;
 									e[0]=Math.floor(e[0]*1000)/1000;
 									e[1]=Math.floor(e[1]*1000)/1000;
 									e[2]=Math.floor(e[2]*1000)/1000;
@@ -612,6 +612,7 @@ var Testact=(function(){
 				if(field.scenes.length>0){
 					var objects = field.scenes[0].objects;
 					for(var i=0;i<objects.length;i++){
+						continue;
 						if(objects[i].hide_render){
 							continue;
 						}

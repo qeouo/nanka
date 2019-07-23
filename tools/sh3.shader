@@ -16,7 +16,7 @@ varying lowp vec2 vUv;
 varying lowp vec2 vUnit;
 uniform sampler2D uSampler;
 
-const mediump float coef = 3.0/(4.0*PI);
+const mediump float coef = 3.0;
 void main(void){
 	highp float l = length(vec3(fract(vUnit.s* 4.0)*2.0-1.0 ,fract(vUnit.t*2.0)*2.0-1.0,1.0));
 	l = coef/(l*l*l*16.0*16.0);
@@ -24,7 +24,7 @@ void main(void){
 	float v=(fract(vUnit.t*2.0)*2.0-1.0);
 	vec3 n;
 
-	if(vUnit.t <0.5){
+	if(vUnit.t >0.5){
 		if(vUnit.s <0.25){
 			n=vec3(-u,-1.0,-v);
 		}else{
