@@ -29,6 +29,8 @@ var _255=1./256;
 var xx=0,yy=0;
 
 var convert=function(){
+	var uv = new Vec2();
+	var angle = new Vec3();
 	var srcImg = document.getElementById("srcImg");
 	canvas.width=srcImg.width;
 	canvas.height=srcImg.height;
@@ -54,11 +56,6 @@ var convert=function(){
 	var _srcwidth=1.0/srcwidth;
 	var _srcheight=1.0/srcheight;
 
-	var total=0;
-	for(var i=0;i<srcheight;i++){
-		total += srcwidth*Math.sin(Math.PI*(i*_srcheight))
-	}
-	total = 1.0/total;
 	var lmax= parseInt(document.getElementById("l").value)+1;
 	var cs=new Array(lmax*lmax);
 	for(var i=0;i<cs.length;i++){
@@ -75,8 +72,8 @@ var convert=function(){
 				var format=function(a){
 					return ("          "+a.toFixed(4)).substr(-10);
 				}
-				text="è¨ˆç®—ä¸­..."+(100*(yy*srcwidth+xx)/srcheight/srcwidth).toFixed(2)+"% \n";
-				text+="â†“ä¿‚æ•°â†“ \n";
+				text="ŒvZ’†..."+(100*(yy*srcwidth+xx)/srcheight/srcwidth).toFixed(2)+"% \n";
+				text+="«ŒW”« \n";
 				for(var i=0;i<lmax;i++){
 					for(var j=-i;j<=i;j++){
 						var c=cs[(i+1)*i+j];
@@ -92,13 +89,27 @@ var convert=function(){
 		var rgb=new Array(3);
 		while(1){
 			var pi=-Math.PI*2*xx*_srcwidth-Math.PI/2;
+			Vec2.set(uv,xx*_srcwidth,yy*_srcheight);
+			uv2cubeangle(angle,uv);
+			if(uv[0]>0.5 && uv[1]>0.5){
+				yy++;
+				xx=0;
+				if(yy>=srcheight || (Date.now()-nowTime)>100){
+					outputtext();
+					break;
+				}
+				continue;
+			}
+
+			var l=Vec3.scalar(angle);
+			Vec3.mul(angle,angle,1/l);
 			
 			var idx=yy*srcwidth+xx<<2;
 			Vec3.set(rgb,rowdata[idx],rowdata[idx+1],rowdata[idx+2]);
-			//Vec3.mul(rgb,rgb,sintheta*total*Math.PI*4.0);
+			Vec3.mul(rgb,rgb,1/(l*l*l*128*128*4*Math.PI));
+			//SH.encode2(cs,rgb,theta,pi);
+			SH.encode2xyz(cs,rgb,angle[0],angle[1],angle[2]);
 			//SH.encode3(cs,rgb,lmax,theta,pi);
-			Vec3.mul(rgb,rgb,sintheta*total);
-			SH.encode2(cs,rgb,theta,pi);
 			//for(var i=0;i<lmax;i++){
 			//	for(var j=-i;j<=i;j++){
 			//		var a=SH.Y_2(i,j,theta,pi)*sintheta;
@@ -133,13 +144,16 @@ var convert=function(){
 			for(var y=0;y<srcheight;y++){
 				var theta=Math.PI*y*_srcheight;
 				for(var x=0;x<srcwidth;x++){
-					//var pi=Math.PI*2*x*_srcwidth;
 					var pi=-Math.PI*2*x*_srcwidth-Math.PI/2;
+					Vec2.set(uv,xx*_srcwidth,yy*_srcheight);
+					uv2cubeangle(angle,uv);
+					Vec3.norm(angle);
 					var idx=y*srcwidth+x<<2;
 					var r=0,g=0,b=0;
 					
 					//SH.decode3(rgb,cs,lmax,theta,pi);
-					SH.decode2(rgb,cs,theta,pi);
+					SH.decode2xyz(rgb,cs,angle[0],angle[1],angle[2]);
+					//SH.decode2(rgb,cs,theta,pi);
 					dstdata[idx]=rgb[0];
 					dstdata[idx+1]=rgb[1];
 					dstdata[idx+2]=rgb[2];
@@ -196,6 +210,49 @@ var convert=function(){
 
 }
 
+var uv2cubeangle=function(angle,uv){
+	var xx=uv[0]*4;
+	var yy=uv[1]*2;
+	if(yy<1){
+		yy=-(yy*2-1);
+		angle[1]=yy;
+		if(xx<1){
+			angle[2]=1;
+			angle[0]=-(xx*2-1);
+		}else if(xx<2){
+			xx-=1;
+			angle[2]=-(xx*2-1);
+			angle[0]=-1;
+		}else if(xx<3){
+			xx-=2;
+			angle[2]=-1;
+			angle[0]=xx*2-1;
+		}else{
+			xx-=3;
+			angle[2]=(xx*2-1);
+			angle[0]=1;
+		}
+	}else{
+		yy-=1;
+		yy=-(yy*2-1);
+		if(xx<1){
+			angle[1]=-1;
+			angle[0]=-(xx*2-1);
+			angle[2]=yy;
+		}else if(xx<2){
+			xx-=1;
+			angle[1]=1;
+			angle[0]=-(xx*2-1);
+			angle[2]=-yy;
+		}else{
+			angle[1]=1;
+			angle[0]=1;
+			angle[2]=1;
+		}
+	}
+
+}
+
 </script>
 
 <style>
@@ -215,10 +272,10 @@ l&lt;=<input type="text" value="2"  id="l"></input><br>
 	<input type="button" value="convert" onclick="convert()"><br>
 <canvas id="c"></canvas><br />
 
-Source<img src="sky.jpg" id="srcImg"/><br>
+Source<img src="skyc.png" id="srcImg"/><br>
 <br />
-è¿‘ä¼¼<img id="dstImg"><br>
-æ‹¡æ•£åå°„å…‰<img id="dstImg2"><br>
+‹ß—<img id="dstImg"><br>
+ŠgU”½ËŒõ<img id="dstImg2"><br>
 	<pre id="output"></pre>
 </div>
 </body>
