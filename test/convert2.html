@@ -145,7 +145,7 @@ var convert=function(){
 				var theta=Math.PI*y*_srcheight;
 				for(var x=0;x<srcwidth;x++){
 					var pi=-Math.PI*2*x*_srcwidth-Math.PI/2;
-					Vec2.set(uv,xx*_srcwidth,yy*_srcheight);
+					Vec2.set(uv,x*_srcwidth,y*_srcheight);
 					uv2cubeangle(angle,uv);
 					Vec3.norm(angle);
 					var idx=y*srcwidth+x<<2;
@@ -180,8 +180,8 @@ var convert=function(){
 						var idx=y*srcwidth+x<<2;
 						var r=0,g=0,b=0;
 						
-						SH.decode3(rgb,cs,lmax,theta,pi);
-					//SH.decode2(rgb,cs,theta,pi);
+					//	SH.decode3(rgb,cs,lmax,theta,pi);
+					SH.decode2(rgb,cs,theta,pi);
 						dstdata[idx]=rgb[0];
 						dstdata[idx+1]=rgb[1];
 						dstdata[idx+2]=rgb[2];

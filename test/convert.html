@@ -166,8 +166,8 @@ var convert=function(){
 						var idx=y*srcwidth+x<<2;
 						var r=0,g=0,b=0;
 						
-						SH.decode3(rgb,cs,lmax,theta,pi);
-					//SH.decode2(rgb,cs,theta,pi);
+					//	SH.decode3(rgb,cs,lmax,theta,pi);
+					SH.decode2(rgb,cs,theta,pi);
 						dstdata[idx]=rgb[0];
 						dstdata[idx+1]=rgb[1];
 						dstdata[idx+2]=rgb[2];
@@ -215,7 +215,7 @@ l&lt;=<input type="text" value="2"  id="l"></input><br>
 	<input type="button" value="convert" onclick="convert()"><br>
 <canvas id="c"></canvas><br />
 
-Source<img src="sky.jpg" id="srcImg"/><br>
+Source<img src="sky.png" id="srcImg"/><br>
 <br />
 近似<img id="dstImg"><br>
 拡散反射光<img id="dstImg2"><br>
