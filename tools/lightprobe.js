@@ -327,36 +327,38 @@ var Testact=(function(){
 							var u8 = new Uint8Array(width*height*4);
 							gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, u8);
 
-							var css=[];
+							var shcoefs=[];
+							var ratio = 1/(255*16*16*Math.PI*4);
+
 							for(var i=0;i<lightprobe.vertices.length;i++){
 								var x = (i%7)*9;
 								var y= (i/7|0);
 								var ii = y*64+x;
-								var cs=[];
+								var shcoef=[];
 								for(var j=0;j<9;j++){
 									d[0] = u8[(j+ii)*4+0];
 									d[1] = u8[(j+ii)*4+1];
 									d[2] = u8[(j+ii)*4+2];
 									d[3] = u8[(j+ii)*4+3];
-									var e = new Vec3();
+									var e = [0,0,0];//new Vec3();
 									Ono3d.unpackFloat(e,d);
-									e[0]=e[0]/255;
-									e[1]=e[1]/255;
-									e[2]=e[2]/255;
-									e[0]=Math.floor(e[0]*1000)/1000;
-									e[1]=Math.floor(e[1]*1000)/1000;
-									e[2]=Math.floor(e[2]*1000)/1000;
-									cs.push(e);
+									e[0]=e[0]*ratio;
+									e[1]=e[1]*ratio;
+									e[2]=e[2]*ratio;
+									//e[0]=Math.floor(e[0]*1000)/1000;
+									//e[1]=Math.floor(e[1]*1000)/1000;
+									//e[2]=Math.floor(e[2]*1000)/1000;
+									shcoef.push(e);
 								}
-								css.push(cs);
+								SH.mulA(shcoef);
+								shcoefs.push(shcoef);
 							}
-							var content = JSON.stringify(css);
 
 
 							Util.loadText(globalParam.model,function(text){
 								var o3o=JSON.parse(text);
 								var mesh=o3o.meshes.find(function(e){return e.name===this},lightprobe.name);
-								mesh.colors=css;
+								mesh.shcoefs =shcoefs;
 								var filename = globalParam.model.substr(globalParam.model.lastIndexOf("/")+1);
 								 document.getElementById("download").setAttribute("download",filename);
 								var blob = new Blob([JSON.stringify(o3o)], { "type" : "text/plain" });
@@ -612,15 +614,9 @@ var Testact=(function(){
 				if(field.scenes.length>0){
 					var objects = field.scenes[0].objects;
 					for(var i=0;i<objects.length;i++){
-						continue;
-						if(objects[i].hide_render){
+						if(objects[i].hide_render
+						|| !objects[i].static){
 							continue;
-						}
-						if(objects[i].rigid_body){
-							var r = objects[i].rigid_body;
-							if(r.type!=="PASSIVE"){
-								continue;
-							}
 						}
 						var b =objects[i].bound_box;
 						Mat43.setInit(m43);

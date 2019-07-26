@@ -18,8 +18,6 @@ uniform sampler2D uSampler;
 
 const mediump float coef = 3.0;
 void main(void){
-	highp float l = length(vec3(fract(vUnit.s* 4.0)*2.0-1.0 ,fract(vUnit.t*2.0)*2.0-1.0,1.0));
-	l = coef/(l*l*l*16.0*16.0);
 	float u=(fract(vUnit.s*4.0)*2.0-1.0);
 	float v=(fract(vUnit.t*2.0)*2.0-1.0);
 	vec3 n;
@@ -41,7 +39,9 @@ void main(void){
 			n=vec3(1.0,-v,u);
 		}
 	}
-	n=normalize(n);
+	highp float l = length(n);
+	n=n/l;
+	l = coef/(l*l*l);
 
   	gl_FragColor = packFloat(textureRGBE( uSampler,vec2(1024.0,512.0),vUv) * l * n.z);
 }

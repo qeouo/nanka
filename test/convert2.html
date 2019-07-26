@@ -106,7 +106,7 @@ var convert=function(){
 			
 			var idx=yy*srcwidth+xx<<2;
 			Vec3.set(rgb,rowdata[idx],rowdata[idx+1],rowdata[idx+2]);
-			Vec3.mul(rgb,rgb,1/(l*l*l*128*128*4*Math.PI));
+			Vec3.mul(rgb,rgb,1/(l*l*l));
 			//SH.encode2(cs,rgb,theta,pi);
 			SH.encode2xyz(cs,rgb,angle[0],angle[1],angle[2]);
 			//SH.encode3(cs,rgb,lmax,theta,pi);
@@ -138,6 +138,9 @@ var convert=function(){
 		}else{
 			var dst = ctx.createImageData(srcwidth,srcheight)
 			var dstdata=rowdata;
+			for(var i=0;i<cs.length;i++){
+				Vec3.mul(cs[i],cs[i],1.0/(128*128*4*Math.PI));
+			}
 			SH.encode2_2(cs,lmax);
 			//SH.encode3_2(cs,lmax);
 			outputtext();

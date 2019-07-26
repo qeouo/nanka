@@ -95,7 +95,7 @@ var convert=function(){
 			
 			var idx=yy*srcwidth+xx<<2;
 			Vec3.set(rgb,rowdata[idx],rowdata[idx+1],rowdata[idx+2]);
-			//Vec3.mul(rgb,rgb,sintheta*total*Math.PI*4.0);
+			//Vec3.mul(rgb,rgb,sintheta*total);
 			//SH.encode3(cs,rgb,lmax,theta,pi);
 			Vec3.mul(rgb,rgb,sintheta*total);
 			SH.encode2(cs,rgb,theta,pi);
