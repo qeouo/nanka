@@ -14,6 +14,7 @@ var Testact=(function(){
 	var cube2lightfield3;
 	var shShader=[];
 	var sigmaShader;
+	var aaa;
 
 	var obj3d=null,field=null;
 	var goField;
@@ -308,15 +309,22 @@ var Testact=(function(){
 
 
 					var a=function(){
+						var tex;
 						for(var i=0;i<lightprobe.vertices.length;i++){
 							var v=lightprobe.vertices[i].pos;
 							//createLightField(lightProbeTexture,v[0],v[1],v[2],0.5,drawSub);
-							createSHcoeff(v[0],v[1],v[2],0.5,drawSub);
+							tex=createSHcoeff(v[0],v[1],v[2],0.5,drawSub);
 							Ono3d.copyImage(lightProbeTexture,(i%7)*9,(i/7|0),0,0,9,1);
 						}
 						gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 						ono3d.setViewport(0,0,lightProbeTexture.width,lightProbeTexture.height);
 						Ono3d.drawCopy(0,0,1,1,lightProbeTexture,0,0,1,1);
+
+//						gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+//						ono3d.setViewport(0,0,WIDTH,HEIGHT);
+//						Ono3d.drawCopy(0,0,1,1,ono3d.envbufTexture,0,0,1,1);
+//			//Ono3d.postEffect(tex,0,0,1,1,aaa); 
+//						Ono3d.drawCopy(0,0,1,1,tex,0,0,1,1);
 
 						var d = new Vec4();
 						if(false){
@@ -401,7 +409,8 @@ var Testact=(function(){
 		var a=new Vec3(x,y,z);
 		Mat44.dotVec3(a,ono3d.worldMatrix,a);
 	
-		ono3d.createCubeMap(envBuf,a[0],a[1],a[2],size,func);
+		ono3d.setNearFar(0.01,80.0);
+		ono3d.createCubeMap(envBuf,a[0],a[1],a[2],256,func);
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.clearColor(0,0,0,1);
@@ -412,7 +421,7 @@ var Testact=(function(){
 			gl.clearColor(0,0,0,1);
 			gl.clear(gl.COLOR_BUFFER_BIT);
 			ono3d.setViewport(0,0,size*4,size*2);
-			Ono3d.postEffect(envBuf,0,0,size*4/envBuf.width,size*2/envBuf.height,shShader[i]); 
+			Ono3d.postEffect(envBuf,0,0,256*4/envBuf.width,256*2/envBuf.height,shShader[i]); 
 
 			Ono3d.copyImage(tex,0,0,0,0,size*4,size);
 			Ono3d.copyImage(tex,0,size,0,size,size*2,size);
@@ -440,7 +449,7 @@ var Testact=(function(){
 			Ono3d.copyImage(tex,0,0,0,0,texsize,texsize);
 		}
 		
-		return ;
+		return tex;
 	}
 	var createLightField= function(tex,x,y,z,gridsize,func){
 		var size = 32;
@@ -1104,5 +1113,6 @@ gl.blendFuncSeparate(
 	for(var i=0;i<9;i++){
 		shShader.push(Ono3d.loadShader("sh"+i+".shader"));
 	}
+	aaa=Ono3d.loadShader("aaa.shader");
 	return ret;
 })()

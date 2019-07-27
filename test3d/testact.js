@@ -708,14 +708,9 @@ var Testact=(function(){
 				if(field.scenes.length>0){
 					var objects = field.scenes[0].objects;
 					for(var i=0;i<objects.length;i++){
-						if(objects[i].hide_render){
+						if(objects[i].hide_render
+						|| !objects[i].static){
 							continue;
-						}
-						if(objects[i].rigid_body){
-							var r = objects[i].rigid_body;
-							if(r.type!=="PASSIVE"){
-								continue;
-							}
 						}
 
 						var obj=objects[i];
