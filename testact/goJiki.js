@@ -9,6 +9,7 @@
 		var armature=null;
 		var e =null;
 		var human=null;
+		var metalball=null;
 		var jumpC;
 
 		var GoJiki =function(){};
@@ -29,6 +30,7 @@
 				armature=obj3d.objects.find(function(o){return o.name==="アーマチュア";});
 				e =obj3d.objects.find(function(o){return o.name==="jiki";});
 				human=obj3d.objects.find(function(o){return o.name==="human";});
+				metalball=obj3d.objects.find(function(o){return o.name==="metalball";});
 				jumpC = obj3d.objects.find(function(o){return o.name === "_jumpCollision";});
 
 				sourceArmature= new O3o.PoseArmature(armature.data);
@@ -239,9 +241,11 @@
 					a = Collider.calcClosest(ans1,ans2,l[0].col1,l[0].col2);
 					a = Math.min(-a*4,1.0);
 					O3o.drawObject(human,null,ono3d.environments[0],ono3d.environments[1],a);
+					O3o.drawObject(metalball,null,ono3d.environments[0],ono3d.environments[1],a);
 					Vec3.poolFree(2);
 				}else{
 					O3o.drawObject(human,null,env,env,0.0);
+					O3o.drawObject(metalball,null,env,env,0.0);
 				}
 
 				
