@@ -92,15 +92,20 @@ def ExportOno3dObject():
         fileout('')
         if(light!= bpy.data.lights[0]):fileout2(',')
         WriteLight(light)
+        fileout2('\n');
     fileout('')
     fileoutLd()
 
-#    a = [Object for Object in bpy.data.meshes if Object.name.find("@") == 0 ]
-#    fileout('"Collisions":')
-#    fileoutLu()
-#    for mesh in a:
-#        WriteColligion(mesh)
-#    fileoutLd()
+    fileout(',"reflectionprobes":')
+    fileoutLu()
+    a = [Object for Object in bpy.data.lightprobes if Object.type == 'CUBEMAP' ]
+    for i,obj in enumerate(a):
+        fileout('')
+        if(i != 0):fileout2(',')
+        WriteReflectionProbe(obj)
+        fileout2('\n');
+    fileout('')
+    fileoutLd()
 
     a = bpy.data.armatures
     fileout(',"armatures":')
@@ -425,6 +430,15 @@ def WriteLight(light):
     dict["name"] = light.name
     dict["type"] = light.type
     dict["color"] = light.color[:]
+
+    fileout(json.dumps(dict,ensure_ascii=False))
+	
+def WriteReflectionProbe(obj):
+    dict = collections.OrderedDict()
+    dict["name"] = obj.name
+    dict["type"] = obj.influence_type
+    dict["distance"] = obj.influence_distance
+    dict["falloff"] = obj.falloff
 
     fileout(json.dumps(dict,ensure_ascii=False))
 	

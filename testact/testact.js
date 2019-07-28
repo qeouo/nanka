@@ -30,12 +30,11 @@ var Testact=(function(){
 		,goMain
 	;
 	var objMan;
-	var probs = new Collider();
-	ret.probs = probs;
 
 	var i;
 	var pad =new Vec2();
 	ret.pad = pad;
+	ret.probs=null;
 
 	var txt="STAGE CLEAR!!";
 	var txt2="ALL CLEAR!!";
@@ -505,11 +504,24 @@ var Testact=(function(){
 	var GoField= (function(){
 		var GoField =function(){};
 		var ret = GoField;
+		var initFlg=false;
 		inherits(ret,defObj);
 		ret.prototype.init=function(){
-			var t = this;
 
 			field =O3o.load(fieldpath,function(o3o){
+					});
+		}
+		ret.prototype.move=function(){
+			var obj3d=field;
+			var obj = this;
+			var phyObjs = obj.phyObjs;
+			if(obj3d.scenes.length===0){
+				return;
+			}
+			if(!initFlg){
+				var o3o=field;
+				var t=this;
+				initFlg=true;
 
 				ono3d.setTargetMatrix(0);
 				ono3d.loadIdentity();
@@ -553,22 +565,6 @@ var Testact=(function(){
 					onoPhy.collider.addCollision(t.collisions[i]);
 				}
 				
-
-
-				//光源エリア判定作成
-				for(var i=0;i<scene.objects.length;i++){
-					var object = scene.objects[i];
-					if(object.name.indexOf("prob_")==0){
-						var collider= new Collider.Cuboid;
-						Mat43.dotMat44Mat43(collider.matrix
-								,ono3d.worldMatrix,object.matrix);
-						Mat43.getInv(collider.inv_matrix,collider.matrix);
-						collider.update();
-						probs.addCollision(collider);
-					}	
-				}
-				probs.sortList();
-
 				ono3d.environments_index=1;
 
 				O3o.setEnvironments(scene); //光源セット
@@ -600,12 +596,45 @@ var Testact=(function(){
 				Vec3.set(camera.a,0,Math.PI,0)
 
 
+				ono3d.clear();
+				//goField.draw();
+				ono3d.render(camera.p);
 				var envTexture = ono3d.createEnv(null,0,0,0,drawSub);
+				ono3d.environments[0].envTexture=envTexture;
 
-				for(var i=0;i<ono3d.environments_index;i++){
-					//環境マップ
-					ono3d.environments[i].envTexture=envTexture;
+
+
+				//リフレクションプローブ処理
+				var probs = new Collider();
+				for(var i=0;i<scene.objects.length;i++){
+					var object = scene.objects[i];
+    				if(object.type!="LIGHT_PROBE"){ continue; }
+					
+					var collider= new Collider.Cuboid;
+					Mat43.dotMat44Mat43(collider.matrix
+							,ono3d.worldMatrix,object.matrix);
+					for(var i=0;i<9;i++){
+						collider.matrix[i]*=object.distance;
+					}
+					collider.update();
+					probs.addCollision(collider);
+
+					//環境追加
+					var environment=ono3d.environments[ono3d.environments_index]
+					ono3d.environments_index++;
+					environment.name=object.name;
+					environment.envTexture= ono3d.createEnv(null
+							,collider.matrix[12]
+							,collider.matrix[13]
+							,collider.matrix[14]
+							,drawSub);
+					environment.sun=ono3d.environments[0].sun;
+					environment.area=ono3d.environments[0].area;
 				}
+				probs.sortList();
+				Testact.probs=probs;
+
+
 
 				var lightprobe=o3o.objects.find(function(e){return e.name==="LightProbe"});
 				if(lightprobe){
@@ -636,14 +665,6 @@ var Testact=(function(){
 
 				reset();
 
-			});
-		}
-		ret.prototype.move=function(){
-			var obj3d=field;
-			var obj = this;
-			var phyObjs = obj.phyObjs;
-			if(obj3d.scenes.length===0){
-				return;
 			}
 			
 			 //変換マトリクス初期化
@@ -974,9 +995,8 @@ var Testact=(function(){
 		gl.clear(gl.DEPTH_BUFFER_BIT);
 		drawSub(0,0,WIDTH,HEIGHT);
 		
-		var env = ono3d.environments[0];
-		//環境マップ
-
+		////環境マップ
+		//var env = ono3d.environments[0];
 		//Ono3d.drawCopy(env.envTexture,0,0,1,1);
 
 		//描画結果をバッファにコピー
