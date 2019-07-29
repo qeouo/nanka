@@ -20,7 +20,9 @@ import collections
 import os
 from math import radians
 import bpy
-from mathutils import *
+#from mathutils import *
+
+import mathutils
 
 import re
 
@@ -154,7 +156,7 @@ def ExportOno3dObject():
                    fileout2(',"parent":"{}"'.format(bone.parent.name))
                fileout2(',"location":{}'.format(stringVector3( bone.location)))
                fileout2(',"rotation":{}'.format(stringQuaternion(bone.rotation_quaternion)))
-               fileout2(',"scale":{}'.format( stringVector3(bone.scale)))
+               fileout2(',"scale":{}'.format( stringVector32(bone.scale)))
                fileout2('}\n')
             fileoutLd()
 
@@ -164,7 +166,7 @@ def ExportOno3dObject():
         else:
             fileout(',"rotation":{}\n'.format(stringVector3(obj.rotation_euler)))
         
-        fileout(',"scale":{}\n'.format(stringVector3(obj.scale)))
+        fileout(',"scale":{}\n'.format(stringVector32(obj.scale)))
         if(obj.matrix_basis):
             fileout(',"matrix":{}\n'.format(stringMatrix43(obj.matrix_basis)))
         if(obj.parent):
@@ -307,15 +309,18 @@ def ExportOno3dObject():
     config.File.close()
     print("Finished")
 
-yUpMatrix =  mathutils.Matrix.Rotation(math.radians(-45.0), 4, 'X')
-yUpMatrix_ =  mathutils.Matrix.Rotation(math.radians(45.0), 4, 'X')
-yUpQuaternion=  mathutils.Matrix.Quaternion((1.0,0.0,0.0),math.radians(-45.0))
-yUpQuaternion_=  mathutils.Matrix.Quaternion((1.0,0.0,0.0),math.radians(45.0))
-def stringVector3(vector):
-    v = mathutils.Vector3(vector)
-    v = yUpMatrix * v
-    v =vector 
+yUpMatrix =  mathutils.Matrix.Rotation(math.radians(-90.0), 4, 'X')
+yUpMatrix_ =  mathutils.Matrix.Rotation(math.radians(90.0), 4, 'X')
+yUpQuaternion=  mathutils.Quaternion((1.0,0.0,0.0),math.radians(-90.0))
+yUpQuaternion_=  mathutils.Quaternion((1.0,0.0,0.0),math.radians(90.0))
+def stringVector3(vctor):
+    v = mathutils.Vector(vctor)
+    v = yUpMatrix @ v
     return '[{:9f},{:9f},{:9f}]'.format( v[0],v[1],v[2])
+
+def stringVector32(v):
+    return '[{:9f},{:9f},{:9f}]'.format( v[0],v[2],v[1])
+
 
 def stringVector3i(v):
     return '[{},{},{}]'.format(0+ v[0],0+v[1],0+v[2])
@@ -323,8 +328,7 @@ def stringVector3i(v):
 
 def stringQuaternion(quaternion):
     q = mathutils.Quaternion(quaternion)
-    q = yUpQuaternion * q * yUpQuaternion_
-    q = quaternion
+    q = yUpQuaternion @ q @ yUpQuaternion_
     return '[{:9f},{:9f},{:9f},{:9f}]'.format( quaternion[0],quaternion[1],quaternion[2],quaternion[3])
 
 def stringMatrix44(matrix):
@@ -335,8 +339,7 @@ def stringMatrix44(matrix):
         ,matrix[0][3], matrix[1][3], matrix[2][3], matrix[3][3])
 def stringMatrix43(matrix):
     m = mathutils.Matrix(matrix)
-    m = yUpMatrix * m * yUpMatrix_
-    m=matrix
+    m = yUpMatrix @ m @ yUpMatrix_
     return '[{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f}]'.format(
          m[0][0], m[1][0], m[2][0]
         ,m[0][1], m[1][1], m[2][1]
@@ -489,7 +492,7 @@ def WriteMesh(mesh):
                 fileout('')
                 if(shapeKeyPoint != shapeKey.data[0]):fileout2(',')
                 fileout2('{')
-                fileout2('"pos":[{:9f},{:9f},{:9f}]'.format(shapeKeyPoint.co[0], shapeKeyPoint.co[1], shapeKeyPoint.co[2]))
+                fileout2('"pos":{}'.format(stringVector3(shapeKeyPoint.co[0], shapeKeyPoint.co[1], shapeKeyPoint.co[2])))
                 fileout2('}\n')
             fileoutLd()
             fileoutMd()
@@ -504,7 +507,7 @@ def WriteMesh(mesh):
         fileout('')
         if(Vertex != mesh.vertices[0]):fileout2(',')
         fileout2('{')
-        fileout2('"pos":[{:9f},{:9f},{:9f}]'.format(Position[0], Position[1], Position[2]))
+        fileout2('"pos":{}'.format(stringVector3((Position[0], Position[1], Position[2]))))
         weightmax = 0
         for group in Vertex.groups:
             weightmax += group.weight
@@ -698,10 +701,10 @@ class Ono3dObjectExporter(bpy.types.Operator):
 
     bl_idname = "export.ono3o"
     bl_label = "Export Ono3dObject"
-    filter_glob = StringProperty(default="*.o3o",options={'HIDDEN'})
-    filepath = StringProperty(subtype='FILE_PATH')
+    filter_glob : StringProperty(default="*.o3o",options={'HIDDEN'})
+    filepath : StringProperty(subtype='FILE_PATH')
 
-    EnableDoubleSided = BoolProperty(name="Enable Double Sided", description="enable double sided", default=False)
+    EnableDoubleSided : BoolProperty(name="Enable Double Sided", description="enable double sided", default=False)
 
     def execute(self, context):
         FilePath = self.filepath

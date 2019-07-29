@@ -221,7 +221,7 @@ var Testact=(function(){
 		}
 		ret.prototype.move=function(){
 			if(!lightProbeTexture){
-				if(Util.getLoadingCount() >= 0){
+				if(Util.getLoadingCount() > 0){
 					return;
 				}
 				var o3o = field;
@@ -232,7 +232,7 @@ var Testact=(function(){
 
 				ono3d.setTargetMatrix(0);
 				ono3d.loadIdentity();
-				ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
+				//ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
 
 				//物理シミュオブジェクトの設定
 				t.phyObjs= O3o.createPhyObjs(o3o.scenes[0],onoPhy);
@@ -275,9 +275,9 @@ var Testact=(function(){
 					goCamera.p[1]=co.mixedmatrix[10];
 					goCamera.p[2]=co.mixedmatrix[11];
 					Mat44.dotVec3(goCamera.p,ono3d.worldMatrix,goCamera.p);
-					goCamera.a[0]=co.mixedmatrix[6];
-					goCamera.a[1]=co.mixedmatrix[7];
-					goCamera.a[2]=co.mixedmatrix[8];
+					goCamera.a[0]=co.mixedmatrix[3];
+					goCamera.a[1]=co.mixedmatrix[4];
+					goCamera.a[2]=co.mixedmatrix[5];
 					Mat44.dotVec3(goCamera.a,ono3d.worldMatrix,goCamera.a);
 					goCamera.target[0] = goCamera.p[0] - goCamera.a[0]* goCamera.p[2]/goCamera.a[2];
 					goCamera.target[1] =  goCamera.p[1] - goCamera.a[1]* goCamera.p[2]/goCamera.a[2];
@@ -663,7 +663,7 @@ var Testact=(function(){
 			 //変換マトリクス初期化
 			ono3d.setTargetMatrix(0);
 			ono3d.loadIdentity();
-			ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
+			//ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
 
 			var scene= obj3d.scenes[0];
 			O3o.setFrame(obj3d,scene,this.t/60.0*60.0); //アニメーション処理
@@ -702,7 +702,7 @@ var Testact=(function(){
 
 			ono3d.setTargetMatrix(0)
 			ono3d.loadIdentity();
-			ono3d.rotate(-Math.PI*0.5,1,0,0)
+			//ono3d.rotate(-Math.PI*0.5,1,0,0)
 
 			ono3d.rf=0;
 
@@ -729,7 +729,7 @@ var Testact=(function(){
 
 			ono3d.setTargetMatrix(0)
 			ono3d.loadIdentity();
-			ono3d.rotate(-Math.PI*0.5,1,0,0)
+			//ono3d.rotate(-Math.PI*0.5,1,0,0)
 
 			ono3d.rf=0;
 
