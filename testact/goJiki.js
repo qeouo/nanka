@@ -7,7 +7,7 @@
 		var obj3d;
 		var motionT=0;
 		var armature=null;
-		var e =null;
+		var jiki =null;
 		var human=null;
 		var metalball=null;
 		var jumpC;
@@ -28,7 +28,7 @@
 				}
 
 				armature=obj3d.objects.find(function(o){return o.name==="アーマチュア";});
-				e =obj3d.objects.find(function(o){return o.name==="jiki";});
+				jiki =obj3d.objects.find(function(o){return o.name==="jiki";});
 				human=obj3d.objects.find(function(o){return o.name==="human";});
 				metalball=obj3d.objects.find(function(o){return o.name==="metalball";});
 				jumpC = obj3d.objects.find(function(o){return o.name === "_jumpCollision";});
@@ -135,7 +135,7 @@
 					Mat43.fromLSR(m,poJiki.location,poJiki.scale,poJiki.rotq);
 					Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
 
-					Mat43.getInv(m,e.mixedmatrix);
+					Mat43.getInv(m,jiki.mixedmatrix);
 					Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
 					Mat43.poolFree(1);
 
@@ -222,13 +222,13 @@
 				Mat43.fromLSR(m,poJiki.location,poJiki.scale,poJiki.rotq);
 				Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
 
-				Mat43.getInv(m,e.mixedmatrix);
+				Mat43.getInv(m,jiki.mixedmatrix);
 				Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
 
 				Mat43.setInit(col.matrix);
 				Mat43.mul(col.matrix,col.matrix,0);
 				col.matrix[9]=ono3d.worldMatrix[12];
-				col.matrix[10]=ono3d.worldMatrix[13];
+				col.matrix[10]=ono3d.worldMatrix[13]+0.5;
 				col.matrix[11]=ono3d.worldMatrix[14];
 				col.update();
 

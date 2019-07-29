@@ -183,9 +183,9 @@ var Testact=(function(){
 
 			bdf = Bdf.load("./k8x12.bdf",null,function(){
 				bdfimage = Bdf.render(txt+"\n"+txt2,bdf,false);
-				bdfimage.gltexture = Rastgl.createTexture(bdfimage);//512x512
+				bdfimage.glTexture = Rastgl.createTexture(bdfimage);//512x512
 
-				gl.bindTexture(gl.TEXTURE_2D,bdfimage.gltexture);
+				gl.bindTexture(gl.TEXTURE_2D,bdfimage.glTexture);
 				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 				gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);//1024x1024
@@ -205,7 +205,7 @@ var Testact=(function(){
 				gl.enable(gl.BLEND);
 				gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
 				Ono3d.drawCopy(bdfimage,-1*ss,-1*ss,scl,scl);
-				gl.bindTexture(gl.TEXTURE_2D,bdfimage.gltexture);
+				gl.bindTexture(gl.TEXTURE_2D,bdfimage.glTexture);
 				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,512,512);
 
 			});
@@ -243,7 +243,7 @@ var Testact=(function(){
 	})();
 
 	var blit = function(tex,x,y,w,h,u,v,u2,v2){
-			Ono3d.drawCopy(tex.gltexture,x,y,w*2,h*2
+			Ono3d.drawCopy(tex.glTexture,x,y,w*2,h*2
 							,u/tex.width,(v+v2)/tex.height,u2/tex.width,-v2/tex.height);
 	}
 	var GoMsg = (function(){
@@ -519,6 +519,9 @@ var Testact=(function(){
 				return;
 			}
 			if(!initFlg){
+				if(Util.getLoadingCount() > 0){
+					return;
+				}
 				var o3o=field;
 				var t=this;
 				initFlg=true;
@@ -598,10 +601,9 @@ var Testact=(function(){
 
 				ono3d.clear();
 				//goField.draw();
-				ono3d.render(camera.p);
+				//ono3d.render(camera.p);
 				var envTexture = ono3d.createEnv(null,0,0,0,drawSub);
 				ono3d.environments[0].envTexture=envTexture;
-
 
 
 				//リフレクションプローブ処理

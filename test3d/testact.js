@@ -221,165 +221,167 @@ var Testact=(function(){
 		}
 		ret.prototype.move=function(){
 			if(!lightProbeTexture){
-				if(Util.getLoadingCount() === 0){
-					var o3o = field;
-					var t = goField;
+				if(Util.getLoadingCount() >= 0){
+					return;
+				}
+				var o3o = field;
+				var t = goField;
 
-					var scene= o3o.scenes[0];
-					O3o.setFrame(o3o,scene,0); //アニメーション処理
+				var scene= o3o.scenes[0];
+				O3o.setFrame(o3o,scene,0); //アニメーション処理
 
-					ono3d.setTargetMatrix(0);
-					ono3d.loadIdentity();
-					ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
+				ono3d.setTargetMatrix(0);
+				ono3d.loadIdentity();
+				ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
 
-					//物理シミュオブジェクトの設定
-					t.phyObjs= O3o.createPhyObjs(o3o.scenes[0],onoPhy);
-
-
-
-					var scene = o3o.scenes[0];
-
-					//光源エリア判定作成
-					for(var i=0;i<scene.objects.length;i++){
-						var object = scene.objects[i];
-						if(object.name.indexOf("prob_")==0){
-							var collider= new Collider.Cuboid;
-							Mat43.dotMat44Mat43(collider.matrix
-									,ono3d.worldMatrix,object.matrix);
-							Mat43.getInv(collider.inv_matrix,collider.matrix);
-							collider.update();
-							probs.addCollision(collider);
-						}	
-					}
-					probs.sortList();
-
-					ono3d.environments_index=1;
-
-					O3o.setEnvironments(scene); //光源セット
+				//物理シミュオブジェクトの設定
+				t.phyObjs= O3o.createPhyObjs(o3o.scenes[0],onoPhy);
 
 
-					//0番目の光源セットをコントロールに反映
-					var env = ono3d.environments[0];
-					for(var i=0;i<2;i++){
-						var ol = [env.sun,env.area][i];
-						var el = document.getElementById("lightColor"+(i+1));
-						el.value = Util.rgb(ol.color[0],ol.color[1],ol.color[2]).slice(1);
-						Util.fireEvent(el,"change");
-					}
 
-					var co=  scene.objects.find(function(a){return a.name===this;},"Camera");
-					if(co){
-						goCamera.p[0]=co.mixedmatrix[9];
-						goCamera.p[1]=co.mixedmatrix[10];
-						goCamera.p[2]=co.mixedmatrix[11];
-						Mat44.dotVec3(goCamera.p,ono3d.worldMatrix,goCamera.p);
-						goCamera.a[0]=co.mixedmatrix[6];
-						goCamera.a[1]=co.mixedmatrix[7];
-						goCamera.a[2]=co.mixedmatrix[8];
-						Mat44.dotVec3(goCamera.a,ono3d.worldMatrix,goCamera.a);
-						goCamera.target[0] = goCamera.p[0] - goCamera.a[0]* goCamera.p[2]/goCamera.a[2];
-						goCamera.target[1] =  goCamera.p[1] - goCamera.a[1]* goCamera.p[2]/goCamera.a[2];
-						goCamera.target[2] = 0;
+				var scene = o3o.scenes[0];
 
-						goCamera.cameralen=Math.abs(goCamera.p[2]);
+				//光源エリア判定作成
+				for(var i=0;i<scene.objects.length;i++){
+					var object = scene.objects[i];
+					if(object.name.indexOf("prob_")==0){
+						var collider= new Collider.Cuboid;
+						Mat43.dotMat44Mat43(collider.matrix
+								,ono3d.worldMatrix,object.matrix);
+						Mat43.getInv(collider.inv_matrix,collider.matrix);
+						collider.update();
+						probs.addCollision(collider);
+					}	
+				}
+				probs.sortList();
 
-						homingCamera(goCamera.a,goCamera.target,goCamera.p);
-						
-					}
+				ono3d.environments_index=1;
 
-					Vec3.copy(camera.p,goCamera.p)
-					Vec3.copy(camera.a,goCamera.a)
+				O3o.setEnvironments(scene); //光源セット
 
 
-					goCamera.move();
-					camera.calcMatrix();
-					//camera.calcCollision(camera.cameracol);
-					var poses= camera.cameracol.poses;
+				//0番目の光源セットをコントロールに反映
+				var env = ono3d.environments[0];
+				for(var i=0;i<2;i++){
+					var ol = [env.sun,env.area][i];
+					var el = document.getElementById("lightColor"+(i+1));
+					el.value = Util.rgb(ol.color[0],ol.color[1],ol.color[2]).slice(1);
+					Util.fireEvent(el,"change");
+				}
 
-					Vec3.set(poses[0],-1,-1,-1);
-					Vec3.set(poses[1],-1,-1,1);
-					Vec3.set(poses[2],-1,1,-1,);
-					Vec3.set(poses[3],-1,1,1);
-					Vec3.set(poses[4],1,-1,-1);
-					Vec3.set(poses[5],1,-1,1);
-					Vec3.set(poses[6],1,1,-1,);
-					Vec3.set(poses[7],1,1,1);
-					for(var i=0;i<poses.length;i++){
-						Vec3.mul(poses[i],poses[i],10000);
+				var co=  scene.objects.find(function(a){return a.name===this;},"Camera");
+				if(co){
+					goCamera.p[0]=co.mixedmatrix[9];
+					goCamera.p[1]=co.mixedmatrix[10];
+					goCamera.p[2]=co.mixedmatrix[11];
+					Mat44.dotVec3(goCamera.p,ono3d.worldMatrix,goCamera.p);
+					goCamera.a[0]=co.mixedmatrix[6];
+					goCamera.a[1]=co.mixedmatrix[7];
+					goCamera.a[2]=co.mixedmatrix[8];
+					Mat44.dotVec3(goCamera.a,ono3d.worldMatrix,goCamera.a);
+					goCamera.target[0] = goCamera.p[0] - goCamera.a[0]* goCamera.p[2]/goCamera.a[2];
+					goCamera.target[1] =  goCamera.p[1] - goCamera.a[1]* goCamera.p[2]/goCamera.a[2];
+					goCamera.target[2] = 0;
 
-					}
+					goCamera.cameralen=Math.abs(goCamera.p[2]);
 
-					camera.cameracol.update();
-					var lightSource= null;
-
-
-					lightSource = ono3d.environments[0].sun
-					if(lightSource){
-						camera.calcCollision(camera.cameracol2,lightSource.viewmatrix);
-					}
-
-					ono3d.clear();
-					gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-					var envTexture = ono3d.createEnv(null,0,0,0,drawSub);
-
-					ono3d.clear();
-					goField.draw2();
-					ono3d.render(camera.p);
-					ono3d.setStatic();
-
+					homingCamera(goCamera.a,goCamera.target,goCamera.p);
 					
-					for(i=0;i<objMan.objs.length;i++){
-						var obj = objMan.objs[i];
-						ono3d.setTargetMatrix(1)
-						ono3d.push();
-						ono3d.setTargetMatrix(0)
-						ono3d.loadIdentity()
-						ono3d.rf=0;
-						obj.draw();
-						ono3d.setTargetMatrix(1)
-						ono3d.pop();
-					}
-					ono3d.lightThreshold1=globalParam.lightThreshold1;
-					ono3d.lightThreshold2=globalParam.lightThreshold2;
+				}
 
-					gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-					for(var i=0;i<ono3d.environments_index;i++){
-						var env = ono3d.environments[i];
-						//環境マップ
-						env.envTexture=envTexture;
-					}
-
-					lightProbeTexture = true;
+				Vec3.copy(camera.p,goCamera.p)
+				Vec3.copy(camera.a,goCamera.a)
 
 
-					var lightprobe=o3o.objects.find(function(e){return e.name==="LightProbe"});
-					if(lightprobe){
-						lightprobe=lightprobe.data;
+				goCamera.move();
+				camera.calcMatrix();
+				//camera.calcCollision(camera.cameracol);
+				var poses= camera.cameracol.poses;
 
-
-						var points=[];
-						for(var i=0;i<lightprobe.vertices.length;i++){
-							var p=new Vec3();
-							Mat44.dotVec3(p,ono3d.worldMatrix,lightprobe.vertices[i].pos);
-							points.push(p);
-
-						}
-						
-						var triangles = Delaunay.create(points);
-						var bspTree=Bsp.createBspTree(triangles);
-					}
-
-
-					for(var i=0;i<ono3d.environments_index;i++){
-						var env = ono3d.environments[i];
-
-						env.lightProbe=scene.world.lightProbe;
-
-						env.bspTree=bspTree;
-						env.lightProbeMesh=lightprobe;
-					}
+				Vec3.set(poses[0],-1,-1,-1);
+				Vec3.set(poses[1],-1,-1,1);
+				Vec3.set(poses[2],-1,1,-1,);
+				Vec3.set(poses[3],-1,1,1);
+				Vec3.set(poses[4],1,-1,-1);
+				Vec3.set(poses[5],1,-1,1);
+				Vec3.set(poses[6],1,1,-1,);
+				Vec3.set(poses[7],1,1,1);
+				for(var i=0;i<poses.length;i++){
+					Vec3.mul(poses[i],poses[i],10000);
 
 				}
+
+				camera.cameracol.update();
+				var lightSource= null;
+
+
+				lightSource = ono3d.environments[0].sun
+				if(lightSource){
+					camera.calcCollision(camera.cameracol2,lightSource.viewmatrix);
+				}
+
+				ono3d.clear();
+				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+				var envTexture = ono3d.createEnv(null,0,0,0,drawSub);
+
+				ono3d.clear();
+				goField.draw2();
+				ono3d.render(camera.p);
+				ono3d.setStatic();
+
+				
+				for(i=0;i<objMan.objs.length;i++){
+					var obj = objMan.objs[i];
+					ono3d.setTargetMatrix(1)
+					ono3d.push();
+					ono3d.setTargetMatrix(0)
+					ono3d.loadIdentity()
+					ono3d.rf=0;
+					obj.draw();
+					ono3d.setTargetMatrix(1)
+					ono3d.pop();
+				}
+				ono3d.lightThreshold1=globalParam.lightThreshold1;
+				ono3d.lightThreshold2=globalParam.lightThreshold2;
+
+				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+				for(var i=0;i<ono3d.environments_index;i++){
+					var env = ono3d.environments[i];
+					//環境マップ
+					env.envTexture=envTexture;
+				}
+
+				lightProbeTexture = true;
+
+
+				var lightprobe=o3o.objects.find(function(e){return e.name==="LightProbe"});
+				if(lightprobe){
+					lightprobe=lightprobe.data;
+
+
+					var points=[];
+					for(var i=0;i<lightprobe.vertices.length;i++){
+						var p=new Vec3();
+						Mat44.dotVec3(p,ono3d.worldMatrix,lightprobe.vertices[i].pos);
+						points.push(p);
+
+					}
+					
+					var triangles = Delaunay.create(points);
+					var bspTree=Bsp.createBspTree(triangles);
+				}
+
+
+				for(var i=0;i<ono3d.environments_index;i++){
+					var env = ono3d.environments[i];
+
+					env.lightProbe=scene.world.lightProbe;
+
+					env.bspTree=bspTree;
+					env.lightProbeMesh=lightprobe;
+				}
+
+				
 			}
 			var mat44 = Mat44.poolAlloc();
 			var vec4 = Vec4.poolAlloc();
