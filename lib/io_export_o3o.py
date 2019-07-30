@@ -164,11 +164,11 @@ def ExportOno3dObject():
         if(obj.rotation_mode == "QUATERNION"):
             fileout(',"rotation":{}\n'.format(stringQuaternion(obj.rotation_quaternion)))
         else:
-            fileout(',"rotation":{}\n'.format(stringVector3(obj.rotation_euler)))
+            fileout(',"rotation":{}\n'.format(stringEuler(obj.rotation_euler)))
         
         fileout(',"scale":{}\n'.format(stringVector32(obj.scale)))
-        if(obj.matrix_basis):
-            fileout(',"matrix":{}\n'.format(stringMatrix43(obj.matrix_basis)))
+#if(obj.matrix_basis):
+#            fileout(',"matrix":{}\n'.format(stringMatrix43(obj.matrix_basis)))
         if(obj.parent):
             fileout(',"parent":"{}"\n'.format(obj.parent.name))
             if(obj.parent_bone):
@@ -200,10 +200,10 @@ def ExportOno3dObject():
             fileout('"breaking_threshold":{:9f}\n'.format(0+rbc.breaking_threshold))
             fileout(',"disable_collisions":{}\n'.format(0+rbc.disable_collisions))
             fileout(',"enabled":{}\n'.format(0+rbc.enabled))
-            fileout(',"limit_ang_lower":{}\n'.format(stringVector3(rbc.limit_ang_x_lower,rbc.limit_ang_y_lower,rbc.limit_ang_z_lower)))
-            fileout(',"limit_ang_upper":{}\n'.format(stringVector3(rbc.limit_ang_x_upper,rbc.limit_ang_y_upper,rbc.limit_ang_z_upper)))
-            fileout(',"limit_lin_lower":{}\n'.format(stringVector3(rbc.limit_lin_x_lower,rbc.limit_lin_y_lower,rbc.limit_lin_z_lower)))
-            fileout(',"limit_lin_upper":{}\n'.format(tringVector3(bc.limit_lin_x_upper,rbc.limit_lin_y_upper,rbc.limit_lin_z_upper)))
+            fileout(',"limit_ang_lower":{}\n'.format(stringVector32((rbc.limit_ang_x_lower,rbc.limit_ang_y_lower,rbc.limit_ang_z_lower))))
+            fileout(',"limit_ang_upper":{}\n'.format(stringVector32((rbc.limit_ang_x_upper,rbc.limit_ang_y_upper,rbc.limit_ang_z_upper))))
+            fileout(',"limit_lin_lower":{}\n'.format(stringVector32((rbc.limit_lin_x_lower,rbc.limit_lin_y_lower,rbc.limit_lin_z_lower))))
+            fileout(',"limit_lin_upper":{}\n'.format(stringVector32((rbc.limit_lin_x_upper,rbc.limit_lin_y_upper,rbc.limit_lin_z_upper))))
             fileout(',"motor_ang_max_impulse":{:9f}\n'.format(rbc.motor_ang_max_impulse))
             fileout(',"motor_ang_target_velocity":{:9f}\n'.format(rbc.motor_ang_target_velocity))
             fileout(',"motor_lin_max_impulse":{:9f}\n'.format(rbc.motor_lin_max_impulse))
@@ -212,17 +212,17 @@ def ExportOno3dObject():
                 fileout(',"object1":"{}"\n'.format(rbc.object1.name))
             if(rbc.object2):
                 fileout(',"object2":"{}"\n'.format(rbc.object2.name))
-            fileout(',"spring_damping":{}\n'.format(stringVector3(rbc.spring_damping_x,rbc.spring_damping_y,rbc.spring_damping_z)))
-            fileout(',"spring_stiffness":{}\n'.format(stringVector3(rbc.spring_stiffness_x,rbc.spring_stiffness_y,rbc.spring_stiffness_z)))
-            fileout(',"spring_damping_ang":{}\n'.format(stringVector3(rbc.spring_damping_ang_x,rbc.spring_damping_ang_y,rbc.spring_damping_ang_z)))
-            fileout(',"spring_stiffness_ang":{}\n'.format(stringVector3(rbc.spring_stiffness_ang_x,rbc.spring_stiffness_ang_y,rbc.spring_stiffness_ang_z)))
+            fileout(',"spring_damping":{}\n'.format(stringVector32((rbc.spring_damping_x,rbc.spring_damping_y,rbc.spring_damping_z))))
+            fileout(',"spring_stiffness":{}\n'.format(stringVector32((rbc.spring_stiffness_x,rbc.spring_stiffness_y,rbc.spring_stiffness_z))))
+            fileout(',"spring_damping_ang":{}\n'.format(stringVector32((rbc.spring_damping_ang_x,rbc.spring_damping_ang_y,rbc.spring_damping_ang_z))))
+            fileout(',"spring_stiffness_ang":{}\n'.format(stringVector32((rbc.spring_stiffness_ang_x,rbc.spring_stiffness_ang_y,rbc.spring_stiffness_ang_z))))
             fileout(',"use_breaking":{}\n'.format(0+rbc.use_breaking))
-            fileout(',"use_limit_ang":{}\n'.format(stringVector3i(rbc.use_limit_ang_x,rbc.use_limit_ang_y,rbc.use_limit_ang_z)))
-            fileout(',"use_limit_lin":{}\n'.format(stringVector3i(rbc.use_limit_lin_x,rbc.use_limit_lin_y,rbc.use_limit_lin_z)))
+            fileout(',"use_limit_ang":{}\n'.format(stringVector3i((rbc.use_limit_ang_x,rbc.use_limit_ang_y,rbc.use_limit_ang_z))))
+            fileout(',"use_limit_lin":{}\n'.format(stringVector3i((rbc.use_limit_lin_x,rbc.use_limit_lin_y,rbc.use_limit_lin_z))))
             fileout(',"use_motor_ang":{}\n'.format(0+rbc.use_motor_ang))
             fileout(',"use_motor_lin":{}\n'.format(0+rbc.use_motor_lin))
-            fileout(',"use_spring":{}\n'.format(stringVector3i(rbc.use_spring_x,rbc.use_spring_y,rbc.use_spring_z)))
-            fileout(',"use_spring_ang":{}\n'.format(stringVector3i(rbc.use_spring_ang_x,rbc.use_spring_ang_y,rbc.use_spring_ang_z)))
+            fileout(',"use_spring":{}\n'.format(stringVector3i((rbc.use_spring_x,rbc.use_spring_y,rbc.use_spring_z))))
+            fileout(',"use_spring_ang":{}\n'.format(stringVector3i((rbc.use_spring_ang_x,rbc.use_spring_ang_y,rbc.use_spring_ang_z))))
             fileout(',"type":"{}"\n'.format(rbc.type))
             fileoutMd()
         b = obj.bound_box
@@ -317,6 +317,14 @@ def stringVector3(vctor):
     v = mathutils.Vector(vctor)
     v = yUpMatrix @ v
     return '[{:9f},{:9f},{:9f}]'.format( v[0],v[1],v[2])
+
+def stringEuler(vctor):
+    v = mathutils.Vector(vctor)
+    v = yUpMatrix @ v
+    return '[{:9f},{:9f},{:9f}]'.format( v[0],v[1],v[2])
+#    v = mathutils.Vector(vctor)
+#    return '[{:9f},{:9f},{:9f}]'.format( v[0]+math.radians(-90.0),v[1],v[2])
+
 
 def stringVector32(v):
     return '[{:9f},{:9f},{:9f}]'.format( v[0],v[2],v[1])
