@@ -323,7 +323,7 @@ def stringVector32(v):
 
 
 def stringVector3i(v):
-    return '[{},{},{}]'.format(0+ v[0],0+v[1],0+v[2])
+    return '[{},{},{}]'.format(0+ v[0],0+v[2],0+v[1])
 
 
 def stringQuaternion(quaternion):
