@@ -1286,16 +1286,12 @@ var Testact=(function(){
 	span=document.getElementById("cons");
 
 	{
-		var d = new Vec3(-0.2,1,0.0);
-		var p = new Vec3(2,0.2,0.0);
-		var A = 1/2*Vec3.scalar2(d)-d[1]*d[1];
-		var B = 1/2*Vec3.dot(p,d)-d[1]*p[1];
-		var C = 1/2*Vec3.scalar2(p)-p[1]*p[1];
-		var l= B*B-A*C;
-		console.log(A,B,C,l);
-		console.log((-B-Math.sqrt(l))/A);
-		console.log((-B+Math.sqrt(l))/A);
-
+		var e= new Vec3(-0.0002,2.64,-0.117)
+		var m= new Mat43();
+		console.log(e);
+		Mat43.fromEuler(m,e);
+		Mat33.getEuler(e,m);
+		console.log(e);
 	}
 
 	return ret;
