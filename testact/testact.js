@@ -481,7 +481,7 @@ var Testact=(function(){
 		var o3o = field;
 		ono3d.setTargetMatrix(0);
 		ono3d.loadIdentity();
-		ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
+		//ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
 
 		var start = o3o.objects.find(function(o){return o.name==="_start";});
 		Mat44.dotVec3(goJiki.p,ono3d.worldMatrix,start.location);
@@ -528,7 +528,7 @@ var Testact=(function(){
 
 				ono3d.setTargetMatrix(0);
 				ono3d.loadIdentity();
-				ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
+				//ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
 
 				var scene = o3o.scenes[0];
 
@@ -672,7 +672,7 @@ var Testact=(function(){
 			 //変換マトリクス初期化
 			ono3d.setTargetMatrix(0);
 			ono3d.loadIdentity();
-			ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
+			//ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
 
 			var scene= obj3d.scenes[0];
 			O3o.setFrame(obj3d,scene,this.t/60.0*24); //アニメーション処理
@@ -715,7 +715,7 @@ var Testact=(function(){
 
 			ono3d.setTargetMatrix(0)
 			ono3d.loadIdentity();
-			ono3d.rotate(-Math.PI*0.5,1,0,0)
+			//ono3d.rotate(-Math.PI*0.5,1,0,0)
 
 			ono3d.rf=0;
 

@@ -38,7 +38,7 @@
 
 				ono3d.setTargetMatrix(0);
 				ono3d.loadIdentity();
-				ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
+				//ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
 				ono3d.translate(obj.p[0],obj.p[1],obj.p[2]);
 				t.phyObjs= O3o.createPhyObjs(o3o.scenes[0],Testact.onoPhy);
 				t.collisions=[];
@@ -96,9 +96,9 @@
 				//歩行方向に向かせる
 				var r = Math.atan2(vec[0],vec[2]);
 				var q = Vec4.poolAlloc();
-				Vec4.fromRotVector(this.rotq,-Math.PI*0.5,1,0,0);
-				Vec4.fromRotVector(q,r,0,1,0);
-				Vec4.qdot(this.rotq,q,this.rotq);
+				//Vec4.fromRotVector(this.rotq,-Math.PI*0.5,1,0,0);
+				Vec4.fromRotVector(this.rotq,r,0,1,0);
+				//Vec4.qdot(this.rotq,q,this.rotq);
 				Vec4.poolFree(1);
 			}
 			Vec4.copy(poJiki.rotq,this.rotq); //キャラの向きを物理オブジェクトに反映
@@ -177,7 +177,7 @@
 
 			ono3d.setTargetMatrix(0)
 			ono3d.loadIdentity();
-			ono3d.rotate(-Math.PI*0.5,1,0,0)
+			//ono3d.rotate(-Math.PI*0.5,1,0,0)
 
 			ono3d.rf=0;
 			ono3d.lineWidth=1.2;
@@ -210,7 +210,7 @@
 				dst.setAction(obj3d.actions[0],0);
 				O3o.PoseArmature.sub(sourceArmature,sourceArmature,dst);
 				O3o.PoseArmature.sub(referenceArmature,referenceArmature,dst);
-				O3o.PoseArmature.mul(sourceArmature,sourceArmature,vec3[1]*0.3);
+				O3o.PoseArmature.mul(sourceArmature,sourceArmature,vec3[2]*0.3);
 				O3o.PoseArmature.mul(referenceArmature,referenceArmature,vec3[0]*0.3);
 				O3o.PoseArmature.add(dst,referenceArmature,dst);
 				O3o.PoseArmature.add(dst,sourceArmature,dst);

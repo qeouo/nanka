@@ -265,8 +265,8 @@ def ExportOno3dObject():
                 fileout2(',"bend":{:9f}'.format(modifier.settings.bend))
             elif(modifier.type=="MIRROR" ):
                 fileout2(',"use_x":{}'.format(int(modifier.use_axis[0])))
-                fileout2(',"use_y":{}'.format(int(modifier.use_axis[1])))
-                fileout2(',"use_z":{}'.format(int(modifier.use_axis[2])))
+                fileout2(',"use_y":{}'.format(int(modifier.use_axis[2])))
+                fileout2(',"use_z":{}'.format(int(modifier.use_axis[1])))
             fileout2('}\n')
         fileoutLd()
 
@@ -313,6 +313,14 @@ yUpMatrix =  mathutils.Matrix.Rotation(math.radians(-90.0), 4, 'X')
 yUpMatrix_ =  mathutils.Matrix.Rotation(math.radians(90.0), 4, 'X')
 yUpQuaternion=  mathutils.Quaternion((1.0,0.0,0.0),math.radians(-90.0))
 yUpQuaternion_=  mathutils.Quaternion((1.0,0.0,0.0),math.radians(90.0))
+def stringIdx(idx):
+    if(idx==2):
+        return 1
+    if(idx==1):
+        return 2
+    return 0
+
+    
 def stringVector3(vctor):
     v = mathutils.Vector(vctor)
     v = yUpMatrix @ v
@@ -337,7 +345,7 @@ def stringVector3i(v):
 def stringQuaternion(quaternion):
     q = mathutils.Quaternion(quaternion)
     q = yUpQuaternion @ q @ yUpQuaternion_
-    return '[{:9f},{:9f},{:9f},{:9f}]'.format( quaternion[0],quaternion[1],quaternion[2],quaternion[3])
+    return '[{:9f},{:9f},{:9f},{:9f}]'.format( q[0],q[1],q[2],q[3])
 
 def stringMatrix44(matrix):
     return '[{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f},{:9f}]'.format(
@@ -649,17 +657,17 @@ def WriteAction(action):
                 if(len(pz)>zi+1 and keytime==int(pz[zi+1].co[0]) ): zi=zi+1;
                 fileout2('{')
                 fileout2('"f":{}'.format(int(keytime)))
-                fileout2('","p":{}'.format(stringQuaternion(
+                fileout2(',"p":{}'.format(stringQuaternion((
                     pw[ii].co[1]
                     ,px[xi].co[1]
                     ,py[yi].co[1]
-                    ,pz[zi].co[1])))
+                    ,pz[zi].co[1]))))
                 fileout2('}')
                 ii +=1;
             fileout2(']')
             i += 4
         else:
-            fileout2(',"type":"{}","idx":{},"keys":['.format(pflg,fcurve.array_index))
+            fileout2(',"type":"{}","idx":{},"keys":['.format(pflg,stringIdx(fcurve.array_index)))
             for keyframe_points in fcurve.keyframe_points:
                 if(keyframe_points != fcurve.keyframe_points[0]):fileout2(',')
                 fileout2('{')

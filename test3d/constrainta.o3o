@@ -421,6 +421,41 @@
     ,"scale":[ 1.000000, 1.000000, 1.000000]
     ,"type":"MESH"
     ,"data":"立方体.003"
+    ,"rigid_body":{
+      "type":"PASSIVE"
+      ,"mass":1.0
+      ,"collision_shape":"CYLINDER"
+      ,"friction": 0.300000
+      ,"restitution": 0.000000
+      ,"collision_groups":1
+    }
+    ,"rigid_body_constraint":{
+      "breaking_threshold":10.000000
+      ,"disable_collisions":1
+      ,"enabled":1
+      ,"limit_ang_lower":[ 0.000000, 0.000000, 0.000000]
+      ,"limit_ang_upper":[ 0.000000, 0.000000, 0.000000]
+      ,"limit_lin_lower":[ 0.000000, 0.000000, 0.000000]
+      ,"limit_lin_upper":[ 0.000000, 0.000000, 0.000000]
+      ,"motor_ang_max_impulse": 1.000000
+      ,"motor_ang_target_velocity": 1.000000
+      ,"motor_lin_max_impulse": 1.000000
+      ,"motor_lin_target_velocity": 1.000000
+      ,"object1":"c"
+      ,"object2":"立方体"
+      ,"spring_damping":[ 0.500000, 0.500000, 0.500000]
+      ,"spring_stiffness":[10.000000,10.000000,10.000000]
+      ,"spring_damping_ang":[ 0.500000, 0.500000, 0.500000]
+      ,"spring_stiffness_ang":[10.000000,10.000000,10.000000]
+      ,"use_breaking":0
+      ,"use_limit_ang":[0,0,1]
+      ,"use_limit_lin":[1,1,1]
+      ,"use_motor_ang":0
+      ,"use_motor_lin":0
+      ,"use_spring":[0,0,0]
+      ,"use_spring_ang":[0,0,0]
+      ,"type":"HINGE"
+    }
     ,"bound_box":[-0.103265,-0.237607,-0.105506, 0.103265, 0.248655, 0.101680]
     ,"bound_type":"BOX"
     ,"modifiers":[
@@ -434,6 +469,41 @@
     ,"scale":[ 1.000000, 1.000000, 1.000000]
     ,"type":"MESH"
     ,"data":"立方体.003"
+    ,"rigid_body":{
+      "type":"ACTIVE"
+      ,"mass":1.0
+      ,"collision_shape":"CYLINDER"
+      ,"friction": 0.300000
+      ,"restitution": 0.000000
+      ,"collision_groups":1
+    }
+    ,"rigid_body_constraint":{
+      "breaking_threshold":10.000000
+      ,"disable_collisions":1
+      ,"enabled":1
+      ,"limit_ang_lower":[-2.967060, 0.000000, 0.000000]
+      ,"limit_ang_upper":[ 2.967060, 0.000000, 0.000000]
+      ,"limit_lin_lower":[ 0.000000, 0.000000, 0.000000]
+      ,"limit_lin_upper":[ 0.000000, 0.000000, 0.000000]
+      ,"motor_ang_max_impulse": 1.000000
+      ,"motor_ang_target_velocity": 1.000000
+      ,"motor_lin_max_impulse": 1.000000
+      ,"motor_lin_target_velocity": 1.000000
+      ,"object1":"c.001"
+      ,"object2":"立方体.001"
+      ,"spring_damping":[ 0.500000, 0.500000, 0.500000]
+      ,"spring_stiffness":[10.000000,10.000000,10.000000]
+      ,"spring_damping_ang":[ 0.500000, 0.500000, 0.500000]
+      ,"spring_stiffness_ang":[10.000000,10.000000,10.000000]
+      ,"use_breaking":0
+      ,"use_limit_ang":[0,0,1]
+      ,"use_limit_lin":[1,1,1]
+      ,"use_motor_ang":0
+      ,"use_motor_lin":0
+      ,"use_spring":[0,0,0]
+      ,"use_spring_ang":[0,0,0]
+      ,"type":"HINGE"
+    }
     ,"bound_box":[-0.103265,-0.237607,-0.105506, 0.103265, 0.248655, 0.101680]
     ,"bound_type":"BOX"
     ,"modifiers":[
@@ -447,6 +517,41 @@
     ,"scale":[ 1.000000, 1.000000, 1.000000]
     ,"type":"MESH"
     ,"data":"立方体.003"
+    ,"rigid_body":{
+      "type":"ACTIVE"
+      ,"mass":1.0
+      ,"collision_shape":"CYLINDER"
+      ,"friction": 0.300000
+      ,"restitution": 0.000000
+      ,"collision_groups":1
+    }
+    ,"rigid_body_constraint":{
+      "breaking_threshold":10.000000
+      ,"disable_collisions":1
+      ,"enabled":1
+      ,"limit_ang_lower":[-2.967060, 0.000000, 0.000000]
+      ,"limit_ang_upper":[ 2.967060, 0.000000, 0.000000]
+      ,"limit_lin_lower":[ 0.000000, 0.000000, 0.000000]
+      ,"limit_lin_upper":[ 0.000000, 0.000000, 0.000000]
+      ,"motor_ang_max_impulse": 1.000000
+      ,"motor_ang_target_velocity": 1.000000
+      ,"motor_lin_max_impulse": 1.000000
+      ,"motor_lin_target_velocity": 1.000000
+      ,"object1":"c.002"
+      ,"object2":"立方体.002"
+      ,"spring_damping":[ 0.500000, 0.500000, 0.500000]
+      ,"spring_stiffness":[10.000000,10.000000,10.000000]
+      ,"spring_damping_ang":[ 0.500000, 0.500000, 0.500000]
+      ,"spring_stiffness_ang":[10.000000,10.000000,10.000000]
+      ,"use_breaking":0
+      ,"use_limit_ang":[0,0,1]
+      ,"use_limit_lin":[1,1,1]
+      ,"use_motor_ang":0
+      ,"use_motor_lin":0
+      ,"use_spring":[0,0,0]
+      ,"use_spring_ang":[0,0,0]
+      ,"type":"HINGE"
+    }
     ,"bound_box":[-0.103265,-0.237607,-0.105506, 0.103265, 0.248655, 0.101680]
     ,"bound_type":"BOX"
     ,"modifiers":[
@@ -460,6 +565,41 @@
     ,"scale":[ 1.000000, 1.000000, 1.000000]
     ,"type":"MESH"
     ,"data":"立方体.003"
+    ,"rigid_body":{
+      "type":"ACTIVE"
+      ,"mass":1.0
+      ,"collision_shape":"CYLINDER"
+      ,"friction": 0.300000
+      ,"restitution": 0.000000
+      ,"collision_groups":1
+    }
+    ,"rigid_body_constraint":{
+      "breaking_threshold":10.000000
+      ,"disable_collisions":1
+      ,"enabled":1
+      ,"limit_ang_lower":[-2.967060, 0.000000, 0.000000]
+      ,"limit_ang_upper":[ 2.967060, 0.000000, 0.000000]
+      ,"limit_lin_lower":[ 0.000000, 0.000000, 0.000000]
+      ,"limit_lin_upper":[ 0.000000, 0.000000, 0.000000]
+      ,"motor_ang_max_impulse": 1.000000
+      ,"motor_ang_target_velocity": 1.000000
+      ,"motor_lin_max_impulse": 1.000000
+      ,"motor_lin_target_velocity": 1.000000
+      ,"object1":"c.003"
+      ,"object2":"立方体.003"
+      ,"spring_damping":[ 0.500000, 0.500000, 0.500000]
+      ,"spring_stiffness":[10.000000,10.000000,10.000000]
+      ,"spring_damping_ang":[ 0.500000, 0.500000, 0.500000]
+      ,"spring_stiffness_ang":[10.000000,10.000000,10.000000]
+      ,"use_breaking":0
+      ,"use_limit_ang":[0,0,1]
+      ,"use_limit_lin":[1,1,1]
+      ,"use_motor_ang":0
+      ,"use_motor_lin":0
+      ,"use_spring":[0,0,0]
+      ,"use_spring_ang":[0,0,0]
+      ,"type":"HINGE"
+    }
     ,"bound_box":[-0.103265,-0.237607,-0.105506, 0.103265, 0.248655, 0.101680]
     ,"bound_type":"BOX"
     ,"modifiers":[
@@ -486,6 +626,41 @@
     ,"scale":[ 0.230387, 0.230387, 0.230387]
     ,"type":"MESH"
     ,"data":"ICO球"
+    ,"rigid_body":{
+      "type":"PASSIVE"
+      ,"mass":1.0
+      ,"collision_shape":"SPHERE"
+      ,"friction": 0.500000
+      ,"restitution": 0.000000
+      ,"collision_groups":1
+    }
+    ,"rigid_body_constraint":{
+      "breaking_threshold":10.000000
+      ,"disable_collisions":1
+      ,"enabled":1
+      ,"limit_ang_lower":[-0.785398,-0.785398,-0.785398]
+      ,"limit_ang_upper":[ 0.785398, 0.785398, 0.785398]
+      ,"limit_lin_lower":[ 0.000000, 0.000000, 0.000000]
+      ,"limit_lin_upper":[ 0.000000, 0.000000, 0.000000]
+      ,"motor_ang_max_impulse": 1.000000
+      ,"motor_ang_target_velocity": 1.000000
+      ,"motor_lin_max_impulse": 1.000000
+      ,"motor_lin_target_velocity": 1.000000
+      ,"object1":"ICO球"
+      ,"object2":"ICO球.001"
+      ,"spring_damping":[ 0.500000, 0.500000, 0.500000]
+      ,"spring_stiffness":[10.000000,10.000000,10.000000]
+      ,"spring_damping_ang":[ 0.500000, 0.500000, 0.500000]
+      ,"spring_stiffness_ang":[10.000000,10.000000,10.000000]
+      ,"use_breaking":0
+      ,"use_limit_ang":[0,0,0]
+      ,"use_limit_lin":[1,1,1]
+      ,"use_motor_ang":0
+      ,"use_motor_lin":0
+      ,"use_spring":[0,0,0]
+      ,"use_spring_ang":[0,0,0]
+      ,"type":"POINT"
+    }
     ,"bound_box":[-0.894425,-1.000000,-0.850640, 0.894425, 1.000000, 0.850640]
     ,"bound_type":"BOX"
     ,"modifiers":[
@@ -499,6 +674,41 @@
     ,"scale":[ 0.230387, 0.230387, 0.230387]
     ,"type":"MESH"
     ,"data":"ICO球"
+    ,"rigid_body":{
+      "type":"ACTIVE"
+      ,"mass":1.0
+      ,"collision_shape":"SPHERE"
+      ,"friction": 0.500000
+      ,"restitution": 0.000000
+      ,"collision_groups":1
+    }
+    ,"rigid_body_constraint":{
+      "breaking_threshold":10.000000
+      ,"disable_collisions":1
+      ,"enabled":1
+      ,"limit_ang_lower":[-0.785398,-0.785398,-0.785398]
+      ,"limit_ang_upper":[ 0.785398, 0.785398, 0.785398]
+      ,"limit_lin_lower":[ 0.000000, 0.000000, 0.000000]
+      ,"limit_lin_upper":[ 0.000000, 0.000000, 0.000000]
+      ,"motor_ang_max_impulse": 1.000000
+      ,"motor_ang_target_velocity": 1.000000
+      ,"motor_lin_max_impulse": 1.000000
+      ,"motor_lin_target_velocity": 1.000000
+      ,"object1":"ICO球.001"
+      ,"object2":"ICO球.002"
+      ,"spring_damping":[ 0.500000, 0.500000, 0.500000]
+      ,"spring_stiffness":[10.000000,10.000000,10.000000]
+      ,"spring_damping_ang":[ 0.500000, 0.500000, 0.500000]
+      ,"spring_stiffness_ang":[10.000000,10.000000,10.000000]
+      ,"use_breaking":0
+      ,"use_limit_ang":[0,0,0]
+      ,"use_limit_lin":[1,1,1]
+      ,"use_motor_ang":0
+      ,"use_motor_lin":0
+      ,"use_spring":[0,0,0]
+      ,"use_spring_ang":[0,0,0]
+      ,"type":"POINT"
+    }
     ,"bound_box":[-0.894425,-1.000000,-0.850640, 0.894425, 1.000000, 0.850640]
     ,"bound_type":"BOX"
     ,"modifiers":[
@@ -512,6 +722,41 @@
     ,"scale":[ 0.230387, 0.230387, 0.230387]
     ,"type":"MESH"
     ,"data":"ICO球"
+    ,"rigid_body":{
+      "type":"ACTIVE"
+      ,"mass":1.0
+      ,"collision_shape":"SPHERE"
+      ,"friction": 0.500000
+      ,"restitution": 0.000000
+      ,"collision_groups":1
+    }
+    ,"rigid_body_constraint":{
+      "breaking_threshold":10.000000
+      ,"disable_collisions":1
+      ,"enabled":1
+      ,"limit_ang_lower":[-0.785398,-0.785398,-0.785398]
+      ,"limit_ang_upper":[ 0.785398, 0.785398, 0.785398]
+      ,"limit_lin_lower":[ 0.000000, 0.000000, 0.000000]
+      ,"limit_lin_upper":[ 0.000000, 0.000000, 0.000000]
+      ,"motor_ang_max_impulse": 1.000000
+      ,"motor_ang_target_velocity": 1.000000
+      ,"motor_lin_max_impulse": 1.000000
+      ,"motor_lin_target_velocity": 1.000000
+      ,"object1":"ICO球.002"
+      ,"object2":"ICO球.003"
+      ,"spring_damping":[ 0.500000, 0.500000, 0.500000]
+      ,"spring_stiffness":[10.000000,10.000000,10.000000]
+      ,"spring_damping_ang":[ 0.500000, 0.500000, 0.500000]
+      ,"spring_stiffness_ang":[10.000000,10.000000,10.000000]
+      ,"use_breaking":0
+      ,"use_limit_ang":[0,0,0]
+      ,"use_limit_lin":[1,1,1]
+      ,"use_motor_ang":0
+      ,"use_motor_lin":0
+      ,"use_spring":[0,0,0]
+      ,"use_spring_ang":[0,0,0]
+      ,"type":"POINT"
+    }
     ,"bound_box":[-0.894425,-1.000000,-0.850640, 0.894425, 1.000000, 0.850640]
     ,"bound_type":"BOX"
     ,"modifiers":[
@@ -525,7 +770,84 @@
     ,"scale":[ 0.230387, 0.230387, 0.230387]
     ,"type":"MESH"
     ,"data":"ICO球"
+    ,"rigid_body":{
+      "type":"ACTIVE"
+      ,"mass":1.0
+      ,"collision_shape":"SPHERE"
+      ,"friction": 0.500000
+      ,"restitution": 0.000000
+      ,"collision_groups":1
+    }
+    ,"rigid_body_constraint":{
+      "breaking_threshold":10.000000
+      ,"disable_collisions":1
+      ,"enabled":1
+      ,"limit_ang_lower":[-0.785398,-0.785398,-0.785398]
+      ,"limit_ang_upper":[ 0.785398, 0.785398, 0.785398]
+      ,"limit_lin_lower":[ 0.000000, 0.000000, 0.000000]
+      ,"limit_lin_upper":[ 0.000000, 0.000000, 0.000000]
+      ,"motor_ang_max_impulse": 1.000000
+      ,"motor_ang_target_velocity": 1.000000
+      ,"motor_lin_max_impulse": 1.000000
+      ,"motor_lin_target_velocity": 1.000000
+      ,"object1":"ICO球.003"
+      ,"object2":"ICO球.004"
+      ,"spring_damping":[ 0.500000, 0.500000, 0.500000]
+      ,"spring_stiffness":[10.000000,10.000000,10.000000]
+      ,"spring_damping_ang":[ 0.500000, 0.500000, 0.500000]
+      ,"spring_stiffness_ang":[10.000000,10.000000,10.000000]
+      ,"use_breaking":0
+      ,"use_limit_ang":[0,0,0]
+      ,"use_limit_lin":[1,1,1]
+      ,"use_motor_ang":0
+      ,"use_motor_lin":0
+      ,"use_spring":[0,0,0]
+      ,"use_spring_ang":[0,0,0]
+      ,"type":"POINT"
+    }
     ,"bound_box":[-0.894425,-1.000000,-0.850640, 0.894425, 1.000000, 0.850640]
+    ,"bound_type":"BOX"
+    ,"modifiers":[
+    ]
+  }
+  ,{
+    "name":"ICO球.004"
+    ,"groups":[]
+    ,"location":[-2.000000, 0.393052, 1.106956]
+    ,"rotation":[ 0.000000, 0.000000, 0.013848]
+    ,"scale":[ 0.230387, 0.230387, 0.230387]
+    ,"type":"MESH"
+    ,"data":"ICO球"
+    ,"rigid_body":{
+      "type":"ACTIVE"
+      ,"mass":1.0
+      ,"collision_shape":"SPHERE"
+      ,"friction": 0.500000
+      ,"restitution": 0.000000
+      ,"collision_groups":1
+    }
+    ,"bound_box":[-0.894425,-1.000000,-0.850640, 0.894425, 1.000000, 0.850640]
+    ,"bound_type":"BOX"
+    ,"modifiers":[
+    ]
+  }
+  ,{
+    "name":"ICO球.005"
+    ,"groups":[]
+    ,"location":[ 1.813610, 3.101737, 1.115268]
+    ,"rotation":[ 0.000000, 0.000000, 0.000000]
+    ,"scale":[ 1.000000, 1.000000, 1.000000]
+    ,"type":"MESH"
+    ,"data":"ICO球.002"
+    ,"rigid_body":{
+      "type":"ACTIVE"
+      ,"mass":1.0
+      ,"collision_shape":"SPHERE"
+      ,"friction": 0.500000
+      ,"restitution": 0.000000
+      ,"collision_groups":1
+    }
+    ,"bound_box":[-0.199557,-0.223111,-0.189788, 0.199557, 0.223111, 0.189788]
     ,"bound_type":"BOX"
     ,"modifiers":[
     ]
@@ -544,6 +866,27 @@
     ]
   }
   ,{
+    "name":"円柱"
+    ,"groups":[]
+    ,"location":[-1.160483, 1.066457, 1.942385]
+    ,"rotation":[ 0.000000, 0.000000, 0.000000]
+    ,"scale":[ 0.331973, 0.509766, 0.331973]
+    ,"type":"MESH"
+    ,"data":"円柱"
+    ,"rigid_body":{
+      "type":"ACTIVE"
+      ,"mass":1.0
+      ,"collision_shape":"CYLINDER"
+      ,"friction": 0.500000
+      ,"restitution": 0.000000
+      ,"collision_groups":1
+    }
+    ,"bound_box":[-1.000000,-1.000000,-1.000000, 1.000000, 1.000000, 1.000000]
+    ,"bound_type":"BOX"
+    ,"modifiers":[
+    ]
+  }
+  ,{
     "name":"立方体"
     ,"groups":[]
     ,"location":[-0.003601, 3.107546, 0.007190]
@@ -551,6 +894,41 @@
     ,"scale":[ 1.000000, 1.000000, 1.000000]
     ,"type":"MESH"
     ,"data":"立方体"
+    ,"rigid_body":{
+      "type":"ACTIVE"
+      ,"mass":1.0
+      ,"collision_shape":"BOX"
+      ,"friction": 0.500000
+      ,"restitution": 0.000000
+      ,"collision_groups":1
+    }
+    ,"rigid_body_constraint":{
+      "breaking_threshold":10.000000
+      ,"disable_collisions":1
+      ,"enabled":1
+      ,"limit_ang_lower":[ 0.000000, 0.000000, 0.000000]
+      ,"limit_ang_upper":[ 0.000000, 0.000000, 0.000000]
+      ,"limit_lin_lower":[ 0.000000, 0.000000, 0.000000]
+      ,"limit_lin_upper":[ 0.000000, 0.000000, 0.000000]
+      ,"motor_ang_max_impulse": 1.000000
+      ,"motor_ang_target_velocity": 1.000000
+      ,"motor_lin_max_impulse": 1.000000
+      ,"motor_lin_target_velocity": 1.000000
+      ,"object1":"立方体"
+      ,"object2":"c.001"
+      ,"spring_damping":[ 0.500000, 0.500000, 0.500000]
+      ,"spring_stiffness":[10.000000,10.000000,10.000000]
+      ,"spring_damping_ang":[ 0.500000, 0.500000, 0.500000]
+      ,"spring_stiffness_ang":[10.000000,10.000000,10.000000]
+      ,"use_breaking":0
+      ,"use_limit_ang":[1,1,1]
+      ,"use_limit_lin":[1,1,1]
+      ,"use_motor_ang":0
+      ,"use_motor_lin":0
+      ,"use_spring":[0,0,0]
+      ,"use_spring_ang":[0,0,0]
+      ,"type":"FIXED"
+    }
     ,"bound_box":[-0.259587,-0.218774,-0.106998, 0.259587, 0.218774, 0.106998]
     ,"bound_type":"BOX"
     ,"modifiers":[
@@ -564,6 +942,41 @@
     ,"scale":[ 1.000000, 1.000000, 1.000000]
     ,"type":"MESH"
     ,"data":"立方体"
+    ,"rigid_body":{
+      "type":"ACTIVE"
+      ,"mass":1.0
+      ,"collision_shape":"BOX"
+      ,"friction": 0.500000
+      ,"restitution": 0.000000
+      ,"collision_groups":1
+    }
+    ,"rigid_body_constraint":{
+      "breaking_threshold":10.000000
+      ,"disable_collisions":1
+      ,"enabled":1
+      ,"limit_ang_lower":[ 0.000000, 0.000000, 0.000000]
+      ,"limit_ang_upper":[ 0.000000, 0.000000, 0.000000]
+      ,"limit_lin_lower":[ 0.000000, 0.000000, 0.000000]
+      ,"limit_lin_upper":[ 0.000000, 0.000000, 0.000000]
+      ,"motor_ang_max_impulse": 1.000000
+      ,"motor_ang_target_velocity": 1.000000
+      ,"motor_lin_max_impulse": 1.000000
+      ,"motor_lin_target_velocity": 1.000000
+      ,"object1":"立方体.001"
+      ,"object2":"c.002"
+      ,"spring_damping":[ 0.500000, 0.500000, 0.500000]
+      ,"spring_stiffness":[10.000000,10.000000,10.000000]
+      ,"spring_damping_ang":[ 0.500000, 0.500000, 0.500000]
+      ,"spring_stiffness_ang":[10.000000,10.000000,10.000000]
+      ,"use_breaking":0
+      ,"use_limit_ang":[1,1,1]
+      ,"use_limit_lin":[1,1,1]
+      ,"use_motor_ang":0
+      ,"use_motor_lin":0
+      ,"use_spring":[0,0,0]
+      ,"use_spring_ang":[0,0,0]
+      ,"type":"FIXED"
+    }
     ,"bound_box":[-0.259587,-0.218774,-0.106998, 0.259587, 0.218774, 0.106998]
     ,"bound_type":"BOX"
     ,"modifiers":[
@@ -577,7 +990,84 @@
     ,"scale":[ 1.000000, 1.000000, 1.000000]
     ,"type":"MESH"
     ,"data":"立方体"
+    ,"rigid_body":{
+      "type":"ACTIVE"
+      ,"mass":1.0
+      ,"collision_shape":"BOX"
+      ,"friction": 0.500000
+      ,"restitution": 0.000000
+      ,"collision_groups":1
+    }
+    ,"rigid_body_constraint":{
+      "breaking_threshold":10.000000
+      ,"disable_collisions":1
+      ,"enabled":1
+      ,"limit_ang_lower":[ 0.000000, 0.000000, 0.000000]
+      ,"limit_ang_upper":[ 0.000000, 0.000000, 0.000000]
+      ,"limit_lin_lower":[ 0.000000, 0.000000, 0.000000]
+      ,"limit_lin_upper":[ 0.000000, 0.000000, 0.000000]
+      ,"motor_ang_max_impulse": 1.000000
+      ,"motor_ang_target_velocity": 1.000000
+      ,"motor_lin_max_impulse": 1.000000
+      ,"motor_lin_target_velocity": 1.000000
+      ,"object1":"立方体.002"
+      ,"object2":"c.003"
+      ,"spring_damping":[ 0.500000, 0.500000, 0.500000]
+      ,"spring_stiffness":[10.000000,10.000000,10.000000]
+      ,"spring_damping_ang":[ 0.500000, 0.500000, 0.500000]
+      ,"spring_stiffness_ang":[10.000000,10.000000,10.000000]
+      ,"use_breaking":0
+      ,"use_limit_ang":[1,1,1]
+      ,"use_limit_lin":[1,1,1]
+      ,"use_motor_ang":0
+      ,"use_motor_lin":0
+      ,"use_spring":[0,0,0]
+      ,"use_spring_ang":[0,0,0]
+      ,"type":"FIXED"
+    }
     ,"bound_box":[-0.259587,-0.218774,-0.106998, 0.259587, 0.218774, 0.106998]
+    ,"bound_type":"BOX"
+    ,"modifiers":[
+    ]
+  }
+  ,{
+    "name":"立方体.003"
+    ,"groups":[]
+    ,"location":[-2.261335, 3.107546, 0.004844]
+    ,"rotation":[ 1.570796, 0.000000,-0.000000]
+    ,"scale":[ 1.000000, 1.000000, 1.000000]
+    ,"type":"MESH"
+    ,"data":"立方体"
+    ,"rigid_body":{
+      "type":"ACTIVE"
+      ,"mass":1.0
+      ,"collision_shape":"BOX"
+      ,"friction": 0.500000
+      ,"restitution": 0.000000
+      ,"collision_groups":1
+    }
+    ,"bound_box":[-0.259587,-0.218774,-0.106998, 0.259587, 0.218774, 0.106998]
+    ,"bound_type":"BOX"
+    ,"modifiers":[
+    ]
+  }
+  ,{
+    "name":"立方体.004"
+    ,"groups":[]
+    ,"location":[-0.154561,-0.191817,-0.068633]
+    ,"rotation":[ 0.000000, 0.000000, 0.000000]
+    ,"scale":[ 2.782210, 0.286479, 2.782210]
+    ,"type":"MESH"
+    ,"data":"立方体.001"
+    ,"rigid_body":{
+      "type":"PASSIVE"
+      ,"mass":1.0
+      ,"collision_shape":"BOX"
+      ,"friction": 0.500000
+      ,"restitution": 0.000000
+      ,"collision_groups":1
+    }
+    ,"bound_box":[-1.000000,-1.000000,-1.000000, 1.000000, 1.000000, 1.000000]
     ,"bound_type":"BOX"
     ,"modifiers":[
     ]
@@ -590,7 +1080,63 @@
     ,"scale":[ 0.150196, 0.150196, 0.150196]
     ,"type":"MESH"
     ,"data":"立方体.002"
+    ,"rigid_body":{
+      "type":"PASSIVE"
+      ,"mass":1.0
+      ,"collision_shape":"BOX"
+      ,"friction": 0.500000
+      ,"restitution": 0.000000
+      ,"collision_groups":1
+    }
+    ,"rigid_body_constraint":{
+      "breaking_threshold":10.000000
+      ,"disable_collisions":1
+      ,"enabled":1
+      ,"limit_ang_lower":[ 0.000000, 0.000000,-0.785398]
+      ,"limit_ang_upper":[ 0.000000, 0.000000, 0.785398]
+      ,"limit_lin_lower":[ 0.000000, 0.000000, 0.000000]
+      ,"limit_lin_upper":[ 0.000000, 0.000000, 0.000000]
+      ,"motor_ang_max_impulse": 1.000000
+      ,"motor_ang_target_velocity": 1.000000
+      ,"motor_lin_max_impulse": 1.000000
+      ,"motor_lin_target_velocity": 1.000000
+      ,"object1":"立方体.005"
+      ,"object2":"立方体.006"
+      ,"spring_damping":[ 0.500000, 0.500000, 0.500000]
+      ,"spring_stiffness":[10.000000,10.000000,10.000000]
+      ,"spring_damping_ang":[ 0.500000, 0.500000, 0.500000]
+      ,"spring_stiffness_ang":[10.000000,10.000000,10.000000]
+      ,"use_breaking":0
+      ,"use_limit_ang":[1,1,1]
+      ,"use_limit_lin":[1,1,1]
+      ,"use_motor_ang":0
+      ,"use_motor_lin":0
+      ,"use_spring":[0,0,0]
+      ,"use_spring_ang":[0,0,0]
+      ,"type":"GENERIC"
+    }
     ,"bound_box":[-1.000000,-1.000000,-1.000000, 1.000000, 1.000000, 1.000000]
+    ,"bound_type":"BOX"
+    ,"modifiers":[
+    ]
+  }
+  ,{
+    "name":"立方体.006"
+    ,"groups":[]
+    ,"location":[-0.544744, 2.280215,-1.097827]
+    ,"rotation":[ 0.000000, 0.000000, 0.000000]
+    ,"scale":[ 1.000000, 1.000000, 1.000000]
+    ,"type":"MESH"
+    ,"data":"立方体.004"
+    ,"rigid_body":{
+      "type":"ACTIVE"
+      ,"mass":1.0
+      ,"collision_shape":"BOX"
+      ,"friction": 0.500000
+      ,"restitution": 0.000000
+      ,"collision_groups":1
+    }
+    ,"bound_box":[-0.313439,-0.150196,-0.150196, 0.313439, 0.150196, 0.150196]
     ,"bound_type":"BOX"
     ,"modifiers":[
     ]
@@ -672,6 +1218,41 @@
     ,"scale":[ 1.000000, 1.000000, 1.000000]
     ,"type":"MESH"
     ,"data":"立方体.007"
+    ,"rigid_body":{
+      "type":"ACTIVE"
+      ,"mass":1.0
+      ,"collision_shape":"BOX"
+      ,"friction": 0.500000
+      ,"restitution": 0.000000
+      ,"collision_groups":1
+    }
+    ,"rigid_body_constraint":{
+      "breaking_threshold":10.000000
+      ,"disable_collisions":1
+      ,"enabled":1
+      ,"limit_ang_lower":[ 0.000000, 0.000000, 0.000000]
+      ,"limit_ang_upper":[ 0.000000, 0.000000, 0.000000]
+      ,"limit_lin_lower":[ 0.000000,-1.000000, 0.000000]
+      ,"limit_lin_upper":[ 0.000000, 1.000000, 0.000000]
+      ,"motor_ang_max_impulse": 1.000000
+      ,"motor_ang_target_velocity": 1.000000
+      ,"motor_lin_max_impulse": 1.000000
+      ,"motor_lin_target_velocity": 1.000000
+      ,"object1":"立方体.009"
+      ,"object2":"立方体.004"
+      ,"spring_damping":[ 0.500000, 0.500000, 0.500000]
+      ,"spring_stiffness":[10.000000,300.000000,10.000000]
+      ,"spring_damping_ang":[ 0.500000, 0.500000, 0.500000]
+      ,"spring_stiffness_ang":[10.000000,10.000000,10.000000]
+      ,"use_breaking":0
+      ,"use_limit_ang":[1,1,1]
+      ,"use_limit_lin":[1,0,1]
+      ,"use_motor_ang":0
+      ,"use_motor_lin":0
+      ,"use_spring":[0,1,0]
+      ,"use_spring_ang":[0,0,0]
+      ,"type":"GENERIC_SPRING"
+    }
     ,"bound_box":[-0.441942,-0.062855,-0.441942, 0.441942, 0.062855, 0.441942]
     ,"bound_type":"BOX"
     ,"modifiers":[
@@ -685,7 +1266,63 @@
     ,"scale":[ 1.000000, 1.000000, 1.000000]
     ,"type":"MESH"
     ,"data":"立方体.008"
+    ,"rigid_body":{
+      "type":"ACTIVE"
+      ,"mass":1.0
+      ,"collision_shape":"BOX"
+      ,"friction": 0.500000
+      ,"restitution": 0.000000
+      ,"collision_groups":1
+    }
+    ,"rigid_body_constraint":{
+      "breaking_threshold":10.000000
+      ,"disable_collisions":1
+      ,"enabled":1
+      ,"limit_ang_lower":[ 0.000000, 0.000000, 0.000000]
+      ,"limit_ang_upper":[ 0.000000, 0.000000, 0.000000]
+      ,"limit_lin_lower":[ 0.000000,-1.000000, 0.000000]
+      ,"limit_lin_upper":[ 0.000000, 1.000000, 0.000000]
+      ,"motor_ang_max_impulse": 1.000000
+      ,"motor_ang_target_velocity": 1.000000
+      ,"motor_lin_max_impulse": 1.000000
+      ,"motor_lin_target_velocity": 1.000000
+      ,"object1":"立方体.010"
+      ,"object2":"立方体.004"
+      ,"spring_damping":[ 0.500000, 0.500000, 0.500000]
+      ,"spring_stiffness":[10.000000,300.000000,10.000000]
+      ,"spring_damping_ang":[ 0.500000, 0.500000, 0.500000]
+      ,"spring_stiffness_ang":[10.000000,10.000000,10.000000]
+      ,"use_breaking":0
+      ,"use_limit_ang":[1,1,1]
+      ,"use_limit_lin":[1,0,1]
+      ,"use_motor_ang":0
+      ,"use_motor_lin":0
+      ,"use_spring":[0,1,0]
+      ,"use_spring_ang":[0,0,0]
+      ,"type":"GENERIC_SPRING"
+    }
     ,"bound_box":[-0.441942,-0.062855,-0.441942, 0.441942, 0.062855, 0.441942]
+    ,"bound_type":"BOX"
+    ,"modifiers":[
+    ]
+  }
+  ,{
+    "name":"立方体.011"
+    ,"groups":[]
+    ,"location":[ 1.731554, 1.198524,-0.210151]
+    ,"rotation":[ 0.000000, 0.000000, 0.000000]
+    ,"scale":[ 0.373813, 0.373813, 0.373813]
+    ,"type":"MESH"
+    ,"data":"立方体.009"
+    ,"rigid_body":{
+      "type":"ACTIVE"
+      ,"mass":1.0
+      ,"collision_shape":"BOX"
+      ,"friction": 0.500000
+      ,"restitution": 0.000000
+      ,"collision_groups":1
+    }
+    ,"bound_box":[-1.000000,-1.000000,-1.000000, 1.000000, 1.000000, 1.000000]
     ,"bound_type":"BOX"
     ,"modifiers":[
     ]
@@ -696,7 +1333,7 @@
     "name":"Scene"
     ,"frame_start":1
     ,"frame_end":1000
-    ,"objects":["立方体.008","立方体.007","Lamp","Camera"]
+    ,"objects":["立方体.011","円柱","立方体.010","ICO球.005","立方体.009","立方体.008","立方体.007","立方体.006","ICO球.004","ICO球.003","ICO球.002","ICO球.001","ICO球","立方体.005","立方体.004","立方体.003","c.003","c.002","立方体.002","立方体.001","c.001","c","立方体","Lamp","Camera"]
     ,"world":{
       "name":"World"
     }
