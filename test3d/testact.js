@@ -5,7 +5,6 @@ var Testact=(function(){
 	var gl;
 	var onoPhy=null;
 	var objs=[];
-	var lightProbeTexture=null;
 	var bufTexture;
 	var customTextures=[];
 	var customBumps=[];
@@ -214,16 +213,18 @@ var Testact=(function(){
 				objMan.deleteObj(objMan.objs[i]);
 			}
 
+			this.initFlg=false;
 			onoPhy.init();
 			goCamera = objMan.createObj(GoCamera);
 			goField= objMan.createObj(GoField);
 		
 		}
 		ret.prototype.move=function(){
-			if(!lightProbeTexture){
+			if(!this.initFlg){
 				if(Util.getLoadingCount() > 0){
 					return;
 				}
+				this.initFlg=true;
 				var o3o = field;
 				var t = goField;
 
@@ -321,8 +322,10 @@ var Testact=(function(){
 				}
 
 				ono3d.clear();
+
+				//環境マップ
 				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-				var envTexture = ono3d.createEnv(null,0,0,0,drawSub);
+				ono3d.environments[0].envTexture = ono3d.createEnv(null,0,0,0,drawSub);
 
 				ono3d.clear();
 				goField.draw2();
@@ -346,41 +349,10 @@ var Testact=(function(){
 
 				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 				for(var i=0;i<ono3d.environments_index;i++){
-					var env = ono3d.environments[i];
-					//環境マップ
-					env.envTexture=envTexture;
 				}
-
-				lightProbeTexture = true;
-
 
 				var lightprobe=o3o.objects.find(function(e){return e.name==="LightProbe"});
-				if(lightprobe){
-					lightprobe=lightprobe.data;
-
-
-					var points=[];
-					for(var i=0;i<lightprobe.vertices.length;i++){
-						var p=new Vec3();
-						Mat44.dotVec3(p,ono3d.worldMatrix,lightprobe.vertices[i].pos);
-						points.push(p);
-
-					}
-					
-					var triangles = Delaunay.create(points);
-					var bspTree=Bsp.createBspTree(triangles);
-				}
-
-
-				for(var i=0;i<ono3d.environments_index;i++){
-					var env = ono3d.environments[i];
-
-					env.lightProbe=scene.world.lightProbe;
-
-					env.bspTree=bspTree;
-					env.lightProbeMesh=lightprobe;
-				}
-
+				O3o.createLightProbe(ono3d,lightprobe)
 				
 			}
 			var mat44 = Mat44.poolAlloc();

@@ -200,7 +200,6 @@ var Testact=(function(){
 
 					ono3d.setTargetMatrix(0);
 					ono3d.loadIdentity();
-					ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
 
 					//物理シミュオブジェクトの設定
 					t.phyObjs= O3o.createPhyObjs(o3o.scenes[0],onoPhy);
@@ -303,16 +302,16 @@ var Testact=(function(){
 					//		for(var pz=0;pz<8;pz++){
 
 					var lightprobe=o3o.objects.find(function(e){return e.name==="LightProbe"});
-					lightprobe=lightprobe.data;
-
-
-
+					O3o.freezeMesh(O3o.bufMesh,lightprobe,null);
+					//o3o.createLightProbe(ono3d,lightprobe);
+					//var lightprobe = ono3d.environments[i];
+					lightprobe=O3o.bufMesh;
+					var vertexSize = lightprobe.vertexSize;
 
 					var a=function(){
 						var tex;
-						for(var i=0;i<lightprobe.vertices.length;i++){
+						for(var i=0;i<vertexSize;i++){
 							var v=lightprobe.vertices[i].pos;
-							//createLightField(lightProbeTexture,v[0],v[1],v[2],0.5,drawSub);
 							tex=createSHcoeff(v[0],v[1],v[2],0.5,drawSub);
 							Ono3d.copyImage(lightProbeTexture,(i%7)*9,(i/7|0),0,0,9,1);
 						}
@@ -338,7 +337,7 @@ var Testact=(function(){
 							var shcoefs=[];
 							var ratio = 1/(255*16*16*Math.PI*4);
 
-							for(var i=0;i<lightprobe.vertices.length;i++){
+							for(var i=0;i<vertexSize;i++){
 								var x = (i%7)*9;
 								var y= (i/7|0);
 								var ii = y*64+x;
@@ -406,11 +405,8 @@ var Testact=(function(){
 		gl.bindTexture(gl.TEXTURE_2D, null);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		//キューブマップ作成
-		var a=new Vec3(x,y,z);
-		Mat44.dotVec3(a,ono3d.worldMatrix,a);
-	
 		ono3d.setNearFar(0.01,80.0);
-		ono3d.createCubeMap(envBuf,a[0],a[1],a[2],256,func);
+		ono3d.createCubeMap(envBuf,x,y,z,256,func);
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.clearColor(0,0,0,1);
@@ -449,45 +445,6 @@ var Testact=(function(){
 			Ono3d.copyImage(tex,0,0,0,0,texsize,texsize);
 		}
 		
-		return tex;
-	}
-	var createLightField= function(tex,x,y,z,gridsize,func){
-		var size = 32;
-		if(!tex){
-			tex =Ono3d.createTexture(size*4,size*2);
-		}
-		var envBuf = ono3d.envbufTexture;
-
-		gl.bindTexture(gl.TEXTURE_2D, null);
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		//キューブマップ作成
-		//ono3d.createCubeMap(envBuf,(x-64)*gridsize,(y-4)*gridsize,(z-64)*gridsize,size,func);
-		var a=new Vec3(x,y,z);
-		Mat44.dotVec3(a,ono3d.worldMatrix,a);
-	
-		ono3d.createCubeMap(envBuf,a[0],a[1],a[2],size,func);
-
-		ono3d.setViewport(0,0,size*4,size*2);
-		Ono3d.postEffect(envBuf,0,0,size*4/envBuf.width,size*2/envBuf.height,cube2lightfield1); 
-		Ono3d.copyImage(envBuf,0,0,0,0,size*4,size*2);
-
-		var texsize=size;
-
-		while(2<texsize){
-			//積分
-			texsize>>=1;
-			ono3d.setViewport(0,0,texsize*4,texsize*2);
-			Ono3d.postEffect(envBuf,0,0,1,1,cube2lightfield2); 
-			Ono3d.copyImage(envBuf,0,0,0,0,texsize*4,texsize*2);
-
-		}
-
-		//積分2
-		ono3d.setViewport(0,0,6,1);
-		Ono3d.postEffect(envBuf,0,0,1,1,cube2lightfield3); 
-		//Ono3d.copyImage(tex,x*6,z+y*128,0,0,6,1);
-		
-
 		return tex;
 	}
 
@@ -576,7 +533,6 @@ var Testact=(function(){
 			 //変換マトリクス初期化
 			ono3d.setTargetMatrix(0);
 			ono3d.loadIdentity();
-			ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
 
 			var scene= obj3d.scenes[0];
 			O3o.setFrame(obj3d,scene,this.t/60.0*60.0); //アニメーション処理
@@ -614,7 +570,6 @@ var Testact=(function(){
 
 			ono3d.setTargetMatrix(0)
 			ono3d.loadIdentity();
-			ono3d.rotate(-Math.PI*0.5,1,0,0)
 
 			ono3d.rf=0;
 
@@ -1113,6 +1068,6 @@ gl.blendFuncSeparate(
 	for(var i=0;i<9;i++){
 		shShader.push(Ono3d.loadShader("sh"+i+".shader"));
 	}
-	aaa=Ono3d.loadShader("aaa.shader");
+	//aaa=Ono3d.loadShader("aaa.shader");
 	return ret;
 })()
