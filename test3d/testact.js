@@ -352,7 +352,9 @@ var Testact=(function(){
 				}
 
 				var lightprobe=o3o.objects.find(function(e){return e.name==="LightProbe"});
-				O3o.createLightProbe(ono3d,lightprobe)
+				if(lightprobe){
+					O3o.createLightProbe(ono3d,lightprobe)
+				}
 				
 			}
 			var mat44 = Mat44.poolAlloc();
