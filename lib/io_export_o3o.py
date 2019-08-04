@@ -492,7 +492,7 @@ def WriteMesh(mesh):
     fileoutMu()
     sp = mesh.name.split("|");
     fileout('"name":"{}"\n'.format(mesh.name))
-    if mesh.show_double_sided & config.EnableDoubleSided:
+    if  config.EnableDoubleSided:
         fileout(',"double_sided":1\n')
     if mesh.shape_keys:
         fileout(',"shapeKeys":')
@@ -585,6 +585,7 @@ def WriteMesh(mesh):
     fileoutLd()
     fileout(',"uv_layers":')
     fileoutLu()
+    mesh.uv_layers.active
     for uv_layer in mesh.uv_layers:
         uv = uv_layer.data
         if len(uv)<=0 :continue

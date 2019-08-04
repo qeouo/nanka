@@ -81,7 +81,7 @@ void main(void){
 	/*視差*/ 
 	vec4 q = texture2D(uNormalMap,vUv); 
 	vec2 hoge = vec2(dot(vView[0],eye),dot(vView[1],eye)); 
-	vec2 uv = vUv + hoge.xy * (q.w /256.0)   * uNormpow; 
+	vec2 uv = vUv + hoge.xy * (-(q.w-0.5) /1024.0)   * uNormpow; 
 
 	/*pbr*/ 
 	q = texture2D(uPbrMap,uv) * uPbr; 
@@ -92,7 +92,7 @@ void main(void){
 
 	/*ノーマルマップ*/ 
 	q = texture2D(uNormalMap,uv); 
-	vec3 nrm = vec3(( q.rg*2.0 - 1.0 ) * uNormpow,q.b) ; 
+	vec3 nrm = vec3(( q.rg*2.0 - 1.0 )*sign(uNormpow),q.b*2.0-1.0) ; 
 	nrm = normalize( vView* nrm); 
 
 	/*ベースカラー*/ 

@@ -333,23 +333,9 @@ var Testact=(function(){
 				ono3d.setStatic();
 
 				
-				for(i=0;i<objMan.objs.length;i++){
-					var obj = objMan.objs[i];
-					ono3d.setTargetMatrix(1)
-					ono3d.push();
-					ono3d.setTargetMatrix(0)
-					ono3d.loadIdentity()
-					ono3d.rf=0;
-					obj.draw();
-					ono3d.setTargetMatrix(1)
-					ono3d.pop();
-				}
 				ono3d.lightThreshold1=globalParam.lightThreshold1;
 				ono3d.lightThreshold2=globalParam.lightThreshold2;
 
-				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-				for(var i=0;i<ono3d.environments_index;i++){
-				}
 
 				var lightprobe=o3o.objects.find(function(e){return e.name==="LightProbe"});
 				if(lightprobe){
