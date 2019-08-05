@@ -26,8 +26,9 @@ void main(void){
 	vUv2 = aUv2; 
 	vLightPos= (lightMat * vec4(aPos,1.0)).xyz; 
 	vEye = aPos - anglePos ; 
-	vView = mat3(normalize(aSvec - dot(aNormal,aSvec)*aNormal) 
-		,normalize(aTvec - dot(aNormal,aTvec)*aNormal) 
+	//vView = mat3(normalize(aSvec - dot(aNormal,aSvec)*aNormal) 
+	//	,normalize(aTvec - dot(aNormal,aTvec)*aNormal) 
+	vView = mat3(aSvec,aTvec
 		,aNormal); 
 	vEnvRatio= 1.0- aEnvRatio + float(uEnvIndex)*(2.0*aEnvRatio - 1.0);
 	vPos = aPos; 
@@ -45,6 +46,7 @@ varying highp vec3 vLightPos;
 varying float vEnvRatio;  
 varying vec3 vLightProbe; 
 
+uniform mat4 lightMat; 
 uniform vec3 uLight; 
 uniform vec3 uLightColor; 
 uniform vec3 uAmbColor; 
@@ -80,8 +82,10 @@ void main(void){
 
 	/*視差*/ 
 	vec4 q = texture2D(uNormalMap,vUv); 
+	float depth= (0.5-q.w)*uNormpow;
+	vec3 lightPos = (lightMat * vec4(vPos + (eye*depth/eye.z),1.0)).xyz; 
 	vec2 hoge = vec2(dot(vView[0],eye),dot(vView[1],eye)); 
-	vec2 uv = vUv + hoge.xy * (-(q.w-0.5) /1024.0)   * uNormpow; 
+	vec2 uv = vUv + hoge.xy/dot(vView[2],eye)  * depth;
 
 	/*pbr*/ 
 	q = texture2D(uPbrMap,uv) * uPbr; 
