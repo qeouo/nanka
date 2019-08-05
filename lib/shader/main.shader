@@ -81,11 +81,20 @@ void main(void){
 	vec3 eye = normalize(vEye); 
 
 	/*視差*/ 
-	vec4 q = texture2D(uNormalMap,vUv); 
-	float depth= (0.5-q.w)*uNormpow;
-	vec3 lightPos = (lightMat * vec4(vPos + (eye*depth/eye.z),1.0)).xyz; 
-	vec2 hoge = vec2(dot(vView[0],eye),dot(vView[1],eye)); 
-	vec2 uv = vUv + hoge.xy/dot(vView[2],eye)  * depth;
+	vec4 q;
+	float depth = 0.0;
+	vec2 hoge = vec2(dot(vView[0],eye),dot(vView[1],eye))/dot(vView[2],eye); 
+	vec2 uv = vUv;
+	q = texture2D(uNormalMap,uv); 
+	for(int i=0;i<3;i++){
+		depth= (q.w-0.5 -depth) * 0.5 + depth;
+		uv = vUv + hoge.xy  * depth*uNormpow;
+		q = texture2D(uNormalMap,uv); 
+	}
+	depth= (q.w-0.5);
+	uv = vUv + hoge.xy  * depth*uNormpow;
+
+	vec3 lightPos = (lightMat * vec4(vPos + 128.0*depth*uNormpow*((eye/dot(vView[2],eye))- vView[2]),1.0)).xyz; 
 
 	/*pbr*/ 
 	q = texture2D(uPbrMap,uv) * uPbr; 
@@ -96,7 +105,7 @@ void main(void){
 
 	/*ノーマルマップ*/ 
 	q = texture2D(uNormalMap,uv); 
-	vec3 nrm = vec3(( q.rg*2.0 - 1.0 )*sign(uNormpow),q.b*2.0-1.0) ; 
+	vec3 nrm = vec3(( q.rg*2.0 - 1.0 )*uNormpow,(q.b*2.0-1.0)) ; 
 	nrm = normalize( vView* nrm); 
 
 	/*ベースカラー*/ 
@@ -126,8 +135,8 @@ void main(void){
 
 	/*影判定*/ 
 	highp float shadowmap; 
-	shadowmap=decodeFull_(texture2D(uShadowmap,(vLightPos.xy+1.0)*0.5)); 
-	diffuse = (1.0-sign((vLightPos.z+1.0)*0.5 -0.0001 -shadowmap))*0.5 * diffuse; 
+	shadowmap=decodeFull_(texture2D(uShadowmap,(lightPos.xy+1.0)*0.5)); 
+	diffuse = (1.0-sign((lightPos.z+1.0)*0.5 -0.0001 -shadowmap))*0.5 * diffuse; 
 
 	/*拡散反射+環境光+自己発光*/ 
 	vec3 vColor2;
@@ -145,6 +154,7 @@ void main(void){
 
 	/*全反射合成*/ 
 	vColor2 = mix(vColor2,refCol.rgb,reflectPower); 
+	//vColor2.rgb=nrm;
 
 	/*スケーリング*/ 
 	gl_FragColor = encode(vec4(vColor2 * vEnvRatio,0.0)); 
