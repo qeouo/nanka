@@ -26,9 +26,9 @@ void main(void){
 	vUv2 = aUv2; 
 	vLightPos= (lightMat * vec4(aPos,1.0)).xyz; 
 	vEye = aPos - anglePos ; 
-	//vView = mat3(normalize(aSvec - dot(aNormal,aSvec)*aNormal) 
-	//	,normalize(aTvec - dot(aNormal,aTvec)*aNormal) 
-	vView = mat3(aSvec,aTvec
+	vView = mat3(normalize(aSvec - dot(aNormal,aSvec)*aNormal) 
+		,normalize(aTvec - dot(aNormal,aTvec)*aNormal) 
+	//vView = mat3(aSvec,aTvec
 		,aNormal); 
 	vEnvRatio= 1.0- aEnvRatio + float(uEnvIndex)*(2.0*aEnvRatio - 1.0);
 	vPos = aPos; 
@@ -83,18 +83,19 @@ void main(void){
 	/*視差*/ 
 	vec4 q;
 	float depth = 0.0;
-	vec2 hoge = vec2(dot(vView[0],eye),dot(vView[1],eye))/dot(vView[2],eye); 
+	vec3 eye_v2 = eye / min(-0.2,dot(vView[2],eye));
+	vec2 hoge = uNormpow*vec2(dot(vView[0],eye_v2),dot(vView[1],eye_v2));
 	vec2 uv = vUv;
 	q = texture2D(uNormalMap,uv); 
 	for(int i=0;i<3;i++){
 		depth= (q.w-0.5 -depth) * 0.5 + depth;
-		uv = vUv + hoge.xy  * depth*uNormpow;
+		uv = vUv + hoge  * depth;
 		q = texture2D(uNormalMap,uv); 
 	}
 	depth= (q.w-0.5);
-	uv = vUv + hoge.xy  * depth*uNormpow;
+	uv = vUv + hoge  * depth;
 
-	vec3 lightPos = (lightMat * vec4(vPos + 128.0*depth*uNormpow*((eye/dot(vView[2],eye))- vView[2]),1.0)).xyz; 
+	vec3 lightPos = (lightMat * vec4(vPos + depth*uNormpow*(eye_v2- vView[2]),1.0)).xyz; 
 
 	/*pbr*/ 
 	q = texture2D(uPbrMap,uv) * uPbr; 
@@ -106,7 +107,7 @@ void main(void){
 	/*ノーマルマップ*/ 
 	q = texture2D(uNormalMap,uv); 
 	vec3 nrm = vec3(( q.rg*2.0 - 1.0 )*uNormpow,(q.b*2.0-1.0)) ; 
-	nrm = normalize( vView* nrm); 
+	nrm = normalize(mat3((vView[0]),(vView[1]),(vView[2]))* nrm); 
 
 	/*ベースカラー*/ 
 	vec3 baseCol = uBaseCol * texture2D(uBaseColMap,uv).rgb; 
