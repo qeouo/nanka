@@ -31,7 +31,9 @@ void main(void){
 	vEye = aPos - anglePos ; 
 	vSvec=aSvec - dot(aNormal,aSvec)*aNormal;
 	vTvec=aTvec - dot(aNormal,aTvec)*aNormal;
-	vNormal=aNormal* max(length(aSvec),length(aTvec));
+	vNormpow=  max(length(vSvec),length(vTvec));
+	vNormal=aNormal* vNormpow;
+	vNormpow=vNormpow;
 	vSvec*=uNormpow;
 	vTvec*=uNormpow;
 	v_ST =uNormpow*vec2(1.0/(length(vSvec)*length(vSvec))
@@ -40,8 +42,6 @@ void main(void){
 	vEnvRatio= 1.0- aEnvRatio + float(uEnvIndex)*(2.0*aEnvRatio - 1.0);
 	vPos = aPos; 
 	vLightProbe = aLightProbe;
-	vNormpow=  max(length(aSvec),length(aTvec));
-	vNormpow=vNormpow*vNormpow;
 } 
 
 [fragmentshader]
@@ -91,15 +91,19 @@ void main(void){
 
 	/*視差*/ 
 	vec4 q;
-	float depth = 0.0;
-	vec3 eye_v2 = uNormpow*(vNormpow *eye / min(-0.2,dot(vNormal,eye)) - vNormal);
+	float depth = 0.5;
+	vec3 eye_v2 = uNormpow*(vNormpow *eye / min(-0.0,dot(normalize(vNormal),eye)) - vNormal);
 	vec2 hoge = vec2(dot(vSvec,eye_v2),dot(vTvec,eye_v2))*v_ST;
-	q = texture2D(uNormalMap,vUv); 
-	for(int i=0;i<3;i++){
-		depth= ((q.w-0.5)-depth) * 0.5 + depth;
-		q = texture2D(uNormalMap, vUv + hoge  * depth);
+	q = texture2D(uNormalMap, vUv + hoge  * depth);
+	float prev=q.w;
+	for(int i=1;i<5 ;i++){
+		if(depth>=q.w-0.5){
+			depth=-float(i)*0.25+0.5;
+			prev=q.w-0.5;
+			q = texture2D(uNormalMap, vUv + hoge  * depth);
+		}
 	}
-	depth= (q.w-0.5);
+	depth = depth+0.25*(depth-(q.w-0.5))/((prev -(depth+0.25))+(depth-(q.w-0.5)));
 	vec2 uv = vUv + hoge  * depth;
 
 	vec3 lightPos = (lightMat * vec4(vPos + depth*(eye_v2),1.0)).xyz; 
