@@ -12,13 +12,13 @@ varying vec2 vUv;
 varying vec2 vUv2; 
 varying vec3 vEye; 
 varying vec3 vPos; 
-varying vec3 vNormal; 
-varying vec3 vSvec; 
-varying vec3 vTvec; 
-varying vec2 v_ST; 
+varying mediump vec3 vNormal; 
+varying mediump vec3 vSvec; 
+varying mediump vec3 vTvec; 
+varying mediump vec2 v_ST; 
 varying float vEnvRatio;  
 varying vec3 vLightProbe; 
-varying float vNormpow; 
+varying mediump float vNormpow; 
 uniform int uEnvIndex;  
 uniform mat4 projectionMatrix; 
 uniform mat4 lightMat; 
@@ -33,7 +33,7 @@ void main(void){
 	vTvec=aTvec - dot(aNormal,aTvec)*aNormal;
 	vNormpow=  max(length(vSvec),length(vTvec));
 	vNormal=aNormal* vNormpow;
-	vNormpow=vNormpow;
+	vNormpow=vNormpow*vNormpow;
 	vSvec*=uNormpow;
 	vTvec*=uNormpow;
 	v_ST =uNormpow*vec2(1.0/(length(vSvec)*length(vSvec))
@@ -50,13 +50,13 @@ varying vec3 vPos;
 varying vec2 vUv; 
 varying vec2 vUv2; 
 varying vec3 vEye; 
-varying vec3 vNormal; 
-varying vec3 vSvec; 
-varying vec3 vTvec; 
-varying vec2 v_ST; 
+varying mediump vec3 vNormal; 
+varying mediump vec3 vSvec; 
+varying mediump vec3 vTvec; 
+varying mediump vec2 v_ST; 
 varying float vEnvRatio;  
 varying vec3 vLightProbe; 
-varying float vNormpow; 
+varying mediump float vNormpow; 
 
 uniform mat4 lightMat; 
 uniform vec3 uLight; 
@@ -88,22 +88,27 @@ vec4 textureTri(sampler2D texture,vec2 size,vec2 uv,float w){
 }
 void main(void){ 
 	vec3 eye = normalize(vEye); 
+	vec4 q;
 
 	/*視差*/ 
-	vec4 q;
-	float depth = 0.5;
-	vec3 eye_v2 = uNormpow*(vNormpow *eye / min(-0.0,dot(normalize(vNormal),eye)) - vNormal);
+	vec3 eye_v2 = uNormpow*(vNormpow *eye / dot((vNormal),eye) - vNormal);
 	vec2 hoge = vec2(dot(vSvec,eye_v2),dot(vTvec,eye_v2))*v_ST;
-	q = texture2D(uNormalMap, vUv + hoge  * depth);
-	float prev=q.w;
-	for(int i=1;i<5 ;i++){
-		if(depth>=q.w-0.5){
-			depth=-float(i)*0.25+0.5;
-			prev=q.w-0.5;
-			q = texture2D(uNormalMap, vUv + hoge  * depth);
+
+	float depth = 0.75;
+	float truedepth=0.5;
+	float prev_depth;
+	float prev_truedepth;
+	for(int i=0;i<5 ;i++){
+		if(depth>truedepth ){
+			prev_truedepth=truedepth;
+			prev_depth=depth;
+			depth=depth-0.25;
+			truedepth = texture2D(uNormalMap, vUv + hoge  * depth).w-0.5;
 		}
 	}
-	depth = depth+0.25*(depth-(q.w-0.5))/((prev -(depth+0.25))+(depth-(q.w-0.5)));
+	
+	depth = depth+(prev_depth-depth)*((depth-truedepth)/((prev_truedepth -prev_depth)+(depth-truedepth)));
+
 	vec2 uv = vUv + hoge  * depth;
 
 	vec3 lightPos = (lightMat * vec4(vPos + depth*(eye_v2),1.0)).xyz; 
@@ -166,6 +171,7 @@ void main(void){
 	/*全反射合成*/ 
 	vColor2 = mix(vColor2,refCol.rgb,reflectPower); 
 	//vColor2.rgb=nrm;
+//	vColor2.rgb=vec3(sa);
 
 	/*スケーリング*/ 
 	gl_FragColor = encode(vec4(vColor2 * vEnvRatio,0.0)); 
