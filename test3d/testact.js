@@ -1070,6 +1070,7 @@ var Testact=(function(){
 			// ブルーム処理
 			ono3d.setViewport(0,0,WIDTH,HEIGHT);
 			ono3d.bloom(bufTexture,globalParam.exposure_bloom);
+		Ono3d.drawCopy(0,0,1,1,ono3d.transTexture,0,0.5,0.5*WIDTH/1024,0.5*HEIGHT/WIDTH);
 			Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 		}
 
