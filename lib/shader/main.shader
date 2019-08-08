@@ -91,7 +91,7 @@ void main(void){
 	vec4 q;
 
 	/*視差*/ 
-	vec3 eye_v2 = uNormpow*(vNormpow *eye / dot((vNormal),eye) - vNormal);
+	vec3 eye_v2 = uNormpow*(vNormpow *eye / dot(vNormal,eye) - vNormal);
 	vec2 hoge = vec2(dot(vSvec,eye_v2),dot(vTvec,eye_v2))*v_ST;
 
 	float depth = 0.75;
