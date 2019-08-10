@@ -393,6 +393,7 @@ def WriteMaterial( Material=None):
             dict["baseColor"] = inputs[0].default_value[0:3]
             dict["opacity"] = 1.0 -inputs[15].default_value
             dict["metallic"] = inputs[4].default_value
+            dict["specular"] = inputs[5].default_value
             dict["roughness"] = inputs[7].default_value
             dict["ior"] = inputs[14].default_value
             dict["subRoughness"] = inputs[16].default_value
@@ -423,6 +424,7 @@ def WriteMaterial( Material=None):
         if('Bump' in nodes):
             inputs = nodes['Bump'].inputs
             dict["hightMapPower"] = inputs[0].default_value
+            dict["hightBase"] = inputs[1].default_value
 
         if('LightMap' in nodes):
             node = nodes['LightMap']

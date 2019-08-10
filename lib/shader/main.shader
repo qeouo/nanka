@@ -15,7 +15,6 @@ varying vec3 vPos;
 varying mediump vec3 vNormal; 
 varying mediump vec3 vSvec; 
 varying mediump vec3 vTvec; 
-varying mediump vec2 v_ST; 
 varying float vEnvRatio;  
 varying vec3 vLightProbe; 
 varying mediump float vNormpow; 
@@ -31,13 +30,10 @@ void main(void){
 	vEye = aPos - anglePos ; 
 	vSvec=aSvec - dot(aNormal,aSvec)*aNormal;
 	vTvec=aTvec - dot(aNormal,aTvec)*aNormal;
-	vNormpow=  max(length(vSvec),length(vTvec));
-	vNormal=aNormal* vNormpow;
-	vNormpow=vNormpow*vNormpow;
-	vSvec*=uNormpow;
-	vTvec*=uNormpow;
-	v_ST =uNormpow*vec2(1.0/(length(vSvec)*length(vSvec))
-		,1.0/(length(vTvec)*length(vTvec)));
+	vNormpow=  max(length(vSvec),length(vTvec))*uNormpow;
+	vSvec*=1.0/(length(vSvec)*length(vSvec));
+	vTvec*=1.0/(length(vTvec)*length(vTvec));
+	vNormal=aNormal;
 
 	vEnvRatio= 1.0- aEnvRatio + float(uEnvIndex)*(2.0*aEnvRatio - 1.0);
 	vPos = aPos; 
@@ -53,11 +49,11 @@ varying vec3 vEye;
 varying mediump vec3 vNormal; 
 varying mediump vec3 vSvec; 
 varying mediump vec3 vTvec; 
-varying mediump vec2 v_ST; 
 varying float vEnvRatio;  
 varying vec3 vLightProbe; 
 varying mediump float vNormpow; 
 
+uniform float uHeightBase;
 uniform mat4 lightMat; 
 uniform vec3 uLight; 
 uniform vec3 uLightColor; 
@@ -71,12 +67,11 @@ uniform mat3 uViewMat;
 uniform vec3 uBaseCol; 
 uniform sampler2D uBaseColMap; 
 uniform sampler2D uNormalMap; 
-uniform float uNormpow; 
 uniform float uOpacity; 
 uniform float uEmi; 
 uniform float lightThreshold1; 
 uniform float lightThreshold2; 
-uniform vec3 uReflectionColor; 
+uniform float uMetallic; 
 
 [common]
 vec4 textureTri(sampler2D texture,vec2 size,vec2 uv,float w){
@@ -91,23 +86,27 @@ void main(void){
 	vec4 q;
 
 	/*視差*/ 
-	vec3 eye_v2 = uNormpow*(vNormpow *eye / dot(vNormal,eye) - vNormal);
-	vec2 hoge = vec2(dot(vSvec,eye_v2),dot(vTvec,eye_v2))*v_ST;
+	vec3 eye_v2 = (eye / dot(vNormal,eye) - vNormal)*vNormpow;
+	vec2 hoge = vec2(dot(vSvec,eye_v2),dot(vTvec,eye_v2));
 
-	float depth = 0.75;
-	float truedepth=0.5;
+	float hight_offset=uHeightBase;
+	float step = -1.0/4.0;
+	float depth = (1.0-hight_offset)-step;
+	float truedepth=hight_offset;
 	float prev_depth;
 	float prev_truedepth;
-	for(int i=0;i<5 ;i++){
+	for(int i=0;i<4+1 ;i++){
 		if(depth>truedepth ){
 			prev_truedepth=truedepth;
 			prev_depth=depth;
-			depth=depth-0.25;
-			truedepth = texture2D(uNormalMap, vUv + hoge  * depth).w-0.5;
+			depth +=step;
+			truedepth = texture2D(uNormalMap, vUv + hoge  * (depth)).w-hight_offset;
 		}
 	}
 	
 	depth = depth+(prev_depth-depth)*((depth-truedepth)/((prev_truedepth -prev_depth)+(depth-truedepth)));
+
+//	depth*=vNormpow;
 
 	vec2 uv = vUv + hoge  * depth;
 
@@ -115,14 +114,14 @@ void main(void){
 
 	/*pbr*/ 
 	q = texture2D(uPbrMap,uv) * uPbr; 
-	float reflectPower = q.x; 
+	float specular= q.x; 
 	float rough = q.y; 
 	float transRough = q.z; 
 	float refractPower = q.w; 
 
 	/*ノーマルマップ*/ 
 	q = texture2D(uNormalMap,uv); 
-	vec3 nrm = normalize(mat3(vSvec,vTvec,vNormal)* (q*2.0-1.0).rgb); 
+	vec3 nrm = normalize(mat3(vSvec*vNormpow,vTvec*vNormpow,vNormal)* (q*2.0-1.0).rgb); 
 
 	/*ベースカラー*/ 
 	q= texture2D(uBaseColMap,uv); 
@@ -136,7 +135,7 @@ void main(void){
 	refa = min(refa,1.0); 
 	vec2 refV = angle2uv(angle) * vec2(1.0,0.5); 
 	vec4 refCol = textureTri(uEnvMap,vec2(256.0),refV,refx+refa) ;
-	refCol.rgb *=  uReflectionColor; 
+	refCol.rgb *=  vec3(1.0) - uMetallic * (vec3(1.0)-baseCol); 
 
 	/*屈折*/ 
 	refx = min(floor(transRough/0.2),3.0); 
@@ -166,12 +165,11 @@ void main(void){
 	vColor2 = mix(vColor2,transCol.rgb,1.0 - opacity); 
 
 	/* フレネル */ 
-	reflectPower +=  (1.0 - reflectPower)*pow(1.0 + min(dot(eye,nrm),0.0),5.0)*(1.0-opacity); 
+	specular +=  (1.0 - specular)*pow(1.0 + min(dot(eye,nrm),0.0),5.0)*(1.0-opacity); 
 
 	/*全反射合成*/ 
-	vColor2 = mix(vColor2,refCol.rgb,reflectPower); 
-	//vColor2.rgb=nrm;
-//	vColor2.rgb=vec3(sa);
+	vColor2 = mix(vColor2,refCol.rgb,specular); 
+//	vColor2.rgb=vec3(depth+0.5);
 
 	/*スケーリング*/ 
 	gl_FragColor = encode(vec4(vColor2 * vEnvRatio,0.0)); 

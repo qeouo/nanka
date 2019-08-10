@@ -816,7 +816,7 @@ var Testact=(function(){
 	//カスタムマテリアル
 		globalParam.baseColor= "ffffff";
 		globalParam.metallic= 0;
-		globalParam.metalColor= "ffffff";
+		globalParam.specular =0;
 		globalParam.roughness= 0;
 		globalParam.subRoughness= 0;
 		globalParam.frenel = 0;
@@ -994,7 +994,8 @@ var Testact=(function(){
 			cMat.ior=globalParam.ior;
 			cMat.roughness=globalParam.roughness;
 			cMat.subRoughness=globalParam.subRoughness;
-			Util.hex2rgb(cMat.metalColor,globalParam.metalColor);
+			cMat.specular=globalParam.specular;
+			cMat.metallic=globalParam.metallic;
 			cMat.texture=globalParam.cTexture;
 			cMat.texture_slots=[];
 			if(globalParam.cTexture>=0){
