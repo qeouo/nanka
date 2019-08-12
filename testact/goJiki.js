@@ -239,7 +239,7 @@
 					var ans1 = Vec3.poolAlloc();
 					var ans2 = Vec3.poolAlloc();
 					a = Collider.calcClosest(ans1,ans2,l[0].col1,l[0].col2);
-					a = Math.min(-a*4,1.0);
+					a = Math.min(-a*2.0,1.0);
 					O3o.drawObject(human,null,ono3d.environments[0],ono3d.environments[1],a);
 					O3o.drawObject(metalball,null,ono3d.environments[0],ono3d.environments[1],a);
 					Vec3.poolFree(2);

@@ -343,8 +343,7 @@ var Testact=(function(){
 			for(var i=0;i<8;i++){
 				Vec3.copy(v4,scope[i]);
 				v4[3]=1;
-				if(im[15]===0){
-					//透視投影の場合
+				if(!matrix){
 					if(v4[2]<0){
 						Vec4.mul(v4,v4,ono3d.znear);
 					}else{
@@ -413,6 +412,7 @@ var Testact=(function(){
 				this.a[i]=nangle(this.a[i]);
 				camera.a[i]=nangle(camera.a[i]);
 			}
+
 			camera.a[0] +=nangle(this.a[0]-camera.a[0])*0.1;
 			camera.a[1] +=nangle(this.a[1]-camera.a[1])*0.1;
 			camera.a[2] +=nangle(this.a[2]-camera.a[2])*0.1;
@@ -436,6 +436,13 @@ var Testact=(function(){
 	}
 
 	var drawSub = function(x,y,w,h){
+
+		ono3d.rf=0;
+		ono3d.lineWidth=1.0;
+		ono3d.smoothing=globalParam.smoothing;
+
+		ono3d.lightThreshold1=globalParam.lightThreshold1;
+		ono3d.lightThreshold2=globalParam.lightThreshold2;
 
 //遠景描画
 		gl.disable(gl.DEPTH_TEST);
@@ -600,11 +607,19 @@ var Testact=(function(){
 
 
 				ono3d.clear();
-				//goField.draw();
+				//goField.draw2();
 				//ono3d.render(camera.p);
 				var envTexture = ono3d.createEnv(null,0,0,0,drawSub);
 				ono3d.environments[0].envTexture=envTexture;
 
+
+				ono3d.clear();
+				ono3d.loadIdentity()
+				ono3d.rf=0;
+				goField.move();
+				goField.draw2();
+				//ono3d.render(camera.p);
+				//ono3d.setStatic();
 
 				//リフレクションプローブ処理
 				var probs = new Collider();
@@ -616,7 +631,7 @@ var Testact=(function(){
 					Mat43.dotMat44Mat43(collider.matrix
 							,ono3d.worldMatrix,object.matrix);
 					for(var i=0;i<9;i++){
-						collider.matrix[i]*=object.distance;
+						collider.matrix[i]*=object.data.distance;
 					}
 					collider.update();
 					probs.addCollision(collider);
@@ -626,9 +641,9 @@ var Testact=(function(){
 					ono3d.environments_index++;
 					environment.name=object.name;
 					environment.envTexture= ono3d.createEnv(null
-							,collider.matrix[12]
-							,collider.matrix[13]
-							,collider.matrix[14]
+							,collider.matrix[9]
+							,collider.matrix[10]
+							,collider.matrix[11]
 							,drawSub);
 					environment.sun=ono3d.environments[0].sun;
 					environment.area=ono3d.environments[0].area;
@@ -706,6 +721,34 @@ var Testact=(function(){
 				if(aabb.max[1]<-10){
 					//リセット
 					O3o.movePhyObj(phyObj,phyObj.parent,0,true);
+				}
+			}
+		}
+
+		ret.prototype.draw2=function(){
+			var phyObjs = this.phyObjs;
+
+			ono3d.setTargetMatrix(0)
+			ono3d.loadIdentity();
+			//ono3d.rotate(-Math.PI*0.5,1,0,0)
+
+			ono3d.rf=0;
+
+			if(field){
+				if(field.scenes.length>0){
+					var objects = field.scenes[0].objects;
+					for(var i=0;i<objects.length;i++){
+						if(objects[i].hide_render
+						|| !objects[i].static){
+							continue;
+						}
+
+						var obj=objects[i];
+
+						var env = null;
+						obj.staticFaces=O3o.drawObjectStatic(obj,null,env);
+						
+					}
 				}
 			}
 		}
@@ -792,7 +835,7 @@ var Testact=(function(){
 		globalParam.lightThreshold2=1.;
 		globalParam.physics=1;
 		globalParam.physics_=0;
-		globalParam.smoothing=0;
+		globalParam.smoothing=1;
 		globalParam.stereomode=0;
 		globalParam.stereoVolume=1;
 		globalParam.step=1;
@@ -920,12 +963,6 @@ var Testact=(function(){
 		drawTime=Date.now();
 
 
-		ono3d.rf=0;
-		ono3d.lineWidth=1.0;
-		ono3d.smoothing=globalParam.smoothing;
-
-		ono3d.lightThreshold1=globalParam.lightThreshold1;
-		ono3d.lightThreshold2=globalParam.lightThreshold2;
 
 		var environment = ono3d.environments[0];
 		Util.hex2rgb(environment.sun.color,globalParam.lightColor1)
@@ -997,8 +1034,8 @@ var Testact=(function(){
 		gl.clear(gl.DEPTH_BUFFER_BIT);
 		drawSub(0,0,WIDTH,HEIGHT);
 		
-		////環境マップ
-		//var env = ono3d.environments[0];
+		//テスト
+		//var env = ono3d.environments[1];
 		//Ono3d.drawCopy(env.envTexture,0,0,1,1);
 
 		//描画結果をバッファにコピー

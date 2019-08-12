@@ -326,7 +326,7 @@ var Testact=(function(){
 				//環境マップ
 				gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 				ono3d.environments[0].envTexture = ono3d.createEnv(null,0,0,0,drawSub);
-
+				ono3d.setNearFar(0.01,100.0);
 				ono3d.clear();
 				goField.draw2();
 				ono3d.render(camera.p);

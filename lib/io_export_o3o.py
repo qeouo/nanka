@@ -401,7 +401,7 @@ def WriteMaterial( Material=None):
         if('pbrColor' in nodes):
             inputs = nodes['pbrColor'].inputs
 
-            dict["metallic"] = inputs[1].default_value[0]
+            dict["specular"] = inputs[1].default_value[0]
             dict["roughness"] = inputs[1].default_value[1]
             dict["subRoughness"] = inputs[1].default_value[2]
 
@@ -494,8 +494,8 @@ def WriteMesh(mesh):
     fileoutMu()
     sp = mesh.name.split("|");
     fileout('"name":"{}"\n'.format(mesh.name))
-    if  config.EnableDoubleSided:
-        fileout(',"double_sided":1\n')
+    fileout(',"use_auto_smooth":{:d}\n'.format(mesh.use_auto_smooth))
+    fileout(',"auto_smooth_angle":{:f}\n'.format(mesh.auto_smooth_angle))
     if mesh.shape_keys:
         fileout(',"shapeKeys":')
         fileoutLu()
@@ -569,8 +569,11 @@ def WriteMesh(mesh):
         fileout2('{')
         fileout2('"idx":[')
         Index = 0
-        for Vertex in Face.vertices:
-            if(Vertex != Face.vertices[0]):fileout2(',')
+        poly = Face
+        for j,loop_index in enumerate(range(poly.loop_start, poly.loop_start + poly.loop_total)):
+# for Vertex in Face.vertices:
+            Vertex = mesh.loops[loop_index].vertex_index;
+            if(j != 0):fileout2(',')
             fileout2('{}'.format(Vertex))
             Index+=1
         fileout2(']')

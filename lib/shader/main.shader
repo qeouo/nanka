@@ -28,11 +28,13 @@ void main(void){
 	vUv = aUv; 
 	vUv2 = aUv2; 
 	vEye = aPos - anglePos ; 
+	float vS=length(aSvec);
+	float vT=length(aTvec);
 	vSvec=aSvec - dot(aNormal,aSvec)*aNormal;
 	vTvec=aTvec - dot(aNormal,aTvec)*aNormal;
-	vNormpow=  max(length(vSvec),length(vTvec))*uNormpow;
-	vSvec*=1.0/(length(vSvec)*length(vSvec));
-	vTvec*=1.0/(length(vTvec)*length(vTvec));
+	vNormpow=  max(vS,vT)*uNormpow;
+	vSvec=normalize(vSvec)/vS;
+	vTvec=normalize(vTvec)/vT;
 	vNormal=aNormal;
 
 	vEnvRatio= 1.0- aEnvRatio + float(uEnvIndex)*(2.0*aEnvRatio - 1.0);
@@ -72,6 +74,7 @@ uniform float uEmi;
 uniform float lightThreshold1; 
 uniform float lightThreshold2; 
 uniform float uMetallic; 
+uniform float uNormpow; 
 
 [common]
 vec4 textureTri(sampler2D texture,vec2 size,vec2 uv,float w){
@@ -169,7 +172,6 @@ void main(void){
 
 	/*全反射合成*/ 
 	vColor2 = mix(vColor2,refCol.rgb,specular); 
-//	vColor2.rgb=vec3(depth+0.5);
 
 	/*スケーリング*/ 
 	gl_FragColor = encode(vec4(vColor2 * vEnvRatio,0.0)); 

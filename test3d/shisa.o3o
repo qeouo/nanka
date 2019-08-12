@@ -1,6 +1,6 @@
 {"format":"Ono3dObject Version 0.2"
 ,"materials":[
-    {"name": "jimen", "baseColor": [0.800000011920929, 0.800000011920929, 0.800000011920929], "opacity": 1.0, "metallic": 0.0, "specular": 0.0, "roughness": 0.0, "ior": 0.0, "subRoughness": 0.0, "baseColorMap": "//../public_html/nanka/test3d/tex.png", "pbrMap": "//../public_html/nanka/test3d/tex.png", "hightMap": "//../public_html/nanka/test3d/h.png", "hightMapPower": 1.0, "hightBase": 0.5}
+    {"name": "jimen", "baseColor": [0.800000011920929, 0.800000011920929, 0.800000011920929], "opacity": 1.0, "metallic": 0.0, "specular": 0.0, "roughness": 0.0, "ior": 0.0, "subRoughness": 0.0, "baseColorMap": "//../public_html/nanka/test3d/tex.png", "pbrMap": "//../public_html/nanka/test3d/tex.png", "hightMap": "//../public_html/nanka/test3d/h.png", "hightMapPower": 0.10000000149011612, "hightBase": 0.5}
 ]
 ,"meshes":[
   {
