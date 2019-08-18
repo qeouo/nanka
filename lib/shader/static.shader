@@ -131,6 +131,7 @@ void main(void){
 	vec3 baseCol = uBaseCol * texture2D(uBaseColMap,uv).rgb; 
 	float opacity = uOpacity * q.a;
 
+
 	/*全反射*/ 
 	vec3 angle = reflect(eye,nrm); 
 	float refx = floor(sqrt(rough/0.06)); 

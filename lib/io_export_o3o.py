@@ -398,6 +398,11 @@ def WriteMaterial( Material=None):
             dict["ior"] = inputs[14].default_value
             dict["subRoughness"] = inputs[16].default_value
 
+        if('baseColor' in nodes):
+            inputs = nodes['baseColor'].inputs
+
+            dict["baseColor"] = inputs[1].default_value[0:3]
+
         if('pbrColor' in nodes):
             inputs = nodes['pbrColor'].inputs
 
@@ -677,7 +682,10 @@ def WriteAction(action):
             for keyframe_points in fcurve.keyframe_points:
                 if(keyframe_points != fcurve.keyframe_points[0]):fileout2(',')
                 fileout2('{')
-                fileout2('"f":{},"p":{:9f}'.format(int(keyframe_points.co[0]),keyframe_points.co[1]))
+                if(fcurve.array_index==1):
+                    fileout2('"f":{},"p":{:9f}'.format(int(keyframe_points.co[0]),-keyframe_points.co[1]))
+                else:
+                    fileout2('"f":{},"p":{:9f}'.format(int(keyframe_points.co[0]),keyframe_points.co[1]))
                 fileout2('}')
             fileout2(']')
             i += 1

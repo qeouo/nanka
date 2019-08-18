@@ -386,7 +386,7 @@ var Testact=(function(){
 					if(phyObj.type===OnoPhy.CLOTH){
 						var res={};
 						var z = phyObj.ray(res,p0,p1);
-						if(z>0&& z>-1){
+						if(z>0){
 							if(z<tsukamiZ){
 								tsukamiZ = z;
 								res2.face=res.face;
@@ -623,23 +623,50 @@ var Testact=(function(){
 			 //変換マトリクス初期化
 			ono3d.setTargetMatrix(0);
 			ono3d.loadIdentity();
-			//ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
 
 			var scene= obj3d.scenes[0];
 			O3o.setFrame(obj3d,scene,this.t/60.0*60.0); //アニメーション処理
 
+
+
 			if(phyObjs && globalParam.physics){
 				//物理シミュ有効の場合は物理オブジェクトにアニメーション結果を反映させる
-				for(var i=0;i<scene.objects.length;i++){
+				for(var i=0;i<phyObjs.length;i++){
+					var phyObj = phyObjs[i];
 					//物理オブジェクトにアニメーション結果を反映
 					//(前回の物理シミュ無効の場合は強制反映する)
-					if(scene.objects[i].phyObj){
-						O3o.movePhyObj(scene.objects[i]
-							,1.0/globalParam.fps
-							,!globalParam.physics_);
-					}
+					O3o.movePhyObj(phyObj,phyObj.parent
+						,1.0/globalParam.fps
+						,!globalParam.physics_);
 				}
 			}
+
+			//特殊
+			var phyObj = phyObjs.find(function(o){return o.name==="convexhull";});
+			if(phyObj){
+				var v=new Vec3(0,-1,0);
+				phyObj.calcPre();
+				var nearest=999999;
+				var target=null;
+				for(var i=0;i<phyObjs.length;i++){
+					if(phyObj === phyObjs[i]){
+						continue;
+					}
+					if(!phyObjs[i].collision){
+						continue;
+					}
+				phyObjs[i].calcPre();
+					var a=Collider.convexCast(v,phyObj.collision,phyObjs[i].collision);
+					if(a>0 && a<nearest){
+						nearest=a;
+						target=phyObjs[i];
+					}
+				}
+				if(target){
+					Vec3.madd(phyObj.location,phyObj.location,v,nearest);
+				}
+			}
+
 
 			for(var i=0;i<phyObjs.length;i++){
 				var phyObj = phyObjs[i];
@@ -662,7 +689,6 @@ var Testact=(function(){
 
 			ono3d.setTargetMatrix(0)
 			ono3d.loadIdentity();
-			//ono3d.rotate(-Math.PI*0.5,1,0,0)
 
 			ono3d.rf=0;
 

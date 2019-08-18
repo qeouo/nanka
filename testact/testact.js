@@ -535,7 +535,6 @@ var Testact=(function(){
 
 				ono3d.setTargetMatrix(0);
 				ono3d.loadIdentity();
-				//ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
 
 				var scene = o3o.scenes[0];
 
@@ -687,10 +686,10 @@ var Testact=(function(){
 			 //変換マトリクス初期化
 			ono3d.setTargetMatrix(0);
 			ono3d.loadIdentity();
-			//ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
 
 			var scene= obj3d.scenes[0];
 			O3o.setFrame(obj3d,scene,this.t/60.0*24); //アニメーション処理
+
 
 			//コリジョンにアニメーション結果を反映させる
 			for(var i=0;i<this.collisions.length;i++){
@@ -698,6 +697,8 @@ var Testact=(function(){
 				var object = obj3d.objects.find(function(o){return o.name === collision.name;});
 				O3o.moveCollision(collision,object,ono3d)
 			}
+
+
 			if(phyObjs && globalParam.physics){
 				//物理シミュ有効の場合は物理オブジェクトにアニメーション結果を反映させる
 				for(var i=0;i<phyObjs.length;i++){
