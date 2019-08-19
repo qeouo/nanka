@@ -230,7 +230,7 @@
 				col.matrix[9]=ono3d.worldMatrix[12];
 				col.matrix[10]=ono3d.worldMatrix[13]+0.5;
 				col.matrix[11]=ono3d.worldMatrix[14];
-				col.update();
+				col.refresh();
 
 				var l = Testact.probs.checkHitAll(col);
 

@@ -353,7 +353,7 @@ var Testact=(function(){
 				Mat44.dotVec4(v4,im,v4);
 				Vec3.copy(collision.poses[i],v4);
 			}
-			collision.update();
+			collision.refresh();
 			Vec4.poolFree(1);
 			Mat44.poolFree(1);
 		}
@@ -626,23 +626,23 @@ var Testact=(function(){
 					var object = scene.objects[i];
     				if(object.type!="LIGHT_PROBE"){ continue; }
 					
-					var collider= new Collider.Cuboid;
-					Mat43.dotMat44Mat43(collider.matrix
+					var collision= new Collider.Cuboid;
+					Mat43.dotMat44Mat43(collision.matrix
 							,ono3d.worldMatrix,object.matrix);
 					for(var i=0;i<9;i++){
-						collider.matrix[i]*=object.data.distance;
+						collision.matrix[i]*=object.data.distance;
 					}
-					collider.update();
-					probs.addCollision(collider);
+					collision.refresh();
+					probs.addCollision(collision);
 
 					//環境追加
 					var environment=ono3d.environments[ono3d.environments_index]
 					ono3d.environments_index++;
 					environment.name=object.name;
 					environment.envTexture= ono3d.createEnv(null
-							,collider.matrix[9]
-							,collider.matrix[10]
-							,collider.matrix[11]
+							,collision.matrix[9]
+							,collision.matrix[10]
+							,collision.matrix[11]
 							,drawSub);
 					environment.sun=ono3d.environments[0].sun;
 					environment.area=ono3d.environments[0].area;
@@ -715,9 +715,9 @@ var Testact=(function(){
 				var phyObj = phyObjs[i];
 				var aabb;
 				if(phyObj.type===OnoPhy.CLOTH){
-					aabb = phyObj.AABB;
+					aabb = phyObj.aabb;
 				}else{
-					aabb = phyObj.collision.AABB;
+					aabb = phyObj.collision.aabb;
 				}
 				if(aabb.max[1]<-10){
 					//リセット
@@ -794,7 +794,7 @@ var Testact=(function(){
 						var l = Collider.checkHit(camera.cameracol,cuboidcol);
 						var l2 = 1;
 						if(globalParam.shadow){
-							if(AABB.hitCheck(camera.cameracol2.AABB,cuboidcol.AABB)){
+							if(AABB.hitCheck(camera.cameracol2.aabb,cuboidcol.aabb)){
 								l2 = Collider.checkHit(camera.cameracol2,cuboidcol);
 							}
 						}
@@ -941,7 +941,7 @@ var Testact=(function(){
 			
 			Util.setText(span,fps.toFixed(2) + "fps " + mspf.toFixed(2) + "ms/frame"
 				   +"\nPhyisics " + physicsTime +"ms"
-				   +"\n AABB " + onoPhy.collider.AABBTime+"ms (Object " + onoPhy.collider.collisions.length + ")"
+				   +"\n AABB " + onoPhy.collider.aabbTime+"ms (Object " + onoPhy.collider.collisions.length + ")"
 				   +"\n Collision " + onoPhy.collider.collisionTime + "ms (Target " + onoPhy.collider.collisionCount+ ")"
 				   +"\n Impulse " + onoPhy.impulseTime+"ms (repetition " + onoPhy.repetition +")"
 				   +"\nDrawTime " + drawTime +"ms"

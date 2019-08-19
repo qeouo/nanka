@@ -242,19 +242,6 @@ var Testact=(function(){
 
 				var scene = o3o.scenes[0];
 
-				//光源エリア判定作成
-				for(var i=0;i<scene.objects.length;i++){
-					var object = scene.objects[i];
-					if(object.name.indexOf("prob_")==0){
-						var collider= new Collider.Cuboid;
-						Mat43.dotMat44Mat43(collider.matrix
-								,ono3d.worldMatrix,object.matrix);
-						Mat43.getInv(collider.inv_matrix,collider.matrix);
-						collider.update();
-						probs.addCollision(collider);
-					}	
-				}
-				probs.sortList();
 
 				ono3d.environments_index=1;
 
@@ -312,7 +299,7 @@ var Testact=(function(){
 
 				}
 
-				camera.cameracol.update();
+				camera.cameracol.refresh();
 				var lightSource= null;
 
 
@@ -536,7 +523,7 @@ var Testact=(function(){
 				Mat44.dotVec4(v4,im,v4);
 				Vec3.copy(collision.poses[i],v4);
 			}
-			collision.update();
+			collision.refresh();
 			Vec4.poolFree(1);
 			Mat44.poolFree(1);
 		}
@@ -656,6 +643,9 @@ var Testact=(function(){
 						continue;
 					}
 				phyObjs[i].calcPre();
+					if(!AABB.aabbCast(v,phyObj.collision.aabb,phyObjs[i].collision.aabb)){
+						continue;
+					}
 					var a=Collider.convexCast(v,phyObj.collision,phyObjs[i].collision);
 					if(a>0 && a<nearest){
 						nearest=a;
@@ -672,9 +662,9 @@ var Testact=(function(){
 				var phyObj = phyObjs[i];
 				var aabb;
 				if(phyObj.type===OnoPhy.CLOTH){
-					aabb = phyObj.AABB;
+					aabb = phyObj.aabb;
 				}else{
-					aabb = phyObj.collision.AABB;
+					aabb = phyObj.collision.aabb;
 				}
 				if(aabb.max[1]<-10){
 					O3o.movePhyObj(phyObj,phyObj.parent,0,true);
@@ -752,15 +742,15 @@ var Testact=(function(){
 							Mat43.dot(m43,objects[i].mixedmatrix,m43);
 							Mat43.dotMat44Mat43(cuboidcol.matrix,ono3d.worldMatrix,m43);
 						}
-						cuboidcol.update();
+						cuboidcol.refresh();
 						var l = 1;
-						if(AABB.hitCheck(camera.cameracol.AABB,cuboidcol.AABB)){
+						if(AABB.hitCheck(camera.cameracol.aabb,cuboidcol.aabb)){
 							//l=-1;
 							l = Collider.checkHit(camera.cameracol,cuboidcol);
 						}
 						var l2 = 1;
 						if(globalParam.shadow){
-							if(AABB.hitCheck(camera.cameracol2.AABB,cuboidcol.AABB)){
+							if(AABB.hitCheck(camera.cameracol2.aabb,cuboidcol.aabb)){
 								//l2=-1;
 								l2 = Collider.checkHit(camera.cameracol2,cuboidcol);
 							}
@@ -787,7 +777,7 @@ var Testact=(function(){
 						col.matrix[9]=objects[i].location[0];
 						col.matrix[10]=objects[i].location[2];
 						col.matrix[11]=-objects[i].location[1];
-						col.update();
+						col.refresh();
 
 						var l =probs.checkHitAll(col)
 						var env = null;
@@ -934,7 +924,7 @@ var Testact=(function(){
 			
 			Util.setText(span,fps.toFixed(2) + "fps " + mspf.toFixed(2) + "ms/frame"
 				   +"\nPhyisics " + physicsTime +"ms"
-				   +"\n AABB " + onoPhy.collider.AABBTime+"ms (Object " + onoPhy.collider.collisions.length + ")"
+				   +"\n AABB " + onoPhy.collider.aabbTime+"ms (Object " + onoPhy.collider.collisions.length + ")"
 				   +"\n Collision " + onoPhy.collider.collisionTime + "ms (Target " + onoPhy.collider.collisionCount+ ")"
 				   +"\n Impulse " + onoPhy.impulseTime+"ms (repetition " + onoPhy.repetition +")"
 				   +"\nDrawTime " + drawTime +"ms"
