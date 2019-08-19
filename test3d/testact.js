@@ -385,7 +385,7 @@ var Testact=(function(){
 					var phyObj = phyObjs[i];
 					if(phyObj.type===OnoPhy.CLOTH){
 						var res={};
-						var z = phyObj.ray(res,p0,p1);
+						var z = phyObj.rayCast(res,p0,p1);
 						if(z>0){
 							if(z<tsukamiZ){
 								tsukamiZ = z;
@@ -406,8 +406,8 @@ var Testact=(function(){
 							continue;
 							
 						}
-						var z = collision.ray(p0,p1);
-						if(z>0&& z>-1){
+						var z = collision.rayCast(p0,p1);
+						if(z>0){
 							if(z<tsukamiZ){
 								tsukamiZ = z;
 								targetPhyObj = collision.parent;
