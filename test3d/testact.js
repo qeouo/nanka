@@ -643,9 +643,9 @@ var Testact=(function(){
 						continue;
 					}
 				phyObjs[i].refreshCollision();
-					//if(!AABB.aabbCast(v,phyObj.collision.aabb,phyObjs[i].collision.aabb)){
-					//	continue;
-					//}
+					if(!AABB.aabbCast(v,phyObj.collision.aabb,phyObjs[i].collision.aabb)){
+						continue;
+					}
 					var a=Collider.convexCast(v,phyObj.collision,phyObjs[i].collision);
 					if(a>0 && a<nearest){
 						nearest=a;
