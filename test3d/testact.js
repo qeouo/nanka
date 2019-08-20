@@ -632,7 +632,7 @@ var Testact=(function(){
 			var phyObj = phyObjs.find(function(o){return o.name==="convexhull";});
 			if(phyObj){
 				var v=new Vec3(0,-1,0);
-				phyObj.calcPre();
+				phyObj.refreshCollision();
 				var nearest=999999;
 				var target=null;
 				for(var i=0;i<phyObjs.length;i++){
@@ -642,10 +642,10 @@ var Testact=(function(){
 					if(!phyObjs[i].collision){
 						continue;
 					}
-				phyObjs[i].calcPre();
-					if(!AABB.aabbCast(v,phyObj.collision.aabb,phyObjs[i].collision.aabb)){
-						continue;
-					}
+				phyObjs[i].refreshCollision();
+					//if(!AABB.aabbCast(v,phyObj.collision.aabb,phyObjs[i].collision.aabb)){
+					//	continue;
+					//}
 					var a=Collider.convexCast(v,phyObj.collision,phyObjs[i].collision);
 					if(a>0 && a<nearest){
 						nearest=a;
