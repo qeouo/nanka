@@ -654,6 +654,7 @@ var Testact=(function(){
 				}
 				if(target){
 					Vec3.madd(phyObj.location,phyObj.location,v,nearest);
+					//phyObj.calcPre();
 				}
 			}
 
