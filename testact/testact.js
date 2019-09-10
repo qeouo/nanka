@@ -22,6 +22,8 @@ var Testact=(function(){
 	var bdfimage=null;
 	var soundbuffer=null;
 	var bufTexture;
+	ret.goClass=[];
+	ret.go=[];
 
 	var obj3d=null,field=null;
 	var goField
@@ -232,7 +234,7 @@ var Testact=(function(){
 
 			onoPhy.init();
 			goField=objMan.createObj(GoField);
-			goCamera = objMan.createObj(GoCamera);
+			goCamera = objMan.createObj(Testact.goClass["camera"]);
 
 		}
 		ret.prototype.delete=function(){
@@ -363,77 +365,6 @@ var Testact=(function(){
 	var camera = new Camera();
 	ret.camera = camera;
 
-	var GoCamera= (function(){
-		var GoCamera=function(){};
-		var ret = GoCamera;
-		inherits(ret,defObj);
-		ret.prototype.init=function(){
-			//onoPhy.collider.hitcheck(Collider.SPHERE,this.p);
-		}
-		ret.prototype.move=function(){
-
-			if(!goJiki){
-				return;
-			}
-			var vec3=Vec3.poolAlloc();
-			Vec3.copy(vec3,goJiki.p);
-			vec3[1]+=1;
-
-			var cameralen = 8;//Vec3.len(this.p,vec3);
-			camera.zoom=0.6;
-
-			if(Util.pressOn){
-				this.a[1]+=(-(Util.cursorX-Util.oldcursorX)/WIDTH)*2;
-				this.a[0]+=(-(Util.cursorY-Util.oldcursorY)/HEIGHT)*2;
-
-			}
-			this.a[0] =Math.min(this.a[0],Math.PI/2);
-			this.a[0] =Math.max(this.a[0],-Math.PI/2);
-			this.p[2]=Math.cos(this.a[0]);
-			this.p[1]=Math.sin(this.a[0]);
-			this.p[0]=Math.sin(this.a[1])*this.p[2];
-			this.p[2]=Math.cos(this.a[1])*this.p[2];
-
-			Vec3.mul(this.p,this.p,-cameralen);
-			Vec3.add(this.p,this.p,goJiki.p);
-			this.p[1]+=1;
-
-			camera.p[0]+=(this.p[0]-camera.p[0])*0.1
-			camera.p[1]+=(this.p[1]-camera.p[1])*0.1
-			camera.p[2]+=(this.p[2]-camera.p[2])*0.1
-
-			homingCamera(this.a,vec3,this.p);
-			var nangle=function(a){
-				if(a>Math.PI){a-=Math.PI*2};
-				if(a<-Math.PI){a+=Math.PI*2};
-				return a;
-			}
-			for(var i=0;i<3;i++){
-				this.a[i]=nangle(this.a[i]);
-				camera.a[i]=nangle(camera.a[i]);
-			}
-
-			camera.a[0] +=nangle(this.a[0]-camera.a[0])*0.1;
-			camera.a[1] +=nangle(this.a[1]-camera.a[1])*0.1;
-			camera.a[2] +=nangle(this.a[2]-camera.a[2])*0.1;
-
-
-			Vec3.poolFree(1);
-		}
-		ret.prototype.draw=function(){
-		}
-		return ret;
-	})();
-
-	var homingCamera=function(angle,target,camera){
-		var dx=target[0]-camera[0]
-		var dy=target[1]-camera[1]
-		var dz=target[2]-camera[2]
-		angle[0]=Math.atan2(dy,Math.sqrt(dz*dz+dx*dx));
-		angle[1]=Math.atan2(dx,dz);
-		angle[2]=0;
-		
-	}
 
 	var drawSub = function(x,y,w,h){
 
@@ -488,7 +419,6 @@ var Testact=(function(){
 		var o3o = field;
 		ono3d.setTargetMatrix(0);
 		ono3d.loadIdentity();
-		//ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
 
 		var start = o3o.objects.find(function(o){return o.name==="_start";});
 		Mat44.dotVec3(goJiki.p,ono3d.worldMatrix,start.location);
@@ -599,6 +529,7 @@ var Testact=(function(){
 				//カメラ反映等
 				ono3d.push();
 				goJiki=objMan.createObj(GoJiki);
+				Testact.go["jiki"]=goJiki;
 				ono3d.pop();
 				Vec3.copy(camera.p,goCamera.p)
 				Vec3.copy(camera.a,goCamera.a)
@@ -1226,6 +1157,8 @@ var Testact=(function(){
 
 		span=document.getElementById("cons");
 
+		Util.loadJs("./goJiki.js");
+		Util.loadJs("./goCamera.js");
 		
 	return ret;
 })()
