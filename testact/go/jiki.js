@@ -14,7 +14,7 @@ Testact.goClass["jiki"]= (function(){
 
 	var GoJiki =function(){};
 	var ret = GoJiki;
-	inherits(ret,defObj);
+	inherits(ret,Testact.defObj);
 
 	ret.prototype.init = function(){
 		var obj = this;

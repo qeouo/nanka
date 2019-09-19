@@ -3,7 +3,7 @@ Testact.goClass["camera"]= (function(){
 	var HEIGHT=512;
 	var GoCamera=function(){};
 	var ret = GoCamera;
-	inherits(ret,defObj);
+	inherits(ret,Testact.defObj);
 	ret.prototype.init=function(){
 		//onoPhy.collider.hitcheck(Collider.SPHERE,this.p);
 	}

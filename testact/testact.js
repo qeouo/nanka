@@ -1,19 +1,4 @@
 "use strict"
-var defObj = (function(){
-	var defObj = function(){};
-	var ret = defObj;
-	ret.prototype.init=function(){};
-	ret.prototype.move=function(){};
-	ret.prototype.draw=function(){};
-	ret.prototype.drawShadow=function(){
-		this.draw();
-	};
-	ret.prototype.hit=function(){};
-	ret.prototype.delete=function(){};
-	ret.prototype.drawhud=function(){};
-	return ret;
-})();
-
 var Testact=(function(){
 	var ret={};
 	var HEIGHT=512,WIDTH=960;
@@ -39,8 +24,6 @@ var Testact=(function(){
 	ret.pad = pad;
 	ret.probs=null;
 
-	var txt="STAGE CLEAR!!";
-	var txt2="ALL CLEAR!!";
 
 	var averageTexture;
 
@@ -80,7 +63,7 @@ var Testact=(function(){
 
 		ret.prototype.createObj = function(c){
 			if(!c){
-				c=defObj;
+				c=Testact.defObj;
 			}
 			if(this.pool.length==0){
 				for(var i=0;i<16;i++){
@@ -170,135 +153,12 @@ var Testact=(function(){
 	
 
 
-	var stage =0;
-	var stages=[
-		"f1.o3o"
-		,"f2.o3o"
-		,"f3.o3o"
-		,"f4.o3o"
-		,"f5.o3o"
-	]
-	var GoMain = (function(){
-		var GoMain=function(){};
-		var ret = GoMain;
-		inherits(ret,defObj);
-		ret.prototype.init=function(){
-
-			bdf = Bdf.load("./k8x12.bdf",null,function(){
-				bdfimage = Bdf.render(txt+"\n"+txt2,bdf,false);
-				bdfimage.glTexture = Rastgl.createTexture(bdfimage);//512x512
-
-				gl.bindTexture(gl.TEXTURE_2D,bdfimage.glTexture);
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-				gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);//1024x1024
-				gl.viewport(0,0,1024,1024);
-				gl.clearColor(.8,0.2,0.6,0.0);
-				gl.clear(gl.DEPTH_BUFFER_BIT|gl.COLOR_BUFFER_BIT);
-				gl.enable(gl.BLEND);
-				gl.blendFuncSeparate(gl.ZERO,gl.ONE,gl.ONE,gl.ONE);
-				var scl=2;//1;//1/8;
-				var ss=1/512;
-				for(var i=0;i<3;i++){
-					for(var j=0;j<3;j++){
-						Ono3d.drawCopy(bdfimage,-ss*i,-ss*j,scl,scl);
-					}
-				}
-				gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
-				gl.enable(gl.BLEND);
-				gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
-				Ono3d.drawCopy(bdfimage,-1*ss,-1*ss,scl,scl);
-				gl.bindTexture(gl.TEXTURE_2D,bdfimage.glTexture);
-				gl.copyTexSubImage2D(gl.TEXTURE_2D,0,0,0,0,0,512,512);
-
-			});
-
-			stage=-1;
-			GoMain.prototype.next.call(this);
-		
-		}
-		ret.prototype.next = function(){
-			stage++;
-			if(stages.length<=stage){
-				return;
-			}
-
-			for(var i=objMan.objs.length;i--;){
-				if(this == objMan.objs[i])continue;
-				objMan.deleteObj(objMan.objs[i]);
-			}
-			//fieldpath=stages[stage];
-			//if(globalParam.stage){
-			//	fieldpath=globalParam.stage;
-			//}
-
-
-			onoPhy.init();
-			goField=objMan.createObj(Testact.goClass["field"]);
-			goCamera = objMan.createObj(Testact.goClass["camera"]);
-			Testact.go["camera"]=goCamera;
-
-		}
-		ret.prototype.delete=function(){
-		}
-		
-		return ret;
-
-	})();
 
 	var blit = function(tex,x,y,w,h,u,v,u2,v2){
 			Ono3d.drawCopy(tex.glTexture,x,y,w*2,h*2
 							,u/tex.width,(v+v2)/tex.height,u2/tex.width,-v2/tex.height);
 	}
-	var GoMsg = (function(){
-		var GoMsg=function(){};
-		var ret = GoMsg;
-		inherits(ret,defObj);
-		ret.prototype.init=function(){
-		}
-		ret.prototype.move=function(){
-			if(this.t>60){
-				GoMain.prototype.next.call(goMain);
-			}
-		}
-		ret.prototype.drawhud = function(){
-			if(bdfimage){
-				var width=txt.length*4;
-				var height=12+1;
-				var scale=4;
-				gl.enable(gl.BLEND);
-				gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
-				blit(bdfimage,0,0,scale*width/WIDTH,scale*height/(WIDTH*ono3d.persy/ono3d.persx)
-							,0,0,width,height);
-			}
-		}
-		return ret;
-	})();
 	
-	var GoMsg2 = (function(){
-		var GoMsg2=function(){};
-		var ret = GoMsg2;
-		inherits(ret,defObj);
-		ret.prototype.init=function(){
-		}
-		ret.prototype.move=function(){
-			if(this.t>60){
-			}
-		}
-		ret.prototype.drawhud = function(){
-			if(bdfimage){
-				var width=txt2.length*4;
-				var height=12+1;
-				var scale=4;
-				gl.enable(gl.BLEND);
-				gl.blendFuncSeparate(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA,gl.ONE,gl.ONE);
-
-				blit(bdfimage,0,0,scale*width/WIDTH,scale*height/(WIDTH*ono3d.persy/ono3d.persx)
-							,0,height,width,height);
-			}
-		}
-		return ret;
-	})();
 
 
 	var Camera= (function(){
@@ -433,10 +293,12 @@ var Testact=(function(){
 
 		Mat44.poolFree(1);
 
+		var goJiki= Testact.go["camera"];
 		if(goJiki.phyObjs.length){
 			Vec3.copy(goJiki.phyObjs[0].location,goJiki.p);
 		}
 
+		var goCamera = Testact.go["camera"];
 		goCamera.a[1]=start.rotation[2];
 		Vec3.copy(goCamera.p,goJiki.p);
 
@@ -797,7 +659,7 @@ var Testact=(function(){
 			Util.fireEvent(element,"change");
 		}
 		
-		goMain = objMan.createObj(GoMain);
+		Testact.go["main"]= objMan.createObj(Testact.goClass["main"]);
 
 		Util.setFps(globalParam.fps,mainloop);
 		Util.fpsman();
@@ -850,14 +712,15 @@ var Testact=(function(){
 		ret.objMan = objMan = new ObjMan();
 		
 
-//		goMain = objMan.createObj(GoMain);
 		inittime=Date.now();
 
 		span=document.getElementById("cons");
 
-		Util.loadJs("./go/jiki.js");
-		Util.loadJs("./go/camera.js");
-		Util.loadJs("./go/field.js");
+		Util.loadJs("./go/defobj.js");
+		var gos=["jiki","camera","field","main","msg","msg2"];
+		for(var i=0;i<gos.length;i++){
+			Util.loadJs("./go/"+ gos[i]+".js");
+		}
 		
 	return ret;
 })()

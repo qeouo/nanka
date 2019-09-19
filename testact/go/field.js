@@ -6,7 +6,7 @@ Testact.goClass["field"]= (function(){
 	var GoField =function(){};
 	var ret = GoField;
 	var initFlg=false;
-	inherits(ret,defObj);
+	inherits(ret,Testact.defObj);
 	ret.prototype.init=function(){
 
 		Testact.field =O3o.load(fieldpath,function(o3o){
