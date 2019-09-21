@@ -1,4 +1,4 @@
-Testact.goClass["main"]= (function(){
+Engine.goClass["main"]= (function(){
 	var stage =0;
 	var stages=[
 		"f1.o3o"
@@ -9,8 +9,10 @@ Testact.goClass["main"]= (function(){
 	]
 	var GoMain=function(){};
 	var ret = GoMain;
-	inherits(ret,Testact.defObj);
+	inherits(ret,Engine.defObj);
 	ret.prototype.init=function(){
+
+	
 
 	var txt="STAGE CLEAR!!";
 	var txt2="ALL CLEAR!!";
@@ -48,12 +50,79 @@ Testact.goClass["main"]= (function(){
 		GoMain.prototype.next.call(this);
 	
 	}
+
+	var init=true;
+	ret.prototype.move=function(){
+
+		if(init){
+			init=false;
+			var select = document.getElementById("cTexture");
+			var option;
+			//soundbuffer = WebAudio.loadSound('se.mp3');
+
+			
+
+			document.getElementById("autoExposure").addEventListener("change"
+				,function(evt){
+					var control = document.getElementById("exposure_setting");
+					var inputs = Array.prototype.slice.call(control.getElementsByTagName("input"));
+
+					for(var i=0;i<inputs.length;i++){
+						var element = inputs[i];
+						if(this.checked){
+							element.setAttribute("disabled","disabled");
+						}else{
+							element.removeAttribute("disabled");
+						}
+					}
+			});
+		
+			var control = document.getElementById("control");
+			var inputs = Array.prototype.slice.call(control.getElementsByTagName("input"));
+			var selects= Array.prototype.slice.call(control.getElementsByTagName("select"));
+			
+			inputs = inputs.concat(selects);
+
+			for(var i=0;i<inputs.length;i++){
+				var element = inputs[i];
+				var tag = element.id;
+				if(!tag)continue;
+
+				element.title = tag;
+				if(element.className=="colorpicker"){
+					element.value=globalParam[tag];
+					element.addEventListener("change",function(evt){globalParam[evt.target.id] = this.value},false);
+				}else if(element.type=="checkbox"){
+					element.checked=Boolean(globalParam[tag]);
+					element.addEventListener("change",function(evt){globalParam[evt.target.id] = this.checked},false);
+				}else if(element.type==="text" || element.tagName ==="SELECT"){
+					element.value=globalParam[tag];
+					element.addEventListener("change",function(evt){globalParam[evt.target.id] = parseFloat(this.value)},false);
+					if(!element.value){
+						continue;
+					}
+				}else if(element.type==="radio"){
+					var name = element.name;
+					if(element.value === ""+globalParam[name]){
+						element.checked=1;
+					}else{
+						element.checked=0;
+					}
+					element.addEventListener("change",function(evt){globalParam[evt.target.name] = parseFloat(this.value)},false);
+					if(!element.checked){
+						continue;
+					}
+				}
+				Util.fireEvent(element,"change");
+			}
+		}
+	}
 	ret.prototype.next = function(){
 		stage++;
 		if(stages.length<=stage){
 			return;
 		}
-		var objMan = Testact.objMan;
+		var objMan = Engine.objMan;
 
 		for(var i=objMan.objs.length;i--;){
 			if(this == objMan.objs[i])continue;
@@ -65,14 +134,41 @@ Testact.goClass["main"]= (function(){
 		//}
 
 
-		Testact.onoPhy.init();
-		Testact.go["field"]=objMan.createObj(Testact.goClass["field"]);
-		Testact.go["camera"]= objMan.createObj(Testact.goClass["camera"]);
+		Engine.onoPhy.init();
+		Engine.go["field"]=objMan.createObj(Engine.goClass["field"]);
+		Engine.go["camera"]= objMan.createObj(Engine.goClass["camera"]);
 
 	}
 	ret.prototype.delete=function(){
 	}
 	
+	var reset = ret.reset=function(){
+		var o3o = Engine.field;
+		var goJiki = Engine.go["jiki"];
+		var ono3d = Engine.ono3d;
+		ono3d.setTargetMatrix(0);
+		ono3d.loadIdentity();
+
+		var start = o3o.objects.find(function(o){return o.name==="_start";});
+		Mat44.dotVec3(goJiki.p,ono3d.worldMatrix,start.location);
+		var m = Mat44.poolAlloc();
+		Mat44.setInit(m);
+		Mat44.dotMat43(m,m,start.matrix);
+		Mat44.dot(m,ono3d.worldMatrix,m);
+		Vec4.fromMat44(goJiki.rotq,m);
+
+		Mat44.poolFree(1);
+
+		var goJiki= Engine.go["camera"];
+		if(goJiki.phyObjs.length){
+			Vec3.copy(goJiki.phyObjs[0].location,goJiki.p);
+		}
+
+		var goCamera = Engine.go["camera"];
+		goCamera.a[1]=start.rotation[2];
+		Vec3.copy(goCamera.p,goJiki.p);
+
+	}
 	return ret;
 
 	})();

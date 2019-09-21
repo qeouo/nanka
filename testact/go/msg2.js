@@ -1,7 +1,7 @@
-Testact.goClass["msg2"]= (function(){
+Engine.goClass["msg2"]= (function(){
 	var GoMsg2=function(){};
 	var ret = GoMsg2;
-	inherits(ret,Testact.defObj);
+	inherits(ret,Engine.defObj);
 	ret.prototype.init=function(){
 	}
 	ret.prototype.move=function(){

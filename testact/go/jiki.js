@@ -1,5 +1,5 @@
-Testact.goClass["jiki"]= (function(){
-	var ono3d = Testact.ono3d;
+Engine.goClass["jiki"]= (function(){
+	var ono3d = Engine.ono3d;
 	var groundNormal = new Vec3();
 	var groundVelocity = new Vec3();
 	var poJiki = null;
@@ -14,14 +14,14 @@ Testact.goClass["jiki"]= (function(){
 
 	var GoJiki =function(){};
 	var ret = GoJiki;
-	inherits(ret,Testact.defObj);
+	inherits(ret,Engine.defObj);
 
 	ret.prototype.init = function(){
 		var obj = this;
 		Vec4.fromRotVector(this.rotq,-Math.PI*0.5,1,0,0);
 
 		var t=this;
-		obj3d = Testact.assetload(obj3d,"human.o3o",function(obj3d){
+		obj3d = AssetManager.o3o("human.o3o",function(obj3d){
 			var o3o= obj3d;
 			for(var i=0;i<obj3d.objects.length;i++){
 				var object=obj3d.objects[i];
@@ -40,7 +40,7 @@ Testact.goClass["jiki"]= (function(){
 			ono3d.loadIdentity();
 			//ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
 			ono3d.translate(obj.p[0],obj.p[1],obj.p[2]);
-			t.phyObjs= O3o.createPhyObjs(o3o.scenes[0],Testact.onoPhy);
+			t.phyObjs= O3o.createPhyObjs(o3o.scenes[0],Engine.onoPhy);
 			t.collisions=[];
 			t.collisions.push(O3o.createCollision(jumpC));
 			poJiki = t.phyObjs.find(function(o){return o.name ==="jiki"});
@@ -85,11 +85,11 @@ Testact.goClass["jiki"]= (function(){
 		var mat43 = Mat43.poolAlloc();
 
 		//歩行方向
-		vec[0]=Testact.pad[0];
-		vec[2]=Testact.pad[1];
+		vec[0]=Engine.pad[0];
+		vec[2]=Engine.pad[1];
 		vec[1]=0;
 		var l = Vec3.scalar(vec);
-		Mat43.fromRotVector(mat43,Testact.camera.a[1]-Math.PI,0,1,0)
+		Mat43.fromRotVector(mat43,Engine.camera.a[1]-Math.PI,0,1,0)
 		Mat43.dotVec3(vec,mat43,vec);
 
 		if(vec[0]*vec[0] + vec[2]*vec[2]){
@@ -140,7 +140,7 @@ Testact.goClass["jiki"]= (function(){
 				Mat43.poolFree(1);
 
 				O3o.moveCollision(jumpCollision,jumpC,ono3d)
-				var onoPhy = Testact.onoPhy;
+				var onoPhy = Engine.onoPhy;
 				var list = onoPhy.collider.checkHitAll(jumpCollision);
 				jump=true;
 				for(var i=0;i<onoPhy.collider.hitListIndex;i++){
@@ -232,10 +232,10 @@ Testact.goClass["jiki"]= (function(){
 			col.matrix[11]=ono3d.worldMatrix[14];
 			col.refresh();
 
-			var l = Testact.probs.checkHitAll(col);
+			var l = Engine.probs.checkHitAll(col);
 
 			var env = null;
-			if(Testact.probs.hitListIndex>0){
+			if(Engine.probs.hitListIndex>0){
 				var ans1 = Vec3.poolAlloc();
 				var ans2 = Vec3.poolAlloc();
 				a = Collider.calcClosest(ans1,ans2,l[0].col1,l[0].col2);

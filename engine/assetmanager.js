@@ -19,6 +19,14 @@ var AssetManager=(function(){
 		}
 	}
 
+	ret.o3o=function(path,func){
+		if(this.assetList[path]){
+			return this.assetList[path];
+		}else{
+			return O3o.load(path,func);
+		}
+	}
+
 
 	return ret;
 })();

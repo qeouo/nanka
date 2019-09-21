@@ -26,13 +26,12 @@
 <script type="text/javascript" src="../lib/util.js"></script>
 <script type="text/javascript" src="../lib/ono3d.js"></script>
 <script type="text/javascript" src="../lib/onophy.js"></script>
-<script type="text/javascript" src="../lib/o3o.js"></script>
-<script type="text/javascript" src="../lib/objman.js"></script>
 <script type="text/javascript" src="../lib/rastgl.js"></script>
 <script type="text/javascript" src="../lib/slider.js"></script>
 <script type="text/javascript" src="../lib/colorpicker.js"></script>
 <script type="text/javascript" src="../lib/bdf.js"></script>
 <script type="text/javascript" src="../lib/sh.js"></script>
+<script type="text/javascript" src="./testact.js"></script>
 <style type="text/css">
 html,body { height:100%;margin:0;font-size:small;background-color:black; }
 .js-slider{ width:50px;}
@@ -162,7 +161,7 @@ display:none;
 			if(globalParam.debugMenu){
 				debugClose();
 			}
-			Testact.start();
+			Engine.start();
 		}
 
 	var a = document.getElementById("aaa");
@@ -264,7 +263,7 @@ display:none;
 
 
 <div id="aaa" class="" style="clear:both;left:0;top:0;margin:0 auto;width:100%;height:100%;text-align:center;position:absolute;z-index:0">
-	<script type="text/javascript" src="./testact.js"> </script>
+	<script type="text/javascript" src="../engine/engine.js"> </script>
 </div>
 </body>
 </html>

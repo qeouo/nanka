@@ -1,15 +1,15 @@
-Testact.goClass["camera"]= (function(){
+Engine.goClass["camera"]= (function(){
 	var WIDTH=960;
 	var HEIGHT=512;
 	var GoCamera=function(){};
 	var ret = GoCamera;
-	inherits(ret,Testact.defObj);
+	inherits(ret,Engine.defObj);
 	ret.prototype.init=function(){
 		//onoPhy.collider.hitcheck(Collider.SPHERE,this.p);
 	}
 	ret.prototype.move=function(){
-		var camera = Testact.camera;
-		var goJiki = Testact.go["jiki"];
+		var camera = Engine.camera;
+		var goJiki = Engine.go["jiki"];
 
 		if(!goJiki){
 			return;

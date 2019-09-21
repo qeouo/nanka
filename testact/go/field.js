@@ -1,20 +1,20 @@
-Testact.goClass["field"]= (function(){
-	var ono3d = Testact.ono3d;
-	var onoPhy=Testact.onoPhy;
-	var objMan=Testact.objMan;
+Engine.goClass["field"]= (function(){
+	var ono3d = Engine.ono3d;
+	var onoPhy=Engine.onoPhy;
+	var objMan=Engine.objMan;
 	var fieldpath="f1.o3o";
 	var GoField =function(){};
 	var ret = GoField;
 	var initFlg=false;
-	inherits(ret,Testact.defObj);
+	inherits(ret,Engine.defObj);
 	ret.prototype.init=function(){
 
-		Testact.field =O3o.load(fieldpath,function(o3o){
+		Engine.field =O3o.load(fieldpath,function(o3o){
 				});
 	}
 	ret.prototype.move=function(){
-		var camera = Testact.camera;
-		var o3o=Testact.field;
+		var camera = Engine.camera;
+		var o3o=Engine.field;
 		var obj = this;
 		var phyObjs = obj.phyObjs;
 		if(o3o.scenes.length===0){
@@ -24,7 +24,7 @@ Testact.goClass["field"]= (function(){
 			if(Util.getLoadingCount() > 0){
 				return;
 			}
-			var o3o=Testact.field;
+			var o3o=Engine.field;
 			var t=this;
 			initFlg=true;
 
@@ -93,16 +93,16 @@ Testact.goClass["field"]= (function(){
 
 			//ƒJƒƒ‰”½‰f“™
 			ono3d.push();
-			Testact.go["jiki"]=objMan.createObj(Testact.goClass["jiki"]);
+			Engine.go["jiki"]=objMan.createObj(Engine.goClass["jiki"]);
 			ono3d.pop();
-			var goCamera = Testact.go["camera"];
+			var goCamera = Engine.go["camera"];
 			Vec3.copy(camera.p,goCamera.p)
 			Vec3.copy(camera.a,goCamera.a)
 			Vec3.set(camera.a,0,Math.PI,0)
 
 
 			ono3d.clear();
-			var envTexture = ono3d.createEnv(null,0,0,0,Testact.drawSub);
+			var envTexture = ono3d.createEnv(null,0,0,0,Engine.drawSub);
 			ono3d.environments[0].envTexture=envTexture;
 
 
@@ -137,12 +137,12 @@ Testact.goClass["field"]= (function(){
 						,collision.matrix[9]
 						,collision.matrix[10]
 						,collision.matrix[11]
-						,Testact.drawSub);
+						,Engine.drawSub);
 				environment.sun=ono3d.environments[0].sun;
 				environment.area=ono3d.environments[0].area;
 			}
 			probs.sortList();
-			Testact.probs=probs;
+			Engine.probs=probs;
 
 
 
@@ -173,7 +173,7 @@ Testact.goClass["field"]= (function(){
 				env.lightProbeMesh=lightprobe;
 			}
 
-			Testact.reset();
+			Engine.goClass["main"].reset();
 
 		}
 		
@@ -228,7 +228,7 @@ Testact.goClass["field"]= (function(){
 		//ono3d.rotate(-Math.PI*0.5,1,0,0)
 
 		ono3d.rf=0;
-		var field = Testact.field;
+		var field = Engine.field;
 
 		if(field){
 			if(field.scenes.length>0){
@@ -257,8 +257,8 @@ Testact.goClass["field"]= (function(){
 		//ono3d.rotate(-Math.PI*0.5,1,0,0)
 
 		ono3d.rf=0;
-		var field=Testact.field;
-		var camera=Testact.camera;
+		var field=Engine.field;
+		var camera=Engine.camera;
 
 		if(field){
 			if(field.scenes.length>0){
