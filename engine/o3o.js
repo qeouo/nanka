@@ -1046,7 +1046,14 @@ var O3o=(function(){
 			object=o3o.objects[j]
 			if(object.parent){
 				if(object.parent_bone){
-					object.parent_bone=object.parent.poseArmatur.poseBones.find(function(a){return a.name === this;},object.parent_bone);
+					for(var i=0;i<object.parent.data.bones.length;i++){
+						if(object.parent_bone == object.parent.data.bones[i].name){
+							object.parent_bone = i+1;
+							//object.parent_bone = object.parent.poseArmature.matrices[i];
+						}
+					}
+
+					//object.parent_bone=object.parent.data.bones.find(function(a){return a.name === this;},object.parent_bone);
 				}
 			}
 		}
@@ -1294,18 +1301,22 @@ var O3o=(function(){
 	}
 	var mixMatrix=function(obj){
 		if(obj.parent){
-			var parent;
-			Mat43.dot(obj.mixedmatrix,obj.iparentmatrix,obj.matrix);
-			if(obj.parent_bone){
-				parent=obj.parent_bone;
-				obj.mixedmatrix[13]+=parent.target.length;
-				Mat43.dot(obj.mixedmatrix,parent.target.matrix,obj.mixedmatrix);
-				Mat43.dot(obj.mixedmatrix,parent.mixedmatrix,obj.mixedmatrix);
-			}
-			parent=obj.parent;
-
+			var parent=obj.parent;
 			if(!parent.flg){
 				mixMatrix(parent);
+			}
+			Mat43.dot(obj.mixedmatrix,obj.iparentmatrix,obj.matrix);
+			if(obj.parent_bone){
+				//obj.mixedmatrix[13]+=parent.target.length;
+				//Mat43.dot(obj.mixedmatrix,parent.target.matrix,obj.mixedmatrix);
+				//Mat43.dot(obj.mixedmatrix,parent.mixedmatrix,obj.mixedmatrix);
+				var i=obj.parent_bone-1;
+				Mat43.copy(obj.mixedmatrix,obj.matrix);
+				obj.mixedmatrix[11]-=parent.data.bones[i].length;
+				Mat43.dot(obj.mixedmatrix,parent.data.bones[i].matrix,obj.mixedmatrix);
+				Mat43.dot(obj.mixedmatrix,parent.poseArmature.matrices[i],obj.mixedmatrix);
+			}else{
+
 			}
 			Mat43.dot(obj.mixedmatrix,parent.mixedmatrix,obj.mixedmatrix);
 		}else{
@@ -2340,7 +2351,7 @@ var O3o=(function(){
 
 		//ジョイント作成
 		joint = onoPhy.createJoint();
-		phyObj.joint = joint;
+		//phyObj.joint = joint;
 		
 		//パラメータセット
 		joint.breaking_threshold=rbc.breaking_threshold;
@@ -2412,17 +2423,16 @@ var O3o=(function(){
 		joint.object1 = search(joint.object1.name);
 		joint.object2 = search(joint.object2.name);
 
-		var m=joint.matrix;
-		if(joint.object1==phyObj){
-			joint.parent=joint.object2;
-			joint.child=joint.object1;
-		}else{
-			joint.parent=joint.object1;
-			joint.child=joint.object2;
-		}
+		joint.parent=joint.object1;
+		joint.child=joint.object2;
+		var imat = new Mat43();
+
 		//接続差異行列設定
-		Mat43.getInv(joint.parent.inv_matrix,joint.parent.matrix);
-		Mat43.dot(m,joint.parent.inv_matrix,joint.child.matrix);
+		Mat43.getInv(imat,joint.parent.matrix);
+		Mat43.dot(joint.matrix,imat,sceneObject.matrix);
+
+		Mat43.getInv(imat,joint.child.matrix);
+		Mat43.dot(joint.matrix2,imat,sceneObject.matrix);
 		
 		
 	}
@@ -2490,9 +2500,11 @@ var O3o=(function(){
 			phyObjs.push(phyobj);
 		}
 
-		for(var i=0;i<phyObjs.length;i++){
-			//ジョイント作成
-			O3o.createPhyJoint(scene.objects[i],phyObjs,onoPhy);
+		for(var i=0;i<scene.objects.length;i++){
+			if(scene.objects[i].rigid_body_constraint){
+				//ジョイント作成
+				O3o.createPhyJoint(scene.objects[i],phyObjs,onoPhy);
+			}
 		}
 		return phyObjs;
 	}

@@ -562,6 +562,7 @@ ret.defObj= (function(){
 	}
 	ret.start = function(){
 		
+
 		Engine.go["main"]= objMan.createObj(Engine.goClass["main"]);
 
 		Util.setFps(globalParam.fps,mainloop);
