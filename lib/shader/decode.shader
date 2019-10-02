@@ -20,7 +20,7 @@ void main(void){
 	vec4 a = decode(texture2D(uSampler,vUv));
 	vec4 b = texture2D(uSampler,vUv);
 	vec4 c = decode2(texture2D(uSampler2,vec2(0.0,511.0)/512.0));
-	float aL = c.r; //平均値
+	float aL = max(c.r,0.1); //平均値
 	float Lw = c.g*1.1; //最大値
 	a.rgb= a.rgb * uA / aL;
 	Lw = Lw*uA/aL;
