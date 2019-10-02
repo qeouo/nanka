@@ -1,4 +1,4 @@
-Engine.goClass["field"]= (function(){
+Engine.goClass.field= (function(){
 	var ono3d = Engine.ono3d;
 	var onoPhy=Engine.onoPhy;
 	var objMan=Engine.objMan;
@@ -183,7 +183,7 @@ Engine.goClass["field"]= (function(){
 						Util.hex2rgb(ono3d.lineColor,globalParam.outline_color);
 					}
 
-					var bane = Engine.go["main"].bane;
+					var bane = Engine.go.main.bane;
 					if(bane){
 						if(bane.con2.name == objects[i].name){
 							ono3d.lineWidth=1;

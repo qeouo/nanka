@@ -795,7 +795,6 @@ var O3o=(function(){
 			,mesh
 			,texture
 			,material
-			,texture_slot
 			,vertex	
 			,face	
 			,face2	

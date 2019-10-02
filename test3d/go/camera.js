@@ -1,4 +1,4 @@
-Engine.goClass["camera"]= (function(){
+Engine.goClass.camera= (function(){
 	var GoCamera=function(){};
 	var ret = GoCamera;
 	inherits(ret,Engine.defObj);
@@ -19,7 +19,7 @@ Engine.goClass["camera"]= (function(){
 
 
 
-		if(Util.pressOn && !Engine.go["main"].bane){
+		if(Util.pressOn && !Engine.go.main.bane){
 			this.a[1]-=(Util.cursorX-Util.oldcursorX)/Engine.WIDTH;
 			this.a[0]-=((Util.cursorY-Util.oldcursorY)/Engine.HEIGHT);
 

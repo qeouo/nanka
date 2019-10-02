@@ -1,4 +1,4 @@
-Engine.goClass["main"]= (function(){
+Engine.goClass.main= (function(){
 	var GoMain=function(){};
 	var ret = GoMain;
 	inherits(ret,Engine.defObj);
@@ -19,8 +19,8 @@ Engine.goClass["main"]= (function(){
 
 		this.initFlg=false;
 		Engine.onoPhy.init();
-		Engine.go["field"]=objMan.createObj(Engine.goClass["field"]);
-		Engine.go["camera"]= objMan.createObj(Engine.goClass["camera"]);
+		Engine.go.field=objMan.createObj(Engine.goClass.field);
+		Engine.go.camera= objMan.createObj(Engine.goClass.camera);
 
 		this.bane = null;
 	
@@ -34,7 +34,7 @@ Engine.goClass["main"]= (function(){
 			}
 			this.initFlg=true;
 			var o3o = Engine.field;
-			var t = Engine.go["field"];
+			var t = Engine.go.field;
 
 			var scene= o3o.scenes[0];
 			O3o.setFrame(o3o,scene,0); //アニメーション処理
@@ -65,7 +65,7 @@ Engine.goClass["main"]= (function(){
 				Util.fireEvent(el,"change");
 			}
 
-			var goCamera = Engine.go["camera"];
+			var goCamera = Engine.go.camera;
 
 			var co=  scene.objects.find(function(a){
 				return a.name==this;
@@ -85,7 +85,7 @@ Engine.goClass["main"]= (function(){
 
 				goCamera.cameralen=Math.abs(goCamera.p[2]);
 
-				Engine.goClass["camera"].homingCamera(goCamera.a,goCamera.target,goCamera.p);
+				Engine.goClass.camera.homingCamera(goCamera.a,goCamera.target,goCamera.p);
 				
 			}
 
@@ -127,7 +127,7 @@ Engine.goClass["main"]= (function(){
 			ono3d.environments[0].envTexture = ono3d.createEnv(null,0,0,0,Engine.drawSub);
 			ono3d.setNearFar(0.01,100.0);
 			ono3d.clear();
-			var goField = Engine.go["field"];
+			var goField = Engine.go.field;
 			goField.draw2();
 			ono3d.render(camera.p);
 			ono3d.setStatic();
@@ -179,7 +179,7 @@ Engine.goClass["main"]= (function(){
 			tsukamiZ= 1;
 			var targetPhyObj = null;
 			var res2={};
-			var goField = Engine.go["field"];
+			var goField = Engine.go.field;
 			var phyObjs = goField.phyObjs;
 			for(var i=0;i<phyObjs.length;i++){
 				var phyObj = phyObjs[i];

@@ -1,3 +1,4 @@
+"use strict"
 var Engine = (function(){
 
 	var Engine={};
@@ -140,7 +141,7 @@ ret.defObj= (function(){
 			}
 		}
 		ret.prototype.update=function(){
-			objs = this.objs;
+			var objs = this.objs;
 			for(var i=0;i<this.objs.length;i++){
 
 				if(objs[i].stat===STAT_CREATE){
@@ -270,17 +271,19 @@ ret.defObj= (function(){
 		gl.disable(gl.BLEND);
 		var field=Engine.field;
 		if(field){
-			if(field.scenes[0].world.envTexture){
-				var skyTexture = field.scenes[0].world.envTexture;
-				if(globalParam.stereomode==0){
-					ono3d.drawCelestialSphere(skyTexture);
-				}else{
-					ono3d.setPers(0.577,HEIGHT/WIDTH*2,1,80);
-					ono3d.setViewport(0,0,WIDTH/2,HEIGHT);
-					ono3d.drawCelestialSphere(skyTexture);
-					ono3d.setViewport(WIDTH/2,0,WIDTH/2,HEIGHT);
-					ono3d.drawCelestialSphere(skyTexture);
-					
+			if(field.scenes.length>0){
+				if(field.scenes[0].world.envTexture){
+					var skyTexture = field.scenes[0].world.envTexture;
+					if(globalParam.stereomode==0){
+						ono3d.drawCelestialSphere(skyTexture);
+					}else{
+						ono3d.setPers(0.577,HEIGHT/WIDTH*2,1,80);
+						ono3d.setViewport(0,0,WIDTH/2,HEIGHT);
+						ono3d.drawCelestialSphere(skyTexture);
+						ono3d.setViewport(WIDTH/2,0,WIDTH/2,HEIGHT);
+						ono3d.drawCelestialSphere(skyTexture);
+						
+					}
 				}
 			}
 		}
@@ -301,65 +304,50 @@ ret.defObj= (function(){
 		gl.finish();
 	}
 
-	//url引数セット
-	globalParam.outline_bold=0;
-	globalParam.outline_color="000000";
-	globalParam.lightColor1="808080";
-	globalParam.lightColor2="808080";;
-	globalParam.lightThreshold1=0.;
-	globalParam.lightThreshold2=1.;
-	globalParam.physics=1;
-	globalParam.physics_=0;
-	globalParam.smoothing=1;
-	globalParam.stereomode=0;
-	globalParam.stereoVolume=1;
-	globalParam.step=1;
-	globalParam.fps=60;
-	globalParam.scene=0;
-	globalParam.shadow=1;
-	globalParam.model="./f1.o3o";
-	globalParam.materialMode = false;
-	globalParam.cColor= "ffffff";
-	globalParam.cReflection= 0;
-	globalParam.cReflectionColor= "ffffff";
-	globalParam.cRoughness= 0;
-	globalParam.cTransRoughness= 0;
-	globalParam.frenel = 0;
-	globalParam.cAlpha= 1.0;
-	globalParam.cRefraction = 1.1;
-	globalParam.cNormal= 1.0;
-	globalParam.cEmi= 0.0;
-	globalParam.shader= 0;
+		globalParam.outline_bold=0;
+		globalParam.outline_color="000000";
+		globalParam.lightColor1="808080";
+		globalParam.lightColor2="808080";;
+		globalParam.lightThreshold1=0.;
+		globalParam.lightThreshold2=1.;
+		globalParam.physics=1;
+		globalParam.physics_=0;
+		globalParam.smoothing=0;
+		globalParam.stereomode=0;
+		globalParam.stereoVolume=1;
+		globalParam.step=1;
+		globalParam.fps=60;
+		globalParam.scene=0;
+		globalParam.shadow=1;
+		globalParam.model="./f1.o3o";
+		globalParam.materialMode = false;
+	//カスタムマテリアル
+		globalParam.baseColor= "ffffff";
+		globalParam.metallic= 0;
+		globalParam.metalColor= "ffffff";
+		globalParam.roughness= 0;
+		globalParam.subRoughness= 0;
+		globalParam.frenel = 0;
+		globalParam.opacity= 1.0;
+		globalParam.ior= 1.1;
+		globalParam.cNormal= 1.0;
+		globalParam.emi= 0.0;
+
+		globalParam.debugMenu= 0;
+		globalParam.shader= 0;
 
 	//カメラ露光
-	globalParam.autoExposure=1;
-	globalParam.exposure_level=0.5;
-	globalParam.exposure_upper=2;
-	globalParam.exposure_bloom=0.1;
-	
-	globalParam.source=0;
-	globalParam.target=0;
-	globalParam.reference=0;
-	globalParam.actionAlpha=0;
+		globalParam.autoExposure=1;
+		globalParam.exposure_level=0.18;
+		globalParam.exposure_upper=1;
+		globalParam.exposure_bloom=0.1;
+		
+		globalParam.source=0;
+		globalParam.target=0;
+		globalParam.reference=0;
+		globalParam.actionAlpha=0;
 
 		
-	var url=location.search.substring(1,location.search.length)
-	var args=url.split("&")
-
-	for(i=args.length;i--;){
-		var arg=args[i].split("=")
-		if(arg.length >1){
-			if(!isNaN(arg[1]) && arg[1]!=""){
-				if(arg[1].length>1 && arg[1].indexOf(0) =="0"){
-					globalParam[arg[0]] = arg[1]
-				}else{
-					globalParam[arg[0]] = +arg[1]
-				}
-			}else{
-				globalParam[arg[0]] = arg[1]
-			}
-		}
-	}
 	
 	
 	var physicsTime;
@@ -455,20 +443,20 @@ ret.defObj= (function(){
 			cMat.subRoughness=globalParam.subRoughness;
 			Util.hex2rgb(cMat.metalColor,globalParam.metalColor);
 			cMat.texture=globalParam.cTexture;
-			cMat.texture_slots=[];
-			if(globalParam.cTexture>=0){
-				var texture_slot = new O3o.Texture_slot();
-
-				cMat.texture_slots.push(texture_slot);
-				texture_slot.texture = customTextures[globalParam.cTexture];
-			}
-			if(globalParam.cBump>=0){
-				var texture_slot = new O3o.Texture_slot();
-
-				cMat.texture_slots.push(texture_slot);
-				texture_slot.texture = customBumps[globalParam.cBump];
-				texture_slot.normal= globalParam.cNormal;
-			}
+//			cMat.texture_slots=[];
+//			if(globalParam.cTexture>=0){
+//				var texture_slot = new O3o.Texture_slot();
+//
+//				cMat.texture_slots.push(texture_slot);
+//				texture_slot.texture = customTextures[globalParam.cTexture];
+//			}
+//			if(globalParam.cBump>=0){
+//				var texture_slot = new O3o.Texture_slot();
+//
+//				cMat.texture_slots.push(texture_slot);
+//				texture_slot.texture = customBumps[globalParam.cBump];
+//				texture_slot.normal= globalParam.cNormal;
+//			}
 		}
 
 			
@@ -509,9 +497,12 @@ ret.defObj= (function(){
 		gl.clear(gl.DEPTH_BUFFER_BIT);
 		drawSub(0,0,WIDTH,HEIGHT);
 		
+
 		//テスト
-		//var env = ono3d.environments[1];
-		//Ono3d.drawCopy(env.envTexture,0,0,1,1);
+		//var env = ono3d.env2Texture;
+		//gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		//ono3d.setViewport(0,0,WIDTH,HEIGHT);
+		//Ono3d.drawCopy(env,0,0,1,1);
 
 		//描画結果をバッファにコピー
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -562,11 +553,29 @@ ret.defObj= (function(){
 	}
 	ret.start = function(){
 		
+		var url=location.search.substring(1,location.search.length)
+		var args=url.split("&")
 
-		Engine.go["main"]= objMan.createObj(Engine.goClass["main"]);
-
+		for(i=args.length;i--;){
+			var arg=args[i].split("=")
+			if(arg.length >1){
+				if(!isNaN(arg[1]) && arg[1]!=""){
+					if(arg[1].length>1 && arg[1].indexOf(0) =="0"){
+						globalParam[arg[0]] = arg[1]
+					}else{
+						globalParam[arg[0]] = +arg[1]
+					}
+				}else{
+					globalParam[arg[0]] = arg[1]
+				}
+			}
+		}
 		Util.setFps(globalParam.fps,mainloop);
 		Util.fpsman();
+
+		if(this.userInit){
+			this.userInit();
+		}
 
 	}
 		var canvas =document.createElement("canvas");
