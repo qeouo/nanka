@@ -172,7 +172,7 @@
     ,"groups":[]
     ,"location":[ 0.000000, 0.007642, 0.011311]
     ,"rotation":[ 0.000000, 0.000000, 0.000000]
-    ,"scale":[ 1.000000, 1.000000, 1.000000]
+    ,"scale":[ 2.000000, 2.000000, 2.000000]
     ,"type":"MESH"
     ,"data":"Cube.001"
     ,"rigid_body":{
@@ -193,7 +193,7 @@
     ,"groups":[]
     ,"location":[ 0.000000,-0.692358, 0.011312]
     ,"rotation":[ 0.000000, 0.000000, 0.000000]
-    ,"scale":[ 1.000000, 1.000000, 1.000000]
+    ,"scale":[ 2.000000, 2.000000, 2.000000]
     ,"type":"MESH"
     ,"data":"Cube.004"
     ,"rigid_body":{
@@ -269,7 +269,7 @@
       ,"motor_lin_target_velocity": 1.000000
       ,"spring_damping":[ 0.500000, 0.500000, 0.500000]
       ,"spring_stiffness":[10.000000,10.000000,10.000000]
-      ,"spring_damping_ang":[ 0.300000, 0.300000, 0.300000]
+      ,"spring_damping_ang":[ 0.500000, 0.500000, 0.500000]
       ,"spring_stiffness_ang":[10.000000,10.000000,10.000000]
       ,"use_breaking":0
       ,"use_limit_ang":[0,0,0]
@@ -296,8 +296,8 @@
       "breaking_threshold":10.000000
       ,"disable_collisions":1
       ,"enabled":1
-      ,"limit_ang_lower":[-0.785398,-0.785398,-0.785398]
-      ,"limit_ang_upper":[ 0.785398, 0.785398, 0.785398]
+      ,"limit_ang_lower":[-0.785398, 0.000000,-0.785398]
+      ,"limit_ang_upper":[ 0.785398, 0.000000, 0.785398]
       ,"limit_lin_lower":[ 0.000000, 0.000000, 0.000000]
       ,"limit_lin_upper":[ 0.000000, 0.000000, 0.000000]
       ,"motor_ang_max_impulse": 1.000000
@@ -308,8 +308,8 @@
       ,"object2":"Cube.002"
       ,"spring_damping":[ 0.500000, 0.500000, 0.500000]
       ,"spring_stiffness":[10.000000,10.000000,10.000000]
-      ,"spring_damping_ang":[ 0.0500000, 0.0500000, 0.0500000]
-      ,"spring_stiffness_ang":[ 3.000000, 3.000000, 3.000000]
+      ,"spring_damping_ang":[ 0.100000, 0.100000, 0.100000]
+      ,"spring_stiffness_ang":[ 1.000000, 1.000000, 1.000000]
       ,"use_breaking":0
       ,"use_limit_ang":[0,0,0]
       ,"use_limit_lin":[1,1,1]

@@ -1,6 +1,7 @@
 "use strict"
 var Engine = (function(){
 
+var customMaterial = new Ono3d.Material();
 	var Engine={};
 	var ret = Engine;
 	var HEIGHT=512,WIDTH=960;

@@ -5,7 +5,6 @@ var gos=["camera","field","main"];
 for(var i=0;i<gos.length;i++){
 	Util.loadJs("./go/"+ gos[i]+".js");
 }
-
 //グローバル値初期化
 globalParam.outline_bold=0;
 globalParam.outline_color="000000";
