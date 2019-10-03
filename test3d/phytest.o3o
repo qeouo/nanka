@@ -269,7 +269,7 @@
       ,"motor_lin_target_velocity": 1.000000
       ,"spring_damping":[ 0.500000, 0.500000, 0.500000]
       ,"spring_stiffness":[10.000000,10.000000,10.000000]
-      ,"spring_damping_ang":[ 0.500000, 0.500000, 0.500000]
+      ,"spring_damping_ang":[ 0.300000, 0.300000, 0.300000]
       ,"spring_stiffness_ang":[10.000000,10.000000,10.000000]
       ,"use_breaking":0
       ,"use_limit_ang":[0,0,0]
@@ -308,7 +308,7 @@
       ,"object2":"Cube.002"
       ,"spring_damping":[ 0.500000, 0.500000, 0.500000]
       ,"spring_stiffness":[10.000000,10.000000,10.000000]
-      ,"spring_damping_ang":[ 0.100000, 0.100000, 0.100000]
+      ,"spring_damping_ang":[ 0.0500000, 0.0500000, 0.0500000]
       ,"spring_stiffness_ang":[ 3.000000, 3.000000, 3.000000]
       ,"use_breaking":0
       ,"use_limit_ang":[0,0,0]

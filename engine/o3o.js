@@ -1048,11 +1048,8 @@ var O3o=(function(){
 					for(var i=0;i<object.parent.data.bones.length;i++){
 						if(object.parent_bone == object.parent.data.bones[i].name){
 							object.parent_bone = i+1;
-							//object.parent_bone = object.parent.poseArmature.matrices[i];
 						}
 					}
-
-					//object.parent_bone=object.parent.data.bones.find(function(a){return a.name === this;},object.parent_bone);
 				}
 			}
 		}
@@ -1088,6 +1085,7 @@ var O3o=(function(){
 		if(!flg){
 			//既に頂点単位で計算された場合はこの座標変換は行わない
 			if(phyObj){
+				//剛体設定がある場合はその行列を使う
 				Mat43.copy(defMat,phyObj.matrix);
 			}else{
 				Mat43.dotMat44Mat43(defMat,ono3d.worldMatrix,obj.mixedmatrix);
@@ -1304,7 +1302,6 @@ var O3o=(function(){
 			if(!parent.flg){
 				mixMatrix(parent);
 			}
-			Mat43.dot(obj.mixedmatrix,obj.iparentmatrix,obj.matrix);
 			if(obj.parent_bone){
 				//obj.mixedmatrix[13]+=parent.target.length;
 				//Mat43.dot(obj.mixedmatrix,parent.target.matrix,obj.mixedmatrix);
@@ -1315,7 +1312,7 @@ var O3o=(function(){
 				Mat43.dot(obj.mixedmatrix,parent.data.bones[i].matrix,obj.mixedmatrix);
 				Mat43.dot(obj.mixedmatrix,parent.poseArmature.matrices[i],obj.mixedmatrix);
 			}else{
-
+				Mat43.dot(obj.mixedmatrix,obj.iparentmatrix,obj.matrix);
 			}
 			Mat43.dot(obj.mixedmatrix,parent.mixedmatrix,obj.mixedmatrix);
 		}else{
