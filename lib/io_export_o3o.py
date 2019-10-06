@@ -157,6 +157,17 @@ def ExportOno3dObject():
                fileout2(',"location":{}'.format(stringVector3( bone.location)))
                fileout2(',"rotation":{}'.format(stringQuaternion(bone.rotation_quaternion)))
                fileout2(',"scale":{}'.format( stringVector32(bone.scale)))
+               fileout2(',"constraints":')
+               fileoutLu()
+               for i,constraint in enumerate(bone.constraints):
+                   fileout('')
+                   if(i != 0):fileout2(',')
+                   fileout2('{')
+                   fileout2('"name":"{}"'.format(constraint.name))
+                   fileout2(',"type":"{}"'.format(constraint.type))
+                   fileout2(',"target":"{}"'.format(constraint.target.name))
+                   fileout2('}\n')
+               fileoutLd()
                fileout2('}\n')
             fileoutLd()
 
@@ -683,7 +694,10 @@ def WriteAction(action):
                 if(keyframe_points != fcurve.keyframe_points[0]):fileout2(',')
                 fileout2('{')
                 if(fcurve.array_index==1):
-                    fileout2('"f":{},"p":{:9f}'.format(int(keyframe_points.co[0]),-keyframe_points.co[1]))
+                    if(pflg != "scale"):
+                        fileout2('"f":{},"p":{:9f}'.format(int(keyframe_points.co[0]),-keyframe_points.co[1]))
+                    else:
+                        fileout2('"f":{},"p":{:9f}'.format(int(keyframe_points.co[0]),keyframe_points.co[1]))
                 else:
                     fileout2('"f":{},"p":{:9f}'.format(int(keyframe_points.co[0]),keyframe_points.co[1]))
                 fileout2('}')

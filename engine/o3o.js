@@ -130,6 +130,7 @@ var O3o=(function(){
 		this.mixedmatrix=new Mat43(); //合成行列
 		this.flg=false;//既に合成行列が計算されているかどうかのフラグ
 
+		this.poseBones=null;
 		this.static=0;
 	}
 	var Light = function(){
@@ -180,6 +181,12 @@ var O3o=(function(){
 		this.use_spring_ang=new Vec3();
 		this.type="";
 	}
+	var PoseBoneConstraint = function(){
+		//ポーズボーンコンストレイント設定
+		this.name="";
+		this.type="";
+		this.target="";
+	}
 	var PoseArmature = ret.PoseArmature = (function(){
 		var PoseArmature = function(armature){
 			this.armature = armature;
@@ -224,8 +231,12 @@ var O3o=(function(){
 			var matrix = this.matrices[n];
 			genMatrix(matrix,poseBone); //ボーンの姿勢から行列を作成
 			var bone = bones[n];
+
 			Mat43.dot(matrix,matrix,bone.imatrix)
 			Mat43.dot(matrix,bone.matrix,matrix)
+
+
+
 			if(bones[n].parent){
 				var m=bones[n].parent.id;
 				var parent = this.poseBones[m];
@@ -233,6 +244,56 @@ var O3o=(function(){
 
 				Mat43.dot(this.matrices[n],this.matrices[m],matrix);
 			}
+
+			if(this.object.poseBones){
+				var poseBone_ = this.object.poseBones[n];
+				for(var i=0;i<poseBone_.constraints.length;i++){
+					var constraint =poseBone_.constraints[i];
+					switch(constraint.type){
+					case "COPY_ROTATION":
+						var location=new Vec3()
+							,rotation=new Vec4()
+							,scale=new Vec3()
+							,rotation2=new Vec4();
+
+
+						genMatrix(matrix,poseBone); //ボーンの姿勢から行列を作成
+						var bone = bones[n];
+						Mat33.copy(matrix,constraint.target.mixedmatrix);
+
+						Mat43.dot(matrix,matrix,bone.imatrix)
+						matrix[9]+=bone.matrix[9];
+						matrix[10]+=bone.matrix[10];
+						matrix[11]+=bone.matrix[11];
+						//Mat43.dot(matrix,bone.matrix,matrix)
+
+			//			Mat43.toLSE(location,scale,rotation,constraint.target.mixedmatrix);
+			//			Mat43.toLSE(location,scale,rotation2,this.matrices[n]);
+			//			//Vec3.sub(rotation,rotation2,rotation);
+			//			rotation[0]+=1.57;
+			//			Mat43.fromLSE(this.matrices[n],location,scale,rotation);
+			//			//Vec4.copy(poseBone.rotation,constraint.target.rotation);
+			//			//Mat33.getRotQuat(poseBone.rotation,constraint.target.mixedmatrix);
+			//			//Mat43.copy(this.matrices[n],constraint.target.mixedmatrix);
+
+						if(bones[n].parent){
+							var m=bones[n].parent.id;
+							var parent = this.poseBones[m];
+							this.mixBoneMatrix(m);
+							var mat=this.matrices[m];
+							matrix[9]=mat[0]*matrix[9]+mat[9];
+							matrix[10]=mat[4]*matrix[10]+mat[10];
+							matrix[11]=mat[8]*matrix[11]+mat[11];
+
+							//Mat43.dot(this.matrices[n],this.matrices[m],matrix);
+						}
+						break;
+
+					}
+				}
+
+			}
+
 			poseBone.flg=true;
 		}
 		ret.prototype.reset= function(){
@@ -276,13 +337,14 @@ var O3o=(function(){
 			this.rotation=new Vec4();
 			this.scale=new Vec3();
 			this.flg=false;
+			this.constraints=[];
 
 			this.reset();
 		}
 		var ret = PoseBone;
 		ret.prototype.reset = function(){
 			Vec3.set(this.location,0,0,0);
-			Vec3.set(this.location,0,0,0,0);
+			Vec3.set(this.rotation,0,0,0,0);
 			Vec3.set(this.scale,1,1,1);
 			this.flg=false;
 		}
@@ -744,6 +806,8 @@ var O3o=(function(){
 						if(typeof src[member][0] == "string"
 						|| typeof src[member][0] == "number"){
 							dst[member] = src[member];
+						}else{
+							//dst[member] = src[member];
 						}
 					}
 				}else{
@@ -944,6 +1008,7 @@ var O3o=(function(){
 
 				object.modifiers=o3o2[type][line].modifiers;
 				object.o3o=o3o;
+
 			}
 		}else if(type==="scenes"){
 			for(var line=0;line< o3o2[type].length;line++){
@@ -983,6 +1048,19 @@ var O3o=(function(){
 				object.objecttype=OBJECT_ARMATURE;
 				object.data=o3o.armatures.find(function(a){return a.name === this;},object.data)
 				object.poseArmature = new PoseArmature(object.data);
+				object.poseArmature.object=object;
+
+				if(object.poseBones){
+					for(var k=0;k<object.poseBones.length;k++){
+						var poseBone = object.poseBones[k];
+						for(var l=0;l<poseBone.constraints.length;l++){
+							var constraint = poseBone.constraints[l]
+							constraint.target=o3o.objects.find(function(a){return a.name === this;},constraint.target)
+						}
+
+					}
+				}
+
 			}else if(object.type==="LIGHT"){
 				object.objecttype=OBJECT_LIGHT;
 				object.data=o3o.lights.find(function(a){return a.name === this;},object.data)
@@ -1032,6 +1110,8 @@ var O3o=(function(){
 			for(j=armature.bones.length;j--;){
 				bone = armature.bones[j]
 				Mat43.getInv(bone.imatrix,bone.matrix)
+				var a=new Mat43();
+				Mat43.dot(a,bone.matrix,bone.imatrix);
 				for(k=armature.bones.length;k--;){
 					if(bone.parent === armature.bones[k].name){
 						bone.parent = armature.bones[k] 
@@ -1087,6 +1167,9 @@ var O3o=(function(){
 			if(phyObj){
 				//剛体設定がある場合はその行列を使う
 				Mat43.copy(defMat,phyObj.matrix);
+				if(!phyObj.fix){
+					Mat43.toLSE(obj.location,obj.scale,obj.rotation,phyObj.matrix);
+				}
 			}else{
 				Mat43.dotMat44Mat43(defMat,ono3d.worldMatrix,obj.mixedmatrix);
 			}
