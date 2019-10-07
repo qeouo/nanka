@@ -280,12 +280,15 @@ var O3o=(function(){
 							var m=bones[n].parent.id;
 							var parent = this.poseBones[m];
 							this.mixBoneMatrix(m);
-							var mat=this.matrices[m];
-							matrix[9]=mat[0]*matrix[9]+mat[9];
-							matrix[10]=mat[4]*matrix[10]+mat[10];
-							matrix[11]=mat[8]*matrix[11]+mat[11];
 
-							//Mat43.dot(this.matrices[n],this.matrices[m],matrix);
+							Vec3.set(location,bones[n].matrix[9],bones[n].matrix[10],bones[n].matrix[11]);
+							Mat43.dotVec3(scale,this.matrices[m],location);
+
+							matrix[9]+=scale[0]-location[0];
+							matrix[10]+=scale[1]-location[1];
+							matrix[11]+=scale[2]-location[2];
+
+							//Mat43.dot(matrix,mat43,matrix);
 						}
 						break;
 
