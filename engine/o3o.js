@@ -226,78 +226,57 @@ var O3o=(function(){
 			if(poseBone.flg){
 				return;
 			}
-			var bones = this.armature.bones;
+			var bone = this.armature.bones[n];
 
 			var matrix = this.matrices[n];
 			genMatrix(matrix,poseBone); //ボーンの姿勢から行列を作成
-			var bone = bones[n];
 
-			Mat43.dot(matrix,matrix,bone.imatrix)
-			Mat43.dot(matrix,bone.matrix,matrix)
-
-
-
-			if(bones[n].parent){
-				var m=bones[n].parent.id;
-				var parent = this.poseBones[m];
-				this.mixBoneMatrix(m);
-
-				Mat43.dot(this.matrices[n],this.matrices[m],matrix);
-			}
-
+			var flg=true;
 			if(this.object.poseBones){
+				var location=Vec3.poolAlloc();
+
 				var poseBone_ = this.object.poseBones[n];
 				for(var i=0;i<poseBone_.constraints.length;i++){
 					var constraint =poseBone_.constraints[i];
 					switch(constraint.type){
 					case "COPY_ROTATION":
-						var location=new Vec3()
-							,rotation=new Vec4()
-							,scale=new Vec3()
-							,rotation2=new Vec4();
 
-
-						genMatrix(matrix,poseBone); //ボーンの姿勢から行列を作成
-						var bone = bones[n];
+						//genMatrix(matrix,poseBone); //ボーンの姿勢から行列を作成
 						Mat33.copy(matrix,constraint.target.mixedmatrix);
 
-						Mat43.dot(matrix,matrix,bone.imatrix)
-						matrix[9]+=bone.matrix[9];
-						matrix[10]+=bone.matrix[10];
-						matrix[11]+=bone.matrix[11];
-						//Mat43.dot(matrix,bone.matrix,matrix)
+						Vec3.set(location,bone.matrix[9],bone.matrix[10],bone.matrix[11]);
 
-			//			Mat43.toLSE(location,scale,rotation,constraint.target.mixedmatrix);
-			//			Mat43.toLSE(location,scale,rotation2,this.matrices[n]);
-			//			//Vec3.sub(rotation,rotation2,rotation);
-			//			rotation[0]+=1.57;
-			//			Mat43.fromLSE(this.matrices[n],location,scale,rotation);
-			//			//Vec4.copy(poseBone.rotation,constraint.target.rotation);
-			//			//Mat33.getRotQuat(poseBone.rotation,constraint.target.mixedmatrix);
-			//			//Mat43.copy(this.matrices[n],constraint.target.mixedmatrix);
-
-						if(bones[n].parent){
-							var m=bones[n].parent.id;
-							var parent = this.poseBones[m];
+						if(bone.parent){
+							var m=bone.parent.id;
 							this.mixBoneMatrix(m);
 
-							Vec3.set(location,bones[n].matrix[9],bones[n].matrix[10],bones[n].matrix[11]);
-							Mat43.dotVec3(scale,this.matrices[m],location);
+							Mat43.dotVec3(location,this.matrices[m],location);
 
-							matrix[9]+=scale[0]-location[0];
-							matrix[10]+=scale[1]-location[1];
-							matrix[11]+=scale[2]-location[2];
-
-							//Mat43.dot(matrix,mat43,matrix);
 						}
+						matrix[9]+=location[0];
+						matrix[10]+=location[1];
+						matrix[11]+=location[2];
+						flg=false;
 						break;
 
 					}
 				}
-
 			}
+			if(flg){
+
+				Mat43.dot(matrix,bone.matrix,matrix)
+
+				if(bone.parent){
+					var m=bone.parent.id;
+					this.mixBoneMatrix(m);
+
+					Mat43.dot(matrix,this.matrices[m],matrix);
+				}
+			}
+			Mat43.dot(matrix,matrix,bone.imatrix)
 
 			poseBone.flg=true;
+			Vec3.poolFree(1);
 		}
 		ret.prototype.reset= function(){
 			for(var i=0;i<this.poseBones.length;i++){
@@ -1056,9 +1035,13 @@ var O3o=(function(){
 				if(object.poseBones){
 					for(var k=0;k<object.poseBones.length;k++){
 						var poseBone = object.poseBones[k];
-						for(var l=0;l<poseBone.constraints.length;l++){
-							var constraint = poseBone.constraints[l]
-							constraint.target=o3o.objects.find(function(a){return a.name === this;},constraint.target)
+						if(poseBone.constraints){
+							for(var l=0;l<poseBone.constraints.length;l++){
+								var constraint = poseBone.constraints[l]
+								constraint.target=o3o.objects.find(function(a){return a.name === this;},constraint.target)
+							}
+						}else{
+							poseBone.constraints=[];
 						}
 
 					}
@@ -1336,6 +1319,7 @@ var O3o=(function(){
 			}else{
 				if(a>0)a--
 				ratio=(tim-keys[a])/(keys[a+1]-keys[a])
+				ratio=ratio*ratio*(3-2*ratio);
 				paramA=fcurve.params[a]
 				paramB=fcurve.params[a+1]
 			}
