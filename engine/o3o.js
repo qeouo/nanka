@@ -224,59 +224,39 @@ var O3o=(function(){
 		ret.prototype.mixBoneMatrix = function(n){
 			var poseBone = this.poseBones[n];
 			if(poseBone.flg){
-				return;
+				return;//計算済み
 			}
 			var bone = this.armature.bones[n];
 
 			var matrix = this.matrices[n];
 			genMatrix(matrix,poseBone); //ボーンの姿勢から行列を作成
 
-			var flg=true;
-			if(this.object.poseBones){
-				var location=Vec3.poolAlloc();
+			Mat43.dot(matrix,bone.matrix,matrix);//初期姿勢掛ける
 
+			if(bone.parent){
+				var m=bone.parent.id;
+				this.mixBoneMatrix(m);
+
+				Mat43.dot(matrix,this.matrices[m],matrix); //親行列掛ける
+			}
+			
+			if(this.object.poseBones){
 				var poseBone_ = this.object.poseBones[n];
 				for(var i=0;i<poseBone_.constraints.length;i++){
 					var constraint =poseBone_.constraints[i];
 					switch(constraint.type){
 					case "COPY_ROTATION":
 
-						//genMatrix(matrix,poseBone); //ボーンの姿勢から行列を作成
-						Mat33.copy(matrix,constraint.target.mixedmatrix);
-
-						Vec3.set(location,bone.matrix[9],bone.matrix[10],bone.matrix[11]);
-
-						if(bone.parent){
-							var m=bone.parent.id;
-							this.mixBoneMatrix(m);
-
-							Mat43.dotVec3(location,this.matrices[m],location);
-
-						}
-						matrix[9]+=location[0];
-						matrix[10]+=location[1];
-						matrix[11]+=location[2];
-						flg=false;
+						Mat33.copy(matrix,constraint.target.mixedmatrix); //角度を強制的に設定
 						break;
 
 					}
 				}
 			}
-			if(flg){
 
-				Mat43.dot(matrix,bone.matrix,matrix)
-
-				if(bone.parent){
-					var m=bone.parent.id;
-					this.mixBoneMatrix(m);
-
-					Mat43.dot(matrix,this.matrices[m],matrix);
-				}
-			}
-			Mat43.dot(matrix,matrix,bone.imatrix)
+			Mat43.dot(matrix,matrix,bone.imatrix); //初期姿勢逆行列
 
 			poseBone.flg=true;
-			Vec3.poolFree(1);
 		}
 		ret.prototype.reset= function(){
 			for(var i=0;i<this.poseBones.length;i++){
@@ -836,42 +816,46 @@ var O3o=(function(){
 		 ,line
 		 ,type
 		
-		var
-			o3o
-			,mesh
-			,texture
-			,material
-			,vertex	
-			,face	
-			,face2	
-			,bone	
-			,param	
-			,edge	
-			,quat	
-			,faces	
-			,shapeKey
-			,shapeKeyPoint
-			,obj
 		var data=new String()
-		var o3o2=JSON.parse(buf);
+		var raw=JSON.parse(buf);
 	
-	for(var type in o3o2){
-		if(type === "materials"){
-			for(var line=0;line< o3o2[type].length;line++){
-				material=new Material()
-				o3o.materials.push(material)
-				setdata(material,o3o2[type][line]);
-			}
-		}else if(type==="meshes"){
-			for(var line=0;line< o3o2[type].length;line++){
-				mesh=new Mesh()
-				o3o.meshes.push(mesh)
-				setdata(mesh,o3o2[type][line]);
+	var classes ={};
+	classes["materials"]=Material;
+	classes["meshes"]=Mesh;
+	classes["armatures"]=Armature;
+	classes["actions"]=Action;
+	classes["objects"]=SceneObject;
+	classes["scenes"]=Scene;
+	classes["lights"]=Light;
+	classes["reflectionprobes"]=ReflectionProbe;
 
-				for(var line3=0;line3< o3o2[type][line].vertices.length;line3++){
-					vertex=new Vertex()
+	for(var type in raw){
+		var arrays=raw[type];
+		var dstarrays=o3o[type];
+		if(type==="reflectionprobes"){
+			dstarrays=o3o.reflectionProbes;
+		}
+		if(!classes[type] || !dstarrays){
+			continue;
+		}
+		console.log(type);
+		for(var line=0;line< arrays.length;line++){
+			var material=new classes[type];
+			dstarrays.push(material)
+			setdata(material,arrays[line]);
+		}
+		if(type === "materials"){
+		}else if(type==="meshes"){
+			for(var line=0;line< arrays.length;line++){
+		//		var mesh=new Mesh()
+		//		o3o.meshes.push(mesh)
+		//		setdata(mesh,arrays[line]);
+				var mesh=o3o.meshes[line];
+
+				for(var line3=0;line3< arrays[line].vertices.length;line3++){
+					var vertex=new Vertex()
 					mesh.vertices.push(vertex)
-					setdata(vertex,o3o2[type][line].vertices[line3]);
+					setdata(vertex,arrays[line].vertices[line3]);
 					if(vertex.groupWeights.length==0){
 						for(var i=0;i<vertex.groups.length;i++){
 							vertex.groupWeights.push(1.0/vertex.groups.length);
@@ -881,8 +865,8 @@ var O3o=(function(){
 				mesh.vertexSize=mesh.vertices.length;
 
 				//頂点色
-				if(o3o2[type][line].colors){
-					var colors =  o3o2[type][line].colors;
+				if(arrays[line].colors){
+					var colors =  arrays[line].colors;
 					for(var i=0;i< colors.length;i++){
 						var cube =[];
 						for(var j=0;j< colors[i].length;j++){
@@ -894,8 +878,8 @@ var O3o=(function(){
 					}
 				}
 				//球面調和関数係数
-				if(o3o2[type][line].shcoefs){
-					var shcoefs=  o3o2[type][line].shcoefs;
+				if(arrays[line].shcoefs){
+					var shcoefs=  arrays[line].shcoefs;
 					for(var i=0;i< shcoefs.length;i++){
 						var shcoef=[];
 						for(var j=0;j< shcoefs[i].length;j++){
@@ -908,10 +892,10 @@ var O3o=(function(){
 				}
 
 				//フェイス
-				for(var line3=0;line3< o3o2[type][line].faces.length;line3++){
-					face=new Face()
+				for(var line3=0;line3< arrays[line].faces.length;line3++){
+					var face=new Face()
 					mesh.faces.push(face)
-					setdata(face,o3o2[type][line].faces[line3]);
+					setdata(face,arrays[line].faces[line3]);
 
 					for(i=0;i<4;i++){
 						if(face.idx[i]<0)break
@@ -921,99 +905,102 @@ var O3o=(function(){
 				mesh.faceSize=mesh.faces.length;
 
 				//uv_layers
-				for(var line3=0;line3< o3o2[type][line].uv_layers.length;line3++){
+				for(var line3=0;line3< arrays[line].uv_layers.length;line3++){
 					var uv_layer=new Uv_layer()
 					mesh.uv_layers.push(uv_layer)
-					setdata(uv_layer,o3o2[type][line].uv_layers[line3]);
-					uv_layer.data=o3o2[type][line].uv_layers[line3].data;
+					setdata(uv_layer,arrays[line].uv_layers[line3]);
+					uv_layer.data=arrays[line].uv_layers[line3].data;
 				}
 				mesh.uv_layerSize=mesh.uv_layers.length;
 
-				if(o3o2[type][line].double_sided){
+				if(arrays[line].double_sided){
 					mesh.flg&=~Ono3d.RF_DOUBLE_SIDED;
 					mesh.flg|=Ono3d.RF_DOUBLE_SIDED;
 				}
 				
-				var shapeKeys = o3o2[type][line].shapeKeys;
+				var shapeKeys = arrays[line].shapeKeys;
 				if(shapeKeys)
 				for(var line3=0;line3< shapeKeys.length;line3++){
 					shapeKey = new ShapeKey()
 					mesh.shapeKeys.push(shapeKey)
-					for(var line4=0;line3< o3o2[type][line].shapeKeys[line3].length;line4++){
+					for(var line4=0;line3< arrays[line].shapeKeys[line3].length;line4++){
 						if(line==="shapeKeyPoints"){
-							for(var line5=0;line3< o3o2[type][line].shapeKeys[line3][line4].length;line5++){
-								obj= o3o2[type][line].shapeKeys[line3][line4][line5]
-								shapeKeyPoint= obj.pos
-								shapeKey.shapeKeyPoints.push(shapeKeyPoint)
+							for(var line5=0;line3< arrays[line].shapeKeys[line3][line4].length;line5++){
+								var obj= arrays[line].shapeKeys[line3][line4][line5]
+								shapeKey.shapeKeyPoints.push(obj.pos)
 							}
 						}else{
-							shapeKey[line4] = o3o2[type][line].shapeKeys[line3][line4]
+							shapeKey[line4] = arrays[line].shapeKeys[line3][line4]
 						}
 					}
 				}
 			}
 		}else if(type==="armatures"){
-			for(var line=0;line< o3o2[type].length;line++){
-				var armature=new Armature()
-				o3o.armatures.push(armature);
-				setdata(armature,o3o2[type][line]);
+			for(var line=0;line< arrays.length;line++){
+				//var armature=new Armature()
+				//o3o.armatures.push(armature);
+				//setdata(armature,arrays[line]);
+				var armature = o3o.armatures[line];
 				var id=0;
-				for(var line3=0;line3< o3o2[type][line].bones.length;line3++){
-					bone=new Bone()
+				for(var line3=0;line3< arrays[line].bones.length;line3++){
+					var bone=new Bone()
 					armature.bones.push(bone);
-					setdata(bone,o3o2[type][line].bones[line3]);
+					setdata(bone,arrays[line].bones[line3]);
 					bone.id = id;
 					id++;
 				}
 			}
 		}else if(type==="actions"){
-			for(var line=0;line< o3o2[type].length;line++){
-				var action=new Action()
-				o3o.actions.push(action)
-				setdata(action,o3o2[type][line]);
-				for(var line3=0;line3< o3o2[type][line].fcurves.length;line3++){
+			for(var line=0;line< arrays.length;line++){
+				//var action=new Action()
+				//o3o.actions.push(action)
+				//setdata(action,arrays[line]);
+				var action = o3o.actions[line];
+				for(var line3=0;line3< arrays[line].fcurves.length;line3++){
 					var fcurve = new Fcurve()
 					action.fcurves.push(fcurve)
-					setdata(fcurve,o3o2[type][line].fcurves[line3]);
-					for(var line5=0;line5< o3o2[type][line].fcurves[line3].keys.length;line5++){
-						fcurve.keys.push(o3o2[type][line].fcurves[line3].keys[line5].f);
-						fcurve.params.push(o3o2[type][line].fcurves[line3].keys[line5].p);
+					setdata(fcurve,arrays[line].fcurves[line3]);
+					for(var line5=0;line5< arrays[line].fcurves[line3].keys.length;line5++){
+						fcurve.keys.push(arrays[line].fcurves[line3].keys[line5].f);
+						fcurve.params.push(arrays[line].fcurves[line3].keys[line5].p);
 					}
 					fcurve.type=fcurveConvert[fcurve.type];
 				}
 			}
 		}else if(type==="objects"){
-			for(var line =0;line<o3o2[type].length;line++){
-				object =new SceneObject()
-				o3o.objects.push(object)
-				setdata(object,o3o2[type][line]);
+			for(var line =0;line<arrays.length;line++){
+				//object =new SceneObject()
+				//o3o.objects.push(object)
+				//setdata(object,arrays[line]);
+				var object = o3o.objects[line];
 
-				object.modifiers=o3o2[type][line].modifiers;
+				object.modifiers=arrays[line].modifiers;
 				object.o3o=o3o;
 
 			}
 		}else if(type==="scenes"){
-			for(var line=0;line< o3o2[type].length;line++){
-				var scene=new Scene()
-				var object
-				o3o.scenes.push(scene)
+			for(var line=0;line< arrays.length;line++){
+				//var scene=new Scene()
+				//o3o.scenes.push(scene)
+				//setdata(scene,arrays[line]);
+				var scene=o3o.scenes[line];
 				scene.o3o=o3o;
-				setdata(scene,o3o2[type][line]);
 
 			}
 		}else if(type==="lights"){
-			for(var line=0;line< o3o2[type].length;line++){
-				var light=new Light();
-				var object;
-				o3o.lights.push(light);
-				setdata(light,o3o2[type][line]);
+			for(var line=0;line< arrays.length;line++){
+				//var light=new Light();
+				//var object;
+				//o3o.lights.push(light);
+				//setdata(light,arrays[line]);
 			}
 		}else if(type==="reflectionprobes"){
-			for(var line=0;line< o3o2[type].length;line++){
-				var reflectionProbe=new ReflectionProbe();
-				var object;
-				o3o.reflectionProbes.push(reflectionProbe);
-				setdata(reflectionProbe,o3o2[type][line]);
+			for(var line=0;line< arrays.length;line++){
+				//var reflectionProbe=new ReflectionProbe();
+				//var object;
+				//o3o.reflectionProbes.push(reflectionProbe);
+				//var reflectionProbe = arrays.reflectionProbes[line];
+				//setdata(reflectionProbe,arrays[line]);
 			}
 
 		}
@@ -1084,7 +1071,7 @@ var O3o=(function(){
 			mesh = o3o.meshes[i]
 			//マテリアルのポインタ設定
 			for(j=mesh.faces.length;j--;){
-				face =mesh.faces[j]
+				var face =mesh.faces[j]
 				face.material = o3o.materials[face.mat]
 			}
 			
