@@ -769,6 +769,38 @@ var O3o=(function(){
 	}
 
 
+	var setdata2 = function(dst,src){
+		for(var member in dst){
+			var srcdata=src[member];
+			var dstdata=dst[member];
+			if(srcdata == null)continue;
+			var to= typeof srcdata;
+			if(to == "string" || to == "number"){
+				dst[member]=srcdata;
+			}else if(dstdata instanceof Vec3){
+				dstdata[0]=srcdata[0];
+				dstdata[1]=srcdata[1];
+				dstdata[2]=srcdata[2];
+			}else if(dstdata instanceof Mat43){
+				Mat43.copy(dstdata,srcdata);
+			}else if(dstdata instanceof Array && srcdata.length > 0){
+				if(typeof srcdata[0] == "string" || typeof srcdata[0] == "number"){
+						dst[member] = srcdata;
+				}else if(classes[member]){
+					for(var i=0;i<srcdata.length;i++){
+						var obj = new (classes[member]);
+						setdata2(obj,srcdata[i]);
+						dstdata.push(obj);
+					}
+				}else{
+					dst[member] = srcdata;
+				}
+			}else{
+				dst[member] = srcdata;
+			}
+			
+		}
+	}
 	var setdata = function(dst,src){
 		for(var member in dst){
 			var srcdata=src[member];
@@ -813,11 +845,6 @@ var O3o=(function(){
 
 
 	var loadret = function(o3o,url,buf){
-		var 
-		i,imax
-		,j,jmax
-		,k,kmax
-		,l
 		var res =  /.*\//.exec(url)
 		var currentdir="./"
 		if(res) currentdir = res[0]
@@ -840,9 +867,10 @@ var O3o=(function(){
 			continue;
 		}
 		for(var line=0;line< arrays.length;line++){
-			var material=new classes[type];
-			dstarrays.push(material)
-			setdata(material,arrays[line]);
+			var c=new classes[type];
+			dstarrays.push(c)
+			setdata2(c,arrays[line]);
+			c.o3o=o3o;
 		}
 	}
 	for(var type in o3o){
@@ -855,11 +883,9 @@ var O3o=(function(){
 		if(type === "materials"){
 		}else if(type==="meshes"){
 			for(var line=0;line< arrays.length;line++){
-		//		var mesh=new Mesh()
-		//		o3o.meshes.push(mesh)
-		//		setdata(mesh,arrays[line]);
 				var mesh=o3o.meshes[line];
 
+				mesh.vertices=[];
 				for(var line3=0;line3< arrays[line].vertices.length;line3++){
 					var vertex=new Vertex()
 					mesh.vertices.push(vertex)
@@ -872,6 +898,7 @@ var O3o=(function(){
 				}
 				mesh.vertexSize=mesh.vertices.length;
 
+				mesh.colors=[];
 				//頂点色
 				if(arrays[line].colors){
 					var colors =  arrays[line].colors;
@@ -886,6 +913,7 @@ var O3o=(function(){
 					}
 				}
 				//球面調和関数係数
+				mesh.shcoefs=[];
 				if(arrays[line].shcoefs){
 					var shcoefs=  arrays[line].shcoefs;
 					for(var i=0;i< shcoefs.length;i++){
@@ -900,6 +928,7 @@ var O3o=(function(){
 				}
 
 				//フェイス
+				mesh.faces=[];
 				for(var line3=0;line3< arrays[line].faces.length;line3++){
 					var face=new Face()
 					mesh.faces.push(face)
@@ -913,6 +942,7 @@ var O3o=(function(){
 				mesh.faceSize=mesh.faces.length;
 
 				//uv_layers
+				mesh.uv_layers=[];
 				for(var line3=0;line3< arrays[line].uv_layers.length;line3++){
 					var uv_layer=new Uv_layer()
 					mesh.uv_layers.push(uv_layer)
@@ -945,11 +975,9 @@ var O3o=(function(){
 			}
 		}else if(type==="armatures"){
 			for(var line=0;line< arrays.length;line++){
-				//var armature=new Armature()
-				//o3o.armatures.push(armature);
-				//setdata(armature,arrays[line]);
 				var armature = o3o.armatures[line];
 				var id=0;
+				armature.bones=[];
 				for(var line3=0;line3< arrays[line].bones.length;line3++){
 					var bone=new Bone()
 					armature.bones.push(bone);
@@ -960,10 +988,8 @@ var O3o=(function(){
 			}
 		}else if(type==="actions"){
 			for(var line=0;line< arrays.length;line++){
-				//var action=new Action()
-				//o3o.actions.push(action)
-				//setdata(action,arrays[line]);
 				var action = o3o.actions[line];
+				action.fcurves=[];
 				for(var line3=0;line3< arrays[line].fcurves.length;line3++){
 					var fcurve = new Fcurve()
 					action.fcurves.push(fcurve)
@@ -974,23 +1000,6 @@ var O3o=(function(){
 					}
 					fcurve.type=fcurveConvert[fcurve.type];
 				}
-			}
-		}else if(type==="objects"){
-			for(var line =0;line<arrays.length;line++){
-				var object = o3o.objects[line];
-
-				object.modifiers=arrays[line].modifiers;
-				object.o3o=o3o;
-
-			}
-		}else if(type==="scenes"){
-			for(var line=0;line< arrays.length;line++){
-				//var scene=new Scene()
-				//o3o.scenes.push(scene)
-				//setdata(scene,arrays[line]);
-				var scene=o3o.scenes[line];
-				scene.o3o=o3o;
-
 			}
 		}
 	}
