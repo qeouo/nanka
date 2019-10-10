@@ -602,6 +602,27 @@ var O3o=(function(){
 		
 
 		//edge
+		var addEdge=function(edges,v0,v1,f){
+			var i,imax
+			for(i=0,imax=edges.length;i<imax;i++){
+				if((edges[i].v0===v0 && edges[i].v1===v1)
+				|| (edges[i].v0===v1 && edges[i].v1===v0)){
+					if(edges[i].f0<0){
+						edges[i].f0=f
+					}else{
+						edges[i].f1=f
+					}
+					return 0
+				}
+			}
+			var edge = new Edge()
+			edge.v0=v0
+			edge.v1=v1
+			edge.f0=f
+			edge.f1=-1;
+			edges.push(edge)
+			return 1
+		}
 		for(i=0;i<o3o.meshes.length;i++){
 			var faces=o3o.meshes[i].faces
 			var edges;
@@ -747,60 +768,49 @@ var O3o=(function(){
 		return o3o;
 	}
 
+
 	var setdata = function(dst,src){
 		for(var member in dst){
-			if(src[member] == null)continue;
-			var to= typeof src[member];
-			if(to == "string"
-			|| to == "number"
-			){
-				dst[member]=src[member];
-			}else{
-				var dstobj=dst[member];
-				if(dstobj instanceof Vec3){
-					dstobj[0]=src[member][0];
-					dstobj[1]=src[member][1];
-					dstobj[2]=src[member][2];
-				}else if(dstobj instanceof Mat43){
-					Mat43.copy(dstobj,src[member]);
-				}else if(dstobj instanceof Array){
-					if(src[member].length >0){
-						if(typeof src[member][0] == "string"
-						|| typeof src[member][0] == "number"){
-							dst[member] = src[member];
-						}else{
-							//dst[member] = src[member];
-						}
+			var srcdata=src[member];
+			var dstdata=dst[member];
+			if(srcdata == null)continue;
+			var to= typeof srcdata;
+			if(to == "string" || to == "number"){
+				dst[member]=srcdata;
+			}else if(dstdata instanceof Vec3){
+				dstdata[0]=srcdata[0];
+				dstdata[1]=srcdata[1];
+				dstdata[2]=srcdata[2];
+			}else if(dstdata instanceof Mat43){
+				Mat43.copy(dstdata,srcdata);
+			}else if(dstdata instanceof Array && srcdata.length > 0){
+				if(typeof srcdata[0] == "string" || typeof srcdata[0] == "number"){
+						dst[member] = srcdata;
+				}else if(classes[member]){
+					for(var i=0;i<srcdata.length;i++){
+						var obj = new (classes[member]);
+						setdata(obj,srcdata[i]);
+						dstdata.push(obj);
 					}
-				}else{
-					dst[member] = src[member];
-//					setdata(dstobj,src[member]);
 				}
+			}else{
+				dst[member] = srcdata;
 			}
+			
 		}
 	}
 	
-	var addEdge=function(edges,v0,v1,f){
-		var i,imax
-		for(i=0,imax=edges.length;i<imax;i++){
-			if((edges[i].v0===v0 && edges[i].v1===v1)
-			|| (edges[i].v0===v1 && edges[i].v1===v0)){
-				if(edges[i].f0<0){
-					edges[i].f0=f
-				}else{
-					edges[i].f1=f
-				}
-				return 0
-			}
-		}
-		var edge = new Edge()
-		edge.v0=v0
-		edge.v1=v1
-		edge.f0=f
-		edge.f1=-1;
-		edges.push(edge)
-		return 1
-	}
+
+	var classes ={};
+	classes["materials"]=Material;
+	classes["meshes"]=Mesh;
+	classes["armatures"]=Armature;
+	classes["actions"]=Action;
+	classes["objects"]=SceneObject;
+	classes["scenes"]=Scene;
+	classes["lights"]=Light;
+	classes["reflectionprobes"]=ReflectionProbe;
+
 
 	var loadret = function(o3o,url,buf){
 		var 
@@ -819,15 +829,6 @@ var O3o=(function(){
 		var data=new String()
 		var raw=JSON.parse(buf);
 	
-	var classes ={};
-	classes["materials"]=Material;
-	classes["meshes"]=Mesh;
-	classes["armatures"]=Armature;
-	classes["actions"]=Action;
-	classes["objects"]=SceneObject;
-	classes["scenes"]=Scene;
-	classes["lights"]=Light;
-	classes["reflectionprobes"]=ReflectionProbe;
 
 	for(var type in raw){
 		var arrays=raw[type];
@@ -838,12 +839,19 @@ var O3o=(function(){
 		if(!classes[type] || !dstarrays){
 			continue;
 		}
-		console.log(type);
 		for(var line=0;line< arrays.length;line++){
 			var material=new classes[type];
 			dstarrays.push(material)
 			setdata(material,arrays[line]);
 		}
+	}
+	for(var type in o3o){
+		var arrays=raw[type];
+		var dstarrays=o3o[type];
+		if(!classes[type] || !dstarrays){
+			continue;
+		}
+
 		if(type === "materials"){
 		}else if(type==="meshes"){
 			for(var line=0;line< arrays.length;line++){
@@ -969,9 +977,6 @@ var O3o=(function(){
 			}
 		}else if(type==="objects"){
 			for(var line =0;line<arrays.length;line++){
-				//object =new SceneObject()
-				//o3o.objects.push(object)
-				//setdata(object,arrays[line]);
 				var object = o3o.objects[line];
 
 				object.modifiers=arrays[line].modifiers;
@@ -987,22 +992,6 @@ var O3o=(function(){
 				scene.o3o=o3o;
 
 			}
-		}else if(type==="lights"){
-			for(var line=0;line< arrays.length;line++){
-				//var light=new Light();
-				//var object;
-				//o3o.lights.push(light);
-				//setdata(light,arrays[line]);
-			}
-		}else if(type==="reflectionprobes"){
-			for(var line=0;line< arrays.length;line++){
-				//var reflectionProbe=new ReflectionProbe();
-				//var object;
-				//o3o.reflectionProbes.push(reflectionProbe);
-				//var reflectionProbe = arrays.reflectionProbes[line];
-				//setdata(reflectionProbe,arrays[line]);
-			}
-
 		}
 	}
 	
