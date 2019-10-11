@@ -769,6 +769,20 @@ var O3o=(function(){
 	}
 
 
+	var classes ={};
+	classes["materials"]=Material;
+	classes["meshes"]=Mesh;
+	classes["vertices"]=Vertex;
+	classes["armatures"]=Armature;
+	classes["actions"]=Action;
+	classes["objects"]=SceneObject;
+	classes["scenes"]=Scene;
+	classes["lights"]=Light;
+	classes["reflectionprobes"]=ReflectionProbe;
+	classes["bones"]=Bone;
+	classes["faces"]=Face;
+	classes["uv_layers"]=Uv_layer;
+	classes["fcurves"]=Fcurve;
 	var setdata2 = function(dst,src){
 		for(var member in dst){
 			var srcdata=src[member];
@@ -833,15 +847,6 @@ var O3o=(function(){
 	}
 	
 
-	var classes ={};
-	classes["materials"]=Material;
-	classes["meshes"]=Mesh;
-	classes["armatures"]=Armature;
-	classes["actions"]=Action;
-	classes["objects"]=SceneObject;
-	classes["scenes"]=Scene;
-	classes["lights"]=Light;
-	classes["reflectionprobes"]=ReflectionProbe;
 
 
 	var loadret = function(o3o,url,buf){
@@ -873,23 +878,14 @@ var O3o=(function(){
 			c.o3o=o3o;
 		}
 	}
-	for(var type in o3o){
-		var arrays=raw[type];
-		var dstarrays=o3o[type];
-		if(!classes[type] || !dstarrays){
-			continue;
-		}
+			var dstarrays=o3o.meshes;
 
-		if(type === "materials"){
-		}else if(type==="meshes"){
-			for(var line=0;line< arrays.length;line++){
+			for(var line=0;line< raw.meshes.length;line++){
 				var mesh=o3o.meshes[line];
+				var rawmesh=raw.meshes[line];
 
-				mesh.vertices=[];
-				for(var line3=0;line3< arrays[line].vertices.length;line3++){
-					var vertex=new Vertex()
-					mesh.vertices.push(vertex)
-					setdata(vertex,arrays[line].vertices[line3]);
+				for(var j=0;j< mesh.vertices.length;j++){
+					var vertex=mesh.vertices[j];
 					if(vertex.groupWeights.length==0){
 						for(var i=0;i<vertex.groups.length;i++){
 							vertex.groupWeights.push(1.0/vertex.groups.length);
@@ -898,24 +894,10 @@ var O3o=(function(){
 				}
 				mesh.vertexSize=mesh.vertices.length;
 
-				mesh.colors=[];
-				//頂点色
-				if(arrays[line].colors){
-					var colors =  arrays[line].colors;
-					for(var i=0;i< colors.length;i++){
-						var cube =[];
-						for(var j=0;j< colors[i].length;j++){
-							var color=new Vec3();
-							cube.push(color)
-							Vec3.copy(color,colors[i][j]);
-						}
-						mesh.colors.push(cube)
-					}
-				}
 				//球面調和関数係数
 				mesh.shcoefs=[];
-				if(arrays[line].shcoefs){
-					var shcoefs=  arrays[line].shcoefs;
+				if(raw.meshes[line].shcoefs){
+					var shcoefs=  raw.meshes[line].shcoefs;
 					for(var i=0;i< shcoefs.length;i++){
 						var shcoef=[];
 						for(var j=0;j< shcoefs[i].length;j++){
@@ -928,82 +910,56 @@ var O3o=(function(){
 				}
 
 				//フェイス
-				mesh.faces=[];
-				for(var line3=0;line3< arrays[line].faces.length;line3++){
-					var face=new Face()
-					mesh.faces.push(face)
-					setdata(face,arrays[line].faces[line3]);
+				for(var i=0;i< mesh.faces.length;i++){
+					var face = mesh.faces[i];
 
-					for(i=0;i<4;i++){
-						if(face.idx[i]<0)break
+					for(j=0;j<4;j++){
+						if(face.idx[j]<0)break
 					}
-					face.idxnum=i
+					face.idxnum=j
 				}
 				mesh.faceSize=mesh.faces.length;
 
-				//uv_layers
-				mesh.uv_layers=[];
-				for(var line3=0;line3< arrays[line].uv_layers.length;line3++){
-					var uv_layer=new Uv_layer()
-					mesh.uv_layers.push(uv_layer)
-					setdata(uv_layer,arrays[line].uv_layers[line3]);
-					uv_layer.data=arrays[line].uv_layers[line3].data;
-				}
 				mesh.uv_layerSize=mesh.uv_layers.length;
 
-				if(arrays[line].double_sided){
+				if(raw.meshes[line].double_sided){
 					mesh.flg&=~Ono3d.RF_DOUBLE_SIDED;
 					mesh.flg|=Ono3d.RF_DOUBLE_SIDED;
 				}
 				
-				var shapeKeys = arrays[line].shapeKeys;
+				var shapeKeys = raw.meshes[line].shapeKeys;
 				if(shapeKeys)
 				for(var line3=0;line3< shapeKeys.length;line3++){
 					shapeKey = new ShapeKey()
 					mesh.shapeKeys.push(shapeKey)
-					for(var line4=0;line3< arrays[line].shapeKeys[line3].length;line4++){
+					for(var line4=0;line3< raw.meshes[line].shapeKeys[line3].length;line4++){
 						if(line==="shapeKeyPoints"){
-							for(var line5=0;line3< arrays[line].shapeKeys[line3][line4].length;line5++){
-								var obj= arrays[line].shapeKeys[line3][line4][line5]
+							for(var line5=0;line3< raw.meshes[line].shapeKeys[line3][line4].length;line5++){
+								var obj= raw.meshes[line].shapeKeys[line3][line4][line5]
 								shapeKey.shapeKeyPoints.push(obj.pos)
 							}
 						}else{
-							shapeKey[line4] = arrays[line].shapeKeys[line3][line4]
+							shapeKey[line4] = raw.meshes[line].shapeKeys[line3][line4]
 						}
 					}
 				}
 			}
-		}else if(type==="armatures"){
-			for(var line=0;line< arrays.length;line++){
-				var armature = o3o.armatures[line];
-				var id=0;
-				armature.bones=[];
-				for(var line3=0;line3< arrays[line].bones.length;line3++){
-					var bone=new Bone()
-					armature.bones.push(bone);
-					setdata(bone,arrays[line].bones[line3]);
-					bone.id = id;
-					id++;
+	
+		for(var i=0;i< raw.actions.length;i++){
+			var action = o3o.actions[i];
+			for(var j=0;j< raw.actions[i].fcurves.length;j++){
+				//フレームとパラメータ値を分ける
+				var rawfcurve=raw.actions[i].fcurves[j];
+				var fcurve=action.fcurves[j];
+				fcurve.keys=[];
+				fcurve.params=[];
+				for(var k=0;k< rawfcurve.keys.length;k++){
+					fcurve.keys.push(rawfcurve.keys[k].f);
+					fcurve.params.push(rawfcurve.keys[k].p);
 				}
-			}
-		}else if(type==="actions"){
-			for(var line=0;line< arrays.length;line++){
-				var action = o3o.actions[line];
-				action.fcurves=[];
-				for(var line3=0;line3< arrays[line].fcurves.length;line3++){
-					var fcurve = new Fcurve()
-					action.fcurves.push(fcurve)
-					setdata(fcurve,arrays[line].fcurves[line3]);
-					for(var line5=0;line5< arrays[line].fcurves[line3].keys.length;line5++){
-						fcurve.keys.push(arrays[line].fcurves[line3].keys[line5].f);
-						fcurve.params.push(arrays[line].fcurves[line3].keys[line5].p);
-					}
-					fcurve.type=fcurveConvert[fcurve.type];
-				}
+				fcurve.type=fcurveConvert[fcurve.type]; //文字列をコードに変換
 			}
 		}
-	}
-	
 	
 		var scene,name,object,objects
 		for(j=o3o.objects.length;j--;){
@@ -1065,7 +1021,7 @@ var O3o=(function(){
 			}
 		}
 		var count=0
-		for(i=o3o.meshes.length;i--;){
+		for(var i=o3o.meshes.length;i--;){
 			mesh = o3o.meshes[i]
 			//マテリアルのポインタ設定
 			for(j=mesh.faces.length;j--;){
@@ -1076,10 +1032,10 @@ var O3o=(function(){
 		}
 	
 		//骨の名称をアドレスに変更
-		var i;for(i=o3o.armatures.length;i--;){
-			armature=o3o.armatures[i]
+		for(var i=o3o.armatures.length;i--;){
+			var armature=o3o.armatures[i]
 			for(j=armature.bones.length;j--;){
-				bone = armature.bones[j]
+				var bone = armature.bones[j]
 				Mat43.getInv(bone.imatrix,bone.matrix)
 				var a=new Mat43();
 				Mat43.dot(a,bone.matrix,bone.imatrix);
@@ -1089,10 +1045,11 @@ var O3o=(function(){
 						break
 					}
 				}
+				bone.id=j;
 			}
 		}
 		
-		for(j=o3o.objects.length;j--;){
+		for(var j=o3o.objects.length;j--;){
 			object=o3o.objects[j]
 			if(object.parent){
 				if(object.parent_bone){
