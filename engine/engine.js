@@ -16,6 +16,8 @@ var customMaterial = new Ono3d.Material();
 	ret.goClass=[];
 	ret.go=[];
 
+	ret.enableDraw=true;
+
 ret.defObj= (function(){
 	//オブジェクトのベースクラス
 	var defObj = function(){};
@@ -33,7 +35,7 @@ ret.defObj= (function(){
 
 })();
 
-	var obj3d=null,field=null;
+	var field=null;
 	var objMan;
 
 	var i;
@@ -270,23 +272,20 @@ ret.defObj= (function(){
 		gl.clear(gl.DEPTH_BUFFER_BIT);
 		gl.depthMask(false);
 		gl.disable(gl.BLEND);
-		var field=Engine.field;
-		if(field){
-			if(field.scenes.length>0){
-				if(field.scenes[0].world.envTexture){
-					var skyTexture = field.scenes[0].world.envTexture;
-					if(globalParam.stereomode==0){
-						ono3d.drawCelestialSphere(skyTexture);
-					}else{
-						ono3d.setPers(0.577,HEIGHT/WIDTH*2,1,80);
-						ono3d.setViewport(0,0,WIDTH/2,HEIGHT);
-						ono3d.drawCelestialSphere(skyTexture);
-						ono3d.setViewport(WIDTH/2,0,WIDTH/2,HEIGHT);
-						ono3d.drawCelestialSphere(skyTexture);
-						
-					}
-				}
+		var skyTexture=Engine.skyTexture;
+		if(skyTexture){
+			if(globalParam.stereomode==0){
+				ono3d.drawCelestialSphere(skyTexture);
+			}else{
+				ono3d.setPers(0.577,HEIGHT/WIDTH*2,1,80);
+				ono3d.setViewport(0,0,WIDTH/2,HEIGHT);
+				ono3d.drawCelestialSphere(skyTexture);
+				ono3d.setViewport(WIDTH/2,0,WIDTH/2,HEIGHT);
+				ono3d.drawCelestialSphere(skyTexture);
+				
 			}
+			
+			
 		}
 
 		ono3d.setViewport(x,y,w,h);
@@ -326,6 +325,7 @@ ret.defObj= (function(){
 		globalParam.baseColor= "ffffff";
 		globalParam.metallic= 0;
 		globalParam.metalColor= "ffffff";
+		globalParam.specular= 0;
 		globalParam.roughness= 0;
 		globalParam.subRoughness= 0;
 		globalParam.frenel = 0;
@@ -391,7 +391,7 @@ ret.defObj= (function(){
 		}
 
 
-		if(!afID){
+		if(!afID && Engine.enableDraw){
 			afID = window.requestAnimationFrame(drawFunc);
 		}
 
@@ -439,25 +439,12 @@ ret.defObj= (function(){
 			cMat.opacity=globalParam.opacity;
 			cMat.emt=globalParam.emi;
 			cMat.metallic=globalParam.metallic;
+			cMat.specular=globalParam.specular;
 			cMat.ior=globalParam.ior;
 			cMat.roughness=globalParam.roughness;
 			cMat.subRoughness=globalParam.subRoughness;
 			Util.hex2rgb(cMat.metalColor,globalParam.metalColor);
 			cMat.texture=globalParam.cTexture;
-//			cMat.texture_slots=[];
-//			if(globalParam.cTexture>=0){
-//				var texture_slot = new O3o.Texture_slot();
-//
-//				cMat.texture_slots.push(texture_slot);
-//				texture_slot.texture = customTextures[globalParam.cTexture];
-//			}
-//			if(globalParam.cBump>=0){
-//				var texture_slot = new O3o.Texture_slot();
-//
-//				cMat.texture_slots.push(texture_slot);
-//				texture_slot.texture = customBumps[globalParam.cBump];
-//				texture_slot.normal= globalParam.cNormal;
-//			}
 		}
 
 			
@@ -525,6 +512,8 @@ ret.defObj= (function(){
 
 
 		//トーンマッピング
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		ono3d.setViewport(0,0,WIDTH,HEIGHT);
 		ono3d.toneMapping(bufTexture,WIDTH/1024,HEIGHT/1024);
 		
 
@@ -579,63 +568,74 @@ ret.defObj= (function(){
 		}
 
 	}
-		var canvas =document.createElement("canvas");
-		canvas.width=WIDTH;
-		canvas.height=HEIGHT;
-		parentnode.appendChild(canvas);
-		var canvasgl =document.createElement("canvas");
+
+	
+	var canvas =document.createElement("canvas");
+	canvas.width=WIDTH;
+	canvas.height=HEIGHT;
+	parentnode.appendChild(canvas);
+	var canvasgl = document.getElementById("canvasgl");
+	if(!canvasgl){
+		canvasgl =document.createElement("canvas");
 		canvasgl.width=WIDTH;
 		canvasgl.height=HEIGHT;
 		parentnode.appendChild(canvasgl);
-		var ctx=canvas.getContext("2d");
-		gl = canvasgl.getContext('webgl') || canvasgl.getContext('experimental-webgl');
+	}else{
+		ret.WIDTH=canvasgl.width;
+		ret.HEIGHT=canvasgl.height;
+		WIDTH=ret.WIDTH;
+		HEIGHT=ret.HEIGHT;
+	}
+	var ctx=canvas.getContext("2d");
+	gl = canvasgl.getContext('webgl') || canvasgl.getContext('experimental-webgl');
 
-		Util.enableVirtualPad=true;
-		Util.init(canvas,canvasgl,parentnode);
+	Util.enableVirtualPad=true;
+	Util.init(canvas,canvasgl,parentnode);
 
-		if(gl){
-			globalParam.enableGL=true;
-		}else{
-			globalParam.enableGL=false;
-		}
-		globalParam.gl=gl;
-
-
-		if(globalParam.enableGL){
-			Rastgl.init(gl);
-			canvas.style.width="0px";
-			canvasgl.style.display="inline";
-			//Ono3d.setDrawMethod(3);
-		}else{
-			canvasgl.style.display="none";
-			canvas.style.display="inline";
-		}
-		var ono3d = new Ono3d()
-		ret.ono3d = ono3d;
+	if(gl){
+		globalParam.enableGL=true;
+	}else{
+		globalParam.enableGL=false;
+	}
+	globalParam.gl=gl;
 
 
-		bufTexture=Ono3d.createTexture(1024,1024);
-		gl.bindTexture(gl.TEXTURE_2D, bufTexture.glTexture);
+	if(globalParam.enableGL){
+		Rastgl.init(gl);
+		canvas.style.width="0px";
+		canvasgl.style.display="inline";
+		//Ono3d.setDrawMethod(3);
+	}else{
+		canvasgl.style.display="none";
+		canvas.style.display="inline";
+	}
+	var ono3d = new Ono3d()
+	ret.ono3d = ono3d;
+
+
+	bufTexture=Ono3d.createTexture(1024,1024);
+	gl.bindTexture(gl.TEXTURE_2D, bufTexture.glTexture);
+	ret.bufTexture=bufTexture;
+
+	onoPhy = new OnoPhy();
+	ret.onoPhy = onoPhy;
+	ret.objMan = objMan = new ObjMan();
 	
-		onoPhy = new OnoPhy();
-		ret.onoPhy = onoPhy;
-		ret.objMan = objMan = new ObjMan();
-		
-		Rastgl.ono3d = ono3d;
+	Rastgl.ono3d = ono3d;
 
-		inittime=Date.now();
+	inittime=Date.now();
 
-		span=document.getElementById("cons");
+	span=document.getElementById("cons");
 
-		
+	
 
-		Util.loadJs("../engine/assetmanager.js");
-		Util.loadJs("../engine/o3o.js",function(){
+	Util.loadJs("../engine/assetmanager.js");
+	Util.loadJs("../engine/o3o.js",function(){
 
-			O3o.setOno3d(ono3d)
-			ono3d.init(canvas,ctx);
-			ono3d.rendercanvas=canvas;
-		});
+		O3o.setOno3d(ono3d)
+		ono3d.init(canvas,ctx);
+		ono3d.rendercanvas=canvas;
+	});
 
 	return ret;
 

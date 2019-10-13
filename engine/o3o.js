@@ -784,7 +784,7 @@ var O3o=(function(){
 	classes["uv_layers"]=Uv_layer;
 	classes["fcurves"]=Fcurve;
 	var setdata2 = function(dst,src){
-		for(var member in dst){
+		for(var member in src){
 			var srcdata=src[member];
 			var dstdata=dst[member];
 			if(srcdata == null)continue;
@@ -895,19 +895,19 @@ var O3o=(function(){
 				mesh.vertexSize=mesh.vertices.length;
 
 				//球面調和関数係数
-				mesh.shcoefs=[];
-				if(raw.meshes[line].shcoefs){
-					var shcoefs=  raw.meshes[line].shcoefs;
-					for(var i=0;i< shcoefs.length;i++){
-						var shcoef=[];
-						for(var j=0;j< shcoefs[i].length;j++){
-							var coef=new Vec3();
-							shcoef.push(coef)
-							Vec3.copy(coef,shcoefs[i][j]);
-						}
-						mesh.shcoefs.push(shcoef)
-					}
-				}
+	//			mesh.shcoefs=[];
+	//			if(raw.meshes[line].shcoefs){
+	//				var shcoefs=  raw.meshes[line].shcoefs;
+	//				for(var i=0;i< shcoefs.length;i++){
+	//					var shcoef=[];
+	//					for(var j=0;j< shcoefs[i].length;j++){
+	//						var coef=new Vec3();
+	//						shcoef.push(coef)
+	//						Vec3.copy(coef,shcoefs[i][j]);
+	//					}
+	//					mesh.shcoefs.push(shcoef)
+	//				}
+	//			}
 
 				//フェイス
 				for(var i=0;i< mesh.faces.length;i++){

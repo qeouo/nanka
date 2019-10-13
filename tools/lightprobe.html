@@ -18,12 +18,13 @@
 <script type="text/javascript" src="../lib/vector.js"></script>
 <script type="text/javascript" src="../lib/geono.js"></script>
 <script type="text/javascript" src="../lib/sort.js"></script>
+<script type="text/javascript" src="../lib/aabb.js"></script>
 <script type="text/javascript" src="../lib/collider.js"></script>
+<script type="text/javascript" src="../lib/delaunay.js"></script>
+<script type="text/javascript" src="../lib/bsp.js"></script>
 <script type="text/javascript" src="../lib/util.js"></script>
 <script type="text/javascript" src="../lib/ono3d.js"></script>
 <script type="text/javascript" src="../lib/onophy.js"></script>
-<script type="text/javascript" src="../lib/o3o.js"></script>
-<script type="text/javascript" src="../lib/objman.js"></script>
 <script type="text/javascript" src="../lib/rastgl.js"></script>
 <script type="text/javascript" src="../lib/slider.js"></script>
 <script type="text/javascript" src="../lib/colorpicker.js"></script>
@@ -42,9 +43,13 @@ input.colorpicker{width:50px;}
 			//初期ロードが未完了の場合はメイン処理は開始しない
 			setTimeout(onl,100);
 		}else{
-			Testact.start();
+			if(globalParam.debugMenu){
+				debugClose();
+			}
+			Engine.start();
 		}
 	}
+
 
 </script>
 
@@ -62,8 +67,10 @@ input.colorpicker{width:50px;}
 
 <canvas id="output" width="64" height="64" style="border:1px solid black;"></canvas>
 <div id="aaa" style="clear:both;left:0;right:0;margin:0 auto;width:100%;height:100%;text-align:center;">
-	<script type="text/javascript" src="./lightprobe.js"> </script>
+	<canvas width=512 height=256 id="canvasgl"> </canvas>
+	<script type="text/javascript" src="../engine/engine.js"> </script>
 </div>
+	<script type="text/javascript" src="./lightprobe.js"> </script>
 </body>
 </html>
 

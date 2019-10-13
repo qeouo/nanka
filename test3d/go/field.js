@@ -7,17 +7,18 @@ Engine.goClass.field= (function(){
 	var ret = GoField;
 	var initFlg=false;
 	inherits(ret,Engine.defObj);
+
+	var o3o;
 	ret.prototype.init=function(){
 
-		Engine.field =O3o.load(globalParam.model,function(o3o){
+		o3o =O3o.load(globalParam.model,function(o3o){
 
 		});
 	}
 	ret.prototype.move=function(){
-		var obj3d=Engine.field;
 		var obj = this;
 		var phyObjs = obj.phyObjs;
-		if(obj3d.scenes.length===0){
+		if(o3o.scenes.length===0){
 			return;
 		}
 		
@@ -25,8 +26,8 @@ Engine.goClass.field= (function(){
 		ono3d.setTargetMatrix(0);
 		ono3d.loadIdentity();
 
-		var scene= obj3d.scenes[0];
-		O3o.setFrame(obj3d,scene,this.t/60.0*60.0); //アニメーション処理
+		var scene= o3o.scenes[0];
+		O3o.setFrame(o3o,scene,this.t/60.0*60.0); //アニメーション処理
 
 
 
@@ -97,7 +98,7 @@ Engine.goClass.field= (function(){
 
 		ono3d.rf=0;
 
-		var field = Engine.field;
+		var field = o3o;
 		if(field){
 			if(field.scenes.length>0){
 				var objects = field.scenes[0].objects;
@@ -124,7 +125,7 @@ Engine.goClass.field= (function(){
 		//ono3d.rotate(-Math.PI*0.5,1,0,0)
 
 		ono3d.rf=0;
-		var field=Engine.field;
+		var field=o3o;
 		var camera=Engine.camera;
 
 		var m43 = Mat43.poolAlloc();

@@ -129,12 +129,16 @@ def ExportOno3dObject():
 
     fileout(',"objects":')
     fileoutLu()
+    staticCollection = bpy.data.collections["static"]
     for obj in bpy.data.objects:
         fileout('')
         if(obj!= bpy.data.objects[0]):fileout2(',')
         fileoutMu()
 
         fileout('"name":"{}"\n'.format(obj.name))
+        if(staticCollection):
+            if(staticCollection.objects.find(obj.name)>=0):
+                fileout(',"static":1\n')
         if(obj.hide_render == True): fileout(',"hide_render": 1\n')
         fileout(',"groups":[')
         for group in obj.vertex_groups:
@@ -404,7 +408,7 @@ def WriteMaterial( Material=None):
             dict["baseColor"] = inputs[0].default_value[0:3]
             dict["opacity"] = 1.0 -inputs[15].default_value
             dict["metallic"] = inputs[4].default_value
-            dict["specular"] = inputs[5].default_value
+            dict["specular"] = inputs[5].default_value*0.05
             dict["roughness"] = inputs[7].default_value
             dict["ior"] = inputs[14].default_value
             dict["subRoughness"] = inputs[16].default_value
@@ -417,7 +421,7 @@ def WriteMaterial( Material=None):
         if('pbrColor' in nodes):
             inputs = nodes['pbrColor'].inputs
 
-            dict["specular"] = inputs[1].default_value[0]
+            dict["specular"] = inputs[1].default_value[0]*0.05
             dict["roughness"] = inputs[1].default_value[1]
             dict["subRoughness"] = inputs[1].default_value[2]
 

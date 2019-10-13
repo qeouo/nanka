@@ -119,12 +119,12 @@ overflow:hidden;
   font-family:monospace;
   text-shadow:
 	  0px 0px 1px black;
-pointer-events:none;
+/* pointer-events:none;*/
 }
 div.control input
 ,div.control select
 ,div.control span{
-	pointer-events:auto;
+/*	pointer-events:auto; */
 
 }
 
@@ -163,11 +163,11 @@ display:none;
 			Engine.start();
 		}
 
-	var a = document.getElementById("aaa");
-	a.onresize=function(){
+		var a = document.getElementById("aaa");
+		a.onresize=function(){
 
-		console.log("HOGE");
-	}
+			console.log("HOGE");
+		}
 	}
 	var debugClose=function(){
 		var element = document.getElementById("control");

@@ -9,6 +9,7 @@ Engine.goClass.main= (function(){
 	var gl = globalParam.gl;
 	var WIDTH = Engine.WIDTH;
 	var HEIGHT = Engine.HEIGHT;
+	var o3o;
 
 	ret.prototype.init=function(){
 
@@ -19,7 +20,8 @@ Engine.goClass.main= (function(){
 
 		this.initFlg=false;
 		Engine.onoPhy.init();
-		Engine.go.field=objMan.createObj(Engine.goClass.field);
+
+		o3o =O3o.load(globalParam.model,function(o3o){});
 		Engine.go.camera= objMan.createObj(Engine.goClass.camera);
 
 		this.bane = null;
@@ -28,15 +30,19 @@ Engine.goClass.main= (function(){
 	ret.prototype.move=function(){
 
 		var bane = this.bane;
-		if(!this.initFlg){
+		if(!this.initFlg && o3o.scenes.length>0){
 			if(Util.getLoadingCount() > 0){
 				return;
 			}
 			this.initFlg=true;
-			var o3o = Engine.field;
+			Engine.go.field=objMan.createObj(Engine.goClass.field);
 			var t = Engine.go.field;
 
+
+
 			var scene= o3o.scenes[0];
+			Engine.skyTexture = scene.world.envTexture;
+
 			O3o.setFrame(o3o,scene,0); //アニメーション処理
 
 			ono3d.setTargetMatrix(0);
@@ -141,6 +147,7 @@ Engine.goClass.main= (function(){
 			if(lightprobe){
 				O3o.createLightProbe(ono3d,lightprobe)
 			}
+
 			
 		}
 		var mat44 = Mat44.poolAlloc();
