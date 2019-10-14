@@ -391,9 +391,10 @@ ret.defObj= (function(){
 		}
 
 
-		if(!afID && Engine.enableDraw){
-			afID = window.requestAnimationFrame(drawFunc);
-		}
+		//if(!afID && Engine.enableDraw){
+		//	afID = window.requestAnimationFrame(drawFunc);
+		//}
+		drawFunc();
 
 		mseccount += (Date.now() - nowTime)
 		framecount++
@@ -486,11 +487,6 @@ ret.defObj= (function(){
 		drawSub(0,0,WIDTH,HEIGHT);
 		
 
-		//テスト
-		//var env = ono3d.env2Texture;
-		//gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		//ono3d.setViewport(0,0,WIDTH,HEIGHT);
-		//Ono3d.drawCopy(env,0,0,1,1);
 
 		//描画結果をバッファにコピー
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -509,6 +505,13 @@ ret.defObj= (function(){
 			ono3d.bloom(bufTexture,globalParam.exposure_bloom);
 			Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 		}
+		//テスト
+		var env = ono3d.emiTexture;
+		//var env = ono3d.transTextures[ono3d.transTextureIndex];
+		//gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		//ono3d.setViewport(0,0,WIDTH,HEIGHT);
+		//Ono3d.drawCopy(env,0,0,1,1);
+		//Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 
 
 		//トーンマッピング

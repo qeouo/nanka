@@ -20,7 +20,7 @@ void main(void){
 	vec4 total;
 	for(int i=0;i<4;i++){
 		float ii=exp2(float(i));
-		total +=textureRGBE(uSampler,1.0/uUnit,uv/ii+vec2(0.0,1.0-1.0/ii))*0.1*ii; 
+		total +=textureRGBE(uSampler,1.0/uUnit,uv/ii+vec2(0.0,1.0-1.0/ii)*0.5)*0.1*ii; 
 	}
 	gl_FragColor = encode(total);
 }
