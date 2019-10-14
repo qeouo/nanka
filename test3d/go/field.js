@@ -11,9 +11,7 @@ Engine.goClass.field= (function(){
 	var o3o;
 	ret.prototype.init=function(){
 
-		o3o =O3o.load(globalParam.model,function(o3o){
-
-		});
+		o3o =AssetManager.o3o(globalParam.model);
 	}
 	ret.prototype.move=function(){
 		var obj = this;
@@ -27,7 +25,24 @@ Engine.goClass.field= (function(){
 		ono3d.loadIdentity();
 
 		var scene= o3o.scenes[0];
-		O3o.setFrame(o3o,scene,this.t/60.0*60.0); //アニメーション処理
+
+		for(var i=0;i<phyObjs.length;i++){
+			var phyObj = phyObjs[i];
+			var aabb;
+			if(phyObj.type===OnoPhy.CLOTH){
+				aabb = phyObj.aabb;
+			}else{
+				aabb = phyObj.collision.aabb;
+			}
+			if(phyObj.fix==2){
+				Vec3.set(phyObj.v,0,0,0);
+				phyObj.fix=0;
+			}
+			if(aabb.max[1]<-10){
+				phyObj.fix=2;
+			}
+		}
+		scene.setFrame(this.t/60.0*60.0); //アニメーション処理
 
 
 
@@ -37,9 +52,13 @@ Engine.goClass.field= (function(){
 				var phyObj = phyObjs[i];
 				//物理オブジェクトにアニメーション結果を反映
 				//(前回の物理シミュ無効の場合は強制反映する)
-				O3o.movePhyObj(phyObj,phyObj.parent
-					,1.0/globalParam.fps
-					,!globalParam.physics_);
+			//	if(phyObj.fix){
+					O3o.movePhyObj(phyObj,phyObj.parent
+						,1.0/globalParam.fps
+						,!globalParam.physics_);
+			//	}else{
+			//		Mat43.copy(phyObj.parent.mixedmatrix,phyObj.matrix);
+			//	}
 			}
 		}
 
@@ -69,23 +88,12 @@ Engine.goClass.field= (function(){
 			}
 			if(target){
 				Vec3.madd(phyObj.location,phyObj.location,v,nearest);
-				//phyObj.calcPre();
+				phyObj.calcPre();
+				Mat43.copy(phyObj.parent.mixedmatrix,phyObj.matrix);
 			}
 		}
 
 
-		for(var i=0;i<phyObjs.length;i++){
-			var phyObj = phyObjs[i];
-			var aabb;
-			if(phyObj.type===OnoPhy.CLOTH){
-				aabb = phyObj.aabb;
-			}else{
-				aabb = phyObj.collision.aabb;
-			}
-			if(aabb.max[1]<-10){
-				O3o.movePhyObj(phyObj,phyObj.parent,0,true);
-			}
-		}
 	}
 	var cuboidcol = new Collider.Cuboid;
 	var col = new Collider.Sphere();
@@ -129,92 +137,91 @@ Engine.goClass.field= (function(){
 		var camera=Engine.camera;
 
 		var m43 = Mat43.poolAlloc();
-		if(field){
-			if(field.scenes.length>0){
-				var objects = field.scenes[0].objects;
-				for(var i=0;i<objects.length;i++){
-					if(objects[i].hide_render){
-						continue;
-					}
-					if(objects[i].staticFaces){
-						O3o.drawStaticFaces(objects[i].staticFaces);
-						continue;
-					}
-					var b =objects[i].bound_box;
-					Mat43.setInit(m43);
-					m43[0]=(b[3] - b[0])*0.5;
-					m43[4]=(b[4] - b[1])*0.5;
-					m43[8]=(b[5] - b[2])*0.5;
-					m43[9]=b[0]+m43[0];
-					m43[10]=b[1]+m43[4];
-					m43[11]=b[2]+m43[8];
-					var phyObj = null;
-					if(globalParam.physics){
-						phyObj= phyObjs.find(function(a){return a.name===this;},objects[i].name);
-					}
+		if(field.scenes.length>0){
+			var objects = field.scenes[0].objects;
+			for(var i=0;i<objects.length;i++){
+				if(objects[i].hide_render){
+					continue;
+				}
+				if(objects[i].staticFaces){
+					O3o.drawStaticFaces(objects[i].staticFaces);
+					continue;
+				}
+				var b =objects[i].bound_box;
+				Mat43.setInit(m43);
+				m43[0]=(b[3] - b[0])*0.5;
+				m43[4]=(b[4] - b[1])*0.5;
+				m43[8]=(b[5] - b[2])*0.5;
+				m43[9]=b[0]+m43[0];
+				m43[10]=b[1]+m43[4];
+				m43[11]=b[2]+m43[8];
+				var phyObj = null;
+				if(globalParam.physics){
+					phyObj= phyObjs.find(function(a){return a.name===this;},objects[i].name);
+				}
 
-					var obj=objects[i];
+				var obj=objects[i];
 
-					if(phyObj){
-						Mat43.dot(cuboidcol.matrix,phyObj.matrix,m43);
-					}else{
-						Mat43.dot(m43,objects[i].mixedmatrix,m43);
-						Mat43.dotMat44Mat43(cuboidcol.matrix,ono3d.worldMatrix,m43);
+				if(phyObj){
+					Mat43.dot(cuboidcol.matrix,phyObj.matrix,m43);
+				}else{
+					Mat43.dot(m43,objects[i].mixedmatrix,m43);
+					Mat43.dotMat44Mat43(cuboidcol.matrix,ono3d.worldMatrix,m43);
+				}
+				cuboidcol.refresh();
+				var l = 1;
+				if(AABB.hitCheck(camera.cameracol.aabb,cuboidcol.aabb)){
+					//l=-1;
+					l = Collider.checkHit(camera.cameracol,cuboidcol);
+				}
+				var l2 = 1;
+				if(globalParam.shadow){
+					if(AABB.hitCheck(camera.cameracol2.aabb,cuboidcol.aabb)){
+						//l2=-1;
+						l2 = Collider.checkHit(camera.cameracol2,cuboidcol);
 					}
-					cuboidcol.refresh();
-					var l = 1;
-					if(AABB.hitCheck(camera.cameracol.aabb,cuboidcol.aabb)){
-						//l=-1;
-						l = Collider.checkHit(camera.cameracol,cuboidcol);
-					}
-					var l2 = 1;
-					if(globalParam.shadow){
-						if(AABB.hitCheck(camera.cameracol2.aabb,cuboidcol.aabb)){
-							//l2=-1;
-							l2 = Collider.checkHit(camera.cameracol2,cuboidcol);
-						}
-					}
-					if(l>0 && l2>0){
-						continue;
-					}
-					ono3d.rf&=~Ono3d.RF_OUTLINE;
-					if(globalParam.outline_bold){
-						ono3d.lineWidth=globalParam.outline_bold;
+				}
+				if(l>0 && l2>0){
+					continue;
+				}
+				ono3d.rf&=~Ono3d.RF_OUTLINE;
+				if(globalParam.outline_bold){
+					ono3d.lineWidth=globalParam.outline_bold;
+					ono3d.rf|=Ono3d.RF_OUTLINE;
+					Util.hex2rgb(ono3d.lineColor,globalParam.outline_color);
+				}
+
+				var bane = Engine.go.main.bane;
+				if(bane){
+					if(bane.con2.name == objects[i].name){
+						ono3d.lineWidth=1;
 						ono3d.rf|=Ono3d.RF_OUTLINE;
-						Util.hex2rgb(ono3d.lineColor,globalParam.outline_color);
+						Vec4.set(ono3d.lineColor,1,4,1,0);
 					}
+				}
 
-					var bane = Engine.go.main.bane;
-					if(bane){
-						if(bane.con2.name == objects[i].name){
-							ono3d.lineWidth=1;
-							ono3d.rf|=Ono3d.RF_OUTLINE;
-							Vec4.set(ono3d.lineColor,1,4,1,0);
-						}
-					}
-
-					Mat43.setInit(col.matrix);
-					Mat43.mul(col.matrix,col.matrix,0);
-					col.matrix[9]=objects[i].location[0];
-					col.matrix[10]=objects[i].location[2];
-					col.matrix[11]=-objects[i].location[1];
-					col.refresh();
+				Mat43.setInit(col.matrix);
+				Mat43.mul(col.matrix,col.matrix,0);
+				col.matrix[9]=objects[i].location[0];
+				col.matrix[10]=objects[i].location[2];
+				col.matrix[11]=-objects[i].location[1];
+				col.refresh();
 
 
-					var probs = Engine.probs;
-					var l =probs.checkHitAll(col)
-					var env = null;
-					if(probs.hitListIndex>0){
-						env = ono3d.environments[1];
-					}
-					if(globalParam.physics){
-						O3o.drawObject(objects[i],phyObjs,env);
-					}else{
-						O3o.drawObject(objects[i],null,env);
-					}
+				var probs = Engine.probs;
+				var l =probs.checkHitAll(col)
+				var env = null;
+				if(probs.hitListIndex>0){
+					env = ono3d.environments[1];
+				}
+				if(globalParam.physics){
+					O3o.drawObject(objects[i],phyObjs,env);
+				}else{
+					O3o.drawObject(objects[i],null,env);
 				}
 			}
 		}
+		
 		Mat43.poolFree(1);
 	}
 	return ret;

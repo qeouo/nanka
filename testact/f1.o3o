@@ -393,7 +393,7 @@
 ,"lights":[
     {"name": "Lamp", "type": "SUN", "color": [0.6037704348564148, 0.6037704348564148, 0.6037704348564148]}
   ]
-,"reflectionprobes":[
+,"reflectionProbes":[
     {"name": "ReflectionCubemap", "type": "BOX", "distance": 2.0, "falloff": 0.20000000298023224}
   ]
 ,"armatures":[

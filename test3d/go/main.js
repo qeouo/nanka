@@ -21,7 +21,7 @@ Engine.goClass.main= (function(){
 		this.initFlg=false;
 		Engine.onoPhy.init();
 
-		o3o =O3o.load(globalParam.model,function(o3o){});
+		o3o =AssetManager.o3o(globalParam.model);
 		Engine.go.camera= objMan.createObj(Engine.goClass.camera);
 
 		this.bane = null;
@@ -43,7 +43,7 @@ Engine.goClass.main= (function(){
 			var scene= o3o.scenes[0];
 			Engine.skyTexture = scene.world.envTexture;
 
-			O3o.setFrame(o3o,scene,0); //アニメーション処理
+			scene.setFrame(0); //アニメーション処理
 
 			ono3d.setTargetMatrix(0);
 			ono3d.loadIdentity();

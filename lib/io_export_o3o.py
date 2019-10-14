@@ -98,7 +98,7 @@ def ExportOno3dObject():
     fileout('')
     fileoutLd()
 
-    fileout(',"reflectionprobes":')
+    fileout(',"reflectionProbes":')
     fileoutLu()
     a = [Object for Object in bpy.data.lightprobes if Object.type == 'CUBEMAP' ]
     for i,obj in enumerate(a):
@@ -129,15 +129,14 @@ def ExportOno3dObject():
 
     fileout(',"objects":')
     fileoutLu()
-    staticCollection = bpy.data.collections["static"]
     for obj in bpy.data.objects:
         fileout('')
         if(obj!= bpy.data.objects[0]):fileout2(',')
         fileoutMu()
 
         fileout('"name":"{}"\n'.format(obj.name))
-        if(staticCollection):
-            if(staticCollection.objects.find(obj.name)>=0):
+        if("static" in bpy.data.collections):
+            if(bpy.data.collections["static"].objects.find(obj.name)>=0):
                 fileout(',"static":1\n')
         if(obj.hide_render == True): fileout(',"hide_render": 1\n')
         fileout(',"groups":[')

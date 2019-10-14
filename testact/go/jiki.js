@@ -33,8 +33,8 @@ Engine.goClass["jiki"]= (function(){
 			metalball=obj3d.objects.find(function(o){return o.name==="metalball";});
 			jumpC = obj3d.objects.find(function(o){return o.name === "_jumpCollision";});
 
-			sourceArmature= new O3o.PoseArmature(armature.data);
-			referenceArmature= new O3o.PoseArmature(armature.data);
+			sourceArmature= new O3o.Pose(armature.data);
+			referenceArmature= new O3o.Pose(armature.data);
 
 			ono3d.setTargetMatrix(0);
 			ono3d.loadIdentity();
@@ -188,7 +188,7 @@ Engine.goClass["jiki"]= (function(){
 			var T = motionT/1000;
 			var d = (T|0) - (oldT|0)
 
-			var dst = armature.poseArmature;
+			var dst = armature.pose;
 			sourceArmature.reset();
 			referenceArmature.reset();
 
@@ -208,12 +208,12 @@ Engine.goClass["jiki"]= (function(){
 
 
 			dst.setAction(obj3d.actions[0],0);
-			O3o.PoseArmature.sub(sourceArmature,sourceArmature,dst);
-			O3o.PoseArmature.sub(referenceArmature,referenceArmature,dst);
-			O3o.PoseArmature.mul(sourceArmature,sourceArmature,vec3[2]*0.3);
-			O3o.PoseArmature.mul(referenceArmature,referenceArmature,vec3[0]*0.3);
-			O3o.PoseArmature.add(dst,referenceArmature,dst);
-			O3o.PoseArmature.add(dst,sourceArmature,dst);
+			O3o.Pose.sub(sourceArmature,sourceArmature,dst);
+			O3o.Pose.sub(referenceArmature,referenceArmature,dst);
+			O3o.Pose.mul(sourceArmature,sourceArmature,vec3[2]*0.3);
+			O3o.Pose.mul(referenceArmature,referenceArmature,vec3[0]*0.3);
+			O3o.Pose.add(dst,referenceArmature,dst);
+			O3o.Pose.add(dst,sourceArmature,dst);
 
 			Vec3.poolFree(1);
 

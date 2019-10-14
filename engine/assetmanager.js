@@ -5,26 +5,23 @@ var AssetManager=(function(){
 
 	ret.assetList=[];
 	ret.texture=function(path,func){
-		if(this.assetList[path]){
-			return this.assetList[path];
-		}else{
-			return Ono3d.loadTexture(path,func);
+		if(!this.assetList[path]){
+			this.assetList[path]=Ono3d.loadTexture(path,func);
 		}
+		return this.assetList[path];
 	}
 	ret.bumpTexture=function(path,func){
-		if(this.assetList[path]){
-			return this.assetList[path];
-		}else{
-			return Ono3d.loadBumpTexture(path,func);
+		if(!this.assetList[path]){
+			this.assetList[path]=Ono3d.loadBumpTexture(path,func);
 		}
+		return this.assetList[path];
 	}
 
 	ret.o3o=function(path,func){
-		if(this.assetList[path]){
-			return this.assetList[path];
-		}else{
-			return O3o.load(path,func);
+		if(!this.assetList[path]){
+			this.assetList[path]=O3o.load(path,func);
 		}
+		return this.assetList[path];
 	}
 
 

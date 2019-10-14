@@ -2,19 +2,20 @@ Engine.goClass["field"]= (function(){
 	var ono3d = Engine.ono3d;
 	var onoPhy=Engine.onoPhy;
 	var objMan=Engine.objMan;
-	var fieldpath="f1.o3o";
+	var fieldpath="f1.o3o?1";
 	var GoField =function(){};
 	var ret = GoField;
 	var initFlg=false;
 	inherits(ret,Engine.defObj);
+	var o3o;
 	ret.prototype.init=function(){
 
-		Engine.field =O3o.load(fieldpath,function(o3o){
+		o3o=O3o.load(fieldpath,function(o3o){
 				});
+		Engine.field=o3o;
 	}
 	ret.prototype.move=function(){
 		var camera = Engine.camera;
-		var o3o=Engine.field;
 		var obj = this;
 		var phyObjs = obj.phyObjs;
 		if(o3o.scenes.length===0){
@@ -24,7 +25,6 @@ Engine.goClass["field"]= (function(){
 			if(Util.getLoadingCount() > 0){
 				return;
 			}
-			var o3o=Engine.field;
 			var t=this;
 			initFlg=true;
 
@@ -32,6 +32,8 @@ Engine.goClass["field"]= (function(){
 			ono3d.loadIdentity();
 
 			var scene = o3o.scenes[0];
+
+			Engine.skyTexture=scene.world.envTexture;
 
 			//物理シミュオブジェクトの設定
 			t.phyObjs= O3o.createPhyObjs(scene,onoPhy);
@@ -182,7 +184,7 @@ Engine.goClass["field"]= (function(){
 		ono3d.loadIdentity();
 
 		var scene= o3o.scenes[0];
-		O3o.setFrame(o3o,scene,this.t/60.0*24); //アニメーション処理
+		scene.setFrame(this.t/60.0*24); //アニメーション処理
 
 
 		//コリジョンにアニメーション結果を反映させる
