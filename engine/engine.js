@@ -391,10 +391,10 @@ ret.defObj= (function(){
 		}
 
 
-		//if(!afID && Engine.enableDraw){
-		//	afID = window.requestAnimationFrame(drawFunc);
-		//}
-		drawFunc();
+		if(!afID && Engine.enableDraw){
+			afID = window.requestAnimationFrame(drawFunc);
+		}
+		//drawFunc();
 
 		mseccount += (Date.now() - nowTime)
 		framecount++
