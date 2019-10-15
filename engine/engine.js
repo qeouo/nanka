@@ -397,7 +397,6 @@ ret.defObj= (function(){
 		//drawFunc();
 
 		mseccount += (Date.now() - nowTime)
-		framecount++
 		if(nowTime-oldTime > 1000){
 			var mspf=0;
 			var fps = framecount*1000/(nowTime-oldTime)
@@ -428,6 +427,8 @@ ret.defObj= (function(){
 		afID = 0;
 
 		drawTime=Date.now();
+
+		framecount++;
 
 		var environment = ono3d.environments[0];
 		Util.hex2rgb(environment.sun.color,globalParam.lightColor1)
@@ -494,15 +495,15 @@ ret.defObj= (function(){
 
 		//画面平均光度算出
 		if(globalParam.autoExposure){
-			ono3d.calcExpose(bufTexture,(WIDTH-512)/2.0/1024,0 ,512/1024,HEIGHT/1024);
+			Engine.calcExpose(bufTexture,(WIDTH-512)/2.0/1024,0 ,512/1024,HEIGHT/1024);
 		}else{
-			ono3d.setExpose(globalParam.exposure_level,globalParam.exposure_upper);
+			Engine.setExpose(globalParam.exposure_level,globalParam.exposure_upper);
 		}
 
 		if(globalParam.exposure_bloom ){
 			// ブルーム処理
 			ono3d.setViewport(0,0,WIDTH,HEIGHT);
-			ono3d.bloom(bufTexture,globalParam.exposure_bloom);
+			Engine.bloom(bufTexture,globalParam.exposure_bloom);
 			Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 		}
 		//テスト
@@ -517,7 +518,7 @@ ret.defObj= (function(){
 		//トーンマッピング
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		ono3d.setViewport(0,0,WIDTH,HEIGHT);
-		ono3d.toneMapping(bufTexture,WIDTH/1024,HEIGHT/1024);
+		Engine.toneMapping(bufTexture,WIDTH/1024,HEIGHT/1024);
 		
 
 
@@ -544,7 +545,13 @@ ret.defObj= (function(){
 
 		mseccount += drawTime;
 	}
+	var emiTexture;
+	var env2Texture;
+	var averageTexture;
 	ret.start = function(){
+		emiTexture = Ono3d.createTexture(512,512);
+		env2Texture = Ono3d.createTexture(1024,1024);
+		averageTexture = Ono3d.createTexture(512,512);
 		
 		var url=location.search.substring(1,location.search.length)
 		var args=url.split("&")
@@ -639,6 +646,129 @@ ret.defObj= (function(){
 		ono3d.init(canvas,ctx);
 		ono3d.rendercanvas=canvas;
 	});
+
+
+	/** ブルーム画像を作成し、合成する **/
+	ret.bloom = function(image,exposure_bloom){
+		var shaders=ono3d.shaders;
+		var addShader = shaders["add"];
+		//var emiTexture = emiTexture;
+		var transTexture= env2Texture;
+
+		var WIDTH = ono3d.viewport[2];
+		var HEIGHT= ono3d.viewport[3];
+		var emiSize=0.5;
+
+		//黒で塗りつぶす
+		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+		//gl.bindFramebuffer(gl.FRAMEBUFFER,null );
+		ono3d.setViewport(0,0,WIDTH,HEIGHT);
+//		gl.clearColor(0., 0., 0.,0.5);
+//		gl.clear(gl.COLOR_BUFFER_BIT);
+
+		//光テクスチャをぼかす
+
+		//レンダリング画像をコピー(半分サイズ)
+		ono3d.setViewport(0,0,WIDTH*0.5,HEIGHT*0.5);
+		Ono3d.postEffect(image,0,0,WIDTH/image.width,HEIGHT/image.height,shaders["half"]);
+		Ono3d.copyImage(transTexture,0,512,0,0,WIDTH*0.5,HEIGHT*0.5);
+
+		var width=WIDTH*0.5;
+		var height=HEIGHT*0.5;
+
+		ono3d.setViewport(0,0,width*0.5,height*0.5);
+		Ono3d.postEffect(transTexture,0,0.5,width/transTexture.width,height/transTexture.height,shaders["half"]);
+		Ono3d.copyImage(transTexture,0,0,0,0,width*0.5,height*0.5);
+
+
+
+		// 1/2 1/4 1/8...
+		var size=256;
+		var bunbo=transTexture.width;
+		for(var i=0;i<4;i++){
+			width*=0.5;
+			height*=0.5;
+			ono3d.setViewport(0,0,width*0.5,height*0.5);
+			Ono3d.postEffect(transTexture,0,(512-size*2)/bunbo,width/bunbo,height/bunbo,shaders["half"]);
+			Ono3d.copyImage(transTexture,0,512-size,0,0,width*0.5,height*0.5);
+			//ono3d.setViewport(0,0,size*0.5,size*0.5);
+			//Ono3d.postEffect(transTexture,0,(1024-size*2)/bunbo,size/bunbo,size/bunbo,shaders["half"]);
+			size*=0.5;
+			//Ono3d.copyImage(transTexture,0,1024-size*2,0,0,size,size);
+		}
+		//ガウスぼかし
+		ono3d.setViewport(0,0,256,512);
+		Ono3d.gauss(256,512,100
+			,transTexture,0,0,0.25,0.5); 
+		Ono3d.copyImage(transTexture,0,0,0,0,256,512);
+
+		//全サイズ足す
+		ono3d.setViewport(0,0,512,512);
+		Ono3d.postEffect(transTexture,0,0,0.25,0.25,shaders["multiadd"]);
+		Ono3d.copyImage(emiTexture,0,0,0,0,512,512);
+
+		//画面に合成
+		gl.bindFramebuffer(gl.FRAMEBUFFER,null );
+
+		gl.useProgram(addShader.program);
+		gl.uniform1i(addShader.unis["uSampler2"],1);
+		gl.activeTexture(gl.TEXTURE1);
+		gl.bindTexture(gl.TEXTURE_2D,emiTexture.glTexture);
+		gl.uniform1f(addShader.unis["v1"],1.0);
+		gl.uniform1f(addShader.unis["v2"],exposure_bloom);
+
+		ono3d.setViewport(0,0,WIDTH,HEIGHT);
+		Ono3d.postEffect(image,0,0 ,WIDTH/image.width,HEIGHT/image.height,addShader);
+	}
+
+
+	/** カメラの露光設定を現在のレンダリング画像から自動設定する**/
+	ret.calcExpose = function(image,x,y,w,h){
+		var shaders=ono3d.shaders;
+		//ピクセル毎の光度と最大値を取得
+		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+		ono3d.setViewport(0,0,256,256);
+		gl.bindTexture(gl.TEXTURE_2D,averageTexture.glTexture);
+		Ono3d.postEffect(image,x,y,w,h,shaders["average"]); 
+		Ono3d.copyImage(averageTexture,0,0,0,0,256,256);
+
+		//1/2縮小を繰り返し平均と最大値を求める
+		var size = 256;
+		for(var i=0;size>1;i++){
+			ono3d.setViewport(0,0,size/2,size/2);
+			Ono3d.postEffect(averageTexture ,0 ,0,size/512,size/512,shaders["average2"]); 
+			Ono3d.copyImage(averageTexture,0,0,0,0,size/2,size/2);
+			size/=2;
+		}
+		ono3d.setViewport(0,511,1,1);
+		Ono3d.postEffect(averageTexture ,0,511/512,1/512,1/512,shaders["average3"]); 
+		Ono3d.copyImage(averageTexture,0,511,0,511,1,1);
+
+	}
+	/** カメラの露光設定をセットする**/
+	ret.setExpose = function(level,upper){
+		var a = new Vec4();
+		var shaders=ono3d.shaders;
+		Vec4.set(a,level,upper,0.5,0.5);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+		ono3d.setViewport(0,511,1,1);
+		gl.useProgram(shaders["fill"].program);
+		Ono3d.encode2(a,a);
+		gl.uniform4f(shaders["fill"].unis["uColor"]
+			,a[0],a[1],a[2],a[3]);
+			
+		Ono3d.postEffect(averageTexture,0,0,0,0,shaders["fill"]); 
+		Ono3d.copyImage(averageTexture,0,511,0,511,1,1);
+	}
+	ret.toneMapping = function(image,w,h){
+		var shaders=ono3d.shaders;
+		var decodeShader = shaders["decode"];
+		gl.useProgram(decodeShader.program);
+		gl.uniform1i(decodeShader.unis["uSampler2"],1);
+		gl.activeTexture(gl.TEXTURE1);
+		gl.bindTexture(gl.TEXTURE_2D,averageTexture.glTexture);
+		Ono3d.postEffect(image,0,0 ,w,h,decodeShader); 
+	}
 
 	return ret;
 

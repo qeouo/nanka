@@ -2,15 +2,14 @@
 var O3o=(function(){
 	var abs=Math.abs;
 
-	var i
-		,groupMatricies = new Array(64)
+	var groupMatricies = new Array(64)
 		,groupMatFlg= new Array(64)
 	;
 	var loadTexture=function(path,func){
 		return AssetManager.texture(path,func);
 	}
 
-	for(i=groupMatricies.length;i--;)groupMatricies[i] = new Mat43();
+	for(var i=groupMatricies.length;i--;)groupMatricies[i] = new Mat43();
 
 	var  REPEAT_NONE = i=0
 		, REPEAT_LOOP = ++i
