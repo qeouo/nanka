@@ -1154,7 +1154,7 @@ var O3o=(function(){
 			dst.vertices.push(new Vertex());
 		}
 		for(var i = 0;i<src.vertexSize;i++){
-			Vec3.copy(dst.vertices[i].pos,src.vertices[i].pos);
+			dst.vertices[i].pos.set(src.vertices[i].pos);
 			for(var j=0;j<3;j++){
 				dst.vertices[i].groups[j]= src.vertices[i].groups[j];
 				dst.vertices[i].groupWeights[j]= src.vertices[i].groupWeights[j];

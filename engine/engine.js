@@ -12,9 +12,13 @@ var customMaterial = new Ono3d.Material();
 	var bdf;
 	var bdfimage=null;
 	var soundbuffer=null;
-	var bufTexture;
 	ret.goClass=[];
 	ret.go=[];
+
+	var tex512;
+	var env2Texture;
+	var averageTexture;
+	var bufTexture;
 
 	ret.enableDraw=true;
 
@@ -506,9 +510,9 @@ ret.defObj= (function(){
 			Engine.bloom(bufTexture,globalParam.exposure_bloom);
 			Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 		}
+
 		//テスト
-		var env = ono3d.emiTexture;
-		//var env = ono3d.transTextures[ono3d.transTextureIndex];
+		//var env = tex512;
 		//gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		//ono3d.setViewport(0,0,WIDTH,HEIGHT);
 		//Ono3d.drawCopy(env,0,0,1,1);
@@ -545,13 +549,7 @@ ret.defObj= (function(){
 
 		mseccount += drawTime;
 	}
-	var emiTexture;
-	var env2Texture;
-	var averageTexture;
 	ret.start = function(){
-		emiTexture = Ono3d.createTexture(512,512);
-		env2Texture = Ono3d.createTexture(1024,1024);
-		averageTexture = Ono3d.createTexture(512,512);
 		
 		var url=location.search.substring(1,location.search.length)
 		var args=url.split("&")
@@ -627,6 +625,9 @@ ret.defObj= (function(){
 	gl.bindTexture(gl.TEXTURE_2D, bufTexture.glTexture);
 	ret.bufTexture=bufTexture;
 
+	tex512 = Ono3d.createTexture(512,512);
+	averageTexture = Ono3d.createTexture(512,512);
+
 	onoPhy = new OnoPhy();
 	ret.onoPhy = onoPhy;
 	ret.objMan = objMan = new ObjMan();
@@ -652,8 +653,7 @@ ret.defObj= (function(){
 	ret.bloom = function(image,exposure_bloom){
 		var shaders=ono3d.shaders;
 		var addShader = shaders["add"];
-		//var emiTexture = emiTexture;
-		var transTexture= env2Texture;
+		//var tex512 = tex512;
 
 		var WIDTH = ono3d.viewport[2];
 		var HEIGHT= ono3d.viewport[3];
@@ -668,44 +668,41 @@ ret.defObj= (function(){
 
 		//光テクスチャをぼかす
 
-		//レンダリング画像をコピー(半分サイズ)
+		//レンダリング画像をコピー(まず1/2サイズにする)
 		ono3d.setViewport(0,0,WIDTH*0.5,HEIGHT*0.5);
 		Ono3d.postEffect(image,0,0,WIDTH/image.width,HEIGHT/image.height,shaders["half"]);
-		Ono3d.copyImage(transTexture,0,512,0,0,WIDTH*0.5,HEIGHT*0.5);
+		Ono3d.copyImage(tex512,0,0,0,0,WIDTH*0.5,HEIGHT*0.5);
 
-		var width=WIDTH*0.5;
-		var height=HEIGHT*0.5;
+		gl.clearColor(0., 0., 0.,0.5);
+		gl.clear(gl.COLOR_BUFFER_BIT);
 
-		ono3d.setViewport(0,0,width*0.5,height*0.5);
-		Ono3d.postEffect(transTexture,0,0.5,width/transTexture.width,height/transTexture.height,shaders["half"]);
-		Ono3d.copyImage(transTexture,0,0,0,0,width*0.5,height*0.5);
-
-
+		var width=WIDTH*0.5; 
+		var height=HEIGHT*0.5; 
 
 		// 1/2 1/4 1/8...
-		var size=256;
-		var bunbo=transTexture.width;
-		for(var i=0;i<4;i++){
-			width*=0.5;
-			height*=0.5;
-			ono3d.setViewport(0,0,width*0.5,height*0.5);
-			Ono3d.postEffect(transTexture,0,(512-size*2)/bunbo,width/bunbo,height/bunbo,shaders["half"]);
-			Ono3d.copyImage(transTexture,0,512-size,0,0,width*0.5,height*0.5);
+		var ratio=0.5;
+		ono3d.setViewport(0,0,width*ratio,height*ratio);
+		Ono3d.postEffect(tex512,0,1-ratio*2,width/512*ratio*2,height/512*ratio*2,shaders["half"]);
+		Ono3d.copyImage(tex512,0,0,0,0,512,512);
+		ratio*=0.5;
+		for(var i=0;i<3;i++){
+			ono3d.setViewport(0,0,width*ratio,height*ratio);
+			Ono3d.postEffect(tex512,0,1-ratio*4,width/512*ratio*2,height*ratio*2/512,shaders["half"]);
+			Ono3d.copyImage(tex512,0,(1-ratio*2)*512,0,0,width*ratio,height*ratio);
 			//ono3d.setViewport(0,0,size*0.5,size*0.5);
 			//Ono3d.postEffect(transTexture,0,(1024-size*2)/bunbo,size/bunbo,size/bunbo,shaders["half"]);
-			size*=0.5;
+			ratio*=0.5;
 			//Ono3d.copyImage(transTexture,0,1024-size*2,0,0,size,size);
 		}
 		//ガウスぼかし
 		ono3d.setViewport(0,0,256,512);
-		Ono3d.gauss(256,512,100
-			,transTexture,0,0,0.25,0.5); 
-		Ono3d.copyImage(transTexture,0,0,0,0,256,512);
+		Ono3d.gauss(256,512,100 ,tex512,0,0,0.5,1); 
+		Ono3d.copyImage(tex512,0,0,0,0,256,512);
 
 		//全サイズ足す
 		ono3d.setViewport(0,0,512,512);
-		Ono3d.postEffect(transTexture,0,0,0.25,0.25,shaders["multiadd"]);
-		Ono3d.copyImage(emiTexture,0,0,0,0,512,512);
+		Ono3d.postEffect(tex512,0,0,0.5,0.5,shaders["multiadd"]);
+		Ono3d.copyImage(tex512,0,0,0,0,512,512);
 
 		//画面に合成
 		gl.bindFramebuffer(gl.FRAMEBUFFER,null );
@@ -713,7 +710,7 @@ ret.defObj= (function(){
 		gl.useProgram(addShader.program);
 		gl.uniform1i(addShader.unis["uSampler2"],1);
 		gl.activeTexture(gl.TEXTURE1);
-		gl.bindTexture(gl.TEXTURE_2D,emiTexture.glTexture);
+		gl.bindTexture(gl.TEXTURE_2D,tex512.glTexture);
 		gl.uniform1f(addShader.unis["v1"],1.0);
 		gl.uniform1f(addShader.unis["v2"],exposure_bloom);
 
