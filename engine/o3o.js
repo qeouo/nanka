@@ -509,12 +509,19 @@ var O3o=(function(){
 	Mesh.prototype.objecttype=OBJECT_MESH;
 	ret.Mesh = Mesh;
 
-	var Vertex = function(){
+	var Vertex = function(buffer,offset){
+		if(!buffer){
+			buffer=new ArrayBuffer(39);
+			offset=0;
+		}
 		//頂点
-		this.pos = new Vec3(); //座標
-		this.normal = new Vec3(); //法線
-		this.groups = [-1,-1,-1]; //グループ
-		this.groupWeights = [1,0,0]; //グループウェイト
+		//12+12+3+12=39バイト
+		this.pos = new Float32Array(buffer,offset,3);//new Vec3(); //座標
+		this.normal = new Float32Array(buffer,offset+12,3);//new Vec3(); //法線
+		this.groupWeights = new Float32Array(buffer,offset+24,3);//[1,0,0]; //グループウェイト
+		this.groupWeights.set([1,0,0]);
+		this.groups =new Int8Array(buffer,offset+36,3);//[-1,-1,-1]; //グループ
+		this.groups.set([-1,-1,-1]);
 	};
 	ret.Vertex=Vertex;
 
@@ -565,8 +572,11 @@ var O3o=(function(){
 
 	var bufMesh=new Mesh(); //メッシュバッファ
 	bufMesh.ratios=[];
+	var buffer=new ArrayBuffer(40*4096);
+	for(i=0;i<4096;i++){
+		bufMesh.vertices.push(new Vertex(buffer,40*i));
+	}
 	for(i=0;i<1000;i++){
-		bufMesh.vertices.push(new Vertex());
 		bufMesh.faces.push(new Face());
 		bufMesh.edges.push(new Edge());
 		bufMesh.ratios.push(new Vec4());
@@ -876,14 +886,25 @@ var O3o=(function(){
 			var to= typeof srcdata;
 			if(to == "string" || to == "number"){
 				dst[member]=srcdata;
-			}else if(dstdata instanceof Vec3){
-				dstdata[0]=srcdata[0];
-				dstdata[1]=srcdata[1];
-				dstdata[2]=srcdata[2];
-			}else if(dstdata instanceof Mat43){
-				Mat43.copy(dstdata,srcdata);
+			}else if(dstdata instanceof Int8Array){
+				for(var i=0;i<srcdata.length;i++){
+					dstdata[i]=srcdata[i]|0;
+				}
+			}else if(dstdata instanceof Float32Array){
+				for(var i=0;i<srcdata.length;i++){
+					dstdata[i]=srcdata[i];
+				}
 			}else if(dstdata instanceof Array && srcdata.length > 0){
-				if(typeof srcdata[0] == "string" || typeof srcdata[0] == "number"){
+				if(member==="vertices"){
+					var size=40;
+					var buffer=new ArrayBuffer(size*srcdata.length);
+					for(var i=0;i<srcdata.length;i++){
+						var obj = new Vertex(buffer,size*i);
+						setdata2(obj,srcdata[i]);
+						dstdata.push(obj);
+					}
+					
+				}else if(typeof srcdata[0] == "string" || typeof srcdata[0] == "number"){
 						dst[member] = srcdata;
 				}else if(classes[member]){
 					for(var i=0;i<srcdata.length;i++){
@@ -1148,18 +1169,21 @@ var O3o=(function(){
 		dst.name=src.name;
 
 		//頂点情報をコピー
-		var d=src.vertexSize - dst.vertices.length;
-		for(var i = 0;i<d;i++){
-			//変数領域が足りない場合は追加
-			dst.vertices.push(new Vertex());
-		}
-		for(var i = 0;i<src.vertexSize;i++){
-			dst.vertices[i].pos.set(src.vertices[i].pos);
-			for(var j=0;j<3;j++){
-				dst.vertices[i].groups[j]= src.vertices[i].groups[j];
-				dst.vertices[i].groupWeights[j]= src.vertices[i].groupWeights[j];
-			}
-		}
+		//var d=src.vertexSize - dst.vertices.length;
+		//for(var i = 0;i<d;i++){
+		//	//変数領域が足りない場合は追加
+		//	dst.vertices.push(new Vertex());
+		//}
+		//for(var i = 0;i<src.vertexSize;i++){
+		//	dst.vertices[i].pos.set(src.vertices[i].pos);
+		//	for(var j=0;j<3;j++){
+		//		dst.vertices[i].groups[j]= src.vertices[i].groups[j];
+		//		dst.vertices[i].groupWeights[j]= src.vertices[i].groupWeights[j];
+		//	}
+		//}
+		var aaa=new Int8Array(src.vertices[0].pos.buffer);
+		var bbb=new Int8Array(dst.vertices[0].pos.buffer);
+		bbb.set(aaa);
 		dst.vertexSize=src.vertexSize;
 
 		//辺情報をコピー
