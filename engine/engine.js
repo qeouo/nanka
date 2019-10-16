@@ -386,12 +386,16 @@ ret.defObj= (function(){
 		objMan.move();
 		var phytime=0;
 		if(globalParam.physics){
+			performance.mark("physicsStart");
+
 			for(var i=0;i<globalParam.step;i++){
 				var s=Date.now();
 				onoPhy.calc(1.0/globalParam.fps/globalParam.step);
 				phytime=Date.now()-s;
 			}
 			globalParam.physics_=1;
+			performance.mark("physicsEnd");
+
 		}
 
 
@@ -405,9 +409,13 @@ ret.defObj= (function(){
 			var mspf=0;
 			var fps = framecount*1000/(nowTime-oldTime)
 			if(framecount!==0)mspf = mseccount/framecount
+			performance.measure( 'physics', 'physicsStart', 'physicsEnd');
+			var entr=function(name){
+				return performance.getEntriesByName(name)[0].duration.toFixed(4);
+			}
 			
 			Util.setText(span,fps.toFixed(2) + "fps " + mspf.toFixed(2) + "ms/frame"
-				   +"\nPhyisics " + physicsTime +"ms"
+				   +"\nPhyisics " + entr("physics") +"ms"
 				   +"\n AABB " + onoPhy.collider.aabbTime+"ms (Object " + onoPhy.collider.collisions.length + ")"
 				   +"\n Collision " + onoPhy.collider.collisionTime + "ms (Target " + onoPhy.collider.collisionCount+ ")"
 				   +"\n Impulse " + onoPhy.impulseTime+"ms (repetition " + onoPhy.repetition +")"
@@ -419,6 +427,7 @@ ret.defObj= (function(){
 			framecount = 0
 			mseccount=0
 			oldTime = nowTime
+			performance.clearMeasures();
 		}
 	}
 	var parentnode = (function (scripts) {
