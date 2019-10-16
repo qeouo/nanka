@@ -1714,22 +1714,22 @@ var O3o=(function(){
 				for(var k=0;k<3;k++){
 					var id = idx[vidx[k]];
 					var vertex=vertices[id];
-					renderVertices.set(vertex.pos,jj);
-					//renderVertices[jj]=vertex.pos[0];
-					//renderVertices[jj+1]=vertex.pos[1];
-					//renderVertices[jj+2]=vertex.pos[2];
-					normal[0]=vertex.normal[0]*smoothing + nx;
-					normal[1]=vertex.normal[1]*smoothing + ny;
-					normal[2]=vertex.normal[2]*smoothing + nz;
-					renderVertices.set(normal,jj+3);
-					//renderVertices[jj+6]=svec[0];
-					//renderVertices[jj+7]=svec[1];
-					//renderVertices[jj+8]=svec[2];
-					//renderVertices[jj+9]=tvec[0];
-					//renderVertices[jj+10]=tvec[1];
-					//renderVertices[jj+11]=tvec[2];
-					renderVertices.set(svec,jj+6);
-					renderVertices.set(tvec,jj+9);
+					//renderVertices.set(vertex.pos,jj);
+					renderVertices[jj]=vertex.pos[0];
+					renderVertices[jj+1]=vertex.pos[1];
+					renderVertices[jj+2]=vertex.pos[2];
+					renderVertices[jj+3]=normal[0]=vertex.normal[0]*smoothing + nx;
+					renderVertices[jj+4]=normal[1]=vertex.normal[1]*smoothing + ny;
+					renderVertices[jj+5]=normal[2]=vertex.normal[2]*smoothing + nz;
+					//renderVertices.set(normal,jj+3);
+					renderVertices[jj+6]=svec[0];
+					renderVertices[jj+7]=svec[1];
+					renderVertices[jj+8]=svec[2];
+					renderVertices[jj+9]=tvec[0];
+					renderVertices[jj+10]=tvec[1];
+					renderVertices[jj+11]=tvec[2];
+					//renderVertices.set(svec,jj+6);
+					//renderVertices.set(tvec,jj+9);
 					if(uv){
 						renderVertices[jj+12]=uv[vidx[k]*2]+offsetx;
 						renderVertices[jj+13]=uv[vidx[k]*2+1]+offsety;
@@ -1741,10 +1741,10 @@ var O3o=(function(){
 					}
 					//calcEnv(color,normal,vertex,environment,bufMesh.ratios[id]);
 					calcSH(color,normal,vertex,lightProbeEnv,bufMesh.ratios[id]);
-					renderVertices.set(color,jj+17);
-					//renderVertices[jj+17]=color[0];
-					//renderVertices[jj+18]=color[1];
-					//renderVertices[jj+19]=color[2];
+					//renderVertices.set(color,jj+17);
+					renderVertices[jj+17]=color[0];
+					renderVertices[jj+18]=color[1];
+					renderVertices[jj+19]=color[2];
 
 					
 					rvIndex++;
