@@ -509,9 +509,34 @@ var O3o=(function(){
 	Mesh.prototype.objecttype=OBJECT_MESH;
 	ret.Mesh = Mesh;
 
+	var TypedClass=(function(){
+		var TypedClass=function(){};
+		var ret=TypedClass;
+
+		ret.array=function(n){
+			var size=this.size;
+			var buffer=new ArrayBuffer(size*n);
+			var arr=[];
+			for(var i=0;i<n;i++){
+				var obj = new this(buffer,size*i);
+				arr.push(obj);
+			}
+			arr.buf=new Int8Array(buffer);
+			return arr;
+		}
+		//ret.set=function(src){
+
+		//	new Int8Array(src.vertices[0].pos.buffer);
+		//	var bbb=new Int8Array(dst.vertices[0].pos.buffer);
+		//	bbb.set(aaa);
+
+		//}
+		ret.size=0;
+		return ret;
+	})();
 	var Vertex = function(buffer,offset){
 		if(!buffer){
-			buffer=new ArrayBuffer(39);
+			buffer=new ArrayBuffer(Vertex.size);
 			offset=0;
 		}
 		//頂点
@@ -523,28 +548,47 @@ var O3o=(function(){
 		this.groups =new Int8Array(buffer,offset+36,3);//[-1,-1,-1]; //グループ
 		this.groups.set([-1,-1,-1]);
 	};
+	Vertex.size=40;
 	ret.Vertex=Vertex;
+	Vertex.array=TypedClass.array;
 
-	var Face =function(){
+	var Face =function(buffer,offset){
 		//面
-		this.uv = new Array(8); //uv値(そのうち消す)
-		this.normal = new Vec3(); //法線
-		this.idx = [ -1 , -1 , -1 , -1]; //頂点インデックス
-		this.idxnum=3;//頂点数
+		if(!buffer){
+			buffer=new ArrayBuffer(Face.size);
+			offset=0;
+		}
+		//this.uv = new Array(8); //uv値(そのうち消す)
+		this.idx = new Int16Array(buffer,offset,4);//[ -1 , -1 , -1 , -1]; //頂点インデックス
+		this.idx.set([-1,-1,-1,-1]);
+		this.normal = new Float32Array(buffer,offset+8,3);// new Vec3(); //法線
 		this.material = null ; //マテリアル
 		this.flg=0;//フラグ
 		this.fs=0; //フラグ2
 		this.mat=-1;
+		this.idxnum=3;//頂点数
 	};
 	ret.Face=Face;
+	Face.size=28
+	Face.array=TypedClass.array;
 
-	var Edge = function(){
+	var Edge = function(buffer,offset){
 		//辺
-		this.v0 = -1; //頂点インデックス1
-		this.v1 = -1;//頂点インデックス2
-		this.f0 = -1;//面インデックス1
-		this.f1 = -1;//面インデックス2
+		if(!buffer){
+			buffer=new ArrayBuffer(Edge.size);
+			offset=0;
+		}
+		
+		this.vIndices=new Int16Array(buffer,offset,2);
+		this.fIndices=new Int16Array(buffer,offset+4,2);
+		this.fIndices.set([-1,-1]);
+//		this.vIndices[0] = -1; //頂点インデックス1
+//		this.vIndices[1] = -1;//頂点インデックス2
+//		this.fIndices[0] = -1;//面インデックス1
+//		this.fIndices[1] = -1;//面インデックス2
 	}
+	Edge.size=8;
+	Edge.array=TypedClass.array;
 	ret.Edge=Edge;
 
 	function Action(){
@@ -572,13 +616,12 @@ var O3o=(function(){
 
 	var bufMesh=new Mesh(); //メッシュバッファ
 	bufMesh.ratios=[];
-	var buffer=new ArrayBuffer(40*4096);
-	for(i=0;i<4096;i++){
-		bufMesh.vertices.push(new Vertex(buffer,40*i));
-	}
+	bufMesh.vertices=Vertex.array(4096);
+	bufMesh.faces=Face.array(4096);
+	bufMesh.edges=Edge.array(4096);
 	for(i=0;i<1000;i++){
-		bufMesh.faces.push(new Face());
-		bufMesh.edges.push(new Edge());
+		//bufMesh.faces.push(new Face());
+		//bufMesh.edges.push(new Edge());
 		bufMesh.ratios.push(new Vec4());
 
 	};
@@ -700,21 +743,21 @@ var O3o=(function(){
 		var addEdge=function(edges,v0,v1,f){
 			var i,imax
 			for(i=0,imax=edges.length;i<imax;i++){
-				if((edges[i].v0===v0 && edges[i].v1===v1)
-				|| (edges[i].v0===v1 && edges[i].v1===v0)){
-					if(edges[i].f0<0){
-						edges[i].f0=f
+				if((edges[i].vIndices[0]===v0 && edges[i].vIndices[1]===v1)
+				|| (edges[i].vIndices[0]===v1 && edges[i].vIndices[1]===v0)){
+					if(edges[i].fIndices[0]<0){
+						edges[i].fIndices[0]=f
 					}else{
-						edges[i].f1=f
+						edges[i].fIndices[1]=f
 					}
 					return 0
 				}
 			}
 			var edge = new Edge()
-			edge.v0=v0
-			edge.v1=v1
-			edge.f0=f
-			edge.f1=-1;
+			edge.vIndices[0]=v0
+			edge.vIndices[1]=v1
+			edge.fIndices[0]=f
+			edge.fIndices[1]=-1;
 			edges.push(edge)
 			return 1
 		}
@@ -729,13 +772,24 @@ var O3o=(function(){
 			}
 			for(j=0,jmax=faces.length;j<jmax;j++){
 				var face=faces[j];
-				face.idxnum=face.idx.length;
+				if(face.idx[3]>=0){
+					face.idxnum=4;
+				}else{
+					face.idxnum=3;
+				}
+
 				for(var k=0;k<face.idxnum-1;k++){
 					addEdge(edges,face.idx[k],face.idx[k+1],j)
 				}
 				addEdge(edges,face.idx[face.idxnum-1],face.idx[0],j)
 			}
 			o3o.meshes[i].edgeSize=edges.length;
+			var edges2=Edge.array(o3o.meshes[i].edgeSize);
+			for(j=0;j<edges.length;j++){
+				var t=edges2[j].vIndices;
+				new Int8Array(t.buffer,t.byteOffset).set(new Int8Array(edges[j].vIndices.buffer));
+			}
+			o3o.meshes[i].edges=edges2;
 		}
 
 		var bind=function(object,modifier){
@@ -865,9 +919,10 @@ var O3o=(function(){
 
 
 	var classes ={};
-	classes["materials"]=Material;
-	classes["meshes"]=Mesh;
-	classes["vertices"]=Vertex;
+	//classes["materials"]=Material;
+	//classes["meshes"]=Mesh;
+	//classes["vertices"]=Vertex;
+	//classes["faces"]=Face;
 	classes["armatures"]=Armature;
 	classes["actions"]=Action;
 	classes["objects"]=SceneObject;
@@ -875,7 +930,6 @@ var O3o=(function(){
 	classes["lights"]=Light;
 	classes["reflectionprobes"]=ReflectionProbe;
 	classes["bones"]=Bone;
-	classes["faces"]=Face;
 	classes["uv_layers"]=Uv_layer;
 	classes["fcurves"]=Fcurve;
 	var setdata2 = function(dst,src){
@@ -886,7 +940,7 @@ var O3o=(function(){
 			var to= typeof srcdata;
 			if(to == "string" || to == "number"){
 				dst[member]=srcdata;
-			}else if(dstdata instanceof Int8Array){
+			}else if(dstdata instanceof Int8Array || dstdata instanceof Int16Array){
 				for(var i=0;i<srcdata.length;i++){
 					dstdata[i]=srcdata[i]|0;
 				}
@@ -895,22 +949,18 @@ var O3o=(function(){
 					dstdata[i]=srcdata[i];
 				}
 			}else if(dstdata instanceof Array && srcdata.length > 0){
-				if(member==="vertices"){
-					var size=40;
-					var buffer=new ArrayBuffer(size*srcdata.length);
-					for(var i=0;i<srcdata.length;i++){
-						var obj = new Vertex(buffer,size*i);
-						setdata2(obj,srcdata[i]);
-						dstdata.push(obj);
-					}
 					
-				}else if(typeof srcdata[0] == "string" || typeof srcdata[0] == "number"){
+				if(typeof srcdata[0] == "string" || typeof srcdata[0] == "number"){
 						dst[member] = srcdata;
 				}else if(classes[member]){
 					for(var i=0;i<srcdata.length;i++){
 						var obj = new (classes[member]);
 						setdata2(obj,srcdata[i]);
 						dstdata.push(obj);
+					}
+				}else if(dstdata.length>0){
+					for(var i=0;i<srcdata.length;i++){
+						setdata2(dstdata[i],srcdata[i]);
 					}
 				}else{
 					dst[member] = srcdata;
@@ -929,6 +979,21 @@ var O3o=(function(){
 
 		var raw=JSON.parse(buf);
 	
+
+		var size=raw.materials.length;
+		for(var i=0;i<size;i++){
+			o3o.materials.push(new Material);
+		}
+		size=raw.meshes.length;
+		for(var i=0;i<size;i++){
+			var rawdata=raw.meshes[i];
+			var mesh= new Mesh();
+			o3o.meshes.push(mesh);
+
+			mesh.vertices=Vertex.array(rawdata.vertices.length);
+			mesh.faces=Face.array(rawdata.faces.length);
+		}
+
 		setdata2(o3o,raw);
 
 		for(var type in o3o){
@@ -1181,33 +1246,38 @@ var O3o=(function(){
 		//		dst.vertices[i].groupWeights[j]= src.vertices[i].groupWeights[j];
 		//	}
 		//}
-		var aaa=new Int8Array(src.vertices[0].pos.buffer);
-		var bbb=new Int8Array(dst.vertices[0].pos.buffer);
-		bbb.set(aaa);
+		dst.vertices.buf.set(src.vertices.buf);
+//		var aaa=new Int8Array(src.vertices[0].pos.buffer);
+//		var bbb=new Int8Array(dst.vertices[0].pos.buffer);
+//		bbb.set(aaa);
 		dst.vertexSize=src.vertexSize;
 
 		//辺情報をコピー
-		var d=src.edgeSize - dst.edges.length;
-		for(var i = 0;i<d;i++){
-			//変数領域が足りない場合は追加
-			dst.edges.push(new Edge());
-		}
-		for(var i = 0;i<src.edgeSize;i++){
-			var srcEdge=src.edges[i];
-			var dstEdge=dst.edges[i];
-			dstEdge.v0=srcEdge.v0;
-			dstEdge.v1=srcEdge.v1;
-			dstEdge.f0=srcEdge.f0;
-			dstEdge.f1=srcEdge.f1;
-		}
+		//var d=src.edgeSize - dst.edges.length;
+		//for(var i = 0;i<d;i++){
+		//	//変数領域が足りない場合は追加
+		//	dst.edges.push(new Edge());
+		//}
+		//for(var i = 0;i<src.edgeSize;i++){
+		//	var srcEdge=src.edges[i];
+		//	var dstEdge=dst.edges[i];
+		//	dstEdge.vIndices[0]=srcEdge.vIndices[0];
+		//	dstEdge.vIndices[1]=srcEdge.vIndices[1];
+		//	dstEdge.fIndices[0]=srcEdge.fIndices[0];
+		//	dstEdge.fIndices[1]=srcEdge.fIndices[1];
+		//}
+		dst.edges.buf.set(src.edges.buf);
+		//aaa=new Int8Array(src.edges[0].vIndices.buffer);
+		//bbb=new Int8Array(dst.edges[0].vIndices.buffer);
+		//bbb.set(aaa);
 		dst.edgeSize=src.edgeSize;
 
 		//面情報をコピー
-		d=src.faceSize - dst.faces.length;
-		for(var i = 0;i<d;i++){
-			//変数領域が足りない場合は追加
-			dst.faces.push(new Face());
-		}
+		//d=src.faceSize - dst.faces.length;
+		//for(var i = 0;i<d;i++){
+		//	//変数領域が足りない場合は追加
+		//	dst.faces.push(new Face());
+		//}
 		for(var i = 0;i<src.faceSize;i++){
 			var dstFace=dst.faces[i];
 			var srcFace =src.faces[i];
@@ -1217,14 +1287,21 @@ var O3o=(function(){
 			dstFace.idxnum=srcFace.idxnum;
 			dstFace.fs = srcFace.fs;
 
-			for(var j=0;j<srcFace.idxnum;j++){
-				dstFace.idx[j]= srcFace.idx[j];
-			}
+	//		for(var j=0;j<srcFace.idxnum;j++){
+	//			dstFace.idx[j]= srcFace.idx[j];
+	//		}
 		}
+		if(src.faces.length>0){
+			dst.faces.buf.set(src.faces.buf);
+		}
+		//aaa=new Int8Array(src.faces[0].idx.buffer);
+		//bbb=new Int8Array(dst.faces[0].idx.buffer);
+		//bbb.set(aaa);
+
 		dst.faceSize=src.faceSize;
 
 		//uvをコピー
-		d=src.uv_layersSize - dst.uv_layers.length;
+		var d=src.uv_layersSize - dst.uv_layers.length;
 		for(var i = 0;i<d;i++){
 			//変数領域が足りない場合は追加
 			dst.uv_layers.push(new Uv_layer());
@@ -1468,8 +1545,7 @@ var O3o=(function(){
 		freezeMesh(bufMesh,obj,physics); //モデファイア適用
 
 		var bufMeshVertices=bufMesh.vertices;
-		var renderVertices =ono3d.vertices;
-		renderVertices =ono3d.verticesFloat32Array;
+		var renderVertices =ono3d.verticesFloat32Array;
 		var rvIndex=ono3d.vertices_index;
 		var renderFaces=ono3d.faces;
 		var rfIndex=ono3d.faces_index;
@@ -1519,7 +1595,8 @@ var O3o=(function(){
 			//スムーシングする場合頂点法線セット
 
 			for(var i = 0;i<bufMesh.vertexSize;i++){
-				Vec3.set(vertices[i].normal,0,0,0);
+				//Vec3.set(vertices[i].normal,0,0,0);
+				vertices[i].normal.fill(0);
 			}
 			for(var i=0;i<bufMesh.faceSize;i++){
 				var idx=faces[i].idx;
@@ -1569,10 +1646,10 @@ var O3o=(function(){
 
 		var ii=rfIndex;
 		var jj=rvIndex*20;
-		var svec=new Vec3();
-		var tvec=new Vec3();
-		var color=new Vec3();
-		var normal = new Vec3();
+		var svec=Vec3.poolAlloc();
+		var tvec=Vec3.poolAlloc();
+		var color=Vec3.poolAlloc();
+		var normal = Vec3.poolAlloc();
 		for(var i=0;i<bufMesh.faceSize;i++){
 			//フェイスをレンダー用バッファに格納
 			face=faces[i];
@@ -1637,18 +1714,22 @@ var O3o=(function(){
 				for(var k=0;k<3;k++){
 					var id = idx[vidx[k]];
 					var vertex=vertices[id];
-					renderVertices[jj]=vertex.pos[0];
-					renderVertices[jj+1]=vertex.pos[1];
-					renderVertices[jj+2]=vertex.pos[2];
-					normal[0]=renderVertices[jj+3]=vertex.normal[0]*smoothing + nx;
-					normal[1]=renderVertices[jj+4]=vertex.normal[1]*smoothing + ny;
-					normal[2]=renderVertices[jj+5]=vertex.normal[2]*smoothing + nz;
-					renderVertices[jj+6]=svec[0];
-					renderVertices[jj+7]=svec[1];
-					renderVertices[jj+8]=svec[2];
-					renderVertices[jj+9]=tvec[0];
-					renderVertices[jj+10]=tvec[1];
-					renderVertices[jj+11]=tvec[2];
+					renderVertices.set(vertex.pos,jj);
+					//renderVertices[jj]=vertex.pos[0];
+					//renderVertices[jj+1]=vertex.pos[1];
+					//renderVertices[jj+2]=vertex.pos[2];
+					normal[0]=vertex.normal[0]*smoothing + nx;
+					normal[1]=vertex.normal[1]*smoothing + ny;
+					normal[2]=vertex.normal[2]*smoothing + nz;
+					renderVertices.set(normal,jj+3);
+					//renderVertices[jj+6]=svec[0];
+					//renderVertices[jj+7]=svec[1];
+					//renderVertices[jj+8]=svec[2];
+					//renderVertices[jj+9]=tvec[0];
+					//renderVertices[jj+10]=tvec[1];
+					//renderVertices[jj+11]=tvec[2];
+					renderVertices.set(svec,jj+6);
+					renderVertices.set(tvec,jj+9);
 					if(uv){
 						renderVertices[jj+12]=uv[vidx[k]*2]+offsetx;
 						renderVertices[jj+13]=uv[vidx[k]*2+1]+offsety;
@@ -1660,9 +1741,10 @@ var O3o=(function(){
 					}
 					//calcEnv(color,normal,vertex,environment,bufMesh.ratios[id]);
 					calcSH(color,normal,vertex,lightProbeEnv,bufMesh.ratios[id]);
-					renderVertices[jj+17]=color[0];
-					renderVertices[jj+18]=color[1];
-					renderVertices[jj+19]=color[2];
+					renderVertices.set(color,jj+17);
+					//renderVertices[jj+17]=color[0];
+					//renderVertices[jj+18]=color[1];
+					//renderVertices[jj+19]=color[2];
 
 					
 					rvIndex++;
@@ -1722,19 +1804,19 @@ var O3o=(function(){
 				var edge=edges[i];
 				var renderMat = renderMaterial;
 
-				if(edge.f0<0)continue; //エッジが属する面が存在しない場合はスキップ
-				if(edge.f1<0){ //属面が1こだけの場合、その面が表でないならスキップ
-					var mat0 = ono3d.materials[materialTable[faces[edge.f0].mat+1]]
-					if(faces[edge.f0].cul<1)continue;
+				if(edge.fIndices[0]<0)continue; //エッジが属する面が存在しない場合はスキップ
+				if(edge.fIndices[1]<0){ //属面が1こだけの場合、その面が表でないならスキップ
+					var mat0 = ono3d.materials[materialTable[faces[edge.fIndices[0]].mat+1]]
+					if(faces[edge.fIndices[0]].cul<1)continue;
 					if(mat0.opacity !== 1.0){
 						renderMat = renderMateriala;
 					}
 
 				}else{ //属面が2つある場合、裏表の境界になる場合以外はスキップ
-					if(faces[edge.f0].cul
-						* faces[edge.f1].cul > -1)continue;
-					var mat0 = ono3d.materials[materialTable[faces[edge.f0].mat+1]]
-					var mat1 = ono3d.materials[materialTable[faces[edge.f1].mat+1]]
+					if(faces[edge.fIndices[0]].cul
+						* faces[edge.fIndices[1]].cul > -1)continue;
+					var mat0 = ono3d.materials[materialTable[faces[edge.fIndices[0]].mat+1]]
+					var mat1 = ono3d.materials[materialTable[faces[edge.fIndices[1]].mat+1]]
 					if(mat0.opacity !== 1.0
 					|| mat1.opacity !== 1.0){
 						renderMat = renderMateriala;
@@ -1746,11 +1828,11 @@ var O3o=(function(){
 				renderLine.material=renderMat;
 				lines_index++;
 				var renderVertex=renderVertices[jj];
-				Vec3.copy(renderVertex.pos,vertices[edge.v0].pos);
+				Vec3.copy(renderVertex.pos,vertices[edge.vIndices[0]].pos);
 				renderLine.vertices[0] = renderVertex;
 				jj++;
 				renderVertex=renderVertices[jj];
-				Vec3.copy(renderVertex.pos,vertices[edge.v1].pos);
+				Vec3.copy(renderVertex.pos,vertices[edge.vIndices[1]].pos);
 				renderLine.vertices[1] = renderVertex;
 				jj++;
 			}
@@ -1762,6 +1844,7 @@ var O3o=(function(){
 		ono3d.vertices_index=rvIndex;
 		ono3d.faces_index+=rfCount;
 		
+		Vec3.poolFree(4);
 		return;
 		
 	}
@@ -1941,7 +2024,7 @@ var O3o=(function(){
 			dstFace= bufMesh.faces[faceSize+j]
 			dstFace.idxnum=srcFace.idxnum;
 			dstvertices=dstFace.idx;
-			var dst=dstFace.uv,src=srcFace.uv
+			//var dst=dstFace.uv,src=srcFace.uv
 			for(var k=0;k<srcFace.idxnum;k++){
 				var _k = srcFace.idxnum-k;
 				if(k==0){_k=0};
@@ -1953,8 +2036,8 @@ var O3o=(function(){
 					dstvertices[k] = srcvertices[_k];
 				}
 
-				dst[k*2] = src[_k*2]
-				dst[k*2+1] = src[_k*2+1]
+			//	dst[k*2] = src[_k*2]
+			//	dst[k*2+1] = src[_k*2+1]
 			}
 
 			dstFace.material = srcFace.material;
@@ -1966,19 +2049,19 @@ var O3o=(function(){
 		for(var j =0;j<bufMesh.edgeSize;j++){
 			var dst=bufMesh.edges[jj+bufMesh.edgeSize]
 			var src=bufMesh.edges[j];
-			if(abs(bufMeshVertices[src.v0].pos[mrr])<0.01
-			 && abs(bufMeshVertices[src.v1].pos[mrr])<0.01){
-				src.f1=src.f0+faceSize;
+			if(abs(bufMeshVertices[src.vIndices[0]].pos[mrr])<0.01
+			 && abs(bufMeshVertices[src.vIndices[1]].pos[mrr])<0.01){
+				src.fIndices[1]=src.fIndices[0]+faceSize;
 
 				continue;
 			}
-			dst.v0=src.v0+vertexSize;
-			dst.v1=src.v1+vertexSize;
-			dst.f0=src.f0+faceSize;
-			if(src.f1>=0){
-				dst.f1=src.f1+faceSize;
+			dst.vIndices[0]=src.vIndices[0]+vertexSize;
+			dst.vIndices[1]=src.vIndices[1]+vertexSize;
+			dst.fIndices[0]=src.fIndices[0]+faceSize;
+			if(src.fIndices[1]>=0){
+				dst.fIndices[1]=src.fIndices[1]+faceSize;
 			}else{
-				dst.f1=-1;
+				dst.fIndices[1]=-1;
 			}
 			jj++;
 		}
@@ -2283,8 +2366,8 @@ var O3o=(function(){
 				//エッジ
 				for(var j =0;j<bufMesh.edgeSize;j++){
 					var edge=bufMesh.edges[j];
-					phyobj.edges[j].point1 = phyobj.points[edge.v0];
-					phyobj.edges[j].point2 = phyobj.points[edge.v1];
+					phyobj.edges[j].point1 = phyobj.points[edge.vIndices[0]];
+					phyobj.edges[j].point2 = phyobj.points[edge.vIndices[1]];
 				}
 				//obj.phyObj = phyobj;
 				//movePhyObj(obj,0,true);
