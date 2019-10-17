@@ -367,8 +367,8 @@ ret.defObj= (function(){
 	var inittime=0;
 	var afID=0;
 	var mainloop=function(){
-		var nowTime = Date.now()
-		nowTime = Date.now()
+		var nowTime = performance.now()
+		performance.mark("mainloopStart");
 		
 		var obj;
 
@@ -404,25 +404,45 @@ ret.defObj= (function(){
 		}
 		//drawFunc();
 
-		mseccount += (Date.now() - nowTime)
+		performance.mark("mainloopEnd");
+
+		var measures=["mainloop","physics","aabb","collision","impulse","draw","drawGeometry","drawRasterise"];
+		for(var i=0;i<measures.length;i++){
+			var name =measures[i];
+			try{
+				performance.measure( name, name +'Start', name+'End');
+			}catch(e){
+			}
+		}
+
+		mseccount += (performance.now() - nowTime);
 		if(nowTime-oldTime > 1000){
 			var mspf=0;
 			var fps = framecount*1000/(nowTime-oldTime)
-			if(framecount!==0)mspf = mseccount/framecount
-			performance.measure( 'physics', 'physicsStart', 'physicsEnd');
 			var entr=function(name){
-				return performance.getEntriesByName(name)[0].duration.toFixed(4);
+				try{
+					var entr=performance.getEntriesByName(name);
+					var res=0;
+					for(var i=0;i<entr.length;i++){
+						res+=entr[i].duration;
+					}
+					return (res/entr.length).toFixed(2);
+					
+				}catch(e){
+					return -1;
+				}
 			}
 			
-			Util.setText(span,fps.toFixed(2) + "fps " + mspf.toFixed(2) + "ms/frame"
-				   +"\nPhyisics " + entr("physics") +"ms"
-				   +"\n AABB " + onoPhy.collider.aabbTime+"ms (Object " + onoPhy.collider.collisions.length + ")"
-				   +"\n Collision " + onoPhy.collider.collisionTime + "ms (Target " + onoPhy.collider.collisionCount+ ")"
-				   +"\n Impulse " + onoPhy.impulseTime+"ms (repetition " + onoPhy.repetition +")"
-				   +"\nDrawTime " + drawTime +"ms"
-				   +"\n geometry " + drawgeometryTime +"ms"
-				   +"\n rasterise " + drawrasteriseTime +"ms" 
-				   )
+			Util.setText(span,fps.toFixed(2) + "fps " 
+				+"\nmainloop " + entr("mainloop") +"ms"	
+				+"\n Phyisics " + entr("physics") +"ms"
+				+"\n  AABB " + entr("aabb")+"ms (Object " + onoPhy.collider.collisions.length + ")"
+				+"\n  Collision " + entr("collision") + "ms (calc " + onoPhy.collider.collisionCount+ ")"
+				+"\n  Impulse " + entr("impulse") +"ms (repetition " + onoPhy.repetition +")"
+				+"\nDraw " + entr("draw") +"ms"
+				+"\n geometry " + entr("drawGeometry") +"ms"
+				+"\n rasterise " + entr("drawRasterise") +"ms" 
+				)
 	
 			framecount = 0
 			mseccount=0
@@ -437,9 +457,10 @@ ret.defObj= (function(){
 
 	var drawFunc = function(){
 		//描画関数
+		performance.mark("drawStart");
+
 		afID = 0;
 
-		drawTime=Date.now();
 
 		framecount++;
 
@@ -463,6 +484,7 @@ ret.defObj= (function(){
 		}
 
 			
+		performance.mark("drawGeometryStart");
 		var start = Date.now();
 
 		camera.calcMatrix();
@@ -486,14 +508,12 @@ ret.defObj= (function(){
 			ono3d.setTargetMatrix(1)
 			ono3d.pop();
 		}
-
-		drawgeometryTime=Date.now()-start;
-
+		performance.mark("drawGeometryEnd");
 		
 		// ステレオ描画設定
 		globalParam.stereo=-globalParam.stereoVolume * globalParam.stereomode*0.4;
 
-		start=Date.now();
+		performance.mark("drawRasteriseStart");
 
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		gl.depthMask(true);
@@ -552,9 +572,8 @@ ret.defObj= (function(){
 		}
 
 		//gl.getParameter(gl.VIEWPORT);
-		drawrasteriseTime=Date.now()-start;
-
-		drawTime =Date.now()-drawTime;
+		performance.mark("drawRasteriseEnd");
+		performance.mark("drawEnd");
 
 		mseccount += drawTime;
 	}
