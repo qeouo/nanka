@@ -45,12 +45,28 @@ Engine.goClass.main= (function(){
 
 			scene.setFrame(0); //アニメーション処理
 
+			var instance = o3o.createInstance();
+			instance.calcMatrix();
+			globalParam.instance=instance;
+
 			ono3d.setTargetMatrix(0);
 			ono3d.loadIdentity();
-			//ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
+
 
 			//物理シミュオブジェクトの設定
-			t.phyObjs= O3o.createPhyObjs(o3o.scenes[0],onoPhy);
+			//t.phyObjs= O3o.createPhyObjs(o3o.scenes[0],onoPhy);
+			//for(var i=0;i<t.phyObjs.length;i++){
+			//	onoPhy.addPhyObj(t.phyObjs[i]);
+			//}
+
+			for(var i=0;i<instance.objectInstances.length;i++){
+				if(instance.objectInstances[i].phyObj){
+					onoPhy.addPhyObj(instance.objectInstances[i].phyObj);
+				}
+				if(instance.objectInstances[i].joint){
+					onoPhy.addJoint(instance.objectInstances[i].joint);
+				}
+			}
 
 
 
@@ -187,9 +203,12 @@ Engine.goClass.main= (function(){
 			var targetPhyObj = null;
 			var res2={};
 			var goField = Engine.go.field;
+
+			var instance =globalParam.instance;
 			var phyObjs = goField.phyObjs;
-			for(var i=0;i<phyObjs.length;i++){
-				var phyObj = phyObjs[i];
+			for(var i=0;i<instance.objectInstances.length;i++){
+				var phyObj = instance.objectInstances[i].phyObj;
+				if(!phyObj)continue;
 				if(phyObj.type===OnoPhy.CLOTH){
 					var res={};
 					var z = phyObj.rayCast(res,p0,p1);

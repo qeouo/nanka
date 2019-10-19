@@ -91,6 +91,688 @@ var O3o=(function(){
 		ono3d=a;
 	}
 
+	var O3oInstance=(function(){
+		var ret = O3oInstance = function(o3o){
+			this.objectInstances=[];
+			var objects = o3o.objects;
+			for(var i=0;i<objects.length;i++){
+				var object=objects[i];
+				object.idx=i;
+				var instance = new SceneObjectInstance(object);
+				instance.o3oInstance= this;
+				instance.phyObj= O3o.createPhyObj(object);
+				this.objectInstances.push(instance);
+			}
+
+			for(var i=0;i<objects.length;i++){
+				if(objects[i].rigid_body_constraint){
+					//ジョイント作成
+					var joint=O3o.createPhyJoint2(objects[i],this.objectInstances);
+					this.objectInstances[i].joint=joint;
+				}
+			}
+			this.o3o= o3o;
+			
+		}
+		ret.prototype.calcMatrix = function(){
+			for(var i=0;i<this.objectInstances.length;i++){
+				this.objectInstances[i].resetMatrix();
+			}
+			for(var i=0;i<this.objectInstances.length;i++){
+				this.objectInstances[i].calcMatrix();
+			}
+
+		}
+		return ret;
+	})();
+	ret.prototype.createInstance = function(){
+		return new O3oInstance(this);
+	}
+	
+	var SceneObjectInstance=(function(){
+		var ret = SceneObjectInstance= function(object){
+			this.object=object;
+			this.matrix = new Mat43();
+			this.boneMatrices=[];
+			this.boneFlgs=[];
+			if(object.objecttype===OBJECT_ARMATURE){
+				var bones = object.data.bones;
+				for(var i=0;i<bones.length;i++){
+					this.boneMatrices.push(new Mat43());
+					this.boneFlgs.push(false);
+				}
+			}
+		}
+		ret.prototype.resetMatrix=function(){
+			this.flg=false;
+			for(var i=0;i<this.boneFlgs.length;i++){
+				this.boneFlgs[i]=false;
+			}
+		}
+		ret.prototype.calcBoneMatrix=function(n){
+			if(this.boneFlgs[n]){
+				//計算済み
+				return;
+			}
+
+			var matrix = this.boneMatrices[n];
+			var object = this.object;
+			var bone = object.data.bones[n];
+			var poseBone = object.pose.poseBones[n];
+			if(poseBone.flg){
+				return;//計算済み
+			}
+
+			genMatrix(matrix,poseBone); //ボーンの姿勢から行列を作成
+
+			Mat43.dot(matrix,bone.matrix,matrix);//初期姿勢掛ける
+
+			if(bone.parent){
+				var m=bone.parent.id;
+				this.calcBoneMatrix(m);
+				Mat43.dot(matrix,this.boneMatrices[m],matrix); //親行列掛ける
+			}
+			
+			if(object.poseBones){
+				var poseBone_ = object.poseBones[n];
+				for(var i=0;i<poseBone_.constraints.length;i++){
+					var constraint =poseBone_.constraints[i];
+					switch(constraint.type){
+					case "COPY_ROTATION":
+						var target = this.o3oInstance.objectInstances[constraint.target.idx];
+						target.calcMatrix();
+
+						Mat33.copy(matrix,target.matrix); //角度を強制的に設定
+						break;
+
+					}
+				}
+			}
+
+			Mat43.dot(matrix,matrix,bone.imatrix); //初期姿勢逆行列
+
+			poseBone.flg=true;
+		}
+		ret.prototype.calcMatrix=function(){
+			if(this.flg){
+				return;
+			}
+			var obj = this.object;
+			var matrix = this.matrix;
+			var phyObj = this.phyObj;
+			var o3oInstance = this.o3oInstance;
+
+			if(phyObj){
+				if(!phyObj.fix & phyObj.type===OnoPhy.RIGID){
+					//fixでない剛体の場合はそれに合わせる
+					Mat43.copy(matrix,phyObj.matrix);
+					this.flg=true;
+					return;
+				}
+			}
+
+			if(obj.rotation_mode===QUATERNION){
+				Mat43.fromLSR(matrix,obj.location,obj.scale,obj.rotation);
+			}else{
+				Mat43.fromLSE(matrix,obj.location,obj.scale,obj.rotation);
+			}
+			for(var i=0;i<this.boneMatrices.length;i++){
+				this.calcBoneMatrix(i);
+			}
+
+
+			if(obj.parent){
+				var parent=obj.parent;
+				var parentInstance = o3oInstance.objectInstances[parent.idx];
+				parentInstance.calcMatrix();
+
+				if(obj.parent_bone){
+					var i=this.parent_bone-1;
+					this.matrix[11]-=parent.data.bones[i].length;
+					Mat43.dot(matrix,parent.data.bones[i].matrix,mat);
+					Mat43.dot(matrix,parentInstance.boneMatrices[i],matrix);
+				}else{
+					Mat43.dot(matrix,obj.iparentmatrix,matrix);
+				}
+				Mat43.dot(matrix,parentInstance.matrix,matrix);
+			}
+			this.flg=true;
+		}
+
+	ret.prototype.modArmature=function(dst,mod){
+		var bufMesh = dst;
+		var bufMeshVertices =bufMesh.vertices
+		var renderVertex;
+		var groupMatrix;
+		var groupName;
+		var x,y,z;
+		var obj = this.object;
+
+		var ratio,pos,vertex;
+		var groups=obj.groups;
+
+		var bM = Mat43.poolAlloc();
+		var bM2 = Mat43.poolAlloc();
+		Mat43.getInv(bM2,mod.object.mixedmatrix);
+		Mat43.dot(bM,bM2,obj.mixedmatrix);
+		Mat43.getInv(bM2,bM);
+
+		var bones = mod.object.data.bones;
+		var boneMatrices=this.o3oInstance.objectInstances[mod.object.idx].boneMatrices;
+
+
+
+		for(var j=groups.length;j--;){
+			groupMatFlg[j] = false;
+			groupName=groups[j];
+			groupMatrix = groupMatricies[j];
+			for(var k=0,kmax=bones.length;k<kmax;k++){
+				if(bones[k].name!=groupName)continue
+				groupMatFlg[j] = true;
+				Mat43.dot(groupMatrix,boneMatrices[k],bM);
+				Mat43.dot(groupMatrix,bM2,groupMatrix);
+				break
+			}
+		}
+		var bV0=Vec3.poolAlloc();
+		for(var k = 0;k<bufMesh.vertexSize;k++){
+			pos = bufMeshVertices[k].pos
+			vertex = bufMeshVertices[k];
+			var vertexGroups = vertex.groups;
+
+			x=0;
+			y=0;
+			z=0;
+			var ratiosum=0;
+			for(var j = vertexGroups.length;j--;){
+				if(vertexGroups[j]<0)continue;
+				if(!groupMatFlg[vertexGroups[j]]){
+					continue;
+				}
+				ratio=vertex.groupWeights[j]
+				Mat43.dotVec3(bV0,groupMatricies[vertexGroups[j]],pos)
+				
+				x +=  bV0[0] * ratio
+				y +=  bV0[1] * ratio
+				z +=  bV0[2] * ratio
+				ratiosum+=ratio;
+			}
+			if(ratiosum>0){
+				ratiosum=1.0/ratiosum;
+				pos[0] =  x * ratiosum;
+				pos[1] =  y * ratiosum;
+				pos[2] =  z * ratiosum;
+			}else{
+				if(mod.vertex_group >=0){
+					Mat43.dotVec3(pos,groupMatricies[mod.vertex_group],pos)
+				}
+			}
+		}
+		Vec3.poolFree(1);
+		Mat43.poolFree(2);
+	}
+	ret.prototype.calcModifiers=function(dst){
+		var flg=0;
+		var obj = this.object;
+		for(var i=0,imax=obj.modifiers.length;i<imax;i++){
+			var mod=obj.modifiers[i];
+			if(mod.type!="MIRROR" && flg){
+				continue;
+			}
+			if(mod.type=="MIRROR"){
+				flg|=modMirror(dst,obj,mod);
+			}else if(mod.type=="ARMATURE"){
+				flg|=this.modArmature(dst,mod);
+			}else if(mod.type=="MESH_DEFORM"){
+				flg|=modMeshDeform(dst,obj,mod);
+			}
+		}
+		return flg;
+	}
+	ret.prototype.freezeMesh = function(dst){
+		//モデファイアとワールド行列を反映
+		var obj = this.object;
+		copyMesh(dst,obj.data);
+		var defMat = Mat43.poolAlloc();
+		
+
+		var flg=false;
+
+		var phyObj = null;
+
+		phyObj = this.phyObj;
+		if(phyObj){
+			if(phyObj.type===OnoPhy.SPRING_MESH || phyObj.type===OnoPhy.CLOTH){
+				for(var j=phyObj.points.length;j--;){
+					Vec3.copy(dst.vertices[j].pos,phyObj.points[j].location);
+				}
+				flg =true;
+			}
+		}
+		
+		var bufdata=obj.data;
+		flg|=this.calcModifiers(dst);
+
+
+		if(!flg){
+			//既に頂点単位で計算された場合はこの座標変換は行わない
+			Mat43.dotMat44Mat43(defMat,ono3d.worldMatrix,this.matrix);
+
+			var bufMeshVertices=dst.vertices;
+			var mat0=defMat[0];
+			var mat1=defMat[1];
+			var mat2=defMat[2];
+			var mat3=defMat[3];
+			var mat4=defMat[4];
+			var mat5=defMat[5];
+			var mat6=defMat[6];
+			var mat7=defMat[7];
+			var mat8=defMat[8];
+			var mat9=defMat[9];
+			var mat10=defMat[10];
+			var mat11=defMat[11];
+
+			for(var i=0;i<dst.vertexSize;i++){
+				var pos=bufMeshVertices[i].pos;
+				var x=pos[0];
+				var y=pos[1];
+				var z=pos[2];
+				pos[0]=mat0*x + mat3*y + mat6*z + mat9;
+				pos[1]=mat1*x + mat4*y + mat7*z + mat10;
+				pos[2]=mat2*x + mat5*y + mat8*z + mat11;
+			}
+		}
+
+		Mat43.poolFree(1);
+	}
+	ret.prototype.draw= function(environment,environment2,envratio){
+		var obj = this.object;
+		if(obj.type !== "MESH"){
+			return null;
+		}
+
+		var o3o = obj.o3o;
+		
+		//マテリアルインデックステーブルにセット
+		materialTable[0]=setMaterial(defaultMaterial,"defaultMaterial");
+		var materials = o3o.materials;
+		for(var i=0;i<materials.length;i++){
+			materialTable[i+1]=setMaterial(materials[i],o3o.name+"_"+materials[i].name);
+		}
+
+		if(!environment){
+			//環境情報がない場合はデフォルトをセット
+			environment = ono3d.environments[0];
+			envratio=0.0;
+		}
+		if(!environment2){
+			environment2 = ono3d.environments[0];
+		}
+
+		this.freezeMesh(bufMesh); //モデファイア適用
+
+		var bufMeshVertices=bufMesh.vertices;
+		var renderVertices =ono3d.verticesFloat32Array;
+		var rvIndex=ono3d.vertices_index;
+		var renderFaces=ono3d.faces;
+		var rfIndex=ono3d.faces_index;
+		var rfCount=0;
+		var renderMaterials=ono3d.materials;
+		var face,renderFace;
+		var smoothing=ono3d.smoothing;
+		var offsetx=0,offsety=0;
+
+		var uv;
+
+		var uv_layerdata;
+		var lightMapUvData;
+		if(bufMesh.uv_layerSize){
+			//uv指定ありの場合はレイヤを設定(0番固定)
+			uv_layerdata=bufMesh.uv_layers[0].data;
+			lightMapUvData=bufMesh.uv_layers[0].data;
+		}
+		if(bufMesh.uv_layerSize>=2){
+			//uvが2つ以上ある場合は2個目も設定
+			lightMapUvData=bufMesh.uv_layers[1].data;
+		}
+
+
+		//面の法線計算
+		var vertices=bufMesh.vertices;
+		var faces=bufMesh.faces;
+		for(var i=0;i<bufMesh.faceSize;i++){
+			var n = faces[i].normal;
+			var idx=faces[i].idx;
+			if(faces[i].idxnum==3){
+				Vec3.cross2(n
+					,vertices[idx[0]].pos
+					,vertices[idx[1]].pos
+					,vertices[idx[2]].pos);
+			}else{
+				Vec3.cross3(n
+					,vertices[idx[0]].pos
+					,vertices[idx[2]].pos
+					,vertices[idx[1]].pos
+					,vertices[idx[3]].pos);
+			}
+			Vec3.norm(n);
+		}
+		//if( ono3d.smoothing>0){
+		if( obj.data.use_auto_smooth ){
+			//スムーシングする場合頂点法線セット
+
+			for(var i = 0;i<bufMesh.vertexSize;i++){
+				//Vec3.set(vertices[i].normal,0,0,0);
+				vertices[i].normal.fill(0);
+			}
+			for(var i=0;i<bufMesh.faceSize;i++){
+				var idx=faces[i].idx;
+				var fn=faces[i].normal;
+				var n=vertices[idx[0]].normal;
+				Vec3.add(n,n,fn);
+				n=vertices[idx[1]].normal;
+				Vec3.add(n,n,fn);
+				n=vertices[idx[2]].normal;
+				Vec3.add(n,n,fn);
+				if(faces[i].idxnum==4){
+					n=vertices[idx[3]].normal;
+					Vec3.add(n,n,fn);
+				}
+			}
+
+			for(var i = bufMesh.vertexSize;i--;){
+				Vec3.norm(vertices[i].normal);
+			}
+			smoothing=1;
+		}else{
+			smoothing=0;
+		}
+
+		var bspTree = environment.bspTree;
+		var lightProbeEnv=environment;
+		if(!bspTree){
+			bspTree = ono3d.environments[0].bspTree;
+			lightProbeEnv=ono3d.environments[0];
+		}
+		if(bspTree){
+			for(var i = bufMesh.vertexSize;i--;){
+				var vertex=vertices[i];
+
+				var hitTriangle = bspTree.getItem(vertex.pos);
+				vertex.hitTriangle=hitTriangle;
+				if(!hitTriangle){
+					continue;
+				}
+
+				var bsps=hitTriangle.bsps;
+				for(var k=0;k<4;k++){
+					bufMesh.ratios[i][k]=Vec3.dot(bsps[k].v,vertex.pos)-bsps[k].m;
+				}
+			}
+		}
+
+		var ii=rfIndex;
+		var jj=rvIndex*20;
+		var svec=Vec3.poolAlloc();
+		var tvec=Vec3.poolAlloc();
+		var color=Vec3.poolAlloc();
+		var normal = Vec3.poolAlloc();
+		for(var i=0;i<bufMesh.faceSize;i++){
+			//フェイスをレンダー用バッファに格納
+			face=faces[i];
+			var idx=face.idx;
+
+			for(var j=0;j<face.idxnum-2;j++){
+				//三角単位でレンダー用バッファに格納
+				renderFace = renderFaces[ii];
+				ii++;
+				rfCount++;
+			
+				//renderFace.rf = Ono3d.RF_OUTLINE * (1-face.fs);
+
+				//renderFace.smoothing = smoothing;
+				//Vec3.copy(facenormal,face.normal);
+				var facenormal=face.normal;
+				//buff[envratioindex+vindex]=renderface.environmentRatio ;
+
+				renderFace.material= ono3d.materials[materialTable[face.mat+1]];
+				renderFace.environments[0] = environment;
+				renderFace.environments[1] = environment2;
+				renderFace.environmentRatio = envratio;
+
+				uv=null;
+				if(face.mat>=0 && uv_layerdata){
+					//uv値セット　オフセット分もたす
+					offsetx=renderFace.material.offsetx;
+					offsety=renderFace.material.offsety;
+					uv = uv_layerdata[i];
+				}
+				var uv2=null;
+				if(lightMapUvData){
+					uv2 = lightMapUvData[i];
+				}
+
+
+				Vec3.set(svec,-facenormal[1],facenormal[2],facenormal[0]);
+				Vec3.set(tvec,facenormal[2],-facenormal[0],facenormal[1]);
+				if(renderFace.material.hightMap){
+					Ono3d.calcST(svec,tvec
+						,vertices[idx[0]].pos
+						,vertices[idx[1+j]].pos
+						,vertices[idx[2+j]].pos
+						,uv[0]
+						,uv[1]
+						,uv[(1+j)*2]
+						,uv[(1+j)*2+1]
+						,uv[(2+j)*2]
+						,uv[(2+j)*2+1]
+					)
+				}
+				renderFace.vertices[0]=rvIndex;
+				renderFace.vertices[1]=rvIndex+1;
+				renderFace.vertices[2]=rvIndex+2;
+
+				//頂点
+				var vertex=vertices[j];
+				var nx=face.normal[0]*(1-smoothing);
+				var ny=face.normal[1]*(1-smoothing);
+				var nz=face.normal[2]*(1-smoothing);
+				var vidx=[0,1+j,2+j];
+				for(var k=0;k<3;k++){
+					var id = idx[vidx[k]];
+					var vertex=vertices[id];
+					renderVertices[jj]=vertex.pos[0];
+					renderVertices[jj+1]=vertex.pos[1];
+					renderVertices[jj+2]=vertex.pos[2];
+					renderVertices[jj+3]=normal[0]=vertex.normal[0]*smoothing + nx;
+					renderVertices[jj+4]=normal[1]=vertex.normal[1]*smoothing + ny;
+					renderVertices[jj+5]=normal[2]=vertex.normal[2]*smoothing + nz;
+					renderVertices[jj+6]=svec[0];
+					renderVertices[jj+7]=svec[1];
+					renderVertices[jj+8]=svec[2];
+					renderVertices[jj+9]=tvec[0];
+					renderVertices[jj+10]=tvec[1];
+					renderVertices[jj+11]=tvec[2];
+
+					if(uv){
+						renderVertices[jj+12]=uv[vidx[k]*2]+offsetx;
+						renderVertices[jj+13]=uv[vidx[k]*2+1]+offsety;
+					}
+					renderVertices[jj+14]=renderFace.environmentRatio;
+					if(uv2){
+						renderVertices[jj+15]=uv2[vidx[k]*2]+offsetx;
+						renderVertices[jj+16]=uv2[vidx[k]*2+1]+offsety;
+					}
+					//calcEnv(color,normal,vertex,environment,bufMesh.ratios[id]);
+					calcSH(color,normal,vertex,lightProbeEnv,bufMesh.ratios[id]);
+					renderVertices[jj+17]=color[0];
+					renderVertices[jj+18]=color[1];
+					renderVertices[jj+19]=color[2];
+
+					//renderVertices.set(vertex.pos,jj);
+					//renderVertices.set(normal,jj+3);
+					//renderVertices.set(svec,jj+6);
+					//renderVertices.set(tvec,jj+9);
+					//renderVertices.set(color,jj+17);
+					
+					rvIndex++;
+					jj+=20;
+				}
+			}
+		}
+
+		if( ono3d.rf  & Ono3d.RF_OUTLINE && 0){
+			//アウトライン作成
+			var bufFace,normal;
+			var bM44 = Mat44.poolAlloc();
+			Mat44.getInv(bM44,ono3d.viewMatrix);
+			var cp0=bM44[12];
+			var cp1=bM44[13];
+			var cp2=bM44[14];
+			Mat44.poolFree(1);
+			for(i=0;i<rfCount;i++){
+				bufFace = faces[i];
+				if(1-face.fs){
+					normal=bufFace.normal;
+					var idx=bufFace.idx;
+					if((vertices[idx[0]].pos[0]-cp0)*normal[0]
+					 + (vertices[idx[1]].pos[1]-cp1)*normal[1]
+					 + (vertices[idx[2]].pos[2]-cp2)*normal[2]<0){
+						bufFace.cul=1; //表
+					}else{
+						bufFace.cul=-1; //裏
+					}	
+				}else{
+					bufFace.cul=0; //アウトライン非対象
+				}
+
+			}
+
+			//アウトライン用マテリアル作成
+			var renderMaterial = ono3d.materials[ono3d.materials_index];
+			ono3d.materials_index++;
+			var renderMateriala = ono3d.materials[ono3d.materials_index];
+			ono3d.materials_index++;
+
+			Vec3.copy(renderMaterial.baseColor, ono3d.lineColor);
+			renderMaterial.opacity = 1.0;//ono3d.lineColor[3];
+			renderMaterial.shader="lineshader";
+			renderMaterial.bold = ono3d.lineWidth;
+			Vec3.copy(renderMateriala.baseColor, ono3d.lineColor);
+			renderMateriala.opacity = ono3d.lineColor[3]*0.99;
+			renderMateriala.shader="lineshader";
+			renderMateriala.bold = ono3d.lineWidth;
+
+			var edges=bufMesh.edges;
+			var lines_index=ono3d.lines_index;
+			var renderLines=ono3d.lines;
+			var vertex_current = ono3d.vertices_index;
+			for(i=0;i<bufMesh.edgeSize;i++){
+				//エッジをアウトラインとして描画するかどうかの判定
+				var edge=edges[i];
+				var renderMat = renderMaterial;
+
+				if(edge.fIndices[0]<0)continue; //エッジが属する面が存在しない場合はスキップ
+				if(edge.fIndices[1]<0){ //属面が1こだけの場合、その面が表でないならスキップ
+					var mat0 = ono3d.materials[materialTable[faces[edge.fIndices[0]].mat+1]]
+					if(faces[edge.fIndices[0]].cul<1)continue;
+					if(mat0.opacity !== 1.0){
+						renderMat = renderMateriala;
+					}
+
+				}else{ //属面が2つある場合、裏表の境界になる場合以外はスキップ
+					if(faces[edge.fIndices[0]].cul
+						* faces[edge.fIndices[1]].cul > -1)continue;
+					var mat0 = ono3d.materials[materialTable[faces[edge.fIndices[0]].mat+1]]
+					var mat1 = ono3d.materials[materialTable[faces[edge.fIndices[1]].mat+1]]
+					if(mat0.opacity !== 1.0
+					|| mat1.opacity !== 1.0){
+						renderMat = renderMateriala;
+					}
+				}
+
+				//線描画追加
+				var renderLine =renderLines[lines_index];
+				renderLine.material=renderMat;
+				lines_index++;
+				var renderVertex=renderVertices[jj];
+				Vec3.copy(renderVertex.pos,vertices[edge.vIndices[0]].pos);
+				renderLine.vertices[0] = renderVertex;
+				jj++;
+				renderVertex=renderVertices[jj];
+				Vec3.copy(renderVertex.pos,vertices[edge.vIndices[1]].pos);
+				renderLine.vertices[1] = renderVertex;
+				jj++;
+			}
+			ono3d.lines_index=lines_index;
+			
+		}
+
+
+		ono3d.vertices_index=rvIndex;
+		ono3d.faces_index+=rfCount;
+		
+		Vec3.poolFree(4);
+		return;
+		
+	}
+
+	ret.prototype.movePhyObj = function(dt,flg){
+		var object = this.object;
+		var phyObj= this.phyObj;
+		if(!phyObj)return;
+		
+
+		if(phyObj.type===OnoPhy.CLOTH){
+			var truepos=phyObj.truepos;
+			var bufMeshVertices=bufMesh.vertices;
+			freezeMesh(bufMesh,object,null);
+
+			var mat=Mat43.poolAlloc();
+			var rotq = phyObj.rotq;
+			//Mat43.dotMat44Mat43(mat,ono3d.worldMatrix,object.mixedmatrix);
+			//Mat43.toLSR(phyObj.location,phyObj.scale,phyObj.rotq,mat);
+
+			if(flg){
+				for(var i=0,imax=phyObj.points.length;i<imax;i++){
+					Vec3.copy(phyObj.points[i].location,bufMeshVertices[i].pos);
+					Vec3.set(phyObj.points[i].v,0,0,0);
+					Vec4.copy(phyObj.points[i].rotq,rotq);
+				}
+			}else{
+				for(var i=0,imax=phyObj.points.length;i<imax;i++){
+					if(phyObj.points[i].fix){
+						Vec3.copy(phyObj.points[i].location,bufMeshVertices[i].pos);
+						Vec3.set(phyObj.points[i].v,0,0,0);
+						Vec4.copy(phyObj.points[i].rotq,rotq);
+					}
+				}
+			}
+			Mat43.poolFree(1);
+		}else{
+			if(phyObj.fix || flg){
+				Vec3.set(phyObj.v,0,0,0);
+				Vec3.copy(phyObj.v,phyObj.location);
+				Vec3.set(phyObj.rotV,0,0,0);
+
+			
+				Mat43.dotMat44Mat43(phyObj.matrix,ono3d.worldMatrix,this.matrix);
+				Mat43.toLSR(phyObj.location,phyObj.scale,phyObj.rotq,phyObj.matrix);
+
+				if(dt !=0){
+					Vec3.sub(phyObj.v,phyObj.location,phyObj.v);
+					Vec3.mul(phyObj.v,phyObj.v,1/dt);
+				}else{
+					Vec3.mul(phyObj.v,phyObj.v,0);
+				}
+				phyObj.calcPre();
+			}
+		}
+	}
+		return ret;
+	})();
+
+
 	var Scene = (function(){
 		var Scene=function(){
 			//シーン
@@ -140,6 +822,7 @@ var O3o=(function(){
 		}
 		return ret;
 	})();
+
 	var SceneObject = (function(){
 		var SceneObject = function(){
 			this.name="";//オブジェクト名
@@ -2280,12 +2963,13 @@ var O3o=(function(){
 		if(obj.rigid_body.type){
 			var rigid=obj.rigid_body;
 			var shape = rigid.collision_shape;
-			phyobj=onoPhy.createRigidBody();
+			phyobj = new OnoPhy.RigidBody();
+			//phyobj=onoPhy.createRigidBody();
 
 			var collision = O3o.createCollision(obj);
 			phyobj.collision=collision;
 			if(collision){
-				onoPhy.collider.addCollision(collision);
+				//onoPhy.collider.addCollision(collision);
 				if(collision.type ===Collider.MESH || collision.type ===Collider.CONVEX_HULL){
 					phyobj.mesh = obj.data;
 				}
@@ -2337,7 +3021,7 @@ var O3o=(function(){
 					phyobj.bending_stiffness = mod.bend;//構造
 				}	
 
-				onoPhy.clothes.push(phyobj);
+				//onoPhy.clothes.push(phyobj);
 
 
 				//点
@@ -2392,7 +3076,114 @@ var O3o=(function(){
 
 		return phyobj;
 	}
-	var createPhyJoint= ret.createPhyJoint = function(sceneObject,phyObjs,onoPhy){
+	var createPhyJoint2 = ret.createPhyJoint2 = function(sceneObject,objectInstances){
+		var search=function(name){
+			//物理オブジェクト一覧から名前で探す
+			for(var j=0;j<objectInstances.length;j++){
+				if(name == objectInstances[j].object.name){
+					return objectInstances[j].phyObj;
+				}
+			}
+			return null;
+		}
+		var rbc = sceneObject.rigid_body_constraint; //剛体コンストレイント情報
+
+		if(!rbc.enabled || !rbc.object1 || !rbc.object2){
+			//ジョイント情報無しもしくは不十分な場合は無視
+			return;
+		}
+
+		var joint = null;
+
+		//ジョイント作成
+		joint = new OnoPhy.Joint();//onoPhy.createJoint();
+		
+		//パラメータセット
+		joint.breaking_threshold=rbc.breaking_threshold;
+		joint.disable_collisions=rbc.disable_collisions;
+		joint.enabled=rbc.enabled ;
+		Vec3.copy(joint.limit_ang_lower,rbc.limit_ang_lower);
+		Vec3.copy(joint.limit_ang_upper,rbc.limit_ang_upper);
+		Vec3.copy(joint.limit_lin_lower,rbc.limit_lin_lower);
+		Vec3.copy(joint.limit_lin_upper,rbc.limit_lin_upper);
+		joint.motor_ang_max_impulse=rbc.motor_ang_max_impulse;
+		joint.motor_ang_target_velocity=rbc.motor_ang_target_velocity;
+		joint.motor_lin_max_impulse=rbc.motor_lin_max_impulse;
+		joint.motor_lin_target_velocity=rbc.motor_lin_target_velocity;
+		joint.object1=rbc.object1;
+		joint.object2=rbc.object2;
+		Vec3.copy(joint.spring_damping,rbc.spring_damping);
+		Vec3.copy(joint.spring_stiffness,rbc.spring_stiffness);
+		Vec3.copy(joint.spring_damping_ang,rbc.spring_damping_ang);
+		Vec3.copy(joint.spring_stiffness_ang,rbc.spring_stiffness_ang);
+		joint.use_breaking=rbc.use_breaking;
+		Vec3.copy(joint.use_limit_ang,rbc.use_limit_ang);
+		Vec3.copy(joint.use_limit_lin,rbc.use_limit_lin);
+		joint.use_motor_ang=rbc.use_motor_ang;
+		joint.use_motor_lin=rbc.use_motor_lin;
+		Vec3.copy(joint.use_spring,rbc.use_spring);
+		Vec3.copy(joint.use_spring_ang,rbc.use_spring_ang);
+
+		//ジョイントタイプによって制限を設ける
+		var flg=0;
+		if(rbc.type =="FIXED"){
+			flg=0x77;
+		}else if(rbc.type=="POINT"){
+			flg=0x07;
+		}else if(rbc.type=="HINGE"){
+			flg=0x57;
+		}else if(rbc.type=="SLIDER"){
+			flg=0x76;
+		}else if(rbc.type=="PISTON"){
+			flg=0x66;
+		}
+		for(var i=0;i<3;i++){
+			if((flg>>i)& 0x1){
+				joint.use_limit_lin[i]=1;
+				joint.limit_lin_upper[i]=0;
+				joint.limit_lin_lower[i]=0;
+			}
+			if((flg>>i) & 0x10){
+				joint.use_limit_ang[i]=1;
+				joint.limit_ang_upper[i]=0;
+				joint.limit_ang_lower[i]=0;
+			}
+		}	
+
+		if(rbc.type!="GENERIC_SPRING"){
+			Vec3.set(joint.use_spring,0,0,0);
+			Vec3.set(joint.use_spring_ang,0,0,0);
+		}
+		if(rbc.type=="MOTOR"){
+			Vec3.set(joint.use_limit_lin,0,0,0);
+			Vec3.set(joint.use_limit_ang,0,0,0);
+			Vec3.set(joint.use_spring,0,0,0);
+			Vec3.set(joint.use_spring_ang,0,0,0);
+		}else{
+			joint.use_motor_lin=0;
+			joint.use_motor_ang=0;
+		}
+
+		//ジョイント接続剛体設定
+		joint.object1 = search(joint.object1.name);
+		joint.object2 = search(joint.object2.name);
+
+		joint.parent=joint.object1;
+		joint.child=joint.object2;
+		var imat = new Mat43();
+
+		//接続差異行列設定
+		Mat43.getInv(imat,joint.parent.matrix);
+		Mat43.dot(joint.matrix,imat,sceneObject.matrix);
+
+		Mat43.getInv(imat,joint.child.matrix);
+		Mat43.dot(joint.matrix2,imat,sceneObject.matrix);
+		
+		
+		return joint;
+	}
+
+	var createPhyJoint= ret.createPhyJoint = function(sceneObject,phyObjs){
 		var search=function(name){
 			//物理オブジェクト一覧から名前で探す
 			for(var j=0;j<phyObjs.length;j++){
@@ -2413,7 +3204,7 @@ var O3o=(function(){
 		var phyObj = search(sceneObject.name); //ジョイント元オブジェクト
 
 		//ジョイント作成
-		joint = onoPhy.createJoint();
+		joint = new OnoPhy.Joint();//onoPhy.createJoint();
 		//phyObj.joint = joint;
 		
 		//パラメータセット
@@ -2498,6 +3289,7 @@ var O3o=(function(){
 		Mat43.dot(joint.matrix2,imat,sceneObject.matrix);
 		
 		
+		return joint;
 	}
 
 	var movePhyObj = ret.movePhyObj = function(phyObj,object,dt,flg){
@@ -2567,7 +3359,10 @@ var O3o=(function(){
 		for(var i=0;i<scene.objects.length;i++){
 			if(scene.objects[i].rigid_body_constraint){
 				//ジョイント作成
-				O3o.createPhyJoint(scene.objects[i],phyObjs,onoPhy);
+				var joint=O3o.createPhyJoint(scene.objects[i],phyObjs);
+				if(joint){
+					onoPhy.addJoint(joint);
+				}
 			}
 		}
 		return phyObjs;

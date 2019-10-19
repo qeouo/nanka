@@ -43,22 +43,26 @@ Engine.goClass.field= (function(){
 			}
 		}
 		scene.setFrame(this.t/60.0*60.0); //アニメーション処理
+		var instance=globalParam.instance;
+		instance.calcMatrix();
 
 
 
 		if(phyObjs && globalParam.physics){
 			//物理シミュ有効の場合は物理オブジェクトにアニメーション結果を反映させる
-			for(var i=0;i<phyObjs.length;i++){
+			//for(var i=0;i<phyObjs.length;i++){
+			//	var phyObj = phyObjs[i];
+			//	//物理オブジェクトにアニメーション結果を反映
+			//	//(前回の物理シミュ無効の場合は強制反映する)
+			//		O3o.movePhyObj(phyObj,phyObj.parent
+			//			,1.0/globalParam.fps
+			//			,!globalParam.physics_);
+			//}
+			for(var i=0;i<instance.objectInstances.length;i++){
 				var phyObj = phyObjs[i];
 				//物理オブジェクトにアニメーション結果を反映
 				//(前回の物理シミュ無効の場合は強制反映する)
-			//	if(phyObj.fix){
-					O3o.movePhyObj(phyObj,phyObj.parent
-						,1.0/globalParam.fps
-						,!globalParam.physics_);
-			//	}else{
-			//		Mat43.copy(phyObj.parent.mixedmatrix,phyObj.matrix);
-			//	}
+				instance.objectInstances[i].movePhyObj(1.0/globalParam.fps,!globalParam.physics_);
 			}
 		}
 
@@ -170,20 +174,20 @@ Engine.goClass.field= (function(){
 				}
 				cuboidcol.refresh();
 				var l = 1;
-				if(AABB.hitCheck(camera.cameracol.aabb,cuboidcol.aabb)){
-					//l=-1;
-					l = Collider.checkHit(camera.cameracol,cuboidcol);
-				}
-				var l2 = 1;
-				if(globalParam.shadow){
-					if(AABB.hitCheck(camera.cameracol2.aabb,cuboidcol.aabb)){
-						//l2=-1;
-						l2 = Collider.checkHit(camera.cameracol2,cuboidcol);
-					}
-				}
-				if(l>0 && l2>0){
-					continue;
-				}
+				//if(AABB.hitCheck(camera.cameracol.aabb,cuboidcol.aabb)){
+				//	//l=-1;
+				//	l = Collider.checkHit(camera.cameracol,cuboidcol);
+				//}
+				//var l2 = 1;
+				//if(globalParam.shadow){
+				//	if(AABB.hitCheck(camera.cameracol2.aabb,cuboidcol.aabb)){
+				//		//l2=-1;
+				//		l2 = Collider.checkHit(camera.cameracol2,cuboidcol);
+				//	}
+				//}
+				//if(l>0 && l2>0){
+				//	continue;
+				//}
 				ono3d.rf&=~Ono3d.RF_OUTLINE;
 				if(globalParam.outline_bold){
 					ono3d.lineWidth=globalParam.outline_bold;
@@ -214,11 +218,14 @@ Engine.goClass.field= (function(){
 				if(probs.hitListIndex>0){
 					env = ono3d.environments[1];
 				}
-				if(globalParam.physics){
-					O3o.drawObject(objects[i],phyObjs,env);
-				}else{
-					O3o.drawObject(objects[i],null,env);
-				}
+				var instance = globalParam.instance;
+				var objectInstance  = instance.objectInstances[objects[i].idx];
+				objectInstance.draw(env);
+//				if(globalParam.physics){
+//					O3o.drawObject(objects[i],phyObjs,env);
+//				}else{
+//					O3o.drawObject(objects[i],null,env);
+//				}
 			}
 		}
 		
