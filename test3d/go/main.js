@@ -38,35 +38,19 @@ Engine.goClass.main= (function(){
 			Engine.go.field=objMan.createObj(Engine.goClass.field);
 			var t = Engine.go.field;
 
-
-
 			var scene= o3o.scenes[0];
 			Engine.skyTexture = scene.world.envTexture;
 
 			scene.setFrame(0); //アニメーション処理
-
-			var instance = o3o.createInstance();
-			instance.calcMatrix();
+			instance = o3o.createInstance(); //インスタンス作成
+			Engine.go.field.instance=instance;
+			instance.calcMatrix(0,true);
 			globalParam.instance=instance;
 
 			ono3d.setTargetMatrix(0);
 			ono3d.loadIdentity();
 
-
-			//物理シミュオブジェクトの設定
-			//t.phyObjs= O3o.createPhyObjs(o3o.scenes[0],onoPhy);
-			//for(var i=0;i<t.phyObjs.length;i++){
-			//	onoPhy.addPhyObj(t.phyObjs[i]);
-			//}
-
-			for(var i=0;i<instance.objectInstances.length;i++){
-				if(instance.objectInstances[i].phyObj){
-					onoPhy.addPhyObj(instance.objectInstances[i].phyObj);
-				}
-				if(instance.objectInstances[i].joint){
-					onoPhy.addJoint(instance.objectInstances[i].joint);
-				}
-			}
+			instance.joinPhyObj(onoPhy);
 
 
 
@@ -92,14 +76,15 @@ Engine.goClass.main= (function(){
 			var co=  scene.objects.find(function(a){
 				return a.name==this;
 			},"Camera");
+			co = instance.objectInstances[co.idx];
 			if(co){
-				goCamera.p[0]=co.mixedmatrix[9];
-				goCamera.p[1]=co.mixedmatrix[10];
-				goCamera.p[2]=co.mixedmatrix[11];
+				goCamera.p[0]=co.matrix[9];
+				goCamera.p[1]=co.matrix[10];
+				goCamera.p[2]=co.matrix[11];
 				Mat44.dotVec3(goCamera.p,ono3d.worldMatrix,goCamera.p);
-				goCamera.a[0]=co.mixedmatrix[3];
-				goCamera.a[1]=co.mixedmatrix[4];
-				goCamera.a[2]=co.mixedmatrix[5];
+				goCamera.a[0]=co.matrix[3];
+				goCamera.a[1]=co.matrix[4];
+				goCamera.a[2]=co.matrix[5];
 				Mat44.dotVec3(goCamera.a,ono3d.worldMatrix,goCamera.a);
 				goCamera.target[0] = goCamera.p[0] - goCamera.a[0]* goCamera.p[2]/goCamera.a[2];
 				goCamera.target[1] =  goCamera.p[1] - goCamera.a[1]* goCamera.p[2]/goCamera.a[2];
