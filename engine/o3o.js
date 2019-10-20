@@ -1656,6 +1656,7 @@ var O3o=(function(){
 			phyobj.restitution=rigid.restitution;
 			phyobj.mass = rigid.mass;
 			phyobj.name=obj.name;
+			Mat43.toLSR(phyobj.location,phyobj.scale,phyobj.rotq,instance.o3oInstance.objectInstances[obj.idx].matrix);
 
 		}
 		for(var i=0;i<obj.modifiers.length;i++){

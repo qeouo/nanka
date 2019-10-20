@@ -1,5 +1,6 @@
 Engine.goClass["jiki"]= (function(){
 	var ono3d = Engine.ono3d;
+	var onoPhy=Engine.onoPhy;
 	var groundNormal = new Vec3();
 	var groundVelocity = new Vec3();
 	var poJiki = null;
@@ -21,7 +22,7 @@ Engine.goClass["jiki"]= (function(){
 		Vec4.fromRotVector(this.rotq,-Math.PI*0.5,1,0,0);
 
 		var t=this;
-		obj3d = AssetManager.o3o("human.o3o",function(obj3d){
+		obj3d = AssetManager.o3o("human.o3o?5",function(obj3d){
 			var o3o= obj3d;
 			for(var i=0;i<obj3d.objects.length;i++){
 				var object=obj3d.objects[i];
@@ -40,13 +41,23 @@ Engine.goClass["jiki"]= (function(){
 			ono3d.loadIdentity();
 			//ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
 			ono3d.translate(obj.p[0],obj.p[1],obj.p[2]);
-			t.phyObjs= O3o.createPhyObjs(o3o.scenes[0],Engine.onoPhy);
+			t.instance= o3o.createInstance();
+			t.instance.joinPhyObj(onoPhy);
+
+			jiki=t.instance.objectInstances[jiki.idx];
+			human=t.instance.objectInstances[human.idx];
+
+
 			t.collisions=[];
 			t.collisions.push(O3o.createCollision(jumpC));
-			poJiki = t.phyObjs.find(function(o){return o.name ==="jiki"});
+			jumpC=t.instance.objectInstances[jumpC.idx];
+			poJiki = jiki.phyObj;//t.phyObjs.find(function(o){return o.name ==="jiki"});
 			Vec3.copy(poJiki.location,t.p);
 			Mat33.set(poJiki.inertiaTensorBase,1,0,0,0,1,0,0,0,1);
 			Mat33.mul(poJiki.inertiaTensorBase,poJiki.inertiaTensorBase,99999999);
+
+			t.instance.calcMatrix(1.0/globalParam.fps,0,true);
+
 
 			poJiki.collision.groups|=3;
 			poJiki.collision.callbackFunc=function(col1,col2,pos1,pos2){
@@ -126,32 +137,32 @@ Engine.goClass["jiki"]= (function(){
 		var jump=false;
 
 		if(this.ground){
-			var jumpCollision= this.collisions.find(function(o){return o.name ==="_jumpCollision"});
-			if(jumpCollision){
+	//		var jumpCollision= this.collisions.find(function(o){return o.name ==="_jumpCollision"});
+	//		if(jumpCollision ){
 
-				var m = Mat43.poolAlloc();
-				ono3d.setTargetMatrix(0)
-				ono3d.loadIdentity();
-				Mat43.fromLSR(m,poJiki.location,poJiki.scale,poJiki.rotq);
-				Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
+	//			var m = Mat43.poolAlloc();
+	//			ono3d.setTargetMatrix(0)
+	//			ono3d.loadIdentity();
+	//			Mat43.fromLSR(m,poJiki.location,poJiki.scale,poJiki.rotq);
+	//			Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
 
-				Mat43.getInv(m,jiki.mixedmatrix);
-				Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
-				Mat43.poolFree(1);
+	//			Mat43.getInv(m,jiki.matrix);
+	//			Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
+	//			Mat43.poolFree(1);
 
-				O3o.moveCollision(jumpCollision,jumpC,ono3d)
-				var onoPhy = Engine.onoPhy;
-				var list = onoPhy.collider.checkHitAll(jumpCollision);
-				jump=true;
-				for(var i=0;i<onoPhy.collider.hitListIndex;i++){
-					if(list[i].col2.name !=="jiki"){
-						jump=false;
-					}
-				}
-			}
-			if(Util.keyflag[4]==1 && !Util.keyflagOld[4]){
-				jump=true;
-			}
+	//			//O3o.moveCollision(jumpCollision,jumpC,ono3d)
+	//			var onoPhy = Engine.onoPhy;
+	//			var list = onoPhy.collider.checkHitAll(jumpCollision);
+	//			jump=true;
+	//			for(var i=0;i<onoPhy.collider.hitListIndex;i++){
+	//				if(list[i].col2.name !=="jiki"){
+	//					jump=false;
+	//				}
+	//			}
+	//		}
+	//		if(Util.keyflag[4]==1 && !Util.keyflagOld[4]){
+	//			jump=true;
+	//		}
 		}
 		if(jump){
 				//ジャンプ力
@@ -215,15 +226,20 @@ Engine.goClass["jiki"]= (function(){
 			O3o.Pose.add(dst,referenceArmature,dst);
 			O3o.Pose.add(dst,sourceArmature,dst);
 
+			this.instance.calcMatrix(1.0/globalParam.fps);
+
 			Vec3.poolFree(1);
+			ono3d.setTargetMatrix(0);
 
 			ono3d.loadIdentity();
 			var m = Mat43.poolAlloc();
-			Mat43.fromLSR(m,poJiki.location,poJiki.scale,poJiki.rotq);
-			Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
+		//	Mat43.fromLSR(m,poJiki.location,poJiki.scale,poJiki.rotq);
+		//	Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
 
-			Mat43.getInv(m,jiki.mixedmatrix);
-			Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
+		//	Mat43.getInv(m,jiki.matrix);
+		//	Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
+
+
 
 			Mat43.setInit(col.matrix);
 			Mat43.mul(col.matrix,col.matrix,0);
@@ -240,18 +256,22 @@ Engine.goClass["jiki"]= (function(){
 				var ans2 = Vec3.poolAlloc();
 				a = Collider.calcClosest(ans1,ans2,l[0].col1,l[0].col2);
 				a = Math.min(-a*2.0,1.0);
-				O3o.drawObject(human,null,ono3d.environments[0],ono3d.environments[1],a);
-				O3o.drawObject(metalball,null,ono3d.environments[0],ono3d.environments[1],a);
+				human.draw(env);
+				//jiki.draw(env);
+				//O3o.drawObject(human,null,ono3d.environments[0],ono3d.environments[1],a);
+				//O3o.drawObject(metalball,null,ono3d.environments[0],ono3d.environments[1],a);
 				Vec3.poolFree(2);
 			}else{
-				O3o.drawObject(human,null,env,env,0.0);
-				O3o.drawObject(metalball,null,env,env,0.0);
+				human.draw();
+				//jiki.draw(env);
+				//O3o.drawObject(human,null,env,env,0.0);
+				//O3o.drawObject(metalball,null,env,env,0.0);
 			}
 
 			
 
 
-			O3o.drawObject(jumpC);
+			//jumpC.draw(env);
 			Mat43.poolFree(1);
 
 		}

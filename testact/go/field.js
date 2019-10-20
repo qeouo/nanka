@@ -10,9 +10,8 @@ Engine.goClass["field"]= (function(){
 	var o3o;
 	ret.prototype.init=function(){
 
-		o3o=O3o.load(fieldpath,function(o3o){
-				});
-		Engine.field=o3o;
+		o3o=O3o.load(fieldpath,function(o3o){ });
+		this.o3o=o3o;
 	}
 	ret.prototype.move=function(){
 		var camera = Engine.camera;
@@ -36,7 +35,8 @@ Engine.goClass["field"]= (function(){
 			Engine.skyTexture=scene.world.envTexture;
 
 			//物理シミュオブジェクトの設定
-			t.phyObjs= O3o.createPhyObjs(scene,onoPhy);
+			this.instance = o3o.createInstance();
+			this.instance.joinPhyObj(onoPhy);
 
 
 			var object = scene.objects.find(function(o){return o.name==="_border";});
@@ -124,7 +124,7 @@ Engine.goClass["field"]= (function(){
 				
 				var collision= new Collider.Cuboid;
 				Mat43.dotMat44Mat43(collision.matrix
-						,ono3d.worldMatrix,object.matrix);
+						,ono3d.worldMatrix,this.instance.objectInstances[i].matrix);
 				for(var i=0;i<9;i++){
 					collision.matrix[i]*=object.data.distance;
 				}
@@ -185,41 +185,42 @@ Engine.goClass["field"]= (function(){
 
 		var scene= o3o.scenes[0];
 		scene.setFrame(this.t/60.0*24); //アニメーション処理
+		this.instance.calcMatrix(1.0/globalParam.fps);
 
 
-		//コリジョンにアニメーション結果を反映させる
-		for(var i=0;i<this.collisions.length;i++){
-			var collision = this.collisions[i];
-			var object = o3o.objects.find(function(o){return o.name === collision.name;});
-			O3o.moveCollision(collision,object,ono3d)
-		}
+		////コリジョンにアニメーション結果を反映させる
+		//for(var i=0;i<this.collisions.length;i++){
+		//	var collision = this.collisions[i];
+		//	var object = o3o.objects.find(function(o){return o.name === collision.name;});
+		//	O3o.moveCollision(collision,object)
+		//}
 
 
-		if(phyObjs && globalParam.physics){
-			//物理シミュ有効の場合は物理オブジェクトにアニメーション結果を反映させる
-			for(var i=0;i<phyObjs.length;i++){
-				var phyObj = phyObjs[i];
-				//物理オブジェクトにアニメーション結果を反映
-				//(前回の物理シミュ無効の場合は強制反映する)
-				O3o.movePhyObj(phyObj,phyObj.parent
-					,1.0/globalParam.fps
-					,!globalParam.physics_);
-			}
-		}
+		//if(phyObjs && globalParam.physics){
+		//	//物理シミュ有効の場合は物理オブジェクトにアニメーション結果を反映させる
+		//	for(var i=0;i<phyObjs.length;i++){
+		//		var phyObj = phyObjs[i];
+		//		//物理オブジェクトにアニメーション結果を反映
+		//		//(前回の物理シミュ無効の場合は強制反映する)
+		//		O3o.movePhyObj(phyObj,phyObj.parent
+		//			,1.0/globalParam.fps
+		//			,!globalParam.physics_);
+		//	}
+		//}
 
-		for(var i=0;i<phyObjs.length;i++){
-			var phyObj = phyObjs[i];
-			var aabb;
-			if(phyObj.type===OnoPhy.CLOTH){
-				aabb = phyObj.aabb;
-			}else{
-				aabb = phyObj.collision.aabb;
-			}
-			if(aabb.max[1]<-10){
-				//リセット
-				O3o.movePhyObj(phyObj,phyObj.parent,0,true);
-			}
-		}
+		//for(var i=0;i<phyObjs.length;i++){
+		//	var phyObj = phyObjs[i];
+		//	var aabb;
+		//	if(phyObj.type===OnoPhy.CLOTH){
+		//		aabb = phyObj.aabb;
+		//	}else{
+		//		aabb = phyObj.collision.aabb;
+		//	}
+		//	if(aabb.max[1]<-10){
+		//		//リセット
+		//		O3o.movePhyObj(phyObj,phyObj.parent,0,true);
+		//	}
+		//}
 	}
 
 	ret.prototype.draw2=function(){
@@ -259,10 +260,10 @@ Engine.goClass["field"]= (function(){
 		//ono3d.rotate(-Math.PI*0.5,1,0,0)
 
 		ono3d.rf=0;
-		var field=Engine.field;
 		var camera=Engine.camera;
 
-		if(field){
+		if(this.instance){
+			var field=this.instance.o3o;
 			if(field.scenes.length>0){
 				var m43 = Mat43.poolAlloc();
 				var objects = field.scenes[0].objects;
@@ -270,41 +271,39 @@ Engine.goClass["field"]= (function(){
 					if(objects[i].hide_render){
 						continue;
 					}
-					var b =objects[i].bound_box;
-					Mat43.setInit(m43);
-					m43[0]=(b[3] - b[0])*0.5;
-					m43[4]=(b[4] - b[1])*0.5;
-					m43[8]=(b[5] - b[2])*0.5;
-					m43[9]=b[0]+m43[0];
-					m43[10]=b[1]+m43[4];
-					m43[11]=b[2]+m43[8];
-					var phyObj = null;
-					if(globalParam.physics){
-						var name = objects[i].name;
-						phyObj= phyObjs.find(function(a){return a.name===name});
-					}
-					if(phyObj){
-						Mat43.dot(cuboidcol.matrix,phyObj.matrix,m43);
-					}else{
-						Mat43.dot(m43,objects[i].mixedmatrix,m43);
-						Mat43.dotMat44Mat43(cuboidcol.matrix,ono3d.worldMatrix,m43);
-					}
-					Mat43.getInv(cuboidcol.inv_matrix,cuboidcol.matrix);
-					var l = Collider.checkHit(camera.cameracol,cuboidcol);
-					var l2 = 1;
-					if(globalParam.shadow){
-						if(AABB.hitCheck(camera.cameracol2.aabb,cuboidcol.aabb)){
-							l2 = Collider.checkHit(camera.cameracol2,cuboidcol);
-						}
-					}
-					if(l>0 && l2>0){
-						continue;
-					}
-					if(globalParam.physics){
-						O3o.drawObject(objects[i],phyObjs);
-					}else{
-						O3o.drawObject(objects[i],null);
-					}
+					//var b =objects[i].bound_box;
+					//Mat43.setInit(m43);
+					//m43[0]=(b[3] - b[0])*0.5;
+					//m43[4]=(b[4] - b[1])*0.5;
+					//m43[8]=(b[5] - b[2])*0.5;
+					//m43[9]=b[0]+m43[0];
+					//m43[10]=b[1]+m43[4];
+					//m43[11]=b[2]+m43[8];
+					//var phyObj = null;
+					//if(globalParam.physics){
+					//	var name = objects[i].name;
+					//	phyObj= phyObjs.find(function(a){return a.name===name});
+					//}
+					//if(phyObj){
+					//	Mat43.dot(cuboidcol.matrix,phyObj.matrix,m43);
+					//}else{
+					//	Mat43.dot(m43,objects[i].mixedmatrix,m43);
+					//	Mat43.dotMat44Mat43(cuboidcol.matrix,ono3d.worldMatrix,m43);
+					//}
+					//Mat43.getInv(cuboidcol.inv_matrix,cuboidcol.matrix);
+					//var l = Collider.checkHit(camera.cameracol,cuboidcol);
+					//var l2 = 1;
+					//if(globalParam.shadow){
+					//	if(AABB.hitCheck(camera.cameracol2.aabb,cuboidcol.aabb)){
+					//		l2 = Collider.checkHit(camera.cameracol2,cuboidcol);
+					//	}
+					//}
+					//if(l>0 && l2>0){
+					//	continue;
+					//}
+					var instance = this.instance.objectInstances[objects[i].idx];
+					instance.draw();
+//					O3o.drawObject(objects[i],phyObjs);
 				}
 				Mat43.poolFree(1);
 			}

@@ -143,9 +143,10 @@ Engine.goClass["main"]= (function(){
 	}
 	
 	var reset = ret.reset=function(){
-		var o3o = Engine.field;
 		var goJiki = Engine.go["jiki"];
 		var ono3d = Engine.ono3d;
+		var o3o = Engine.go["field"].o3o;
+		var instance = Engine.go["field"].instance;
 		ono3d.setTargetMatrix(0);
 		ono3d.loadIdentity();
 
@@ -153,7 +154,7 @@ Engine.goClass["main"]= (function(){
 		Mat44.dotVec3(goJiki.p,ono3d.worldMatrix,start.location);
 		var m = Mat44.poolAlloc();
 		Mat44.setInit(m);
-		Mat44.dotMat43(m,m,start.matrix);
+		Mat44.dotMat43(m,m,instance.objectInstances[start.idx].matrix);
 		Mat44.dot(m,ono3d.worldMatrix,m);
 		Vec4.fromMat44(goJiki.rotq,m);
 
