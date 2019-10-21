@@ -74,6 +74,7 @@ Engine.goClass.field= (function(){
 
 	ret.prototype.draw2=function(){
 		var phyObjs = this.phyObjs;
+		var instance=this.instance;
 
 		ono3d.setTargetMatrix(0)
 		ono3d.loadIdentity();
@@ -84,16 +85,18 @@ Engine.goClass.field= (function(){
 		if(field){
 			if(field.scenes.length>0){
 				var objects = field.scenes[0].objects;
+
 				for(var i=0;i<objects.length;i++){
 					if(objects[i].hide_render
 					|| !objects[i].static){
 						continue;
 					}
+					var objectInstance= this.instance.objectInstances[objects[i].idx];
 
 					var obj=objects[i];
 
 					var env = null;
-					obj.staticFaces=O3o.drawObjectStatic(obj,null,env);
+					obj.staticFaces=objectInstance.drawStatic(env);
 					
 				}
 			}
@@ -122,7 +125,7 @@ Engine.goClass.field= (function(){
 					continue;
 				}
 
-				var instance = this.instance.objectInstances[objects[i].idx];
+				var objectInstance= this.instance.objectInstances[objects[i].idx];
 				var b =objects[i].bound_box;
 				Mat43.setInit(m43);
 				m43[0]=(b[3] - b[0])*0.5;
@@ -141,7 +144,7 @@ Engine.goClass.field= (function(){
 				if(phyObj){
 					Mat43.dot(cuboidcol.matrix,phyObj.matrix,m43);
 				}else{
-					Mat43.dot(m43,instance.matrix,m43);
+					Mat43.dot(m43,objectInstance.matrix,m43);
 					Mat43.dotMat44Mat43(cuboidcol.matrix,ono3d.worldMatrix,m43);
 				}
 				cuboidcol.refresh();
@@ -190,8 +193,6 @@ Engine.goClass.field= (function(){
 				if(probs.hitListIndex>0){
 					env = ono3d.environments[1];
 				}
-				var instance = globalParam.instance;
-				var objectInstance  = instance.objectInstances[objects[i].idx];
 				objectInstance.draw(env);
 //				if(globalParam.physics){
 //					O3o.drawObject(objects[i],phyObjs,env);

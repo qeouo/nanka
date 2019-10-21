@@ -146,7 +146,8 @@ Engine.goClass.main= (function(){
 
 			var lightprobe=o3o.objects.find(function(e){return e.name==="LightProbe"});
 			if(lightprobe){
-				O3o.createLightProbe(ono3d,lightprobe)
+				instance.objectInstances[lightprobe.idx].createLightProbe(ono3d);
+				//O3o.createLightProbe(ono3d,lightprobe)
 			}
 
 			

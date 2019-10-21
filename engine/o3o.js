@@ -1349,21 +1349,6 @@ var O3o=(function(){
 		dst.environmentRatio=src.environmentRatio;
 		dst.material=src.material;
 	}
-	ret.drawObjectStatic = function(obj,physics,environment,environment2,envratio){
-		var oldIdx=ono3d.faces_index;
-		this.drawObject(obj,physics,environment,environment2,envratio);
-		var count = ono3d.faces_index-oldIdx;
-
-		var faces=[];
-		var renderFaces=ono3d.faces;
-		for(var i=0;i<count;i++){
-			var face = new Ono3d.Face();
-			copyFace(face,renderFaces[i+oldIdx]);
-			faces.push(face);
-
-		}
-		return faces;
-	}
 	ret.drawStaticFaces = function(faces){
 		var idx= ono3d.faces_index;
 
@@ -1889,25 +1874,6 @@ var O3o=(function(){
 	}
 
 
-	ret.createLightProbe=function(ono3d,lightProbe){
-		freezeMesh(bufMesh,lightProbe,null);
-		var vertexSize =bufMesh.vertexSize;
-
-
-		var points=[];
-		for(var i=0;i<vertexSize;i++){
-			var p=new Vec3();
-			Vec3.copy(p,bufMesh.vertices[i].pos);
-			points.push(p);
-		}
-		
-		var triangles = Delaunay.create(points);
-		var bspTree=Bsp.createBspTree(triangles);
-
-		var env = ono3d.environments[0];
-		env.bspTree=bspTree;
-		env.lightProbeMesh=lightProbe.data;
-	}
 
 
 
@@ -2303,6 +2269,22 @@ var O3o=(function(){
 
 		Mat43.poolFree(1);
 	}
+
+	ret.prototype.drawStatic= function(environment,environment2,envratio){
+		var oldIdx=ono3d.faces_index;
+		this.draw(environment,environment2,envratio);
+		var count = ono3d.faces_index-oldIdx;
+
+		var faces=[];
+		var renderFaces=ono3d.faces;
+		for(var i=0;i<count;i++){
+			var face = new Ono3d.Face();
+			copyFace(face,renderFaces[i+oldIdx]);
+			faces.push(face);
+
+		}
+		return faces;
+	}
 	ret.prototype.draw= function(environment,environment2,envratio){
 		var obj = this.object;
 		if(obj.type !== "MESH"){
@@ -2633,6 +2615,26 @@ var O3o=(function(){
 		Vec3.poolFree(4);
 		return;
 		
+	}
+
+	ret.prototype.createLightProbe=function(ono3d){
+		this.freezeMesh(bufMesh);
+		var vertexSize =bufMesh.vertexSize;
+
+
+		var points=[];
+		for(var i=0;i<vertexSize;i++){
+			var p=new Vec3();
+			Vec3.copy(p,bufMesh.vertices[i].pos);
+			points.push(p);
+		}
+		
+		var triangles = Delaunay.create(points);
+		var bspTree=Bsp.createBspTree(triangles);
+
+		var env = ono3d.environments[0];
+		env.bspTree=bspTree;
+		env.lightProbeMesh=this.object.data;
 	}
 
 		return ret;
