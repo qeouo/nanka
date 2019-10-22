@@ -73,11 +73,9 @@ Engine.goClass.main= (function(){
 
 			var goCamera = Engine.go.camera;
 
-			var co=  scene.objects.find(function(a){
-				return a.name==this;
-			},"Camera");
-			co = instance.objectInstances[co.idx];
+			var co=  scene.objects.find(function(a){ return a.name==this; },"Camera");
 			if(co){
+				co = instance.objectInstances[co.idx];
 				goCamera.p[0]=co.matrix[9];
 				goCamera.p[1]=co.matrix[10];
 				goCamera.p[2]=co.matrix[11];
@@ -102,21 +100,21 @@ Engine.goClass.main= (function(){
 
 			goCamera.move();
 			camera.calcMatrix();
-			//camera.calcCollision(camera.cameracol);
+			camera.calcCollision(camera.cameracol);
 			var poses= camera.cameracol.poses;
 
-			Vec3.set(poses[0],-1,-1,-1);
-			Vec3.set(poses[1],-1,-1,1);
-			Vec3.set(poses[2],-1,1,-1,);
-			Vec3.set(poses[3],-1,1,1);
-			Vec3.set(poses[4],1,-1,-1);
-			Vec3.set(poses[5],1,-1,1);
-			Vec3.set(poses[6],1,1,-1,);
-			Vec3.set(poses[7],1,1,1);
-			for(var i=0;i<poses.length;i++){
-				Vec3.mul(poses[i],poses[i],10000);
-
-			}
+//			Vec3.set(poses[0],-1,-1,-1);
+//			Vec3.set(poses[1],-1,-1,1);
+//			Vec3.set(poses[2],-1,1,-1,);
+//			Vec3.set(poses[3],-1,1,1);
+//			Vec3.set(poses[4],1,-1,-1);
+//			Vec3.set(poses[5],1,-1,1);
+//			Vec3.set(poses[6],1,1,-1,);
+//			Vec3.set(poses[7],1,1,1);
+//			for(var i=0;i<poses.length;i++){
+//				Vec3.mul(poses[i],poses[i],10000);
+//
+//			}
 
 			camera.cameracol.refresh();
 			var lightSource= null;

@@ -74,7 +74,6 @@ uniform float uEmi;
 uniform float lightThreshold1; 
 uniform float lightThreshold2; 
 uniform float uMetallic; 
-uniform float uNormpow; 
 
 [common]
 vec4 textureTri(sampler2D texture,vec2 size,vec2 uv,float w){
@@ -138,7 +137,6 @@ void main(void){
 	refa = min(refa,1.0); 
 	vec2 refV = angle2uv(angle) * vec2(1.0,0.5); 
 	vec4 refCol = textureTri(uEnvMap,vec2(256.0),refV,refx+refa) ;
-	//refCol.rgb *=  vec3(1.0) - uMetallic * (vec3(1.0)-baseCol); 
 
 	/*屈折*/ 
 	refx = min(floor(transRough/0.2),3.0); 
@@ -169,8 +167,7 @@ void main(void){
 	vColor2 = mix(vColor2,transCol.rgb,1.0 - opacity); 
 
 	/* フレネル */ 
-	specular +=  (1.0 - specular)*pow(1.0 + min(dot(eye,nrm),0.0),5.0); 
-	/*specular +=   specular*pow(1.0 + min(dot(eye,nrm),0.0),5.0); */
+	specular +=  max(specular,1.0-opacity)*(1.0 - specular)*pow(1.0 + min(dot(eye,nrm),0.0),5.0); 
 
 	/*全反射合成*/ 
 	vColor2 = mix(mix(vColor2,baseCol*refCol.rgb,uMetallic),refCol.rgb,specular); 

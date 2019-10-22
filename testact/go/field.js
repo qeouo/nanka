@@ -253,61 +253,24 @@ Engine.goClass["field"]= (function(){
 	}
 	var cuboidcol = new Collider.Cuboid;
 	ret.prototype.draw=function(){
-		var phyObjs = this.phyObjs;
+		if(!this.instance){
+			return;
+		}
 
 		ono3d.setTargetMatrix(0)
 		ono3d.loadIdentity();
-		//ono3d.rotate(-Math.PI*0.5,1,0,0)
 
-		ono3d.rf=0;
-		var camera=Engine.camera;
 
-		if(this.instance){
-			var field=this.instance.o3o;
-			if(field.scenes.length>0){
-				var m43 = Mat43.poolAlloc();
-				var objects = field.scenes[0].objects;
-				for(var i=0;i<objects.length;i++){
-					if(objects[i].hide_render){
-						continue;
-					}
-					//var b =objects[i].bound_box;
-					//Mat43.setInit(m43);
-					//m43[0]=(b[3] - b[0])*0.5;
-					//m43[4]=(b[4] - b[1])*0.5;
-					//m43[8]=(b[5] - b[2])*0.5;
-					//m43[9]=b[0]+m43[0];
-					//m43[10]=b[1]+m43[4];
-					//m43[11]=b[2]+m43[8];
-					//var phyObj = null;
-					//if(globalParam.physics){
-					//	var name = objects[i].name;
-					//	phyObj= phyObjs.find(function(a){return a.name===name});
-					//}
-					//if(phyObj){
-					//	Mat43.dot(cuboidcol.matrix,phyObj.matrix,m43);
-					//}else{
-					//	Mat43.dot(m43,objects[i].mixedmatrix,m43);
-					//	Mat43.dotMat44Mat43(cuboidcol.matrix,ono3d.worldMatrix,m43);
-					//}
-					//Mat43.getInv(cuboidcol.inv_matrix,cuboidcol.matrix);
-					//var l = Collider.checkHit(camera.cameracol,cuboidcol);
-					//var l2 = 1;
-					//if(globalParam.shadow){
-					//	if(AABB.hitCheck(camera.cameracol2.aabb,cuboidcol.aabb)){
-					//		l2 = Collider.checkHit(camera.cameracol2,cuboidcol);
-					//	}
-					//}
-					//if(l>0 && l2>0){
-					//	continue;
-					//}
-					var instance = this.instance.objectInstances[objects[i].idx];
-					instance.draw();
-//					O3o.drawObject(objects[i],phyObjs);
-				}
-				Mat43.poolFree(1);
+		var objects = this.instance.o3o.scenes[0].objects;
+		for(var i=0;i<objects.length;i++){
+			if(objects[i].hide_render){
+				continue;
 			}
+
+			var instance = this.instance.objectInstances[objects[i].idx];
+			instance.draw();
 		}
+		
 	}
 	return ret;
 })();

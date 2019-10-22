@@ -22,7 +22,7 @@ Engine.goClass["jiki"]= (function(){
 		Vec4.fromRotVector(this.rotq,-Math.PI*0.5,1,0,0);
 
 		var t=this;
-		obj3d = AssetManager.o3o("human.o3o?5",function(obj3d){
+		obj3d = AssetManager.o3o("human.o3o?2",function(obj3d){
 			var o3o= obj3d;
 			for(var i=0;i<obj3d.objects.length;i++){
 				var object=obj3d.objects[i];
@@ -30,7 +30,6 @@ Engine.goClass["jiki"]= (function(){
 
 			armature=obj3d.objects.find(function(o){return o.name==="アーマチュア";});
 			jiki =obj3d.objects.find(function(o){return o.name==="jiki";});
-			human=obj3d.objects.find(function(o){return o.name==="human";});
 			metalball=obj3d.objects.find(function(o){return o.name==="metalball";});
 			jumpC = obj3d.objects.find(function(o){return o.name === "_jumpCollision";});
 
@@ -45,7 +44,6 @@ Engine.goClass["jiki"]= (function(){
 			t.instance.joinPhyObj(onoPhy);
 
 			jiki=t.instance.objectInstances[jiki.idx];
-			human=t.instance.objectInstances[human.idx];
 
 
 			t.collisions=[];
@@ -107,9 +105,7 @@ Engine.goClass["jiki"]= (function(){
 			//歩行方向に向かせる
 			var r = Math.atan2(vec[0],vec[2]);
 			var q = Vec4.poolAlloc();
-			//Vec4.fromRotVector(this.rotq,-Math.PI*0.5,1,0,0);
 			Vec4.fromRotVector(this.rotq,r,0,1,0);
-			//Vec4.qdot(this.rotq,q,this.rotq);
 			Vec4.poolFree(1);
 		}
 		Vec4.copy(poJiki.rotq,this.rotq); //キャラの向きを物理オブジェクトに反映
@@ -137,32 +133,23 @@ Engine.goClass["jiki"]= (function(){
 		var jump=false;
 
 		if(this.ground){
-	//		var jumpCollision= this.collisions.find(function(o){return o.name ==="_jumpCollision"});
-	//		if(jumpCollision ){
+			var jumpCollision= this.collisions.find(function(o){return o.name ==="_jumpCollision"});
+			if(jumpCollision ){
+				Mat43.copy(jumpCollision.matrix,jumpC.matrix);
+				jumpCollision.refresh();
 
-	//			var m = Mat43.poolAlloc();
-	//			ono3d.setTargetMatrix(0)
-	//			ono3d.loadIdentity();
-	//			Mat43.fromLSR(m,poJiki.location,poJiki.scale,poJiki.rotq);
-	//			Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
-
-	//			Mat43.getInv(m,jiki.matrix);
-	//			Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
-	//			Mat43.poolFree(1);
-
-	//			//O3o.moveCollision(jumpCollision,jumpC,ono3d)
-	//			var onoPhy = Engine.onoPhy;
-	//			var list = onoPhy.collider.checkHitAll(jumpCollision);
-	//			jump=true;
-	//			for(var i=0;i<onoPhy.collider.hitListIndex;i++){
-	//				if(list[i].col2.name !=="jiki"){
-	//					jump=false;
-	//				}
-	//			}
-	//		}
-	//		if(Util.keyflag[4]==1 && !Util.keyflagOld[4]){
-	//			jump=true;
-	//		}
+				var onoPhy = Engine.onoPhy;
+				var list = onoPhy.collider.checkHitAll(jumpCollision);
+				jump=true;
+				for(var i=0;i<onoPhy.collider.hitListIndex;i++){
+					if(list[i].col2.name !=="jiki"){
+						jump=false;
+					}
+				}
+			}
+			if(Util.keyflag[4]==1 && !Util.keyflagOld[4]){
+				jump=true;
+			}
 		}
 		if(jump){
 				//ジャンプ力
@@ -251,21 +238,23 @@ Engine.goClass["jiki"]= (function(){
 			var l = Engine.probs.checkHitAll(col);
 
 			var env = null;
-			if(Engine.probs.hitListIndex>0){
-				var ans1 = Vec3.poolAlloc();
-				var ans2 = Vec3.poolAlloc();
-				a = Collider.calcClosest(ans1,ans2,l[0].col1,l[0].col2);
-				a = Math.min(-a*2.0,1.0);
-				human.draw(env);
-				//jiki.draw(env);
-				//O3o.drawObject(human,null,ono3d.environments[0],ono3d.environments[1],a);
-				//O3o.drawObject(metalball,null,ono3d.environments[0],ono3d.environments[1],a);
-				Vec3.poolFree(2);
-			}else{
-				human.draw();
-				//jiki.draw(env);
-				//O3o.drawObject(human,null,env,env,0.0);
-				//O3o.drawObject(metalball,null,env,env,0.0);
+			//if(Engine.probs.hitListIndex>0){
+			//	var ans1 = Vec3.poolAlloc();
+			//	var ans2 = Vec3.poolAlloc();
+			//	a = Collider.calcClosest(ans1,ans2,l[0].col1,l[0].col2);
+			//	a = Math.min(-a*2.0,1.0);
+			//	human.draw(env);
+			//	Vec3.poolFree(2);
+			//}else{
+			//}
+			var objects = this.instance.o3o.scenes[0].objects;
+			for(var i=0;i<objects.length;i++){
+//				if(objects[i].hide_render){
+//					continue;
+//				}
+
+				var instance = this.instance.objectInstances[objects[i].idx];
+				instance.draw(env);
 			}
 
 			

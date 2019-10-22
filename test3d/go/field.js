@@ -117,16 +117,18 @@ Engine.goClass.field= (function(){
 		if(field.scenes.length>0){
 			var objects = field.scenes[0].objects;
 			for(var i=0;i<objects.length;i++){
-				if(objects[i].hide_render){
+				var object = objects[i];
+				if(object.type!=="MESH")continue;
+				if(object.hide_render){
 					continue;
 				}
-				if(objects[i].staticFaces){
-					O3o.drawStaticFaces(objects[i].staticFaces);
+				if(object.staticFaces){
+					O3o.drawStaticFaces(object.staticFaces);
 					continue;
 				}
 
-				var objectInstance= this.instance.objectInstances[objects[i].idx];
-				var b =objects[i].bound_box;
+				var objectInstance= this.instance.objectInstances[object.idx];
+				var b =object.bound_box;
 				Mat43.setInit(m43);
 				m43[0]=(b[3] - b[0])*0.5;
 				m43[4]=(b[4] - b[1])*0.5;
@@ -136,10 +138,10 @@ Engine.goClass.field= (function(){
 				m43[11]=b[2]+m43[8];
 				var phyObj = null;
 				if(globalParam.physics){
-					phyObj= phyObjs.find(function(a){return a.name===this;},objects[i].name);
+					phyObj= phyObjs.find(function(a){return a.name===this;},object.name);
 				}
 
-				var obj=objects[i];
+				var obj=object;
 
 				if(phyObj){
 					Mat43.dot(cuboidcol.matrix,phyObj.matrix,m43);
@@ -149,20 +151,20 @@ Engine.goClass.field= (function(){
 				}
 				cuboidcol.refresh();
 				var l = 1;
-				//if(AABB.hitCheck(camera.cameracol.aabb,cuboidcol.aabb)){
-				//	//l=-1;
-				//	l = Collider.checkHit(camera.cameracol,cuboidcol);
-				//}
-				//var l2 = 1;
-				//if(globalParam.shadow){
-				//	if(AABB.hitCheck(camera.cameracol2.aabb,cuboidcol.aabb)){
-				//		//l2=-1;
-				//		l2 = Collider.checkHit(camera.cameracol2,cuboidcol);
-				//	}
-				//}
-				//if(l>0 && l2>0){
-				//	continue;
-				//}
+				if(AABB.hitCheck(camera.cameracol.aabb,cuboidcol.aabb)){
+					l=-1;
+					l = Collider.checkHit(camera.cameracol,cuboidcol);
+				}
+				var l2 = 1;
+				if(globalParam.shadow){
+					if(AABB.hitCheck(camera.cameracol2.aabb,cuboidcol.aabb)){
+						l2=-1;
+						l2 = Collider.checkHit(camera.cameracol2,cuboidcol);
+					}
+				}
+				if(l>0 && l2>0){
+					continue;
+				}
 				ono3d.rf&=~Ono3d.RF_OUTLINE;
 				if(globalParam.outline_bold){
 					ono3d.lineWidth=globalParam.outline_bold;
@@ -172,7 +174,7 @@ Engine.goClass.field= (function(){
 
 				var bane = Engine.go.main.bane;
 				if(bane){
-					if(bane.con2.name == objects[i].name){
+					if(bane.con2.name == object.name){
 						ono3d.lineWidth=1;
 						ono3d.rf|=Ono3d.RF_OUTLINE;
 						Vec4.set(ono3d.lineColor,1,4,1,0);
@@ -181,9 +183,9 @@ Engine.goClass.field= (function(){
 
 				Mat43.setInit(col.matrix);
 				Mat43.mul(col.matrix,col.matrix,0);
-				col.matrix[9]=objects[i].location[0];
-				col.matrix[10]=objects[i].location[2];
-				col.matrix[11]=-objects[i].location[1];
+				col.matrix[9]=object.location[0];
+				col.matrix[10]=object.location[2];
+				col.matrix[11]=-object.location[1];
 				col.refresh();
 
 

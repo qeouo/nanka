@@ -1,7 +1,7 @@
 {"format":"Ono3dObject Version 0.2"
 ,"materials":[
     {"name": "マテリアル"}
-  ,  {"name": "マテリアル.000", "baseColor": [0.800000011920929, 0.800000011920929, 0.800000011920929], "opacity": 1.0, "metallic": 0.0, "specular": 0.05, "roughness": 0.518380343914032, "ior": 1.100000023841858, "subRoughness": 1.0, "pbrMap": "//2.79/webgl.png", "hightMap": "//2.79/webgl_b.png", "hightMapPower": 1.0, "hightBase": 1.0}
+  ,  {"name": "マテリアル.000", "baseColor": [0.800000011920929, 0.800000011920929, 0.800000011920929], "opacity": 1.0, "metallic": 1.0, "specular": 0.05, "roughness": 0.518380343914032, "ior": 1.100000023841858, "subRoughness": 1.0, "pbrMap": "//2.79/webgl.png", "hightMap": "//2.79/webgl_b.png", "hightMapPower": 1.0, "hightBase": 1.0}
   ,  {"name": "マテリアル.001"}
   ,  {"name": "マテリアル.003"}
   ,  {"name": "マテリアル.004"}
