@@ -5,8 +5,9 @@ Engine.goClass["camera"]= (function(){
 	var ret = GoCamera;
 	inherits(ret,Engine.defObj);
 	ret.prototype.init=function(){
-		//onoPhy.collider.hitcheck(Collider.SPHERE,this.p);
 	}
+	var collision=new Collider.Sphere();
+	collision.bold=0.1;
 	ret.prototype.move=function(){
 		var camera = Engine.camera;
 		var goJiki = Engine.go["jiki"];
@@ -18,7 +19,9 @@ Engine.goClass["camera"]= (function(){
 		Vec3.copy(vec3,goJiki.p);
 		vec3[1]+=1;
 
-		var cameralen = 8;//Vec3.len(this.p,vec3);
+		var cameralen = 8;
+
+		var field=Engine.go["field"];
 		camera.zoom=0.6;
 
 		if(Util.pressOn){
@@ -29,11 +32,36 @@ Engine.goClass["camera"]= (function(){
 		this.a[0] =Math.min(this.a[0],Math.PI/2);
 		this.a[0] =Math.max(this.a[0],-Math.PI/2);
 		this.p[2]=Math.cos(this.a[0]);
-		this.p[1]=Math.sin(this.a[0]);
-		this.p[0]=Math.sin(this.a[1])*this.p[2];
-		this.p[2]=Math.cos(this.a[1])*this.p[2];
+		this.p[1]=-Math.sin(this.a[0]);
+		this.p[0]=-Math.sin(this.a[1])*this.p[2];
+		this.p[2]=-Math.cos(this.a[1])*this.p[2];
 
-		Vec3.mul(this.p,this.p,-cameralen);
+
+		if(field){
+			Mat43.setInit(collision.matrix);
+			collision.matrix[9]=vec3[0];
+			collision.matrix[10]=vec3[1];
+			collision.matrix[11]=vec3[2];
+			collision.refresh();
+			var instance = field.instance;
+			var nearest =8;
+			for(var i=0;i<instance.objectInstances.length;i++){
+				var phyObj2 = instance.objectInstances[i].phyObj;
+				if(!phyObj2){
+					continue;
+				}
+				phyObj2.refreshCollision();
+				if(!AABB.aabbCast(this.p,collision.aabb,phyObj2.collision.aabb)){
+					continue;
+				}
+				var a=Collider.convexCast(this.p,collision,phyObj2.collision);
+				if(a>0 && a<nearest){
+					nearest=a;
+				}
+			}
+		}
+		cameralen = nearest;
+		Vec3.mul(this.p,this.p,cameralen);
 		Vec3.add(this.p,this.p,goJiki.p);
 		this.p[1]+=1;
 
