@@ -22,7 +22,7 @@ Engine.goClass["jiki"]= (function(){
 		Vec4.fromRotVector(this.rotq,-Math.PI*0.5,1,0,0);
 
 		var t=this;
-		obj3d = AssetManager.o3o("human.o3o?2",function(obj3d){
+		obj3d = AssetManager.o3o("human.o3o?5",function(obj3d){
 			var o3o= obj3d;
 			for(var i=0;i<obj3d.objects.length;i++){
 				var object=obj3d.objects[i];
@@ -38,7 +38,6 @@ Engine.goClass["jiki"]= (function(){
 
 			ono3d.setTargetMatrix(0);
 			ono3d.loadIdentity();
-			//ono3d.rotate(-Math.PI*0.5,1,0,0) //blenderはzが上なのでyが上になるように補正
 			ono3d.translate(obj.p[0],obj.p[1],obj.p[2]);
 			t.instance= o3o.createInstance();
 			t.instance.joinPhyObj(onoPhy);
@@ -49,12 +48,13 @@ Engine.goClass["jiki"]= (function(){
 			t.collisions=[];
 			t.collisions.push(O3o.createCollision(jumpC));
 			jumpC=t.instance.objectInstances[jumpC.idx];
-			poJiki = jiki.phyObj;//t.phyObjs.find(function(o){return o.name ==="jiki"});
+			poJiki = jiki.phyObj;
 			Vec3.copy(poJiki.location,t.p);
 			Mat33.set(poJiki.inertiaTensorBase,1,0,0,0,1,0,0,0,1);
 			Mat33.mul(poJiki.inertiaTensorBase,poJiki.inertiaTensorBase,99999999);
 
 			t.instance.calcMatrix(1.0/globalParam.fps,0,true);
+			t.phyObj = poJiki;
 
 
 			poJiki.collision.groups|=3;
@@ -170,6 +170,7 @@ Engine.goClass["jiki"]= (function(){
 		this.ground=false;//接地フラグリセット
 	}
 	var col = new Collider.Sphere();
+	col.bold=1
 	
 	ret.prototype.draw=function(){
 
@@ -220,33 +221,26 @@ Engine.goClass["jiki"]= (function(){
 
 			ono3d.loadIdentity();
 			var m = Mat43.poolAlloc();
-		//	Mat43.fromLSR(m,poJiki.location,poJiki.scale,poJiki.rotq);
-		//	Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
-
-		//	Mat43.getInv(m,jiki.matrix);
-		//	Mat44.dotMat43(ono3d.worldMatrix,ono3d.worldMatrix,m);
 
 
-
-			Mat43.setInit(col.matrix);
-			Mat43.mul(col.matrix,col.matrix,0);
-			col.matrix[9]=ono3d.worldMatrix[12];
-			col.matrix[10]=ono3d.worldMatrix[13]+0.5;
-			col.matrix[11]=ono3d.worldMatrix[14];
+			Mat43.copy(col.matrix,poJiki.matrix);
 			col.refresh();
 
 			var l = Engine.probs.checkHitAll(col);
 
 			var env = null;
-			//if(Engine.probs.hitListIndex>0){
-			//	var ans1 = Vec3.poolAlloc();
-			//	var ans2 = Vec3.poolAlloc();
-			//	a = Collider.calcClosest(ans1,ans2,l[0].col1,l[0].col2);
-			//	a = Math.min(-a*2.0,1.0);
-			//	human.draw(env);
-			//	Vec3.poolFree(2);
-			//}else{
-			//}
+			var env2 = null;
+			var a = 0;
+			if(Engine.probs.hitListIndex>0){
+				var ans1 = Vec3.poolAlloc();
+				var ans2 = Vec3.poolAlloc();
+				a = Collider.calcClosest(ans1,ans2,l[0].col1,l[0].col2);
+				a = Math.min(-a,1.0);
+				var env=ono3d.environments[0];
+				var env2=ono3d.environments[1];
+				Vec3.poolFree(2);
+			}else{
+			}
 			var objects = this.instance.o3o.scenes[0].objects;
 			for(var i=0;i<objects.length;i++){
 //				if(objects[i].hide_render){
@@ -254,7 +248,7 @@ Engine.goClass["jiki"]= (function(){
 //				}
 
 				var instance = this.instance.objectInstances[objects[i].idx];
-				instance.draw(env);
+				instance.draw(env,env2,a);
 			}
 
 			

@@ -1,7 +1,7 @@
 Engine.goClass["main"]= (function(){
 	var stage =0;
 	var stages=[
-		"f1.o3o"
+		"f1.o3o&1"
 		,"f2.o3o"
 		,"f3.o3o"
 		,"f4.o3o"
@@ -160,13 +160,9 @@ Engine.goClass["main"]= (function(){
 
 		Mat44.poolFree(1);
 
-		var goJiki= Engine.go["camera"];
-		if(goJiki.phyObjs.length){
-			Vec3.copy(goJiki.phyObjs[0].location,goJiki.p);
-		}
 
 		var goCamera = Engine.go["camera"];
-		goCamera.a[1]=start.rotation[2];
+		goCamera.a[1]=start.rotation[1];
 		Vec3.copy(goCamera.p,goJiki.p);
 
 	}

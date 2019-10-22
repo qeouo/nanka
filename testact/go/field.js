@@ -2,7 +2,7 @@ Engine.goClass["field"]= (function(){
 	var ono3d = Engine.ono3d;
 	var onoPhy=Engine.onoPhy;
 	var objMan=Engine.objMan;
-	var fieldpath="f1.o3o?1";
+	var fieldpath="f1.o3o?3";
 	var GoField =function(){};
 	var ret = GoField;
 	var initFlg=false;
@@ -133,6 +133,7 @@ Engine.goClass["field"]= (function(){
 
 				//環境追加
 				var environment=ono3d.environments[ono3d.environments_index]
+				environment.collision=collision;
 				ono3d.environments_index++;
 				environment.name=object.name;
 				environment.envTexture= ono3d.createEnv(null
@@ -187,65 +188,32 @@ Engine.goClass["field"]= (function(){
 		scene.setFrame(this.t/60.0*24); //アニメーション処理
 		this.instance.calcMatrix(1.0/globalParam.fps);
 
-
-		////コリジョンにアニメーション結果を反映させる
-		//for(var i=0;i<this.collisions.length;i++){
-		//	var collision = this.collisions[i];
-		//	var object = o3o.objects.find(function(o){return o.name === collision.name;});
-		//	O3o.moveCollision(collision,object)
-		//}
-
-
-		//if(phyObjs && globalParam.physics){
-		//	//物理シミュ有効の場合は物理オブジェクトにアニメーション結果を反映させる
-		//	for(var i=0;i<phyObjs.length;i++){
-		//		var phyObj = phyObjs[i];
-		//		//物理オブジェクトにアニメーション結果を反映
-		//		//(前回の物理シミュ無効の場合は強制反映する)
-		//		O3o.movePhyObj(phyObj,phyObj.parent
-		//			,1.0/globalParam.fps
-		//			,!globalParam.physics_);
-		//	}
-		//}
-
-		//for(var i=0;i<phyObjs.length;i++){
-		//	var phyObj = phyObjs[i];
-		//	var aabb;
-		//	if(phyObj.type===OnoPhy.CLOTH){
-		//		aabb = phyObj.aabb;
-		//	}else{
-		//		aabb = phyObj.collision.aabb;
-		//	}
-		//	if(aabb.max[1]<-10){
-		//		//リセット
-		//		O3o.movePhyObj(phyObj,phyObj.parent,0,true);
-		//	}
-		//}
 	}
 
 	ret.prototype.draw2=function(){
-		var phyObjs = this.phyObjs;
+		var instance=this.instance;
 
 		ono3d.setTargetMatrix(0)
 		ono3d.loadIdentity();
-		//ono3d.rotate(-Math.PI*0.5,1,0,0)
 
 		ono3d.rf=0;
-		var field = Engine.field;
 
+		var field = o3o;
 		if(field){
 			if(field.scenes.length>0){
 				var objects = field.scenes[0].objects;
+
 				for(var i=0;i<objects.length;i++){
 					if(objects[i].hide_render
 					|| !objects[i].static){
 						continue;
 					}
+					var objectInstance= this.instance.objectInstances[objects[i].idx];
 
 					var obj=objects[i];
 
 					var env = null;
-					obj.staticFaces=O3o.drawObjectStatic(obj,null,env);
+					obj.staticFaces=objectInstance.drawStatic(env);
 					
 				}
 			}
