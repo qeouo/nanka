@@ -1895,6 +1895,7 @@ var O3o=(function(){
 			}
 			this.calcMatrix(0,true);
 
+
 			for(var i=0;i<objects.length;i++){
 				var object=objects[i];
 				var instance = this.objectInstances[object.idx];

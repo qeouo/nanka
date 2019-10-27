@@ -17,15 +17,17 @@ Engine.goClass["jiki"]= (function(){
 	var ret = GoJiki;
 	inherits(ret,Engine.defObj);
 
+	var hash=[];
 	ret.prototype.init = function(){
 		var obj = this;
 		Vec4.fromRotVector(this.rotq,-Math.PI*0.5,1,0,0);
 
 		var t=this;
-		obj3d = AssetManager.o3o("human.o3o?5",function(obj3d){
+		obj3d = AssetManager.o3o("human.o3o?7",function(obj3d){
 			var o3o= obj3d;
+
 			for(var i=0;i<obj3d.objects.length;i++){
-				var object=obj3d.objects[i];
+				hash[obj3d.objects[i].name]=obj3d.objects[i];
 			}
 
 			armature=obj3d.objects.find(function(o){return o.name==="アーマチュア";});
@@ -48,6 +50,14 @@ Engine.goClass["jiki"]= (function(){
 			t.collisions=[];
 			t.collisions.push(O3o.createCollision(jumpC));
 			jumpC=t.instance.objectInstances[jumpC.idx];
+
+			t.collisions["preJump"]=O3o.createCollision(hash["_preJump"]);
+			t.collisions["preJumpSpace"]=O3o.createCollision(hash["_preJumpSpace"]);
+
+			for(var i=0;i<obj3d.objects.length;i++){
+				t.instance.objectInstances[obj3d.objects[i].name]=t.instance.objectInstances[i];
+			}
+
 			poJiki = jiki.phyObj;
 			Vec3.copy(poJiki.location,t.p);
 			Mat33.set(poJiki.inertiaTensorBase,1,0,0,0,1,0,0,0,1);
@@ -134,19 +144,32 @@ Engine.goClass["jiki"]= (function(){
 
 		if(this.ground){
 			var jumpCollision= this.collisions.find(function(o){return o.name ==="_jumpCollision"});
+			var onoPhy = Engine.onoPhy;
 			if(jumpCollision ){
 				Mat43.copy(jumpCollision.matrix,jumpC.matrix);
 				jumpCollision.refresh();
 
-				var onoPhy = Engine.onoPhy;
 				var list = onoPhy.collider.checkHitAll(jumpCollision);
 				jump=true;
 				for(var i=0;i<onoPhy.collider.hitListIndex;i++){
 					if(list[i].col2.name !=="jiki"){
 						jump=false;
+						break;
 					}
 				}
 			}
+		//	{
+		//		Mat43.copy(this.collisions["preJump"].matrix,this.instance.objectInstances["_preJump"].matrix);
+		//		this.collisions["preJump"].refresh();
+
+		//		var list = onoPhy.collider.checkHitAll(this.collisions["preJump"]);
+		//		jump=false;
+		//		for(var i=0;i<onoPhy.collider.hitListIndex;i++){
+		//			if(list[i].col2.name !=="jiki"){
+		//				jump=true;
+		//			}
+		//		}
+		//	}
 			if(Util.keyflag[4]==1 && !Util.keyflagOld[4]){
 				jump=true;
 			}
