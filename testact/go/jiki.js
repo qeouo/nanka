@@ -143,13 +143,9 @@ Engine.goClass["jiki"]= (function(){
 		var jump=false;
 
 		if(this.ground){
-			var jumpCollision= this.collisions.find(function(o){return o.name ==="_jumpCollision"});
 			var onoPhy = Engine.onoPhy;
-			if(jumpCollision ){
-				Mat43.copy(jumpCollision.matrix,jumpC.matrix);
-				jumpCollision.refresh();
-
-				var list = onoPhy.collider.checkHitAll(jumpCollision);
+			if(jumpC){
+				var list = jumpC.hitCheck(onoPhy.collider,1);
 				jump=true;
 				for(var i=0;i<onoPhy.collider.hitListIndex;i++){
 					if(list[i].col2.name !=="jiki"){

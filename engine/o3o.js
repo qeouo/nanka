@@ -1966,6 +1966,36 @@ var O3o=(function(){
 				}
 			}
 		}
+		
+		var sphere = new Collider.Sphere();
+		var cuboid = new Collider.Cuboid();
+		var cylinder = new Collider.Cylinder();
+		var cone = new Collider.Cone();
+		var capsule = new Collider.Capsule();
+		ret.prototype.hitCheck = function(collider,flg){
+			var collision;
+			var shape = this.object.bound_type;
+			if(shape == "SPHERE"){
+				collision = sphere;
+				collision.bold=1;
+			}else if(shape=="BOX"){
+				collision = cuboid;
+				collision.bold=0;
+			}else if(shape=="CYLINDER"){
+				collision = cylinder;
+				collision.bold=0;
+			}else if(shape=="CONE"){
+				collision = cone;
+				collision.bold=0;
+			}else if(shape=="CAPSULE"){
+				collision = capsule;
+				collision.bold=1;
+			}
+			Mat43.copy(collision.matrix,this.matrix);
+			collision.refresh();
+			return collider.checkHitAll(collision);
+			
+		}
 		ret.prototype.resetMatrix=function(){
 			this.flg=false;
 			for(var i=0;i<this.boneFlgs.length;i++){
