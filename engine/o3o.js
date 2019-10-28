@@ -2522,7 +2522,7 @@ var O3o=(function(){
 			}
 		}
 
-		if( ono3d.rf  & Ono3d.RF_OUTLINE && 0){
+		if( ono3d.rf  & Ono3d.RF_OUTLINE ){
 			//アウトライン作成
 			var bufFace,normal;
 			var bM44 = Mat44.poolAlloc();
@@ -2531,7 +2531,7 @@ var O3o=(function(){
 			var cp1=bM44[13];
 			var cp2=bM44[14];
 			Mat44.poolFree(1);
-			for(i=0;i<rfCount;i++){
+			for(var i=0;i<bufMesh.faceSize;i++){
 				bufFace = faces[i];
 				if(1-face.fs){
 					normal=bufFace.normal;
@@ -2596,14 +2596,14 @@ var O3o=(function(){
 				var renderLine =renderLines[lines_index];
 				renderLine.material=renderMat;
 				lines_index++;
-				var renderVertex=renderVertices[jj];
-				Vec3.copy(renderVertex.pos,vertices[edge.vIndices[0]].pos);
-				renderLine.vertices[0] = renderVertex;
-				jj++;
-				renderVertex=renderVertices[jj];
-				Vec3.copy(renderVertex.pos,vertices[edge.vIndices[1]].pos);
-				renderLine.vertices[1] = renderVertex;
-				jj++;
+				//var renderVertex=renderVertices[jj];
+				Vec3.copy(renderLine.pos[0],vertices[edge.vIndices[0]].pos);
+				//renderLine.vertices[0] = renderVertex;
+				//jj++;
+				//renderVertex=renderVertices[jj];
+				Vec3.copy(renderLine.pos[1],vertices[edge.vIndices[1]].pos);
+				//renderLine.vertices[1] = renderVertex;
+				//jj++;
 			}
 			ono3d.lines_index=lines_index;
 			
