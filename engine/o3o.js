@@ -1974,25 +1974,39 @@ var O3o=(function(){
 		var capsule = new Collider.Capsule();
 		ret.prototype.hitCheck = function(collider,flg){
 			var collision;
+			var obj = this.object;
 			var shape = this.object.bound_type;
-			if(shape == "SPHERE"){
-				collision = sphere;
-				collision.bold=1;
-			}else if(shape=="BOX"){
+			var scale=Vec3.poolAlloc();
+
+			var b = obj.bound_box;
+			scale[0]=(b[3] - b[0])*0.5;
+			scale[1]=(b[4] - b[1])*0.5;
+			scale[2]=(b[5] - b[2])*0.5;
+			switch(obj.bound_type){
+				case "SPHERE":
+					collision = sphere;
+					collision.bold=1;
+					break;
+			case "BOX":
 				collision = cuboid;
 				collision.bold=0;
-			}else if(shape=="CYLINDER"){
+				break;
+			case "CYLINDER":
 				collision = cylinder;
 				collision.bold=0;
-			}else if(shape=="CONE"){
+				break;
+			case "CONE":
 				collision = cone;
 				collision.bold=0;
-			}else if(shape=="CAPSULE"){
+				break;
+			case "CAPSULE":
 				collision = capsule;
 				collision.bold=1;
+				break;
 			}
 			Mat43.copy(collision.matrix,this.matrix);
 			collision.refresh();
+			Vec3.poolFree(1);
 			return collider.checkHitAll(collision);
 			
 		}
