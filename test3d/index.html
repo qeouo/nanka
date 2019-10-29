@@ -37,20 +37,21 @@ html,body { height:100%;margin:0;font-size:small;background-color:black; }
 input.colorpicker{width:50px;}
 .hidden{display:none;}
 .js-slider div{
-background-color:rgba(0,0,0,0);
+	background-color:rgba(0,0,0,0);
 
 }
 .js-slider input{
-background-color:rgba(255,255,255,0.5);
+	background-color:rgba(255,255,255,0.5);
 
 }
 
 label{
-position:relative;
+	position:relative;
 }
 input[type=checkbox],input[type=radio] {
 display: none;	
 }
+/*
 input[type=checkbox]+span:before{
 content:"";
 border:1px inset white;
@@ -75,6 +76,7 @@ input[type=radio]:checked +span:before{
 	outline:1px solid white;
     outline-offset: -4px;
 }
+*/
 
 input.colorpicker{
   font-family:monospace;
@@ -119,13 +121,12 @@ overflow:hidden;
   font-family:monospace;
   text-shadow:
 	  0px 0px 1px black;
-/* pointer-events:none;*/
 }
-div.control input
-,div.control select
-,div.control span{
-/*	pointer-events:auto; */
-
+*.nonepoint{
+	pointer-events:none;
+}
+*:not(.nonepoint) {
+	pointer-events:auto;
 }
 
 div.close{
@@ -183,25 +184,25 @@ display:none;
 </head>
 <body onload="onl();" style="height:100%;overflow-y:hidden;">
 <input type="file" id="files" name="upfile[]"  multiple  style="text-align:center;display:none;" />
-<div id="control" class="control close">
-	<div>
-	<div>
+<div id="control" class="control close nonepoint">
+	<div class="nonepoint">
+	<div class="nonepoint">
 		<label><input type="checkbox" id="autoExposure"/><span>オート露光調整</span></label><br>
-		<div id="exposure_setting">
+		<div id="exposure_setting nonepoint">
 		露光レベル?<input class="slider" id="exposure_level" max="5"/><br>
 		露光上限?<input class="slider" id="exposure_upper" min="0.1" max="5"/><br>
 		</div>
 		<br>
 		ブルーム?<input class="slider" id="exposure_bloom" max="1.0"/><br>
 	</div>
-	<div>
+	<div class="nonepoint">
 		法線補間<input class="slider" id="smoothing"/><br>
 		光源色1<input class="colorpicker" id="lightColor1" /><br>
 		光源色2<input class="colorpicker" id="lightColor2" /><br>
 		陰閾値1<input class="slider" id="lightThreshold1" /><br>
 		陰閾値2<input class="slider" id="lightThreshold2" /><br>
 	</div>
-	<div>
+	<div class="nonepoint">
 		<label><input type="checkbox" id="shadow"/><span>影</span></label><br>
 		輪郭線太さ<input class="slider" id="outline_bold" max="4"/><br>
 		輪郭線色<input class="colorpicker" id="outline_color"/><br>
@@ -211,7 +212,7 @@ display:none;
 		<label><input type="radio" id="parallel" name="stereomode" value="-1" onchange="globalParam.stereomode=parseFloat(this.value)"><span>平行</span></label>
 	</div>
 
-	<div>
+	<div class="nonepoint">
 		<label><input type="checkbox" id="physics" /><span>物理シミュ</span></label><br>
 		step/frame<input class="slider" id="step" min="1" max="10" step="1"/><br>
 		<!-- シーン<select id="scene"  onchange="globalParam.scene=parseInt(this.value);Testact.changeScene();"> 
@@ -219,7 +220,7 @@ display:none;
 		フレネル反射<input class="slider" id="frenel"/><br>
 		-->
 	</div>
-	<div>
+	<div class="nonepoint">
 		<pre id="cons" ></pre><br>
 	</div>
 	</div>
