@@ -1975,36 +1975,61 @@ var O3o=(function(){
 		ret.prototype.hitCheck = function(collider,flg){
 			var collision;
 			var obj = this.object;
-			var shape = this.object.bound_type;
 			var scale=Vec3.poolAlloc();
+			var m = obj.matrix;
 
-			var b = obj.bound_box;
-			scale[0]=(b[3] - b[0])*0.5;
-			scale[1]=(b[4] - b[1])*0.5;
-			scale[2]=(b[5] - b[2])*0.5;
+			Vec3.set(scale,1,1,1);
+			if(obj.type==="MESH"){
+				var b = obj.bound_box;
+				scale[0]=(b[3] - b[0])*0.5;
+				scale[1]=(b[4] - b[1])*0.5;
+				scale[2]=(b[5] - b[2])*0.5;
+			}
 			switch(obj.bound_type){
 				case "SPHERE":
 					collision = sphere;
-					collision.bold=1;
 					break;
 			case "BOX":
 				collision = cuboid;
-				collision.bold=0;
 				break;
 			case "CYLINDER":
 				collision = cylinder;
-				collision.bold=0;
 				break;
 			case "CONE":
 				collision = cone;
-				collision.bold=0;
 				break;
 			case "CAPSULE":
 				collision = capsule;
-				collision.bold=1;
 				break;
 			}
 			Mat43.copy(collision.matrix,this.matrix);
+			m = collision.matrlx;
+			for(var i=0;i<3;i++){
+				for(var j=0;j<3;j++){
+					m[i*3+j]*=scale[i];
+				}
+			}
+			collision.bold=0;
+
+			switch(obj.bound_type){
+				case "SPHERE":
+					scale[0]=Math.sqrt(m[0]*m[0]+m[1]*m[1]+m[2]*m[2]);
+					scale[1]=Math.sqrt(m[3]*m[3]+m[4]*m[4]+m[5]*m[5]);
+					scale[2]=Math.sqrt(m[6]*m[6]+m[7]*m[7]+m[8]*m[8]);
+					collision.bold=Math.max(Math.max(scale[0],scals[1]),scale[2]);
+					break;
+				case "CAPSULE":
+					scale[0]=Math.sqrt(m[0]*m[0]+m[1]*m[1]+m[2]*m[2]);
+					scale[1]=Math.sqrt(m[3]*m[3]+m[4]*m[4]+m[5]*m[5]);
+					scale[2]=Math.sqrt(m[6]*m[6]+m[7]*m[7]+m[8]*m[8]);
+					collision.bold = Math.max(scale[0],scale[2]);
+					var a=(scale[1]-collision.bold)/scale[1];
+					m[3]*=a;
+					m[4]*=a;
+					m[5]*=a;
+					break;
+			}
+
 			collision.refresh();
 			Vec3.poolFree(1);
 			return collider.checkHitAll(collision);
