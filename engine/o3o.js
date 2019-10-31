@@ -1,5 +1,6 @@
 "use strict"
 var O3o=(function(){
+	const MAX_SIZE=4096;
 	var abs=Math.abs;
 
 	var groupMatricies = new Array(64)
@@ -527,10 +528,10 @@ var O3o=(function(){
 
 	var bufMesh=new Mesh(); //メッシュバッファ
 	bufMesh.ratios=[];
-	bufMesh.vertices=Vertex.array(4096);
-	bufMesh.faces=Face.array(4096);
-	bufMesh.edges=Edge.array(4096);
-	for(i=0;i<1000;i++){
+	bufMesh.vertices=Vertex.array(MAX_SIZE);
+	bufMesh.faces=Face.array(MAX_SIZE);
+	bufMesh.edges=Edge.array(MAX_SIZE);
+	for(i=0;i<MAX_SIZE;i++){
 		//bufMesh.faces.push(new Face());
 		//bufMesh.edges.push(new Edge());
 		bufMesh.ratios.push(new Vec4());
@@ -1350,50 +1351,51 @@ var O3o=(function(){
 		return ;
 	}
 
-	var modmirror = function(dst,obj,mod){
-		var bufmesh = dst;
-		var bufmeshvertices =bufmesh.vertices
-		var rendervertex;
+	var table=new Array(64);
+var modMirror = function(dst,obj,mod){
+		var bufMesh = dst;
+		var bufMeshVertices =bufMesh.vertices
+		var renderVertex;
 
 		var dstvertices,srcvertices;
 		var dstvertex,srcvertex;
-		var vertexsize=bufmesh.vertexsize
+		var vertexSize=bufMesh.vertexSize
 		var mrr = 0;
 		if(mod.use_x){ mrr=0};
 		if(mod.use_y){ mrr=1};
 		if(mod.use_z){ mrr=2};
 
-		for(j =0;j<vertexsize;j++){
-			srcvertex=bufmeshvertices[j];
-			dstvertex=bufmeshvertices[j+vertexsize];
+		for(j =0;j<vertexSize;j++){
+			srcvertex=bufMeshVertices[j];
+			dstvertex=bufMeshVertices[j+vertexSize];
 
 			dstvertex.pos[0]=srcvertex.pos[0];
 			dstvertex.pos[1]=srcvertex.pos[1];
 			dstvertex.pos[2]=srcvertex.pos[2];
 			dstvertex.pos[mrr]*=-1;
 			//dstvertex.groups=srcvertex.groups;
-			dstvertex.groupweights=srcvertex.groupweights;
+			dstvertex.groupWeights=srcvertex.groupWeights;
 			for(var k=0;k<srcvertex.groups.length;k++){
 				dstvertex.groups[k]=srcvertex.groups[k];
-			//	dstvertex.groupweights[k]=srcvertex.groupweights[k];
+			//	dstvertex.groupWeights[k]=srcvertex.groupWeights[k];
 			}
 			
 		}
-		var dstface,srcface;
-		var facesize=bufmesh.facesize;
-		for(var j =0;j<facesize;j++){
-			srcface= bufmesh.faces[j]
-			srcvertices=srcface.idx;
-			dstface= bufmesh.faces[facesize+j]
-			dstface.idxnum=srcface.idxnum;
-			dstvertices=dstface.idx;
-			//var dst=dstface.uv,src=srcface.uv
-			for(var k=0;k<srcface.idxnum;k++){
-				var _k = srcface.idxnum-k;
+		var dstFace,srcFace;
+		var faceSize=bufMesh.faceSize;
+		for(var j =0;j<faceSize;j++){
+			srcFace= bufMesh.faces[j]
+			srcvertices=srcFace.idx;
+			dstFace= bufMesh.faces[faceSize+j]
+			dstFace.idxnum=srcFace.idxnum;
+			dstvertices=dstFace.idx;
+			//var dst=dstFace.uv,src=srcFace.uv
+			for(var k=0;k<srcFace.idxnum;k++){
+				var _k = srcFace.idxnum-k;
 				if(k==0){_k=0};
 
-				if(abs(bufmeshvertices[srcvertices[_k]].pos[mrr])>0.01){
-					dstvertices[k]= srcvertices[_k] + vertexsize;
+				if(abs(bufMeshVertices[srcvertices[_k]].pos[mrr])>0.01){
+					dstvertices[k]= srcvertices[_k] + vertexSize;
 				}else{
 					//座標が中心に近い場合は共有
 					dstvertices[k] = srcvertices[_k];
@@ -1403,53 +1405,53 @@ var O3o=(function(){
 			//	dst[k*2+1] = src[_k*2+1]
 			}
 
-			dstface.material = srcface.material;
-			dstface.mat= srcface.mat;
-			dstface.fs= srcface.fs;
+			dstFace.material = srcFace.material;
+			dstFace.mat= srcFace.mat;
+			dstFace.fs= srcFace.fs;
 
 		}
 		var jj=0;
-		for(var j =0;j<bufmesh.edgesize;j++){
-			var dst=bufmesh.edges[jj+bufmesh.edgesize]
-			var src=bufmesh.edges[j];
-			if(abs(bufmeshvertices[src.vindices[0]].pos[mrr])<0.01
-			 && abs(bufmeshvertices[src.vindices[1]].pos[mrr])<0.01){
-				src.findices[1]=src.findices[0]+facesize;
+		for(var j =0;j<bufMesh.edgeSize;j++){
+			var dst=bufMesh.edges[jj+bufMesh.edgeSize]
+			var src=bufMesh.edges[j];
+			if(abs(bufMeshVertices[src.vIndices[0]].pos[mrr])<0.01
+			 && abs(bufMeshVertices[src.vIndices[1]].pos[mrr])<0.01){
+				src.fIndices[1]=src.fIndices[0]+faceSize;
 
 				continue;
 			}
-			dst.vindices[0]=src.vindices[0]+vertexsize;
-			dst.vindices[1]=src.vindices[1]+vertexsize;
-			dst.findices[0]=src.findices[0]+facesize;
-			if(src.findices[1]>=0){
-				dst.findices[1]=src.findices[1]+facesize;
+			dst.vIndices[0]=src.vIndices[0]+vertexSize;
+			dst.vIndices[1]=src.vIndices[1]+vertexSize;
+			dst.fIndices[0]=src.fIndices[0]+faceSize;
+			if(src.fIndices[1]>=0){
+				dst.fIndices[1]=src.fIndices[1]+faceSize;
 			}else{
-				dst.findices[1]=-1;
+				dst.fIndices[1]=-1;
 			}
 			jj++;
 		}
-		bufmesh.edgesize+=jj;
+		bufMesh.edgeSize+=jj;
 
 		for(j=0;j<obj.groups.length;j++){
 			table[j]=j;
-			var groupname=obj.groups[j];
-			if(groupname.match(/l$/)){
-				groupname=groupname.replace(/l$/,"r");
-			}else if(groupname.match(/r$/)){
-				groupname=groupname.replace(/r$/,"l");
+			var groupName=obj.groups[j];
+			if(groupName.match(/L$/)){
+				groupName=groupName.replace(/L$/,"R");
+			}else if(groupName.match(/R$/)){
+				groupName=groupName.replace(/R$/,"L");
 			}else{
 				continue;
 			}
 
 			for(k=0;k<obj.groups.length;k++){
-				if(groupname===obj.groups[k]){
+				if(groupName===obj.groups[k]){
 					table[j]=k;
 					break;
 				}
 			}
 		}
-		for(k=0;k<vertexsize;k++){
-			var vertex=bufmeshvertices[vertexsize+k];
+		for(k=0;k<vertexSize;k++){
+			var vertex=bufMeshVertices[vertexSize+k];
 			for(var l=0;l<8;l++){
 				if(vertex.groups[l]<0)continue;
 				vertex.groups[l]=table[vertex.groups[l]];
@@ -1792,10 +1794,10 @@ var O3o=(function(){
 			var mod= new Mesh();
 
 			mod.ratios=[];
-			mod.vertices=Vertex.array(4096);
-			mod.faces=Face.array(4096);
-			mod.edges=Edge.array(4096);
-			for(i=0;i<1000;i++){
+			mod.vertices=Vertex.array(MAX_SIZE);
+			mod.faces=Face.array(MAX_SIZE);
+			mod.edges=Edge.array(MAX_SIZE);
+			for(i=0;i<MAX_SIZE;i++){
 				//mod.faces.push(new Face());
 				//mod.edges.push(new Edge());
 				mod.ratios.push(new Vec4());
@@ -2225,7 +2227,6 @@ var O3o=(function(){
 		}
 
 
-	var table=new Array(64);
 
 	var deformMatricies=[];
 	for(var i=0;i<128;i++){
@@ -2234,10 +2235,10 @@ var O3o=(function(){
 	var deformMesh = new Mesh();
 
 			deformMesh.ratios=[];
-			deformMesh.vertices=Vertex.array(4096);
-			deformMesh.faces=Face.array(4096);
-			deformMesh.edges=Edge.array(4096);
-			for(i=0;i<1000;i++){
+			deformMesh.vertices=Vertex.array(MAX_SIZE);
+			deformMesh.faces=Face.array(MAX_SIZE);
+			deformMesh.edges=Edge.array(MAX_SIZE);
+			for(i=0;i<MAX_SIZE;i++){
 				//deformMesh.faces.push(new Face());
 				//deformMesh.edges.push(new Edge());
 				deformMesh.ratios.push(new Vec4());
@@ -2245,81 +2246,83 @@ var O3o=(function(){
 			};
 	ret.prototype.modMeshDeform=function(dst,mod){
 		//メッシュデフォーム
-		if(!mod.basepos){
+		if(!mod.basePos){
 			return 0;
 		}
 		var obj = this.object;
 
+		var parentInstance = this.o3oInstance.objectInstances[mod.object.idx];
+
 		//デフォーム親メッシュを計算
-		this.freezemesh(deformmesh);
+		parentInstance.freezeMesh(deformMesh);
 
-		var dmv=deformmesh.vertices;
+		var dmv=deformMesh.vertices;
 		var binddata=mod.binddata;
-		var f=vec4.poolalloc();
+		var f=Vec4.poolAlloc();
 
-		for(var i=0;i<deformmesh.faces.length;i++){
+		for(var i=0;i<deformMesh.faceSize;i++){
 			//デフォーム親面ごとの係数計算
-			var face = deformmesh.faces[i];
+			var face = deformMesh.faces[i];
 			var dmv0 = dmv[face.idx[0]].pos;
 			var dmv1 = dmv[face.idx[1]].pos;
 			var dmv2 = dmv[face.idx[2]].pos;
 			var dmv3 = dmv[face.idx[3]].pos;
-			var dm = deformmatricies[i];
+			var dm = deformMatricies[i];
 
 			//平面方向
-			vec3.sub(f,dmv1,dmv0);
+			Vec3.sub(f,dmv1,dmv0);
 			dm[0]=f[0];
 			dm[1]=f[1];
 			dm[2]=f[2];
 			
 			if(face.idxnum==4){
-				vec3.sub(f,dmv2,f);
-				vec3.sub(f,f,dmv3);
+				Vec3.sub(f,dmv2,f);
+				Vec3.sub(f,f,dmv3);
 				dm[6]=f[0];
 				dm[7]=f[1];
 				dm[8]=f[2];
-				vec3.sub(f,dmv3,dmv0);
+				Vec3.sub(f,dmv3,dmv0);
 				dm[3]=f[0];
 				dm[4]=f[1];
 				dm[5]=f[2];
 			}else{
-				vec3.sub(f,dmv2,dmv0);
+				Vec3.sub(f,dmv2,dmv0);
 				dm[3]=f[0];
 				dm[4]=f[1];
 				dm[5]=f[2];
-				//vec3.set(deformbuf2[i],0,0,0);
+				//Vec3.set(deformbuf2[i],0,0,0);
 			}
 
 
 			//法線方向
 			if(face.idx===4){
-				vec3.cross3(f,dmv0 ,dmv2 ,dmv1 ,dmv3);
+				Vec3.cross3(f,dmv0 ,dmv2 ,dmv1 ,dmv3);
 			}else{
-				vec3.cross2(f,dmv0 ,dmv1 ,dmv2);
+				Vec3.cross2(f,dmv0 ,dmv1 ,dmv2);
 			}
-			vec3.norm(f);
+			Vec3.norm(f);
 			dm[9]=f[0];
 			dm[10]=f[1];
 			dm[11]=f[2];
 		}
-		for(var i=0;i<dst.vertexsize;i++){
+		for(var i=0;i<dst.vertexSize;i++){
 			//デフォーム子の頂点計算
 			var binds=binddata[i];//バインド情報
 			var vertex = dst.vertices[i];
-			vec3.set(vertex.pos,0,0,0);
+			Vec3.set(vertex.pos,0,0,0);
 			for(var j=0;j<binds.length;j++){
 				//バインド数分ループ
 				var bind=binds[j];
 
 				//バインド情報に係数をかけて座標を算出
-				mat43.dotvec4(f,deformmatricies[bind.idx],bind.pweight);
-				vec3.add(f,dmv[deformmesh.faces[bind.idx].idx[0]].pos,f);
+				Mat43.dotVec4(f,deformMatricies[bind.idx],bind.pweight);
+				Vec3.add(f,dmv[deformMesh.faces[bind.idx].idx[0]].pos,f);
 
-				vec3.madd(vertex.pos,vertex.pos,f,bind.weight); //重みを付けて加算
+				Vec3.madd(vertex.pos,vertex.pos,f,bind.weight); //重みを付けて加算
 			}
 		}
 
-		vec4.poolfree(1);
+		Vec4.poolFree(1);
 		return 1;
 
 	}
