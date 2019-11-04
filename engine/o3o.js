@@ -908,6 +908,14 @@ var O3o=(function(){
 			}
 		}
 
+		for(j=o3o.objects.length;j--;){
+			o3o.objects[o3o.objects[j].name]=o3o.objects[j] ;
+		}
+
+		for(j=o3o.actions.length;j--;){
+			o3o.actions[o3o.actions[j].name]=o3o.actions[j] ;
+		}
+
 		//オブジェクトのdataをアドレスに変換
 		var typedatas={
 			"MESH":{objecttype:OBJECT_MESH,target:"meshes"}
@@ -1175,7 +1183,7 @@ var O3o=(function(){
 		
 	}
 	
-	var addaction = function(obj,name,action,frame){
+	var addaction = ret.addaction= function(obj,name,action,frame){
 		var a,b,c
 			,tim,ratio
 			,fcurve
@@ -1912,6 +1920,7 @@ var modMirror = function(dst,obj,mod){
 				var instance = new SceneObjectInstance(object);
 				instance.o3oInstance= this;
 				this.objectInstances.push(instance);
+				this.objectInstances[object.name]=instance;
 
 			}
 			this.calcMatrix(0,true);
@@ -2006,7 +2015,7 @@ var modMirror = function(dst,obj,mod){
 		var cylinder = new Collider.Cylinder();
 		var cone = new Collider.Cone();
 		var capsule = new Collider.Capsule();
-		ret.prototype.hitCheck = function(collider,flg){
+		ret.prototype.getTempCollision=function(groups){
 			var collision;
 			var obj = this.object;
 			var scale=Vec3.poolAlloc();
@@ -2042,6 +2051,8 @@ var modMirror = function(dst,obj,mod){
 					m[i*3+j]*=scale[i];
 				}
 			}
+			collision.groups=groups;
+			collision.notgroups=0;
 			collision.bold=0;
 
 			switch(obj.bound_type){
@@ -2049,7 +2060,7 @@ var modMirror = function(dst,obj,mod){
 					scale[0]=Math.sqrt(m[0]*m[0]+m[1]*m[1]+m[2]*m[2]);
 					scale[1]=Math.sqrt(m[3]*m[3]+m[4]*m[4]+m[5]*m[5]);
 					scale[2]=Math.sqrt(m[6]*m[6]+m[7]*m[7]+m[8]*m[8]);
-					collision.bold=Math.max(Math.max(scale[0],scals[1]),scale[2]);
+					collision.bold=Math.max(Math.max(scale[0],scale[1]),scale[2]);
 					break;
 				case "CAPSULE":
 					scale[0]=Math.sqrt(m[0]*m[0]+m[1]*m[1]+m[2]*m[2]);
@@ -2065,6 +2076,10 @@ var modMirror = function(dst,obj,mod){
 
 			collision.refresh();
 			Vec3.poolFree(1);
+			return collision;
+		}
+		ret.prototype.hitCheck = function(collider,flg){
+			var collision=this.getTempCollision(flg);
 			return collider.checkHitAll(collision);
 			
 		}

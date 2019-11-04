@@ -36,16 +36,25 @@ Engine.goClass["field"]= (function(){
 
 			//物理シミュオブジェクトの設定
 			this.instance = o3o.createInstance();
+			o3o.scenes[0].setFrame(0); //アニメーション処理
+			this.instance.calcMatrix(1.0/globalParam.fps,true);
+			for(var i=0;i<this.instance.objectInstances.length;i++){
+				var oi=this.instance.objectInstances[i];
+				if(oi.phyObj){
+					oi.phyObj.collision.groups=1|4;
+				}
+			}
 			this.instance.joinPhyObj(onoPhy);
 
 
 			var object = scene.objects.find(function(o){return o.name==="_border";});
 			var collision= O3o.createCollision(object);
+			Mat43.copy(collision.matrix,this.instance.objectInstances["_border"].matrix);
 			collision.groups = 1;
 			collision.callbackFunc=function(col1,col2,pos1,pos2){
 				if(col2.name==="jiki"){
 					//画面外侵入時
-					reset();
+					//reset();
 				}
 			}
 			t.collisions=[];
@@ -55,16 +64,16 @@ Engine.goClass["field"]= (function(){
 			collision= O3o.createCollision(object);
 			collision.groups = 1;
 			collision.callbackFunc=function(col1,col2,pos1,pos2){
-				if(!col2.parent)return;
-				if(col2.parent.name!=="jiki"){
-					return;
-				}
-				onoPhy.collider.deleteCollision(col1);
-				if(stage<stages.length-1){
-					objMan.createObj(GoMsg);
-				}else{
-					objMan.createObj(GoMsg2);
-				}
+				//if(!col2.parent)return;
+				//if(col2.parent.name!=="jiki"){
+				//	return;
+				//}
+				//onoPhy.collider.deleteCollision(col1);
+				//if(stage<stages.length-1){
+				//	objMan.createObj(GoMsg);
+				//}else{
+				//	objMan.createObj(GoMsg2);
+				//}
 			}
 			t.collisions.push(collision);
 			for(var i=0;i<t.collisions.length;i++){

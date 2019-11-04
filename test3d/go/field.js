@@ -50,12 +50,12 @@ Engine.goClass.field= (function(){
 				if(!phyObj2.collision){
 					continue;
 				}
-			phyObj2.refreshCollision();
+				phyObj2.refreshCollision();
 				if(!AABB.aabbCast(v,phyObj.collision.aabb,phyObj2.collision.aabb)){
 					continue;
 				}
 				var a=Collider.convexCast(v,phyObj.collision,phyObj2.collision);
-				if(a>0 && a<nearest){
+				if( a<nearest){
 					nearest=a;
 					target=phyObj2;
 				}
