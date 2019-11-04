@@ -3,14 +3,10 @@ var O3o=(function(){
 	const MAX_SIZE=4096;
 	var abs=Math.abs;
 
-	var groupMatricies = new Array(64)
-		,groupMatFlg= new Array(64)
-	;
 	var loadTexture=function(path,func){
 		return AssetManager.texture(path,func);
 	}
 
-	for(var i=groupMatricies.length;i--;)groupMatricies[i] = new Mat43();
 
 	const REPEAT_NONE = i=0
 		, REPEAT_LOOP = ++i
@@ -1359,119 +1355,6 @@ var O3o=(function(){
 		return ;
 	}
 
-	var table=new Array(64);
-var modMirror = function(dst,obj,mod){
-		var bufMesh = dst;
-		var bufMeshVertices =bufMesh.vertices
-		var renderVertex;
-
-		var dstvertices,srcvertices;
-		var dstvertex,srcvertex;
-		var vertexSize=bufMesh.vertexSize
-		var mrr = 0;
-		if(mod.use_x){ mrr=0};
-		if(mod.use_y){ mrr=1};
-		if(mod.use_z){ mrr=2};
-
-		for(j =0;j<vertexSize;j++){
-			srcvertex=bufMeshVertices[j];
-			dstvertex=bufMeshVertices[j+vertexSize];
-
-			dstvertex.pos[0]=srcvertex.pos[0];
-			dstvertex.pos[1]=srcvertex.pos[1];
-			dstvertex.pos[2]=srcvertex.pos[2];
-			dstvertex.pos[mrr]*=-1;
-			//dstvertex.groups=srcvertex.groups;
-			dstvertex.groupWeights=srcvertex.groupWeights;
-			for(var k=0;k<srcvertex.groups.length;k++){
-				dstvertex.groups[k]=srcvertex.groups[k];
-			//	dstvertex.groupWeights[k]=srcvertex.groupWeights[k];
-			}
-			
-		}
-		var dstFace,srcFace;
-		var faceSize=bufMesh.faceSize;
-		for(var j =0;j<faceSize;j++){
-			srcFace= bufMesh.faces[j]
-			srcvertices=srcFace.idx;
-			dstFace= bufMesh.faces[faceSize+j]
-			dstFace.idxnum=srcFace.idxnum;
-			dstvertices=dstFace.idx;
-			//var dst=dstFace.uv,src=srcFace.uv
-			for(var k=0;k<srcFace.idxnum;k++){
-				var _k = srcFace.idxnum-k;
-				if(k==0){_k=0};
-
-				if(abs(bufMeshVertices[srcvertices[_k]].pos[mrr])>0.01){
-					dstvertices[k]= srcvertices[_k] + vertexSize;
-				}else{
-					//座標が中心に近い場合は共有
-					dstvertices[k] = srcvertices[_k];
-				}
-
-			//	dst[k*2] = src[_k*2]
-			//	dst[k*2+1] = src[_k*2+1]
-			}
-
-			dstFace.material = srcFace.material;
-			dstFace.mat= srcFace.mat;
-			dstFace.fs= srcFace.fs;
-
-		}
-		var jj=0;
-		for(var j =0;j<bufMesh.edgeSize;j++){
-			var dst=bufMesh.edges[jj+bufMesh.edgeSize]
-			var src=bufMesh.edges[j];
-			if(abs(bufMeshVertices[src.vIndices[0]].pos[mrr])<0.01
-			 && abs(bufMeshVertices[src.vIndices[1]].pos[mrr])<0.01){
-				src.fIndices[1]=src.fIndices[0]+faceSize;
-
-				continue;
-			}
-			dst.vIndices[0]=src.vIndices[0]+vertexSize;
-			dst.vIndices[1]=src.vIndices[1]+vertexSize;
-			dst.fIndices[0]=src.fIndices[0]+faceSize;
-			if(src.fIndices[1]>=0){
-				dst.fIndices[1]=src.fIndices[1]+faceSize;
-			}else{
-				dst.fIndices[1]=-1;
-			}
-			jj++;
-		}
-		bufMesh.edgeSize+=jj;
-
-		for(j=0;j<obj.groups.length;j++){
-			table[j]=j;
-			var groupName=obj.groups[j];
-			if(groupName.match(/L$/)){
-				groupName=groupName.replace(/L$/,"R");
-			}else if(groupName.match(/R$/)){
-				groupName=groupName.replace(/R$/,"L");
-			}else{
-				continue;
-			}
-
-			for(k=0;k<obj.groups.length;k++){
-				if(groupName===obj.groups[k]){
-					table[j]=k;
-					break;
-				}
-			}
-		}
-		for(k=0;k<vertexSize;k++){
-			var vertex=bufMeshVertices[vertexSize+k];
-			for(var l=0;l<8;l++){
-				if(vertex.groups[l]<0)continue;
-				vertex.groups[l]=table[vertex.groups[l]];
-			}
-		}
-			
-
-		
-		bufMesh.faceSize+=faceSize;
-		bufMesh.vertexSize+=vertexSize;
-	}
-
 
 	ret.createCollision = function(obj){
 		var collision=null;
@@ -2341,6 +2224,126 @@ var modMirror = function(dst,obj,mod){
 		return 1;
 
 	}
+
+	var table=new Array(64);
+	ret.prototype.modMirror = function(dst,mod){
+		var obj = this.object;
+		var bufMesh = dst;
+		var bufMeshVertices =bufMesh.vertices
+		var renderVertex;
+
+		var dstvertices,srcvertices;
+		var dstvertex,srcvertex;
+		var vertexSize=bufMesh.vertexSize
+		var mrr = 0;
+		if(mod.use_x){ mrr=0};
+		if(mod.use_y){ mrr=1};
+		if(mod.use_z){ mrr=2};
+
+		for(j =0;j<vertexSize;j++){
+			srcvertex=bufMeshVertices[j];
+			dstvertex=bufMeshVertices[j+vertexSize];
+
+			dstvertex.pos[0]=srcvertex.pos[0];
+			dstvertex.pos[1]=srcvertex.pos[1];
+			dstvertex.pos[2]=srcvertex.pos[2];
+			dstvertex.pos[mrr]*=-1;
+			//dstvertex.groups=srcvertex.groups;
+			dstvertex.groupWeights=srcvertex.groupWeights;
+			for(var k=0;k<srcvertex.groups.length;k++){
+				dstvertex.groups[k]=srcvertex.groups[k];
+			//	dstvertex.groupWeights[k]=srcvertex.groupWeights[k];
+			}
+			
+		}
+		var dstFace,srcFace;
+		var faceSize=bufMesh.faceSize;
+		for(var j =0;j<faceSize;j++){
+			srcFace= bufMesh.faces[j]
+			srcvertices=srcFace.idx;
+			dstFace= bufMesh.faces[faceSize+j]
+			dstFace.idxnum=srcFace.idxnum;
+			dstvertices=dstFace.idx;
+			//var dst=dstFace.uv,src=srcFace.uv
+			for(var k=0;k<srcFace.idxnum;k++){
+				var _k = srcFace.idxnum-k;
+				if(k==0){_k=0};
+
+				if(abs(bufMeshVertices[srcvertices[_k]].pos[mrr])>0.01){
+					dstvertices[k]= srcvertices[_k] + vertexSize;
+				}else{
+					//座標が中心に近い場合は共有
+					dstvertices[k] = srcvertices[_k];
+				}
+
+			//	dst[k*2] = src[_k*2]
+			//	dst[k*2+1] = src[_k*2+1]
+			}
+
+			dstFace.material = srcFace.material;
+			dstFace.mat= srcFace.mat;
+			dstFace.fs= srcFace.fs;
+
+		}
+		var jj=0;
+		for(var j =0;j<bufMesh.edgeSize;j++){
+			var dst=bufMesh.edges[jj+bufMesh.edgeSize]
+			var src=bufMesh.edges[j];
+			if(abs(bufMeshVertices[src.vIndices[0]].pos[mrr])<0.01
+			 && abs(bufMeshVertices[src.vIndices[1]].pos[mrr])<0.01){
+				src.fIndices[1]=src.fIndices[0]+faceSize;
+
+				continue;
+			}
+			dst.vIndices[0]=src.vIndices[0]+vertexSize;
+			dst.vIndices[1]=src.vIndices[1]+vertexSize;
+			dst.fIndices[0]=src.fIndices[0]+faceSize;
+			if(src.fIndices[1]>=0){
+				dst.fIndices[1]=src.fIndices[1]+faceSize;
+			}else{
+				dst.fIndices[1]=-1;
+			}
+			jj++;
+		}
+		bufMesh.edgeSize+=jj;
+
+		for(j=0;j<obj.groups.length;j++){
+			table[j]=j;
+			var groupName=obj.groups[j];
+			if(groupName.match(/L$/)){
+				groupName=groupName.replace(/L$/,"R");
+			}else if(groupName.match(/R$/)){
+				groupName=groupName.replace(/R$/,"L");
+			}else{
+				continue;
+			}
+
+			for(k=0;k<obj.groups.length;k++){
+				if(groupName===obj.groups[k]){
+					table[j]=k;
+					break;
+				}
+			}
+		}
+		for(k=0;k<vertexSize;k++){
+			var vertex=bufMeshVertices[vertexSize+k];
+			for(var l=0;l<8;l++){
+				if(vertex.groups[l]<0)continue;
+				vertex.groups[l]=table[vertex.groups[l]];
+			}
+		}
+			
+
+		
+		bufMesh.faceSize+=faceSize;
+		bufMesh.vertexSize+=vertexSize;
+	}
+
+	var groupMatricies = new Array(64)
+		,groupMatFlg= new Array(64)
+	;
+	for(var i=groupMatricies.length;i--;)groupMatricies[i] = new Mat43();
+
 	ret.prototype.modArmature=function(dst,mod){
 		var bufMesh = dst;
 		var bufMeshVertices =bufMesh.vertices
@@ -2423,7 +2426,7 @@ var modMirror = function(dst,obj,mod){
 				continue;
 			}
 			if(mod.type=="MIRROR"){
-				flg|=modMirror(dst,obj,mod);
+				flg|=this.modMirror(dst,mod);
 			}else if(mod.type=="ARMATURE"){
 				flg|=this.modArmature(dst,mod);
 			}else if(mod.type=="MESH_DEFORM"){
