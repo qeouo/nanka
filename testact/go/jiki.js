@@ -18,9 +18,10 @@ Engine.goClass["jiki"]= (function(){
 		Vec4.fromRotVector(this.rotq,-Math.PI*0.5,1,0,0);
 		this.pattern=0;
 		this.motionT=0;
+		this.matrix=new Mat43();
 
 		var t=this;
-		o3o = AssetManager.o3o("human.o3o?16",function(o3o){
+		o3o = AssetManager.o3o("human.o3o?17",function(o3o){
 
 			var armature=o3o.objects.find(function(o){return o.name==="アーマチュア";});
 
@@ -103,6 +104,9 @@ Engine.goClass["jiki"]= (function(){
 
 		var armature=o3o.objects["アーマチュア"];
 		var dst = armature.pose;
+
+		ono3d.setTargetMatrix(0);
+		ono3d.loadIdentity();
 
 		var v2 = Vec3.poolAlloc();
 		switch(this.pattern){
@@ -200,17 +204,49 @@ Engine.goClass["jiki"]= (function(){
 				var collision=oInstances["_wallJump"].getTempCollision(4);
 				var aa=Vec3();
 				Vec3.set(aa,0,-1,0);
-				onoPhy.collider.rayCastAll(aa,collision);
+				onoPhy.collider.convexCastAll(aa,collision);
 
 				for(var i=0;i<onoPhy.collider.hitListIndex;i++){
 					var len = onoPhy.collider.hitList[i].len;
 					if(len>0.1 && len<0.2 && poJiki.v[1]<0){
 						this.pattern=1;
 						poJiki.fix=true;
-						this.v[0]=collision.matrix[9];
-						this.v[1]=collision.matrix[10];
-						this.v[2]=collision.matrix[11];
-						Vec3.madd(this.v,this.v,aa,len);
+						Mat43.copy(this.matrix,collision.matrix);
+						//Vec3.madd(this.v,this.v,aa,len);
+						Vec3.set(aa,0,1,0);
+						var z=new Vec3();
+						Vec3.set(aa,poJiki.matrix[6],poJiki.matrix[7],poJiki.matrix[8]);
+						Vec3.norm(aa);
+						collision=poJiki.collision;
+						//Mat43.copy(collision.matrix,poJiki.matrix);
+						onoPhy.collider.convexCastAll(aa,collision);
+						var hitList =onoPhy.collider.hitList;
+						var min=-1;
+						for(var j=0;j<onoPhy.collider.hitListIndex;j++){
+							if(hitList[j].len<-1)continue;
+							if(min<0 || hitList[j].len<min){
+								min=hitList[j].len;
+								Vec3.set(z,hitList[j].pos1[0],hitList[j].pos1[1],hitList[j].pos1[2]);
+							}
+						}
+						Vec3.norm(z);
+
+						//Vec3.set(z,0,0,-1);
+						Vec3.set(aa,0,1,0);
+						this.matrix[9]+=aa[0]*len;
+						this.matrix[10]+=aa[1]*len;
+						this.matrix[11]+=aa[2]*len;
+						this.matrix[3]=aa[0];
+						this.matrix[4]=aa[1];
+						this.matrix[5]=aa[2];
+						this.matrix[6]=z[0];
+						this.matrix[7]=z[1];
+						this.matrix[8]=z[2];
+
+						Vec3.cross(z,aa,z);
+						this.matrix[0]=z[0];
+						this.matrix[1]=z[1];
+						this.matrix[2]=z[2];
 
 					}
 				}
@@ -231,10 +267,14 @@ Engine.goClass["jiki"]= (function(){
 		case 1://空中
 			dst.setAction(o3o.actions["climb"],0);
 			O3o.addaction(o3o.objects["jiki"],"",o3o.actions["climb_idou"],0);
-			Vec3.add(o3o.objects["jiki"].location,this.v,o3o.objects["jiki"].location);
+			//Vec3.add(o3o.objects["jiki"].location,this.v,o3o.objects["jiki"].location);
+
+			ono3d.setTargetMatrix(0);
+			Mat44.copyMat43(ono3d.worldMatrix,this.matrix);
 
 			this.instance.calcMatrix(1.0/globalParam.fps);
 			poJiki.v[1]=0;
+			ono3d.loadIdentity();
 
 		}
 

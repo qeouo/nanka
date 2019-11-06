@@ -1806,6 +1806,9 @@ var O3o=(function(){
 				this.objectInstances[object.name]=instance;
 
 			}
+
+		ono3d.setTargetMatrix(0);
+		ono3d.loadIdentity();
 			this.calcMatrix(0,true);
 
 
@@ -2055,6 +2058,8 @@ var O3o=(function(){
 					Mat43.dot(matrix,obj.iparentmatrix,matrix);
 				}
 				Mat43.dot(matrix,parentInstance.matrix,matrix);
+			}else{
+				Mat43.dotMat44Mat43(matrix,ono3d.worldMatrix,matrix);
 			}
 
 			if(phyObj){
@@ -2064,7 +2069,8 @@ var O3o=(function(){
 					Vec3.set(phyObj.rotV,0,0,0);
 
 				
-					Mat43.dotMat44Mat43(phyObj.matrix,ono3d.worldMatrix,this.matrix);
+					Mat43.copy(phyObj.matrix,this.matrix);
+					//Mat43.dotMat44Mat43(phyObj.matrix,ono3d.worldMatrix,this.matrix);
 					Mat43.toLSR(phyObj.location,phyObj.scale,phyObj.rotq,phyObj.matrix);
 
 					if(dt !=0){
