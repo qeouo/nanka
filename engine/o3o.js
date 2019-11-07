@@ -2047,7 +2047,7 @@ var O3o=(function(){
 			if(obj.parent){
 				var parent=obj.parent;
 				var parentInstance = o3oInstance.objectInstances[parent.idx];
-				parentInstance.calcMatrix();
+				parentInstance.calcMatrix(dt,flg);
 
 				if(obj.parent_bone){
 					var i=this.parent_bone-1;
