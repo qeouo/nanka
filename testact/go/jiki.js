@@ -208,10 +208,7 @@ Engine.goClass["jiki"]= (function(){
 					var len = onoPhy.collider.hitList[i].len;
 					if(len>0.1 && len<0.2 && poJiki.v[1]<0){
 						this.pattern=1;
-						poJiki.fix=true;
-						Mat43.copy(this.matrix,collision.matrix);
-						//Vec3.madd(this.v,this.v,aa,len);
-						Vec3.set(aa,0,1,0);
+						//崖つかみ状態へ移行
 
 					}
 				}
@@ -229,7 +226,8 @@ Engine.goClass["jiki"]= (function(){
 
 			Vec3.add(poJiki.v,poJiki.v,vec);//加速力足す
 			break;
-		case 1://空中
+		case 1://崖つかみ
+			var mat=poJiki.matrix;
 			var oInstances= this.instance.objectInstances;
 			var collision=oInstances["_wallJump"].getTempCollision(4);
 			var aa=Vec3();
@@ -243,19 +241,18 @@ Engine.goClass["jiki"]= (function(){
 				len = onoPhy.collider.hitList[i].len;
 				if(len>0.1 && len<0.2 && poJiki.v[1]<0){
 					this.pattern=1;
-					poJiki.fix=true;
-					Mat43.copy(this.matrix,collision.matrix);
-					//Vec3.madd(this.v,this.v,aa,len);
-					Vec3.set(aa,0,1,0);
+					//崖つかみ状態を維持
 
 				}
 			}
 			if(this.pattern!==1){
-			poJiki.fix=false;
-			poJiki.mass=o3o.objects["jiki"].rigid_body.mass;
-			poJiki.refreshInertia();
+				//崖つかみ解除
 				break;
 			}
+			//mat[10]=collision.matrix[10]-len-0.5;
+			poJiki.location[1]=collision.matrix[10]-len-0.5;
+			poJiki.v[1]=0;
+
 
 			var z=new Vec3();
 
@@ -277,27 +274,14 @@ Engine.goClass["jiki"]= (function(){
 
 			//Vec3.set(z,0,0,-1);
 			Vec3.set(aa,0,1,0);
-			//this.matrix[9]+=aa[0]*len;
-			this.matrix[10]+=aa[1]*len;
-			//this.matrix[11]+=aa[2]*len;
-			this.matrix[3]=aa[0];
-			this.matrix[4]=aa[1];
-			this.matrix[5]=aa[2];
-			this.matrix[6]=z[0];
-			this.matrix[7]=z[1];
-			this.matrix[8]=z[2];
 
-			Vec3.cross(z,aa,z);
-			this.matrix[0]=z[0];
-			this.matrix[1]=z[1];
-			this.matrix[2]=z[2];
 
 			dst.setAction(o3o.actions["climb"],0);
 			O3o.addaction(o3o.objects["jiki"],"",o3o.actions["climb_idou"],0);
 			//Vec3.add(o3o.objects["jiki"].location,this.v,o3o.objects["jiki"].location);
 
 			ono3d.setTargetMatrix(0);
-			Mat44.copyMat43(ono3d.worldMatrix,this.matrix);
+			//Mat44.copyMat43(ono3d.worldMatrix,this.matrix);
 
 			this.instance.calcMatrix(1.0/globalParam.fps);
 			poJiki.v[1]=0;
