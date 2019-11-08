@@ -6,7 +6,7 @@ Engine.goClass["jiki"]= (function(){
 	var wallNormal= new Vec3();
 	var poJiki = null;
 	var o3o;
-	var jiki =null;
+	var pattern={};
 
 	var GoJiki =function(){};
 	var ret = GoJiki;
@@ -22,7 +22,7 @@ Engine.goClass["jiki"]= (function(){
 		var t=this;
 		o3o = AssetManager.o3o("human.o3o?17",function(o3o){
 
-			var armature=o3o.objects.find(function(o){return o.name==="アーマチュア";});
+			var armature=o3o.objects["アーマチュア"];
 
 			sourceArmature= new O3o.Pose(armature.data);
 			referenceArmature= new O3o.Pose(armature.data);
@@ -33,23 +33,19 @@ Engine.goClass["jiki"]= (function(){
 			t.instance= o3o.createInstance();
 			t.instance.joinPhyObj(onoPhy);
 
-			jiki=t.instance.objectInstances["jiki"];
 
-			poJiki = jiki.phyObj;
+			poJiki = t.instance.objectInstances["jiki"].phyObj;
 			poJiki.fix=false;
 			poJiki.mass=o3o.objects["jiki"].rigid_body.mass;
 			poJiki.refreshInertia();
-
-
+			poJiki.collision.groups=3;
 			Vec3.copy(poJiki.location,t.p);
 			Mat33.set(poJiki.inertiaTensorBase,1,0,0,0,1,0,0,0,1);
 			Mat33.mul(poJiki.inertiaTensorBase,poJiki.inertiaTensorBase,99999999);
 
 			t.instance.calcMatrix(1.0/globalParam.fps,0,true);
-			t.phyObj = poJiki;
 
 
-			poJiki.collision.groups=3;
 			poJiki.collision.callbackFunc=function(col1,col2,pos1,pos2){
 				if(col2.parent){
 					//物理オブジェクトの場合
@@ -249,8 +245,7 @@ Engine.goClass["jiki"]= (function(){
 				//崖つかみ解除
 				break;
 			}
-			//mat[10]=collision.matrix[10]-len-0.5;
-			poJiki.location[1]=collision.matrix[10]-len-0.5;
+			poJiki.location[1]+=len-0.15;
 			poJiki.v[1]=0;
 
 
