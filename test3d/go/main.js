@@ -230,7 +230,7 @@ Engine.goClass.main= (function(){
 				bane.con1 = null;
 				bane.defaultLength=0;
 				bane.f=50*targetPhyObj.mass;
-				bane.c=1*targetPhyObj.mass;
+				bane.c=3*targetPhyObj.mass;
 
 				Vec3.sub(bV2,p1,p0);
 				Vec3.madd(bV2,p0,bV2,tsukamiZ);

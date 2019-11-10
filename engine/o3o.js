@@ -2026,7 +2026,7 @@ var O3o=(function(){
 			var o3oInstance = this.o3oInstance;
 
 			if(phyObj){
-				if((!phyObj.fix && !flg)& phyObj.type===OnoPhy.RIGID){
+				if((obj.rigid_body.type !== "PASSIVE" && !flg) && phyObj.type===OnoPhy.RIGID){
 					//fixでない剛体の場合はそれに合わせる
 					Mat43.copy(matrix,phyObj.matrix);
 					this.flg=true;
@@ -2063,7 +2063,7 @@ var O3o=(function(){
 			}
 
 			if(phyObj){
-				if((phyObj.fix || flg) && phyObj.type===OnoPhy.RIGID){
+				if((obj.rigid_body.type =="PASSIVE" || flg) && phyObj.type===OnoPhy.RIGID){
 					Vec3.set(phyObj.v,0,0,0);
 					Vec3.copy(phyObj.v,phyObj.location);
 					Vec3.set(phyObj.rotV,0,0,0);

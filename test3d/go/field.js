@@ -12,6 +12,7 @@ Engine.goClass.field= (function(){
 	ret.prototype.init=function(){
 		o3o =AssetManager.o3o(globalParam.model);
 	}
+	var aaa=true;
 	ret.prototype.move=function(){
 		var obj = this;
 		if(o3o.scenes.length===0){
@@ -28,6 +29,8 @@ Engine.goClass.field= (function(){
 		var instance=this.instance;
 
 		instance.calcMatrix(1.0/globalParam.fps,!globalParam.physics_ || !globalParam.physics);
+
+
 
 		//“ÁŽê
 		var phyObj = instance.o3o.objects.find(function(o){return o.name==="convexhull";});

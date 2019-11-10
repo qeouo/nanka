@@ -16,11 +16,12 @@ Engine.goClass["jiki"]= (function(){
 		var obj = this;
 		Vec4.fromRotVector(this.rotq,-Math.PI*0.5,1,0,0);
 		this.pattern=0;
+		this.patternT=0;
 		this.motionT=0;
 		this.matrix=new Mat43();
 
 		var t=this;
-		o3o = AssetManager.o3o("human.o3o?17",function(o3o){
+		o3o = AssetManager.o3o("human.o3o?a1",function(o3o){
 
 			var armature=o3o.objects["アーマチュア"];
 
@@ -33,6 +34,7 @@ Engine.goClass["jiki"]= (function(){
 			t.instance= o3o.createInstance();
 			t.instance.joinPhyObj(onoPhy);
 
+			o3o.objects["jiki"].rigid_body.type="ACTIVE";
 
 			poJiki = t.instance.objectInstances["jiki"].phyObj;
 			poJiki.fix=false;
@@ -82,6 +84,7 @@ Engine.goClass["jiki"]= (function(){
 		if(o3o.scenes.length===0){
 			return;
 		}
+		var oInstances= this.instance.objectInstances;
 		Vec3.copy(this.p,poJiki.location);
 
 		var vec = Vec3.poolAlloc();
@@ -106,6 +109,8 @@ Engine.goClass["jiki"]= (function(){
 		var v2 = Vec3.poolAlloc();
 		switch(this.pattern){
 		case 0://歩き
+			o3o.objects["jiki"].rigid_body.type="ACTIVE";
+			poJiki.fix=false;
 
 			sourceArmature.reset();
 			referenceArmature.reset();
@@ -133,17 +138,19 @@ Engine.goClass["jiki"]= (function(){
 			this.instance.calcMatrix(1.0/globalParam.fps);
 			Vec3.poolFree(1);
 
-			if(vec[0]*vec[0] + vec[2]*vec[2]){
+
+			if(this.ground){
+
+			if(vec[0]*vec[0] + vec[2]*vec[2] && Vec3.scalar(pad2)){
 				//歩行方向に向かせる
 				var r = Math.atan2(vec[0],vec[2]);
 				var q = Vec4.poolAlloc();
-				Vec4.fromRotVector(this.rotq,r,0,1,0);
+				Vec4.fromRotVector(poJiki.rotq,r,0,1,0);
 				Vec4.poolFree(1);
 			}
 
-			Vec4.copy(poJiki.rotq,this.rotq); //キャラの向きを物理オブジェクトに反映
+			//Vec4.copy(poJiki.rotq,this.rotq); //キャラの向きを物理オブジェクトに反映
 
-			if(this.ground){
 				//接地時歩行させる
 				//地面に並行な方向を算出
 				Vec3.cross(vec,groundNormal,vec);
@@ -195,17 +202,23 @@ Engine.goClass["jiki"]= (function(){
 				}
 			}else{
 				var oInstances= this.instance.objectInstances;
-				var collision=oInstances["_wallJump"].getTempCollision(4);
-				var aa=Vec3();
-				Vec3.set(aa,0,-1,0);
-				onoPhy.collider.convexCastAll(aa,collision);
 
-				for(var i=0;i<onoPhy.collider.hitListIndex;i++){
-					var len = onoPhy.collider.hitList[i].len;
-					if(len>0.1 && len<0.2 && poJiki.v[1]<0){
-						this.pattern=1;
-						//崖つかみ状態へ移行
+				if(this.grapcount>0){
+					this.grapcount--;
+				}else{
+					var collision=oInstances["_wallJump"].getTempCollision(4);
+					var aa=Vec3();
+					Vec3.set(aa,0,-1,0);
+					onoPhy.collider.convexCastAll(aa,collision);
 
+					for(var i=0;i<onoPhy.collider.hitListIndex;i++){
+						var len = onoPhy.collider.hitList[i].len;
+						if(len>0.1 && len<0.2 && poJiki.v[1]<0){
+							this.pattern=1;
+							this.patternT=0;
+							//崖つかみ状態へ移行
+
+						}
 					}
 				}
 			}
@@ -222,10 +235,34 @@ Engine.goClass["jiki"]= (function(){
 
 			Vec3.add(poJiki.v,poJiki.v,vec);//加速力足す
 			break;
+		case 2://崖のぼり　
+			var frame = this.patternT/60*24;
+			dst.setAction(o3o.actions["climb"],frame);
+			O3o.addaction(o3o.objects["jiki"],"",o3o.actions["climb_idou"],frame);
+			if(this.patternT==1){
+				Mat43.copy(this.matrix,poJiki.matrix);
+				o3o.objects["jiki"].rigid_body.type="PASSIVE";
+				poJiki.fix=true;
+				this.instance.calcMatrix(1.0/globalParam.fps);
+				Mat43.getInv(oInstances["jiki"].matrix,oInstances["jiki"].matrix);
+				Mat43.dot(this.matrix,this.matrix,oInstances["jiki"].matrix);
+			}
+
+			ono3d.loadIdentity();
+			Mat44.copyMat43(ono3d.worldMatrix,this.matrix);
+			this.instance.calcMatrix(1.0/globalParam.fps);
+
+			if(this.patternT>58){
+				this.pattern=0;
+			}
+			break;
 		case 1://崖つかみ
-			var mat=poJiki.matrix;
-			var oInstances= this.instance.objectInstances;
 			var collision=oInstances["_wallJump"].getTempCollision(4);
+
+			dst.setAction(o3o.actions["climb_side"],this.motionT/1000*24);
+			O3o.addaction(o3o.objects["jiki"],"",o3o.actions["climb_idou"],0);
+			this.instance.calcMatrix(1.0/globalParam.fps);
+
 			var aa=Vec3();
 			Vec3.set(aa,0,-1,0);
 			onoPhy.collider.convexCastAll(aa,collision);
@@ -233,9 +270,11 @@ Engine.goClass["jiki"]= (function(){
 			var len=-1;
 
 			this.pattern=0;
+			var len2=0;
 			for(var i=0;i<onoPhy.collider.hitListIndex;i++){
 				len = onoPhy.collider.hitList[i].len;
-				if(len>0.1 && len<0.2 && poJiki.v[1]<0){
+				if(len>-0 && len<=0.2 && poJiki.v[1]<=0){
+					len2=len;
 					this.pattern=1;
 					//崖つかみ状態を維持
 
@@ -245,7 +284,7 @@ Engine.goClass["jiki"]= (function(){
 				//崖つかみ解除
 				break;
 			}
-			poJiki.location[1]+=len-0.15;
+			poJiki.location[1]+=0.15-len2;
 			poJiki.v[1]=0;
 
 
@@ -260,19 +299,60 @@ Engine.goClass["jiki"]= (function(){
 			var min=-1;
 			for(var j=0;j<onoPhy.collider.hitListIndex;j++){
 				if(hitList[j].len<-1)continue;
+				if(hitList[j].len>9999)continue;
 				if(min<0 || hitList[j].len<min){
 					min=hitList[j].len;
 					Vec3.set(z,hitList[j].pos1[0],hitList[j].pos1[1],hitList[j].pos1[2]);
 				}
 			}
 			Vec3.norm(z);
+			if(min>0 && min<1){
+				Vec3.madd(poJiki.location,poJiki.location,z,min);
+			}
+			Vec3.madd(poJiki.v,poJiki.v,z,-Vec3.dot(z,poJiki.v));
+			Mat43.fromLSR(poJiki.matrix,poJiki.location,poJiki.scale,poJiki.rotq);
 
-			//Vec3.set(z,0,0,-1);
-			Vec3.set(aa,0,1,0);
+			var r = Math.atan2(z[0],z[2]);
+			Vec4.fromRotVector(poJiki.rotq,r,0,1,0);
+
+			var m=poJiki.matrix;
+			var sideV = new Vec3();
+			Vec3.set(sideV,m[0],m[1],m[2]);
+			Vec3.norm(sideV);
+			var side = Vec3.dot(sideV,pad2);
+			if(Math.abs(side)>0.7){
+				if(side<0){
+					side=-1;
+				}else{
+					side=1;
+				}
+				this.motionT+=16;
+					
+				side*=0.5;
+				Vec3.mul(poJiki.v,sideV,side);
+			}else{
+				Vec3.madd(poJiki.v,poJiki.v,sideV,-Vec3.dot(sideV,poJiki.v));
+			}
+
+			var sideV = new Vec3();
+			Vec3.set(sideV,m[6],m[7],m[8]);
+			Vec3.norm(sideV);
+			if(Vec3.dot(sideV,pad2)<-0.9){
+				this.pattern=0;
+				this.grapcount=10;
+				break;
+			}
+			if(Vec3.dot(sideV,pad2)>0.9 && this.patternT>4){
+				//崖上りに遷移
+				this.pattern=2;
+				this.patternT=0;
+				break;
+			}
+
+			
 
 
-			dst.setAction(o3o.actions["climb"],0);
-			O3o.addaction(o3o.objects["jiki"],"",o3o.actions["climb_idou"],0);
+
 			//Vec3.add(o3o.objects["jiki"].location,this.v,o3o.objects["jiki"].location);
 
 			ono3d.setTargetMatrix(0);
@@ -291,6 +371,8 @@ Engine.goClass["jiki"]= (function(){
 
 		this.ground=false;//接地フラグリセット
 		this.wall=false;//接地フラグリセット
+
+		this.patternT++;
 
 
 	}
@@ -328,9 +410,12 @@ Engine.goClass["jiki"]= (function(){
 		}else{
 		}
 
-		var objects = this.instance.o3o.scenes[0].objects;
+		var objects = this.instance.o3o.objects;
 		for(var i=0;i<objects.length;i++){
-			var instance = this.instance.objectInstances[objects[i].idx];
+			if(objects[i].hide_render){
+				continue;
+			}
+			var instance = this.instance.objectInstances[i];
 			instance.draw(env,env2,a);
 		}
 
