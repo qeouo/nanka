@@ -55,8 +55,10 @@ Engine.goClass["camera"]= (function(){
 					continue;
 				}
 				var a=Collider.convexCast(this.p,collision,phyObj2.collision);
-				if(a>0 && a<nearest){
-					nearest=a;
+				if(a !== Collider.INVALID){
+					if(a>0 && a<nearest){
+						nearest=a;
+					}
 				}
 			}
 		}

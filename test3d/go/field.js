@@ -37,7 +37,8 @@ Engine.goClass.field= (function(){
 		if(phyObj){
 			var objectInstance = instance.objectInstances[phyObj.idx];
 			phyObj = objectInstance.phyObj;
-			var v=new Vec3(0,-1,0);
+			var v=new Vec3();
+			Vec3.set(v,0,-1,0);
 			phyObj.refreshCollision();
 			var nearest=999999;
 			var target=null;
@@ -58,9 +59,11 @@ Engine.goClass.field= (function(){
 					continue;
 				}
 				var a=Collider.convexCast(v,phyObj.collision,phyObj2.collision);
-				if( a<nearest){
-					nearest=a;
-					target=phyObj2;
+				if(a !== Collider.INVALID){
+					if( a<nearest){
+						nearest=a;
+						target=phyObj2;
+					}
 				}
 			}
 			if(target){

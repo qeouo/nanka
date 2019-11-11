@@ -209,7 +209,7 @@ Engine.goClass["jiki"]= (function(){
 					var collision=oInstances["_wallJump"].getTempCollision(4);
 					var aa=Vec3();
 					Vec3.set(aa,0,-1,0);
-					onoPhy.collider.convexCastAll(aa,collision);
+					onoPhy.collider.convexCastAll(collision,aa);
 
 					for(var i=0;i<onoPhy.collider.hitListIndex;i++){
 						var len = onoPhy.collider.hitList[i].len;
@@ -265,7 +265,7 @@ Engine.goClass["jiki"]= (function(){
 
 			var aa=Vec3();
 			Vec3.set(aa,0,-1,0);
-			onoPhy.collider.convexCastAll(aa,collision);
+			onoPhy.collider.convexCastAll(collision,aa);
 
 			var len=-1;
 
@@ -294,25 +294,26 @@ Engine.goClass["jiki"]= (function(){
 			Vec3.norm(aa);
 			collision=poJiki.collision;
 
-			onoPhy.collider.convexCastAll(aa,collision);
+			onoPhy.collider.convexCastAll(collision,aa);
 			var hitList =onoPhy.collider.hitList;
-			var min=-1;
+			var min=9999;
 			for(var j=0;j<onoPhy.collider.hitListIndex;j++){
 				if(hitList[j].len<-1)continue;
-				if(hitList[j].len>9999)continue;
-				if(min<0 || hitList[j].len<min){
+				if( hitList[j].len<min){
 					min=hitList[j].len;
 					Vec3.set(z,hitList[j].pos1[0],hitList[j].pos1[1],hitList[j].pos1[2]);
 				}
 			}
-			Vec3.norm(z);
-			if(min>0 && min<1){
-				Vec3.madd(poJiki.location,poJiki.location,z,min);
+			if(min<1){
+				Vec3.norm(z);
+				if(min>0 && min<1){
+					Vec3.madd(poJiki.location,poJiki.location,z,-min);
+				}
+				Vec3.madd(poJiki.v,poJiki.v,z,-Vec3.dot(z,poJiki.v));
+				Mat43.fromLSR(poJiki.matrix,poJiki.location,poJiki.scale,poJiki.rotq);
 			}
-			Vec3.madd(poJiki.v,poJiki.v,z,-Vec3.dot(z,poJiki.v));
-			Mat43.fromLSR(poJiki.matrix,poJiki.location,poJiki.scale,poJiki.rotq);
 
-			var r = Math.atan2(z[0],z[2]);
+			var r = Math.atan2(z[0],z[2])+Math.PI;
 			Vec4.fromRotVector(poJiki.rotq,r,0,1,0);
 
 			var m=poJiki.matrix;
