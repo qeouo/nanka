@@ -309,10 +309,12 @@ Engine.goClass.main= (function(){
 		
 		Vec3.copy(renderMaterial.baseColor,material.baseColor);
 
+
+		Vec3.sub(p1,p1,p0);
 		var list = onoPhy.collider.rayCastAll(p0,p1);
 		for(var i=0;i<onoPhy.collider.hitListIndex;i++){
-			var hitdata= onoPhy.collider.histList[i];
-			Vec3.madd(p0,hiddata.pos1,hitdata.pos2);
+			var hitdata= onoPhy.collider.hitList[i];
+			Vec3.add(p0,hitdata.pos1,hitdata.pos2);
 			ono3d.setLine(hitdata.pos1,p0,renderMaterial);
 
 		}
