@@ -11,6 +11,8 @@ Engine.goClass.main= (function(){
 	var HEIGHT = Engine.HEIGHT;
 	var o3o;
 
+	var material=new Ono3d.Material();
+	Vec3.set(material.baseColor,0,0,0);
 	ret.prototype.init=function(){
 
 		for(var i=objMan.objs.length;i--;){
@@ -103,19 +105,6 @@ Engine.goClass.main= (function(){
 			camera.calcCollision(camera.cameracol);
 			var poses= camera.cameracol.poses;
 
-//			Vec3.set(poses[0],-1,-1,-1);
-//			Vec3.set(poses[1],-1,-1,1);
-//			Vec3.set(poses[2],-1,1,-1,);
-//			Vec3.set(poses[3],-1,1,1);
-//			Vec3.set(poses[4],1,-1,-1);
-//			Vec3.set(poses[5],1,-1,1);
-//			Vec3.set(poses[6],1,1,-1,);
-//			Vec3.set(poses[7],1,1,1);
-//			for(var i=0;i<poses.length;i++){
-//				Vec3.mul(poses[i],poses[i],10000);
-//
-//			}
-
 			camera.cameracol.refresh();
 			var lightSource= null;
 
@@ -167,29 +156,29 @@ Engine.goClass.main= (function(){
 				cursorr[0]-=1;
 			}
 		}
+
+		var p0 = Vec3.poolAlloc();
+		var p1 = Vec3.poolAlloc();
+		var bV2 = Vec3.poolAlloc();
+
+		Mat44.getInv(mat44,ono3d.pvMatrix);
+		Vec4.set(vec4,cursorr[0],-cursorr[1],-1,1);
+		Vec4.mul(vec4,vec4,ono3d.znear);
+		Mat44.dotVec4(vec4,mat44,vec4);
+		Vec3.set(p0,vec4[0],vec4[1],vec4[2]);
+
+		Vec4.set(vec4,cursorr[0],-cursorr[1],1,1);
+		Vec4.mul(vec4,vec4,ono3d.zfar);
+		Mat44.dotVec4(vec4,mat44,vec4);
+		Vec3.set(p1,vec4[0],vec4[1],vec4[2]);
+
 		if(Util.pressCount == 1){
-			var p0 = Vec3.poolAlloc();
-			var p1 = Vec3.poolAlloc();
-			var bV2 = Vec3.poolAlloc();
-
-			Mat44.getInv(mat44,ono3d.pvMatrix);
-			Vec4.set(vec4,cursorr[0],-cursorr[1],-1,1);
-			Vec4.mul(vec4,vec4,ono3d.znear);
-			Mat44.dotVec4(vec4,mat44,vec4);
-			Vec3.set(p0,vec4[0],vec4[1],vec4[2]);
-
-			Vec4.set(vec4,cursorr[0],-cursorr[1],1,1);
-			Vec4.mul(vec4,vec4,ono3d.zfar);
-			Mat44.dotVec4(vec4,mat44,vec4);
-			Vec3.set(p1,vec4[0],vec4[1],vec4[2]);
-
 			tsukamiZ= 1;
 			var targetPhyObj = null;
 			var res2={};
 			var goField = Engine.go.field;
 
 			var instance =globalParam.instance;
-			var phyObjs = goField.phyObjs;
 			for(var i=0;i<instance.objectInstances.length;i++){
 				var phyObj = instance.objectInstances[i].phyObj;
 				if(!phyObj)continue;
@@ -217,11 +206,9 @@ Engine.goClass.main= (function(){
 						
 					}
 					var z = collision.rayCast(p0,p1);
-					if(z>0){
-						if(z<tsukamiZ){
-							tsukamiZ = z;
-							targetPhyObj = collision.parent;
-						}
+					if(z>0 && z<tsukamiZ){
+						tsukamiZ = z;
+						targetPhyObj = phyObj;
 					}
 				}
 			}
@@ -247,8 +234,8 @@ Engine.goClass.main= (function(){
 				}
 
 			}
-			Vec3.poolFree(3);
 		}
+		Vec3.poolFree(3);
 
 		if(bane){
 			if(!Util.pressOn){
@@ -280,6 +267,60 @@ Engine.goClass.main= (function(){
 		Mat44.poolFree(1);
 	}
 	ret.prototype.delete=function(){
+	}
+	ret.prototype.draw=function(){
+		var p0 = Vec3.poolAlloc();
+		var p1 = Vec3.poolAlloc();
+		var mat44 = Mat44.poolAlloc();
+		var cursorr = Vec2.poolAlloc();
+		var vec4 = Vec4.poolAlloc();
+
+		cursorr[0] =Util.cursorX/WIDTH*2-1;
+		cursorr[1] =Util.cursorY/HEIGHT*2-1;
+
+		Mat44.dot(ono3d.pvMatrix,ono3d.projectionMatrix,ono3d.viewMatrix);
+		if(globalParam.stereomode!=0){
+			cursorr[0]*=2;
+			if(cursorr[0]<0){
+				cursorr[0]+=1;
+
+				ono3d.projectionMatrix[12]=globalParam.stereo;
+				Mat44.dot(ono3d.pvMatrix,ono3d.projectionMatrix,ono3d.viewMatrix);
+			}else{
+				cursorr[0]-=1;
+			}
+		}
+
+		Mat44.getInv(mat44,ono3d.pvMatrix);
+		Vec4.set(vec4,cursorr[0],-cursorr[1],-1,1);
+		Vec4.mul(vec4,vec4,ono3d.znear);
+		Mat44.dotVec4(vec4,mat44,vec4);
+		Vec3.set(p0,vec4[0],vec4[1],vec4[2]);
+
+		Vec4.set(vec4,cursorr[0],-cursorr[1],1,1);
+		Vec4.mul(vec4,vec4,ono3d.zfar);
+		Mat44.dotVec4(vec4,mat44,vec4);
+		Vec3.set(p1,vec4[0],vec4[1],vec4[2]);
+
+
+		var renderMaterial = ono3d.materials[ono3d.materials_index];
+	  	renderMaterial.name ="aaa";
+		ono3d.materials_index++;
+		
+		Vec3.copy(renderMaterial.baseColor,material.baseColor);
+
+		var list = onoPhy.collider.rayCastAll(p0,p1);
+		for(var i=0;i<onoPhy.collider.hitListIndex;i++){
+			var hitdata= onoPhy.collider.histList[i];
+			Vec3.madd(p0,hiddata.pos1,hitdata.pos2);
+			ono3d.setLine(hitdata.pos1,p0,renderMaterial);
+
+		}
+
+		Vec2.poolFree(1);
+		Vec3.poolFree(2);
+		Vec4.poolFree(1);
+	Mat44.poolFree(1);
 	}
 	
 	return ret;

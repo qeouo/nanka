@@ -2822,14 +2822,8 @@ var O3o=(function(){
 				var renderLine =renderLines[lines_index];
 				renderLine.material=renderMat;
 				lines_index++;
-				//var renderVertex=renderVertices[jj];
 				Vec3.copy(renderLine.pos[0],vertices[edge.vIndices[0]].pos);
-				//renderLine.vertices[0] = renderVertex;
-				//jj++;
-				//renderVertex=renderVertices[jj];
 				Vec3.copy(renderLine.pos[1],vertices[edge.vIndices[1]].pos);
-				//renderLine.vertices[1] = renderVertex;
-				//jj++;
 			}
 			ono3d.lines_index=lines_index;
 			
