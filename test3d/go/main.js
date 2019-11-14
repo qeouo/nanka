@@ -312,11 +312,20 @@ Engine.goClass.main= (function(){
 
 		Vec3.sub(p1,p1,p0);
 		var list = onoPhy.collider.rayCastAll(p0,p1);
+		var ii=-1;
+		var l=0;
 		for(var i=0;i<onoPhy.collider.hitListIndex;i++){
 			var hitdata= onoPhy.collider.hitList[i];
+			if(hitdata.len<l || ii==-1){
+				ii=i;
+				l=hitdata.len;
+			}
+
+		}
+		if(ii>=0){
+			var hitdata= onoPhy.collider.hitList[ii];
 			Vec3.add(p0,hitdata.pos1,hitdata.pos2);
 			ono3d.setLine(hitdata.pos1,p0,renderMaterial);
-
 		}
 
 		Vec2.poolFree(1);

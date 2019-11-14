@@ -1,8 +1,8 @@
 "use strict"
 var Engine = (function(){
-
-var customMaterial = new Ono3d.Material();
 	var Engine={};
+
+	var customMaterial = new Ono3d.Material();
 	var ret = Engine;
 	var HEIGHT=512,WIDTH=960;
 	ret.HEIGHT = HEIGHT;
@@ -22,6 +22,16 @@ var customMaterial = new Ono3d.Material();
 
 	ret.enableDraw=true;
 
+ret.Scene = (function(){
+	var Scene=function(){
+		this.objs = [];
+	};
+	var ret = Scene;
+	ret.prototype.move=function(){
+	}
+	ret.prototype.draw=function(){
+	}
+})();
 ret.defObj= (function(){
 	//オブジェクトのベースクラス
 	var defObj = function(){};
