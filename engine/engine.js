@@ -22,43 +22,8 @@ var Engine = (function(){
 
 	ret.enableDraw=true;
 
-ret.Scene = (function(){
-	var Scene=function(){
-		this.objs = [];
-	};
-	var ret = Scene;
-	ret.prototype.move=function(){
-	}
-	ret.prototype.draw=function(){
-	}
-})();
-ret.defObj= (function(){
-	//オブジェクトのベースクラス
-	var defObj = function(){};
-	var ret = defObj;
-	ret.prototype.init=function(){};
-	ret.prototype.move=function(){};
-	ret.prototype.draw=function(){};
-	ret.prototype.drawShadow=function(){
-		this.draw();
-	};
-	ret.prototype.hit=function(){};
-	ret.prototype.delete=function(){};
-	ret.prototype.drawhud=function(){};
-	return ret;
-
-})();
-
-	var field=null;
-	var objMan;
-
-	var i;
-	var pad =new Vec2();
-	ret.pad = pad;
-	ret.probs = new Collider();
-
-	var averageTexture; //光量計算用
-
+var objPool=[];
+	
 	//オブジェクトマネージャ
 	var ObjMan= (function(){
 		var STAT_EMPTY=0
@@ -67,7 +32,6 @@ ret.defObj= (function(){
 		;
 		var ObjMan=function(){
 			this.objs= []; 
-			this.pool= []; 
 			this.id=0;
 		}
 		var ret = ObjMan;
@@ -98,8 +62,8 @@ ret.defObj= (function(){
 				c=Engine.defObj;
 			}
 			var obj = null;
-			if(this.pool.length>0){
-				obj = this.pool[this.pool.length-1];
+			if(objPool.length>0){
+				obj = objPool[objPool.length-1];
 				if(obj.stat<0){
 					//クールタイムなのは無視
 					obj=null;
@@ -108,11 +72,11 @@ ret.defObj= (function(){
 			if(!obj){
 				//プールからとってこれない場合は何個か追加する
 				for(var i=0;i<16;i++){
-					this.pool.push(new Obj());
+					objPool.push(new Obj());
 				}
 			}
 			//プールからオブジェクトを移動
-			obj = this.pool.pop();
+			obj = objPool.pop();
 			this.objs.push(obj);
 
 			if(this.objs.length>1024){
@@ -131,7 +95,6 @@ ret.defObj= (function(){
 			obj.pattern=0;
 			obj.frame=0;
 			obj.pos2=new Vec3();
-			obj.phyObjs = [];
 			obj.func=c;
 
 			//IDセット
@@ -151,7 +114,7 @@ ret.defObj= (function(){
 					//クールタイムを取る
 					obj.stat=-10;
 					//プールに移動
-					this.pool.unshift(objs[i]);
+					objPool.unshift(objs[i]);
 					objs.splice(i,1);
 					break;
 				}
@@ -170,9 +133,9 @@ ret.defObj= (function(){
 					objs[i].frame++;
 				}
 			}
-			for(var i=0;i<this.pool.length;i++){
-				if(this.pool[i].stat<0){
-					this.pool[i].stat++;
+			for(var i=0;i<objPool.length;i++){
+				if(objPool[i].stat<0){
+					objPool[i].stat++;
 				}else{
 					break;
 				}
@@ -191,6 +154,167 @@ ret.defObj= (function(){
 		
 		return ret;
 	})();
+
+ret.Scene = (function(){
+	var Scene=function(){
+		this.objMan = new ObjMan();
+	};
+	var ret = Scene;
+	ret.prototype.move=function(){
+		this.objMan.update();
+		this.objMan.move();
+	}
+	ret.prototype.draw=function(){
+		var objMan=this.objMan;
+		//描画関数
+		performance.mark("drawStart");
+
+		afID = 0;
+
+
+		framecount++;
+
+		var environment = ono3d.environments[0];
+		Util.hex2rgb(environment.sun.color,globalParam.lightColor1)
+		Util.hex2rgb(environment.area.color,globalParam.lightColor2)
+
+		if(globalParam.cMaterial){
+			var cMat = customMaterial;
+			var a=new Vec3();
+			Util.hex2rgb(cMat.baseColor,globalParam.baseColor);
+			cMat.opacity=globalParam.opacity;
+			cMat.emt=globalParam.emi;
+			cMat.metallic=globalParam.metallic;
+			cMat.specular=globalParam.specular;
+			cMat.ior=globalParam.ior;
+			cMat.roughness=globalParam.roughness;
+			cMat.subRoughness=globalParam.subRoughness;
+			Util.hex2rgb(cMat.metalColor,globalParam.metalColor);
+			cMat.texture=globalParam.cTexture;
+		}
+
+			
+		performance.mark("drawGeometryStart");
+		var start = Date.now();
+
+		camera.calcMatrix();
+		camera.calcCollision(camera.cameracol);
+		var lightSource= null;
+
+		if(globalParam.shadow){
+			lightSource = ono3d.environments[0].sun
+			if(lightSource){
+				camera.calcCollision(camera.cameracol2,lightSource.viewmatrix);
+			}
+		}
+		for(i=0;i<objMan.objs.length;i++){
+			var obj = objMan.objs[i];
+			ono3d.setTargetMatrix(1)
+			ono3d.push();
+			ono3d.setTargetMatrix(0)
+			ono3d.loadIdentity()
+			ono3d.rf=0;
+			obj.draw();
+			ono3d.setTargetMatrix(1)
+			ono3d.pop();
+		}
+		performance.mark("drawGeometryEnd");
+		
+		// ステレオ描画設定
+		globalParam.stereo=-globalParam.stereoVolume * globalParam.stereomode*0.4;
+
+		performance.mark("drawRasteriseStart");
+
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.depthMask(true);
+		gl.clear(gl.DEPTH_BUFFER_BIT);
+		drawSub(0,0,WIDTH,HEIGHT);
+		
+
+
+		//描画結果をバッファにコピー
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
+
+		//画面平均光度算出
+		if(globalParam.autoExposure){
+			Engine.calcExpose(bufTexture,(WIDTH-512)/2.0/1024,0 ,512/1024,HEIGHT/1024);
+		}else{
+			Engine.setExpose(globalParam.exposure_level,globalParam.exposure_upper);
+		}
+
+		if(globalParam.exposure_bloom ){
+			// ブルーム処理
+			ono3d.setViewport(0,0,WIDTH,HEIGHT);
+			Engine.bloom(bufTexture,globalParam.exposure_bloom);
+			Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
+		}
+
+		//テスト
+		//var env = tex512;
+		//gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		//ono3d.setViewport(0,0,WIDTH,HEIGHT);
+		//Ono3d.drawCopy(env,0,0,1,1);
+		//Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
+
+
+		//トーンマッピング
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		ono3d.setViewport(0,0,WIDTH,HEIGHT);
+		Engine.toneMapping(bufTexture,WIDTH/1024,HEIGHT/1024);
+		
+
+
+
+		ono3d.clear();
+
+		for(i=0;i<objMan.objs.length;i++){
+			//HUD描画
+			obj = objMan.objs[i];
+			ono3d.setTargetMatrix(1)
+			ono3d.push();
+			ono3d.setTargetMatrix(0)
+			ono3d.loadIdentity()
+			ono3d.rf=0;
+			obj.drawhud();
+			ono3d.setTargetMatrix(1)
+			ono3d.pop();
+		}
+
+		//gl.getParameter(gl.VIEWPORT);
+		performance.mark("drawRasteriseEnd");
+		performance.mark("drawEnd");
+
+		mseccount += drawTime;
+	}
+	return ret;
+})();
+ret.defObj= (function(){
+	//オブジェクトのベースクラス
+	var defObj = function(){};
+	var ret = defObj;
+	ret.prototype.init=function(){};
+	ret.prototype.move=function(){};
+	ret.prototype.draw=function(){};
+	ret.prototype.drawShadow=function(){
+		this.draw();
+	};
+	ret.prototype.hit=function(){};
+	ret.prototype.delete=function(){};
+	ret.prototype.drawhud=function(){};
+	return ret;
+
+})();
+
+var scene = new ret.Scene();
+
+	var i;
+	var pad =new Vec2();
+	ret.pad = pad;
+	ret.probs = new Collider();
+
+	var averageTexture; //光量計算用
+
 	
 	//hud描画用
 	var blit = function(tex,x,y,w,h,u,v,u2,v2){
@@ -391,9 +515,7 @@ ret.defObj= (function(){
 		
 
 		var i;
-		objMan.update();
-
-		objMan.move();
+		scene.move();
 		var phytime=0;
 		if(globalParam.physics){
 			performance.mark("physicsStart");
@@ -466,126 +588,7 @@ ret.defObj= (function(){
 
 
 	var drawFunc = function(){
-		//描画関数
-		performance.mark("drawStart");
-
-		afID = 0;
-
-
-		framecount++;
-
-		var environment = ono3d.environments[0];
-		Util.hex2rgb(environment.sun.color,globalParam.lightColor1)
-		Util.hex2rgb(environment.area.color,globalParam.lightColor2)
-
-		if(globalParam.cMaterial){
-			var cMat = customMaterial;
-			var a=new Vec3();
-			Util.hex2rgb(cMat.baseColor,globalParam.baseColor);
-			cMat.opacity=globalParam.opacity;
-			cMat.emt=globalParam.emi;
-			cMat.metallic=globalParam.metallic;
-			cMat.specular=globalParam.specular;
-			cMat.ior=globalParam.ior;
-			cMat.roughness=globalParam.roughness;
-			cMat.subRoughness=globalParam.subRoughness;
-			Util.hex2rgb(cMat.metalColor,globalParam.metalColor);
-			cMat.texture=globalParam.cTexture;
-		}
-
-			
-		performance.mark("drawGeometryStart");
-		var start = Date.now();
-
-		camera.calcMatrix();
-		camera.calcCollision(camera.cameracol);
-		var lightSource= null;
-
-		if(globalParam.shadow){
-			lightSource = ono3d.environments[0].sun
-			if(lightSource){
-				camera.calcCollision(camera.cameracol2,lightSource.viewmatrix);
-			}
-		}
-		for(i=0;i<objMan.objs.length;i++){
-			var obj = objMan.objs[i];
-			ono3d.setTargetMatrix(1)
-			ono3d.push();
-			ono3d.setTargetMatrix(0)
-			ono3d.loadIdentity()
-			ono3d.rf=0;
-			obj.draw();
-			ono3d.setTargetMatrix(1)
-			ono3d.pop();
-		}
-		performance.mark("drawGeometryEnd");
-		
-		// ステレオ描画設定
-		globalParam.stereo=-globalParam.stereoVolume * globalParam.stereomode*0.4;
-
-		performance.mark("drawRasteriseStart");
-
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		gl.depthMask(true);
-		gl.clear(gl.DEPTH_BUFFER_BIT);
-		drawSub(0,0,WIDTH,HEIGHT);
-		
-
-
-		//描画結果をバッファにコピー
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
-
-		//画面平均光度算出
-		if(globalParam.autoExposure){
-			Engine.calcExpose(bufTexture,(WIDTH-512)/2.0/1024,0 ,512/1024,HEIGHT/1024);
-		}else{
-			Engine.setExpose(globalParam.exposure_level,globalParam.exposure_upper);
-		}
-
-		if(globalParam.exposure_bloom ){
-			// ブルーム処理
-			ono3d.setViewport(0,0,WIDTH,HEIGHT);
-			Engine.bloom(bufTexture,globalParam.exposure_bloom);
-			Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
-		}
-
-		//テスト
-		//var env = tex512;
-		//gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		//ono3d.setViewport(0,0,WIDTH,HEIGHT);
-		//Ono3d.drawCopy(env,0,0,1,1);
-		//Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
-
-
-		//トーンマッピング
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		ono3d.setViewport(0,0,WIDTH,HEIGHT);
-		Engine.toneMapping(bufTexture,WIDTH/1024,HEIGHT/1024);
-		
-
-
-
-		ono3d.clear();
-
-		for(i=0;i<objMan.objs.length;i++){
-			//HUD描画
-			obj = objMan.objs[i];
-			ono3d.setTargetMatrix(1)
-			ono3d.push();
-			ono3d.setTargetMatrix(0)
-			ono3d.loadIdentity()
-			ono3d.rf=0;
-			obj.drawhud();
-			ono3d.setTargetMatrix(1)
-			ono3d.pop();
-		}
-
-		//gl.getParameter(gl.VIEWPORT);
-		performance.mark("drawRasteriseEnd");
-		performance.mark("drawEnd");
-
-		mseccount += drawTime;
+		scene.draw();
 	}
 	ret.start = function(){
 		
@@ -668,7 +671,7 @@ ret.defObj= (function(){
 
 	onoPhy = new OnoPhy();
 	ret.onoPhy = onoPhy;
-	ret.objMan = objMan = new ObjMan();
+	ret.objMan = scene.objMan;
 	
 	Rastgl.ono3d = ono3d;
 
