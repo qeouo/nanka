@@ -94,15 +94,6 @@ Engine.goClass["field"]= (function(){
 			}
 
 
-			//0番目の光源セットをコントロールに反映
-			var env = ono3d.environments[0];
-			for(var i=0;i<2;i++){
-				var ol = [env.sun,env.area][i];
-				var el = document.getElementById("lightColor"+(i+1));
-				el.value = Util.rgb(ol.color[0],ol.color[1],ol.color[2]).slice(1);
-				Util.fireEvent(el,"change");
-			}
-
 
 			//カメラ反映等
 			ono3d.push();
@@ -183,7 +174,7 @@ Engine.goClass["field"]= (function(){
 
 			var lightprobe=instance.objectInstances["LightProbe"];
 			if(lightprobe){
-				if(!lightprobe.object.data.shcoefs){
+				if(lightprobe.object.data.shcoefs.length===0){
 					lightprobe =null;
 				}
 			}

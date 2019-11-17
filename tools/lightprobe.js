@@ -137,7 +137,7 @@ Engine.goClass.main= (function(){
 						mesh.shcoefs =shcoefs;
 						var filename = globalParam.model.substr(globalParam.model.lastIndexOf("/")+1);
 						 document.getElementById("download").setAttribute("download",filename);
-						var blob = new Blob([JSON.stringify(o3o,null)], { "type" : "text/plain" });
+						var blob = new Blob([JSON.stringify(o3o,null,4)], { "type" : "text/plain" });
 						 document.getElementById("download").href = window.URL.createObjectURL(blob);
 						
 					});

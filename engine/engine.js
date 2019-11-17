@@ -253,11 +253,11 @@ ret.Scene = (function(){
 		}
 
 		//テスト
-		//var env = tex512;
-		//gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		//ono3d.setViewport(0,0,WIDTH,HEIGHT);
-		//Ono3d.drawCopy(env,0,0,1,1);
-		//Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
+//		var env = tex512;
+//		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+//		ono3d.setViewport(0,0,WIDTH,HEIGHT);
+//		Ono3d.drawCopy(ono3d.shadowTexture,0,0,1,1);
+//		Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 
 
 		//トーンマッピング
@@ -265,7 +265,13 @@ ret.Scene = (function(){
 		ono3d.setViewport(0,0,WIDTH,HEIGHT);
 		Engine.toneMapping(bufTexture,WIDTH/1024,HEIGHT/1024);
 		
-
+//
+//		//テスト
+//		var env = tex512;
+//		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+//		ono3d.setViewport(0,0,WIDTH,HEIGHT);
+//		Ono3d.drawCopy(ono3d.shadowTexture,0,0,1,1);
+//		Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 
 
 		ono3d.clear();

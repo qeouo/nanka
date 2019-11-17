@@ -87,6 +87,23 @@ Engine.goClass["camera"]= (function(){
 		camera.a[2] +=nangle(this.a[2]-camera.a[2])*0.1;
 
 
+
+		var light = Engine.ono3d.environments[0].sun;
+		var lightInstance = Engine.go.field.instance.objectInstances["1sun"];
+		var m = new Mat43();
+		var mat44 = new Mat44();
+		var mat442 = new Mat44();
+		Ono3d.calcOrthoMatrix(mat44,20.0,20.0,0.1,80.0)
+		lightInstance.matrix[9]=goJiki.p[0] + lightInstance.matrix[3]*40;
+		lightInstance.matrix[10]=goJiki.p[1] + lightInstance.matrix[4]*40;
+		lightInstance.matrix[11]=goJiki.p[2] + lightInstance.matrix[5] *40;
+
+		Mat43.fromRotVector(m,Math.PI*0.5,1,0,0);  //ライトはデフォルト姿勢で下向きなので補正
+		Mat44.copyMat43(light.matrix,lightInstance.matrix);
+		Mat44.dotMat43(light.matrix,light.matrix,m);
+		Mat44.getInv(mat442,light.matrix);
+		Mat44.dot(light.viewmatrix,mat44,mat442);//影生成用のビュー行列
+
 		Vec3.poolFree(1);
 	}
 	ret.prototype.draw=function(){
