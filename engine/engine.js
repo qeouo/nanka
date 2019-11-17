@@ -2,6 +2,8 @@
 var Engine = (function(){
 	var Engine={};
 
+var shShader=[];
+var sigmaShader;
 	var customMaterial = new Ono3d.Material();
 	var ret = Engine;
 	var HEIGHT=512,WIDTH=960;
@@ -412,18 +414,18 @@ var scene = new ret.Scene();
 		gl.disable(gl.BLEND);
 		var skyTexture=Engine.skyTexture;
 		if(skyTexture){
-			if(globalParam.stereomode==0){
-				ono3d.drawCelestialSphere(skyTexture);
-			}else{
-				ono3d.setPers(0.577,HEIGHT/WIDTH*2,1,80);
-				ono3d.setViewport(0,0,WIDTH/2,HEIGHT);
-				ono3d.drawCelestialSphere(skyTexture);
-				ono3d.setViewport(WIDTH/2,0,WIDTH/2,HEIGHT);
-				ono3d.drawCelestialSphere(skyTexture);
-				
+			if(skyTexture.glTexture){
+				if(globalParam.stereomode==0){
+					ono3d.drawCelestialSphere(skyTexture);
+				}else{
+					ono3d.setPers(0.577,HEIGHT/WIDTH*2,1,80);
+					ono3d.setViewport(0,0,WIDTH/2,HEIGHT);
+					ono3d.drawCelestialSphere(skyTexture);
+					ono3d.setViewport(WIDTH/2,0,WIDTH/2,HEIGHT);
+					ono3d.drawCelestialSphere(skyTexture);
+					
+				}
 			}
-			
-			
 		}
 
 		ono3d.setViewport(x,y,w,h);
@@ -609,12 +611,14 @@ var scene = new ret.Scene();
 				}
 			}
 		}
-		Util.setFps(globalParam.fps,mainloop);
-		Util.fpsman();
+
+		Engine.skyTexture =Engine.loadEnvTexture("../engine/sky.jpg");
 
 		if(this.userInit){
 			this.userInit();
 		}
+		Util.setFps(globalParam.fps,mainloop);
+		Util.fpsman();
 
 	}
 
@@ -684,10 +688,18 @@ var scene = new ret.Scene();
 	Util.loadJs("../engine/assetmanager.js");
 	Util.loadJs("../engine/o3o.js",function(){
 
+	sigmaShader=Ono3d.loadShader("../tools/sigma.shader");
+
+	for(var i=0;i<9;i++){
+		shShader.push(Ono3d.loadShader("../tools/sh"+i+".shader"));
+	}
+
 		O3o.setOno3d(ono3d)
 		ono3d.init(canvas,ctx);
 		ono3d.rendercanvas=canvas;
 	});
+
+		
 
 
 	/** ブルーム画像を作成し、合成する **/
@@ -806,6 +818,89 @@ var scene = new ret.Scene();
 		gl.activeTexture(gl.TEXTURE1);
 		gl.bindTexture(gl.TEXTURE_2D,averageTexture.glTexture);
 		Ono3d.postEffect(image,0,0 ,w,h,decodeShader); 
+	}
+
+
+	ret.createSHcoeff= function(x,y,z,func){
+		var size = 32;
+		var tex;
+		if(!tex){
+			tex =Ono3d.createTexture(size*4,size*4);
+		}
+		var envBuf = ono3d.envbufTexture;
+
+		gl.bindTexture(gl.TEXTURE_2D, null);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		//キューブマップ作成
+		ono3d.setNearFar(0.01,80.0);
+		ono3d.createCubeMap(envBuf,x,y,z,256,func);
+
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.clearColor(0,0,0,1);
+		gl.clear(gl.COLOR_BUFFER_BIT);
+
+		for(var i=0;i<9;i++){
+			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+			gl.clearColor(0,0,0,1);
+			gl.clear(gl.COLOR_BUFFER_BIT);
+			ono3d.setViewport(0,0,size*4,size*2);
+			Ono3d.postEffect(envBuf,0,0,256*4/envBuf.width,256*2/envBuf.height,shShader[i]); 
+
+			Ono3d.copyImage(tex,0,0,0,0,size*4,size);
+			Ono3d.copyImage(tex,0,size,0,size,size*2,size);
+
+			var texsize=tex.width;
+
+
+			while(2<texsize){
+				//積分
+				texsize>>=1;
+				ono3d.setViewport(0,0,texsize,texsize);
+				Ono3d.postEffect(tex,0,0,texsize*2/tex.width,texsize*2/tex.width,sigmaShader); 
+				Ono3d.copyImage(tex,0,0,0,0,texsize,texsize);
+
+			}
+
+			//ラストはメインのフレームに描く
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			texsize>>=1;
+			ono3d.setViewport(i,0,1,1);
+			Ono3d.postEffect(tex,0,0,texsize*2/tex.width,texsize*2/tex.width,sigmaShader); 
+			Ono3d.copyImage(tex,0,0,0,0,texsize,texsize);
+		}
+		
+		return tex;
+	}
+	ret.createLightProbe=function(points,shcoefs){
+		var triangles = Delaunay.create(points);
+		var bspTree=Bsp.createBspTree(triangles);
+		var lightProbe={};
+
+		lightProbe.bspTree=bspTree;
+		lightProbe.points=points;
+		lightProbe.shcoefs=shcoefs;
+
+		return lightProbe;
+	}
+
+	ret.loadEnvTexture=function(path){
+		return AssetManager.texture(path,function(image){
+			var envsize=16;
+			gl.disable(gl.BLEND);
+			gl.disable(gl.DEPTH_TEST);
+
+
+			gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+			gl.viewport(0,0,image.width,image.height);
+			Ono3d.postEffect(image,0,0 ,1,1,ono3d.shaders["envset"]); 
+			gl.bindTexture(gl.TEXTURE_2D, image.glTexture);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+			Ono3d.copyImage(image,0,0,0,0,image.width,image.height);
+
+			gl.bindTexture(gl.TEXTURE_2D, null);
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			
+		});
 	}
 
 	return ret;

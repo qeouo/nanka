@@ -6,10 +6,12 @@ Engine.goClass.field= (function(){
 	var GoField =function(){};
 	var ret = GoField;
 	var initFlg=false;
+	var gl = globalParam.gl;
 	inherits(ret,Engine.defObj);
 
 	var o3o;
 	ret.prototype.init=function(){
+		this.initFlg=false;
 		o3o =AssetManager.o3o(globalParam.model);
 	}
 	var aaa=true;
@@ -17,6 +19,155 @@ Engine.goClass.field= (function(){
 		var obj = this;
 		if(o3o.scenes.length===0){
 			return;
+		}
+
+		if(!this.initFlg && o3o.scenes.length>0){
+			if(Util.getLoadingCount() > 0){
+				return;
+			}
+			this.initFlg=true;
+
+			var scene= o3o.scenes[0];
+			
+			if(scene.world.envTexture){
+				//背景セット
+				Engine.skyTexture = scene.world.envTexture;
+			}
+
+			scene.setFrame(0); //初期状態セット
+			instance = o3o.createInstance(); //インスタンス作成
+			Engine.go.field.instance=instance;
+			instance.calcMatrix(0,true);
+			globalParam.instance=instance;
+
+			ono3d.setTargetMatrix(0);
+			ono3d.loadIdentity();
+
+			instance.joinPhyObj(onoPhy);
+
+			ono3d.environments_index=1;
+
+			O3o.setEnvironments(scene); //光源セット
+
+
+			//0番目の光源セットをコントロールに反映
+			var env = ono3d.environments[0];
+			for(var i=0;i<2;i++){
+				var ol = [env.sun,env.area][i];
+				var el = document.getElementById("lightColor"+(i+1));
+				el.value = Util.rgb(ol.color[0],ol.color[1],ol.color[2]).slice(1);
+				Util.fireEvent(el,"change");
+			}
+
+			var goCamera = Engine.go.camera;
+
+			var co=  instance.objectInstances["Camera"];
+			if(co){
+				goCamera.p[0]=co.matrix[9];
+				goCamera.p[1]=co.matrix[10];
+				goCamera.p[2]=co.matrix[11];
+				Mat44.dotVec3(goCamera.p,ono3d.worldMatrix,goCamera.p);
+				goCamera.a[0]=co.matrix[3];
+				goCamera.a[1]=co.matrix[4];
+				goCamera.a[2]=co.matrix[5];
+				Mat44.dotVec3(goCamera.a,ono3d.worldMatrix,goCamera.a);
+				goCamera.target[0] = goCamera.p[0] - goCamera.a[0]* goCamera.p[2]/goCamera.a[2];
+				goCamera.target[1] =  goCamera.p[1] - goCamera.a[1]* goCamera.p[2]/goCamera.a[2];
+				goCamera.target[2] = 0;
+
+				goCamera.cameralen=Math.abs(goCamera.p[2]);
+
+				Engine.goClass.camera.homingCamera(goCamera.a,goCamera.target,goCamera.p);
+				
+			}
+
+			var camera = Engine.camera;
+			Vec3.copy(camera.p,goCamera.p)
+			Vec3.copy(camera.a,goCamera.a)
+
+
+			goCamera.move();
+			camera.calcMatrix();
+			camera.calcCollision(camera.cameracol);
+			var poses= camera.cameracol.poses;
+
+			camera.cameracol.refresh();
+			var lightSource= null;
+
+
+			lightSource = ono3d.environments[0].sun
+			if(lightSource){
+				camera.calcCollision(camera.cameracol2,lightSource.viewmatrix);
+			}
+
+			ono3d.clear();
+
+			//環境マップ
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			ono3d.environments[0].envTexture = ono3d.createEnv(null,0,0,0,Engine.drawSub);
+
+			Engine.createSHcoeff(0,0,0,Engine.drawSub);
+			var u8 = new Uint8Array(9*4);
+			gl.readPixels(0, 0, 9, 1, gl.RGBA, gl.UNSIGNED_BYTE, u8);
+			var ratio = 1/(255*16*16*Math.PI*4);
+			var x = (i%7)*9;
+			var y= (i/7|0);
+			var ii = y*64+x;
+			var shcoef=[];
+			var d = new Vec4();
+			for(var j=0;j<9;j++){
+				d[0] = u8[(j)*4+0];
+				d[1] = u8[(j)*4+1];
+				d[2] = u8[(j)*4+2];
+				d[3] = u8[(j)*4+3];
+				var e = [0,0,0];//new Vec3();
+				Ono3d.unpackFloat(e,d);
+				e[0]=e[0]*ratio;
+				e[1]=e[1]*ratio;
+				e[2]=e[2]*ratio;
+				shcoef.push(e);
+			}
+			SH.mulA(shcoef);
+
+			ono3d.setNearFar(0.01,100.0);
+			ono3d.clear();
+			var goField = Engine.go.field;
+			goField.draw2();
+			ono3d.render(camera.p);
+			ono3d.setStatic();
+
+			
+			ono3d.lightThreshold1=globalParam.lightThreshold1;
+			ono3d.lightThreshold2=globalParam.lightThreshold2;
+
+
+			var lightprobe=instance.objectInstances["LightProbe"];
+			if(lightprobe){
+
+				var lightProbe = lightprobe.createLightProbe(true);
+				ono3d.environments[0].lightProbe = lightProbe;
+				for(var i=0;i<8;i++){
+					lightProbe.shcoefs.push(shcoef);
+				}
+
+			}else{
+				var points=[];
+				var shcoefs=[];
+				var MAX=1000;
+				for(var i=0;i<8;i++){
+					p=new Vec3();
+					Vec3.set(p,((i&1)*2-1)*MAX,(((i&2)>>1)*2-1)*MAX,(((i&4)>>2)*2-1)*MAX);
+					points.push(p);
+				}
+				for(var i=0;i<8;i++){
+					shcoefs.push(shcoef);
+				}
+				var lightProbe = Engine.createLightProbe(points,shcoefs);
+				ono3d.environments[0].lightProbe = lightProbe;
+
+			}
+
+			
 		}
 		
 		 //変換マトリクス初期化

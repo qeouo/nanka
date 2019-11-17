@@ -2,8 +2,9 @@ Engine.goClass["field"]= (function(){
 	var ono3d = Engine.ono3d;
 	var onoPhy=Engine.onoPhy;
 	var objMan=Engine.objMan;
-	var fieldpath="f1.o3o?5";
+	var fieldpath="f1.o3o?7";
 	var GoField =function(){};
+	var gl = globalParam.gl;
 	var ret = GoField;
 	var initFlg=false;
 	inherits(ret,Engine.defObj);
@@ -35,7 +36,8 @@ Engine.goClass["field"]= (function(){
 			Engine.skyTexture=scene.world.envTexture;
 
 			//物理シミュオブジェクトの設定
-			this.instance = o3o.createInstance();
+			var instance = o3o.createInstance();
+			this.instance =instance;
 			o3o.scenes[0].setFrame(0); //アニメーション処理
 			this.instance.calcMatrix(1.0/globalParam.fps,true);
 			for(var i=0;i<this.instance.objectInstances.length;i++){
@@ -112,9 +114,32 @@ Engine.goClass["field"]= (function(){
 			Vec3.set(camera.a,0,Math.PI,0)
 
 
-			ono3d.clear();
-			var envTexture = ono3d.createEnv(null,0,0,0,Engine.drawSub);
-			ono3d.environments[0].envTexture=envTexture;
+			//環境マップ
+			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+			ono3d.environments[0].envTexture = ono3d.createEnv(null,0,0,0,Engine.drawSub);
+
+			Engine.createSHcoeff(0,0,0,Engine.drawSub);
+			var u8 = new Uint8Array(9*4);
+			gl.readPixels(0, 0, 9, 1, gl.RGBA, gl.UNSIGNED_BYTE, u8);
+			var ratio = 1/(255*16*16*Math.PI*4);
+			var x = (i%7)*9;
+			var y= (i/7|0);
+			var ii = y*64+x;
+			var shcoef=[];
+			var d = new Vec4();
+			for(var j=0;j<9;j++){
+				d[0] = u8[(j)*4+0];
+				d[1] = u8[(j)*4+1];
+				d[2] = u8[(j)*4+2];
+				d[3] = u8[(j)*4+3];
+				var e = [0,0,0];//new Vec3();
+				Ono3d.unpackFloat(e,d);
+				e[0]=e[0]*ratio;
+				e[1]=e[1]*ratio;
+				e[2]=e[2]*ratio;
+				shcoef.push(e);
+			}
+			SH.mulA(shcoef);
 
 
 			ono3d.clear();
@@ -156,35 +181,36 @@ Engine.goClass["field"]= (function(){
 			probs.sortList();
 			Engine.probs=probs;
 
-
-
-			var lightprobe=o3o.objects.find(function(e){return e.name==="LightProbe"});
+			var lightprobe=instance.objectInstances["LightProbe"];
 			if(lightprobe){
-				lightprobe=lightprobe.data;
-
-
-				var points=[];
-				for(var i=0;i<lightprobe.vertices.length;i++){
-					var p=new Vec3();
-					Mat44.dotVec3(p,ono3d.worldMatrix,lightprobe.vertices[i].pos);
-					points.push(p);
-
+				if(!lightprobe.object.data.shcoefs){
+					lightprobe =null;
 				}
-				
-				var triangles = Delaunay.create(points);
-				var bspTree=Bsp.createBspTree(triangles);
 			}
+			if(lightprobe){
 
+				var lightProbe = lightprobe.createLightProbe(true);
+				ono3d.environments[0].lightProbe = lightProbe;
+				//for(var i=0;i<8;i++){
+				//	lightProbe.shcoefs.push(shcoef);
+				//}
 
-			for(var i=0;i<ono3d.environments_index;i++){
-				var env = ono3d.environments[i];
+			}else{
+				var points=[];
+				var shcoefs=[];
+				var MAX=1000;
+				for(var i=0;i<8;i++){
+					p=new Vec3();
+					Vec3.set(p,((i&1)*2-1)*MAX,(((i&2)>>1)*2-1)*MAX,(((i&4)>>2)*2-1)*MAX);
+					points.push(p);
+				}
+				for(var i=0;i<8;i++){
+					shcoefs.push(shcoef);
+				}
+				var lightProbe = Engine.createLightProbe(points,shcoefs);
+				ono3d.environments[0].lightProbe = lightProbe;
 
-				env.lightProbe=scene.world.lightProbe;
-
-				env.bspTree=bspTree;
-				env.lightProbeMesh=lightprobe;
 			}
-
 			Engine.goClass["main"].reset();
 
 		}

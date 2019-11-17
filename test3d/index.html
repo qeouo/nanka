@@ -48,10 +48,10 @@ input.colorpicker{width:50px;}
 label{
 	position:relative;
 }
+/*
 input[type=checkbox],input[type=radio] {
 display: none;	
 }
-/*
 input[type=checkbox]+span:before{
 content:"";
 border:1px inset white;
@@ -188,7 +188,7 @@ display:none;
 	<div class="nonepoint">
 	<div class="nonepoint">
 		<label><input type="checkbox" id="autoExposure"/><span>オート露光調整</span></label><br>
-		<div id="exposure_setting nonepoint">
+		<div id="exposure_setting" class="nonepoint">
 		露光レベル?<input class="slider" id="exposure_level" max="5"/><br>
 		露光上限?<input class="slider" id="exposure_upper" min="0.1" max="5"/><br>
 		</div>

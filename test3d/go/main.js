@@ -2,14 +2,12 @@ Engine.goClass.main= (function(){
 	var GoMain=function(){};
 	var ret = GoMain;
 	inherits(ret,Engine.defObj);
+
 	var objMan = Engine.objMan;
 	var ono3d = Engine.ono3d;
 	var onoPhy = Engine.onoPhy;
-	var camera = Engine.camera;
-	var gl = globalParam.gl;
 	var WIDTH = Engine.WIDTH;
 	var HEIGHT = Engine.HEIGHT;
-	var o3o;
 
 	var material=new Ono3d.Material();
 	Vec3.set(material.baseColor,0,0,0);
@@ -20,11 +18,10 @@ Engine.goClass.main= (function(){
 			objMan.deleteObj(objMan.objs[i]);
 		}
 
-		this.initFlg=false;
 		Engine.onoPhy.init();
 
-		o3o =AssetManager.o3o(globalParam.model);
 		Engine.go.camera= objMan.createObj(Engine.goClass.camera);
+		Engine.go.field=objMan.createObj(Engine.goClass.field);
 
 		this.bane = null;
 	
@@ -32,113 +29,6 @@ Engine.goClass.main= (function(){
 	ret.prototype.move=function(){
 
 		var bane = this.bane;
-		if(!this.initFlg && o3o.scenes.length>0){
-			if(Util.getLoadingCount() > 0){
-				return;
-			}
-			this.initFlg=true;
-			Engine.go.field=objMan.createObj(Engine.goClass.field);
-			var t = Engine.go.field;
-
-			var scene= o3o.scenes[0];
-			Engine.skyTexture = scene.world.envTexture;
-
-			scene.setFrame(0); //アニメーション処理
-			instance = o3o.createInstance(); //インスタンス作成
-			Engine.go.field.instance=instance;
-			instance.calcMatrix(0,true);
-			globalParam.instance=instance;
-
-			ono3d.setTargetMatrix(0);
-			ono3d.loadIdentity();
-
-			instance.joinPhyObj(onoPhy);
-
-
-
-			var scene = o3o.scenes[0];
-
-
-			ono3d.environments_index=1;
-
-			O3o.setEnvironments(scene); //光源セット
-
-
-			//0番目の光源セットをコントロールに反映
-			var env = ono3d.environments[0];
-			for(var i=0;i<2;i++){
-				var ol = [env.sun,env.area][i];
-				var el = document.getElementById("lightColor"+(i+1));
-				el.value = Util.rgb(ol.color[0],ol.color[1],ol.color[2]).slice(1);
-				Util.fireEvent(el,"change");
-			}
-
-			var goCamera = Engine.go.camera;
-
-			var co=  scene.objects.find(function(a){ return a.name==this; },"Camera");
-			if(co){
-				co = instance.objectInstances[co.idx];
-				goCamera.p[0]=co.matrix[9];
-				goCamera.p[1]=co.matrix[10];
-				goCamera.p[2]=co.matrix[11];
-				Mat44.dotVec3(goCamera.p,ono3d.worldMatrix,goCamera.p);
-				goCamera.a[0]=co.matrix[3];
-				goCamera.a[1]=co.matrix[4];
-				goCamera.a[2]=co.matrix[5];
-				Mat44.dotVec3(goCamera.a,ono3d.worldMatrix,goCamera.a);
-				goCamera.target[0] = goCamera.p[0] - goCamera.a[0]* goCamera.p[2]/goCamera.a[2];
-				goCamera.target[1] =  goCamera.p[1] - goCamera.a[1]* goCamera.p[2]/goCamera.a[2];
-				goCamera.target[2] = 0;
-
-				goCamera.cameralen=Math.abs(goCamera.p[2]);
-
-				Engine.goClass.camera.homingCamera(goCamera.a,goCamera.target,goCamera.p);
-				
-			}
-
-			Vec3.copy(camera.p,goCamera.p)
-			Vec3.copy(camera.a,goCamera.a)
-
-
-			goCamera.move();
-			camera.calcMatrix();
-			camera.calcCollision(camera.cameracol);
-			var poses= camera.cameracol.poses;
-
-			camera.cameracol.refresh();
-			var lightSource= null;
-
-
-			lightSource = ono3d.environments[0].sun
-			if(lightSource){
-				camera.calcCollision(camera.cameracol2,lightSource.viewmatrix);
-			}
-
-			ono3d.clear();
-
-			//環境マップ
-			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-			ono3d.environments[0].envTexture = ono3d.createEnv(null,0,0,0,Engine.drawSub);
-			ono3d.setNearFar(0.01,100.0);
-			ono3d.clear();
-			var goField = Engine.go.field;
-			goField.draw2();
-			ono3d.render(camera.p);
-			ono3d.setStatic();
-
-			
-			ono3d.lightThreshold1=globalParam.lightThreshold1;
-			ono3d.lightThreshold2=globalParam.lightThreshold2;
-
-
-			var lightprobe=o3o.objects.find(function(e){return e.name==="LightProbe"});
-			if(lightprobe){
-				instance.objectInstances[lightprobe.idx].createLightProbe(ono3d);
-				//O3o.createLightProbe(ono3d,lightprobe)
-			}
-
-			
-		}
 		var mat44 = Mat44.poolAlloc();
 		var vec4 = Vec4.poolAlloc();
 		var cursorr = Vec2.poolAlloc();
@@ -178,7 +68,7 @@ Engine.goClass.main= (function(){
 			var res2={};
 			var goField = Engine.go.field;
 
-			var instance =globalParam.instance;
+			var instance = goField.instance;
 			for(var i=0;i<instance.objectInstances.length;i++){
 				var phyObj = instance.objectInstances[i].phyObj;
 				if(!phyObj)continue;

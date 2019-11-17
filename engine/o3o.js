@@ -367,7 +367,7 @@ var O3o=(function(){
 		//ライティング環境
 		this.name="";
 		this.lights=[];
-		this.lightprobe=null;
+		this.lightProbe=null;
 	}
 
 	ret.Material=Material;
@@ -1308,13 +1308,12 @@ var O3o=(function(){
 	for(var i=0;i<9;i++){
 		calcSHcoef.push(new Vec3());
 	}
-	var calcSH=function(color,normal,vertex,environment,ratio){
+	var calcSH=function(color,normal,vertex,shcoefs,ratio){
 		var hitTriangle = vertex.hitTriangle;
 		if(!hitTriangle){
 			Vec3.set(color,0.5,0.5,0.5);
 			return;
 		}
-		var shcoefs= environment.lightProbeMesh.shcoefs;
 		if(shcoefs.length===0){
 			Vec3.set(color,0.5,0.5,0.5);
 			return;
@@ -1331,7 +1330,6 @@ var O3o=(function(){
 				Vec3.madd(calcSHcoef[i],calcSHcoef[i],shcoef[i],r);
 			}
 		}
-		SH.decode2xyz(color,calcSHcoef,normal[0],normal[1],normal[2]);
 
 	}
 
@@ -2615,28 +2613,49 @@ var O3o=(function(){
 			smoothing=0;
 		}
 
-		var bspTree = environment.bspTree;
-		var lightProbeEnv=environment;
-		if(!bspTree){
-			bspTree = ono3d.environments[0].bspTree;
-			lightProbeEnv=ono3d.environments[0];
+		var lightProbeEnv=environment.lightProbe;
+		var bspTree=null;
+		var shcoefs=null;
+		if(!lightProbeEnv){
+			lightProbeEnv=ono3d.environments[0].lightProbe;
 		}
-		if(bspTree){
-			for(var i = bufMesh.vertexSize;i--;){
-				var vertex=vertices[i];
 
-				var hitTriangle = bspTree.getItem(vertex.pos);
-				vertex.hitTriangle=hitTriangle;
-				if(!hitTriangle){
-					continue;
-				}
+		if(lightProbeEnv){
+			bspTree = lightProbeEnv.bspTree;
+			shcoefs=lightProbeEnv.shcoefs;
+			//for(var i = bufMesh.vertexSize;i--;){
+			//	var vertex=vertices[i];
 
-				var bsps=hitTriangle.bsps;
-				for(var k=0;k<4;k++){
-					bufMesh.ratios[i][k]=Vec3.dot(bsps[k].v,vertex.pos)-bsps[k].m;
+			//	var hitTriangle = bspTree.getItem(vertex.pos);
+			//	vertex.hitTriangle=hitTriangle;
+			//	if(!hitTriangle){
+			//		continue;
+			//	}
+
+			//	var bsps=hitTriangle.bsps;
+			//	for(var k=0;k<4;k++){
+			//		bufMesh.ratios[i][k]=Vec3.dot(bsps[k].v,vertex.pos)-bsps[k].m;
+			//	}
+			//}
+
+			
+			for(var i=0;i<calcSHcoef.length;i++){
+				Vec3.set(calcSHcoef[i],0,0,0);
+			}
+			var vec3 = new Vec3();
+			Vec3.set(vec3,this.matrix[9],this.matrix[10],this.matrix[11]);
+			var hitTriangle = bspTree.getItem(vec3);
+			var bsps=hitTriangle.bsps;
+			var pIdx=hitTriangle.pIdx;
+			for(var k=0;k<4;k++){
+				var shcoef=shcoefs[pIdx[k]];
+				var r=Vec3.dot(bsps[k].v,vec3)-bsps[k].m;
+				for(var i=0;i<calcSHcoef.length;i++){
+					Vec3.madd(calcSHcoef[i],calcSHcoef[i],shcoef[i],r);
 				}
 			}
 		}
+
 
 		var ii=rfIndex;
 		var jj=rvIndex*20;
@@ -2730,8 +2749,8 @@ var O3o=(function(){
 						renderVertices[jj+15]=uv2[vidx[k]*2]+offsetx;
 						renderVertices[jj+16]=uv2[vidx[k]*2+1]+offsety;
 					}
-					//calcEnv(color,normal,vertex,environment,bufMesh.ratios[id]);
-					calcSH(color,normal,vertex,lightProbeEnv,bufMesh.ratios[id]);
+					//calcSH(color,normal,vertex,shcoefs,bufMesh.ratios[id]);
+					SH.decode2xyz(color,calcSHcoef,normal[0],normal[1],normal[2]);
 					renderVertices[jj+17]=color[0];
 					renderVertices[jj+18]=color[1];
 					renderVertices[jj+19]=color[2];
@@ -2838,24 +2857,19 @@ var O3o=(function(){
 		
 	}
 
-	ret.prototype.createLightProbe=function(ono3d){
+	ret.prototype.createLightProbe=function(){
 		this.freezeMesh(bufMesh);
 		var vertexSize =bufMesh.vertexSize;
 
-
 		var points=[];
+		var p;
 		for(var i=0;i<vertexSize;i++){
-			var p=new Vec3();
+			p=new Vec3();
 			Vec3.copy(p,bufMesh.vertices[i].pos);
 			points.push(p);
 		}
-		
-		var triangles = Delaunay.create(points);
-		var bspTree=Bsp.createBspTree(triangles);
 
-		var env = ono3d.environments[0];
-		env.bspTree=bspTree;
-		env.lightProbeMesh=this.object.data;
+		return Engine.createLightProbe(points,this.object.data.shcoefs);
 	}
 
 		return ret;
