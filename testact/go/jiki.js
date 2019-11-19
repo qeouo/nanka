@@ -224,7 +224,7 @@ Engine.goClass["jiki"]= (function(){
 			}
 			if(jump){
 				//ジャンプ力
-				vec[1]=5;
+				vec[1]=3.5;
 			}
 
 			//歩行時アニメーションさせる

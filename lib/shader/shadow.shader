@@ -1,9 +1,16 @@
 [vertexshader]
 uniform mat4 projectionMatrix;
+uniform mat4 projectionMatrix2;
+uniform mat4 projectionMatrix3;
 attribute vec3 aPos;
 varying highp float aZ; 
 void main(void){
-	gl_Position = projectionMatrix * vec4(aPos,1.0);
+	vec4 a = projectionMatrix2 * vec4(aPos,1.0);
+	//a.xy = a.xy/a.w*10.0;
+	a = projectionMatrix3 * a;
+	a.w=1.0;
+
+	gl_Position = projectionMatrix * a;
 	aZ=(projectionMatrix*vec4(aPos,1.0)).z;
 }
 [fragmentshader]

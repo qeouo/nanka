@@ -57,6 +57,8 @@ varying mediump float vNormpow;
 
 uniform float uHeightBase;
 uniform mat4 lightMat; 
+uniform mat4 lightMat2; 
+uniform mat4 lightMat3; 
 uniform vec3 uLight; 
 uniform vec3 uLightColor; 
 uniform sampler2D uShadowmap; 
@@ -113,7 +115,13 @@ void main(void){
 
 	vec2 uv = vUv + hoge  * depth;
 
-	vec3 lightPos = (lightMat * vec4(vPos + depth*(eye_v2),1.0)).xyz; 
+	/* vec3 lightPos = (lightMat * vec4(vPos + depth*(eye_v2),1.0)).xyz; */
+	vec4 a= lightMat2 * vec4(vPos + depth*(eye_v2),1.0); 
+	//a.xy = a.xy/a.w*10.0;
+	a= lightMat3 * a;
+	a.w=1.0;
+	vec3 lightPos = (lightMat * a).xyz; 
+	lightPos.z = (lightMat * vec4(vPos + depth*(eye_v2),1.0)).z; 
 
 	/*pbr*/ 
 	q = texture2D(uPbrMap,uv) * uPbr; 

@@ -1,8 +1,10 @@
 Engine.goClass["camera"]= (function(){
-	var WIDTH=960;
-	var HEIGHT=512;
 	var GoCamera=function(){};
 	var ret = GoCamera;
+
+	var WIDTH=960;
+	var HEIGHT=512;
+	var ono3d = Engine.ono3d;
 	inherits(ret,Engine.defObj);
 	ret.prototype.init=function(){
 	}
@@ -93,16 +95,21 @@ Engine.goClass["camera"]= (function(){
 		var m = new Mat43();
 		var mat44 = new Mat44();
 		var mat442 = new Mat44();
-		Ono3d.calcOrthoMatrix(mat44,20.0,20.0,0.1,80.0)
-		lightInstance.matrix[9]=goJiki.p[0] + lightInstance.matrix[3]*40;
-		lightInstance.matrix[10]=goJiki.p[1] + lightInstance.matrix[4]*40;
-		lightInstance.matrix[11]=goJiki.p[2] + lightInstance.matrix[5] *40;
+		Mat43.setInit(lightInstance.matrix);
+		lightInstance.matrix[9]=goJiki.p[0] + lightInstance.matrix[3]*100;
+		lightInstance.matrix[10]=goJiki.p[1] + lightInstance.matrix[4]*100;
+		lightInstance.matrix[11]=goJiki.p[2] + lightInstance.matrix[5] *100;
 
 		Mat43.fromRotVector(m,Math.PI*0.5,1,0,0);  //ライトはデフォルト姿勢で下向きなので補正
 		Mat44.copyMat43(light.matrix,lightInstance.matrix);
 		Mat44.dotMat43(light.matrix,light.matrix,m);
 		Mat44.getInv(mat442,light.matrix);
+
+
+		Ono3d.calcOrthoMatrix(mat44,20.0,20.0,0.1,200.0)
 		Mat44.dot(light.viewmatrix,mat44,mat442);//影生成用のビュー行列
+
+		Mat44.dot(light.viewmatrix2,ono3d.projectionMatrix,ono3d.viewMatrix);
 
 		Vec3.poolFree(1);
 	}
