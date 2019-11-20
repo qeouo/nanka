@@ -110,17 +110,27 @@ void main(void){
 	}
 	
 	depth = depth+(prev_depth-depth)*((depth-truedepth)/((prev_truedepth -prev_depth)+(depth-truedepth)));
-
 //	depth*=vNormpow;
 
 	vec2 uv = vUv + hoge  * depth;
 
 	/* vec3 lightPos = (lightMat * vec4(vPos + depth*(eye_v2),1.0)).xyz; */
-	vec4 a= lightMat2 * vec4(vPos + depth*(eye_v2),1.0); 
-	/*a.xy = a.xy/(a.w+10.0)*10.0;*/
-	a= lightMat3 * a;
-	vec3 lightPos = (lightMat * a).xyz; 
+	vec4 lightpos=  vec4(vPos + depth*(eye_v2),1.0); 
+
+
+	lightpos = lightMat * lightpos;
+	lightpos.z=(lightpos.z+40.0)*0.001;
+	lightpos = lightMat3* lightpos;
+	lightpos = lightMat2* lightpos;
+	lightpos.y*=-1.0;
+	lightpos.x*=-0.5;
+	lightpos.xy/=lightpos.w;
+	lightpos.y=lightpos.y*2.0+1.0;
+
+	vec3 lightPos;
 	lightPos.z = (lightMat * vec4(vPos + depth*(eye_v2),1.0)).z; 
+	lightPos.x=lightpos.x;
+	lightPos.y=lightpos.y;
 
 	/*pbr*/ 
 	q = texture2D(uPbrMap,uv) * uPbr; 

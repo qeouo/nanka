@@ -95,7 +95,7 @@ Engine.goClass["camera"]= (function(){
 		var m = new Mat43();
 		var mat44 = new Mat44();
 		var mat442 = new Mat44();
-		Mat43.setInit(lightInstance.matrix);
+		//Mat43.setInit(lightInstance.matrix);
 
 		Mat43.fromRotVector(m,Math.PI*0.5,1,0,0);  
 		Mat43.dot(lightInstance.matrix,lightInstance.matrix,m);
@@ -107,7 +107,7 @@ Engine.goClass["camera"]= (function(){
 		Mat44.getInv(mat442,light.matrix);
 
 
-		Ono3d.calcOrthoMatrix(mat44,20.0,20.0,0.1,80.0)
+		Ono3d.calcOrthoMatrix(mat44,1.0,1.0,0.1,80.0)
 		Mat44.dot(light.viewmatrix,mat44,mat442);//影生成用のビュー行列
 
 		var yup = new Vec3();
@@ -115,7 +115,7 @@ Engine.goClass["camera"]= (function(){
 		var xup = new Vec3();
 		Vec3.set(yup,lightInstance.matrix[6],lightInstance.matrix[7],lightInstance.matrix[8]);
 		Vec3.set(zup,camera.matrix[6],camera.matrix[7],camera.matrix[8]);
-		Vec3.cross(xup,zup,yup);
+		Vec3.cross(xup,yup,zup);
 		Vec3.cross(zup,xup,yup);
 		mat44[0]=xup[0];
 		mat44[1]=xup[1];
@@ -129,15 +129,15 @@ Engine.goClass["camera"]= (function(){
 		mat44[9]=zup[1];
 		mat44[10]=zup[2];
 		mat44[11]=0;
-		mat44[12]=goJiki.p[0]-mat44[8]*10;
-		mat44[13]=goJiki.p[1]-mat44[9]*10;
-		mat44[14]=goJiki.p[2]-mat44[10]*10;
+		mat44[12]=goJiki.p[0]+mat44[8]*8;
+		mat44[13]=goJiki.p[1]+mat44[9]*8;
+		mat44[14]=goJiki.p[2]+mat44[10]*8;
 		mat44[15]=1;
 		
 
-		//Mat44.dot(light.viewmatrix2,ono3d.projectionMatrix,mat44);
 		Mat44.getInv(mat44,mat44);
-		Mat44.copy(light.viewmatrix2,mat44);
+		Mat44.dot(light.viewmatrix2,ono3d.projectionMatrix,mat44);
+		//Mat44.copy(light.viewmatrix2,mat44);
 
 
 		Vec3.poolFree(1);

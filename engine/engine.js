@@ -265,7 +265,7 @@ ret.Scene = (function(){
 		//テスト
 		var env = tex512;
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		ono3d.setViewport(0,0,WIDTH*0.5,HEIGHT*0.5);
+		ono3d.setViewport(0,0,WIDTH*0.25,WIDTH*0.25);
 		Ono3d.drawCopy(ono3d.shadowTexture,0,0,1,1);
 		Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 
