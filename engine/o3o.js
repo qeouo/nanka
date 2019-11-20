@@ -1805,8 +1805,9 @@ var O3o=(function(){
 
 			}
 
-		ono3d.setTargetMatrix(0);
-		ono3d.loadIdentity();
+		//ono3d.setTargetMatrix(0);
+		//ono3d.loadIdentity();
+		Mat44.setInit(ono3d.worldMatrix);
 			this.calcMatrix(0,true);
 
 
