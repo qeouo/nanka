@@ -8,15 +8,9 @@ void main(void){
 	vec4 lightpos = vec4(aPos,1.0);
 	
 	lightpos = projectionMatrix * lightpos;
-	float z = lightpos.z;
-	lightpos.z=(lightpos.z+40.0)*0.001;
-	lightpos = projectionMatrix3 * lightpos;
+	aZ=(lightpos.z+1.0)*0.5;
 	gl_Position = projectionMatrix2 * lightpos;
-	gl_Position.y*=-1.0;
-	gl_Position.x*=-0.5;
-
-	aZ=(projectionMatrix*vec4(aPos,1.0)).z;
-	aZ=(aZ+1.0)*0.5;
+	gl_Position.z = aZ;
 }
 [fragmentshader]
 precision lowp float; 

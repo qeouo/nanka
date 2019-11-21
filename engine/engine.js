@@ -265,7 +265,7 @@ ret.Scene = (function(){
 		//テスト
 		var env = tex512;
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		ono3d.setViewport(0,0,WIDTH*0.25,WIDTH*0.25);
+		ono3d.setViewport(0,HEIGHT-WIDTH*0.25,WIDTH*0.25,WIDTH*0.25);
 		Ono3d.drawCopy(ono3d.shadowTexture,0,0,1,1);
 		Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 
@@ -376,6 +376,8 @@ var scene = new ret.Scene();
 			ono3d.calcProjectionMatrix(this.pvMatrix,persx,persy,this.znear,this.zfar);
 
 			Mat44.dotMat43(this.pvMatrix,this.pvMatrix,m);
+			ono3d.znear=this.znear;
+			ono3d.zfar=this.zfar;
 
 		}
 		ret.prototype.calcCollision=function(collision,matrix){
@@ -427,7 +429,9 @@ var scene = new ret.Scene();
 		gl.disable(gl.BLEND);
 		gl.depthMask(true);
 		ono3d.setViewport(x,y,w,h);
-		ono3d.getProjectionMatrix(ono3d.projectionMatrix);
+		ono3d.calcProjectionMatrix(
+			ono3d.projectionMatrix,camera.aov,camera.aov*HEIGHT/WIDTH
+			,camera.znear,camera.zfar);
 
 		gl.clear(gl.DEPTH_BUFFER_BIT);
 		gl.depthMask(false);
@@ -438,7 +442,9 @@ var scene = new ret.Scene();
 				if(globalParam.stereomode==0){
 					ono3d.drawCelestialSphere(skyTexture);
 				}else{
-					ono3d.setPers(0.577,HEIGHT/WIDTH*2,1,80);
+					ono3d.calcProjectionMatrix(
+						ono3d.projectionMatrix,camera.aov,camera.aov*HEIGHT/WIDTH*2
+					,camera.znear,camera.zfar);
 					ono3d.setViewport(0,0,WIDTH/2,HEIGHT);
 					ono3d.drawCelestialSphere(skyTexture);
 					ono3d.setViewport(WIDTH/2,0,WIDTH/2,HEIGHT);
