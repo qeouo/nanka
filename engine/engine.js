@@ -327,7 +327,7 @@ var scene = new ret.Scene();
 		var Camera = function(){
 			this.p=new Vec3();
 			this.a=new Vec3();
-			this.aov= 1;
+			this.aov= 0.577;
 			this.znear=0.1;
 			this.zfar=100;
 
@@ -378,6 +378,7 @@ var scene = new ret.Scene();
 			Mat44.dotMat43(this.pvMatrix,this.pvMatrix,m);
 			ono3d.znear=this.znear;
 			ono3d.zfar=this.zfar;
+			ono3d.aov=this.aov;
 
 		}
 		ret.prototype.calcCollision=function(collision,matrix){

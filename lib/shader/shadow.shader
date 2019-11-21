@@ -7,8 +7,8 @@ varying highp float aZ;
 void main(void){
 	vec4 lightpos = vec4(aPos,1.0);
 	
-	lightpos = projectionMatrix * lightpos;
-	aZ=(lightpos.z+1.0)*0.5;
+	aZ = (projectionMatrix * lightpos).z;
+	aZ=(aZ+1.0)*0.5;
 	gl_Position = projectionMatrix2 * lightpos;
 	gl_Position.z = aZ;
 }

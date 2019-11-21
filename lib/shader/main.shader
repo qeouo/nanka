@@ -20,7 +20,6 @@ varying vec3 vLightProbe;
 varying mediump float vNormpow; 
 uniform int uEnvIndex;  
 uniform mat4 projectionMatrix; 
-uniform mat4 lightMat; 
 uniform vec3 anglePos;  
 uniform float uNormpow; 
 void main(void){ 
@@ -57,6 +56,7 @@ varying mediump float vNormpow;
 
 uniform float uHeightBase;
 uniform mat4 lightMat; 
+uniform mat4 lightMat2; 
 uniform vec3 uLight; 
 uniform vec3 uLightColor; 
 uniform sampler2D uShadowmap; 
@@ -108,11 +108,20 @@ void main(void){
 	
 	depth = depth+(prev_depth-depth)*((depth-truedepth)/((prev_truedepth -prev_depth)+(depth-truedepth)));
 
-//	depth*=vNormpow;
 
 	vec2 uv = vUv + hoge  * depth;
 
-	vec3 lightPos = (lightMat * vec4(vPos + depth*(eye_v2),1.0)).xyz; 
+	vec4 lightpos=  vec4(vPos + depth*(eye_v2),1.0); 
+
+	lightpos = lightMat2* lightpos;
+	lightpos.xy/=lightpos.w;
+	lightpos.y=lightpos.y*2.0+1.0;
+
+	vec3 lightPos;
+	lightPos.z = (lightMat * vec4(vPos + depth*(eye_v2),1.0)).z; 
+	lightPos.x=lightpos.x;
+	lightPos.y=lightpos.y;
+
 
 	/*pbr*/ 
 	q = texture2D(uPbrMap,uv) * uPbr; 
