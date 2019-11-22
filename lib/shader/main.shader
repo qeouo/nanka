@@ -115,7 +115,6 @@ void main(void){
 
 	lightpos = lightMat2* lightpos;
 	lightpos.xy/=lightpos.w;
-	lightpos.y=lightpos.y*2.0+1.0;
 
 	vec3 lightPos;
 	lightPos.z = (lightMat * vec4(vPos + depth*(eye_v2),1.0)).z; 

@@ -113,9 +113,10 @@ Engine.goClass["camera"]= (function(){
 		Vec3.set(yup,lightInstance.matrix[6],lightInstance.matrix[7],lightInstance.matrix[8]);
 		Vec3.set(zup,camera.matrix[6],camera.matrix[7],camera.matrix[8]);
 
-		target[0]=camera.matrix[9]-zup[0]*10;
-		target[1]=camera.matrix[10]-zup[1]*10;
-		target[2]=camera.matrix[11]-zup[2]*10;
+		target[0]=camera.matrix[9]-zup[0]*SHADOW_WIDTH;
+		target[1]=camera.matrix[10]-zup[1]*SHADOW_WIDTH;
+		target[2]=camera.matrix[11]-zup[2]*SHADOW_WIDTH;
+		Vec3.copy(target,goJiki.p);
 
 		Vec3.cross(xup,yup,zup);
 		Vec3.norm(xup);
@@ -146,28 +147,26 @@ Engine.goClass["camera"]= (function(){
 		mat44[9]=+zup[1];
 		mat44[10]=+zup[2];
 		mat44[11]=0;
-		mat44[12]=target[0]+zup[0]*10;
-		mat44[13]=target[1]+zup[1]*10;
-		mat44[14]=target[2]+zup[2]*10;
+		var len=SHADOW_WIDTH*0.3;
+		mat44[12]=target[0]+zup[0]*len;
+		mat44[13]=target[1]+zup[1]*len;
+		mat44[14]=target[2]+zup[2]*len;
 		mat44[15]=1;
 		
 
 		Mat44.getInv(mat44,mat44);
 
-		Mat44.setInit(mat442);
-		mat442[5]=0;
-		mat442[14]=1;
-		mat442[13]=2
-		Mat44.dot(mat44,mat442,mat44);
+		ono3d.calcProjectionMatrix(mat442,1,1,10,SHADOW_WIDTH*3);
 
-		ono3d.calcProjectionMatrix(mat442,0.5,0.5,0.1,SHADOW_WIDTH*2);
 
 
 		Mat44.dot(light.viewmatrix2,mat442,mat44);
 
 		Mat44.setInit(mat442);
-		mat442[0]=-0.5;
-		mat442[5]=-1.0;
+		mat442[5]=0;
+		mat442[9]=-1;
+		mat442[6]=1;
+		mat442[10]=0;
 		Mat44.dot(light.viewmatrix2,mat442,light.viewmatrix2);
 
 
