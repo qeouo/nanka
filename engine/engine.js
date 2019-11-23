@@ -2,8 +2,10 @@
 var Engine = (function(){
 	var Engine={};
 
-var shShader=[];
-var sigmaShader;
+	var shShader=[];
+	var sigmaShader;
+	var shadowdecShader;
+
 	var customMaterial = new Ono3d.Material();
 	var ret = Engine;
 	var HEIGHT=512,WIDTH=960;
@@ -265,9 +267,10 @@ ret.Scene = (function(){
 		//テスト
 		var env = tex512;
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		ono3d.setViewport(0,HEIGHT-WIDTH*0.25,WIDTH*0.25,WIDTH*0.25);
-		Ono3d.drawCopy(ono3d.shadowTexture,0,0,1,1);
-		Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
+		ono3d.setViewport(0,HEIGHT-WIDTH*0.3,WIDTH*0.3,WIDTH*0.3);
+		//Ono3d.drawCopy(ono3d.shadowTexture,0,0,1,1);
+	Ono3d.postEffect(ono3d.shadowTexture,1,1,-1,-1,shadowdecShader);
+		//Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 
 
 		ono3d.clear();
@@ -716,6 +719,7 @@ var scene = new ret.Scene();
 	Util.loadJs("../engine/o3o.js",function(){
 
 	sigmaShader=Ono3d.loadShader("../tools/sigma.shader");
+	shadowdecShader=Ono3d.loadShader("../lib/shader/shadow_dec.shader");
 
 	for(var i=0;i<9;i++){
 		shShader.push(Ono3d.loadShader("../tools/sh"+i+".shader"));

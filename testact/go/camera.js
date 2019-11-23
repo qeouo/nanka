@@ -105,34 +105,62 @@ Engine.goClass["camera"]= (function(){
 		var yup = new Vec3();
 		var zup = new Vec3();
 		var xup = new Vec3();
-		var target= new Vec3();
-		var SHADOW_WIDTH=40;
+		var SHADOW_WIDTH=camera.zfar*0.5;
 		var SHADOW_DEPTH=80;
 
 		//ライト向きとカメラ向きからライトレンダリング向き決める
 		Vec3.set(yup,lightInstance.matrix[6],lightInstance.matrix[7],lightInstance.matrix[8]);
+		Vec3.mul(yup,yup,-1);
 		Vec3.set(zup,camera.matrix[6],camera.matrix[7],camera.matrix[8]);
-
-		target[0]=camera.matrix[9]-zup[0]*SHADOW_WIDTH;
-		target[1]=camera.matrix[10]-zup[1]*SHADOW_WIDTH;
-		target[2]=camera.matrix[11]-zup[2]*SHADOW_WIDTH;
-		Vec3.copy(target,goJiki.p);
 
 		Vec3.cross(xup,yup,zup);
 		Vec3.norm(xup);
 		Vec3.cross(zup,xup,yup);
 		Vec3.norm(zup);
 
-		lightInstance.matrix[9]=target[0] - lightInstance.matrix[6]*SHADOW_DEPTH/2;
-		lightInstance.matrix[10]=target[1] - lightInstance.matrix[7]*SHADOW_DEPTH/2;
-		lightInstance.matrix[11]=target[2] - lightInstance.matrix[8] *SHADOW_DEPTH/2;
+
+		var support= new Vec3();
+		var result= new Vec3();
+		Vec3.mul(support,xup,1);
+		camera.cameracol.calcSupport(result,support);
+		var xmin = Vec3.dot(result,xup);
+		Vec3.mul(support,xup,-1);
+		camera.cameracol.calcSupport(result,support);
+		var xmax= Vec3.dot(result,xup);
+
+		Vec3.mul(support,yup,1);
+		camera.cameracol.calcSupport(result,support);
+		var ymin = Vec3.dot(result,yup);
+		Vec3.mul(support,yup,-1);
+		camera.cameracol.calcSupport(result,support);
+		var ymax= Vec3.dot(result,yup);
+		//ymin=-1;
+		//ymax=4;
+
+		Vec3.mul(support,zup,1);
+		camera.cameracol.calcSupport(result,support);
+		var zmin = Vec3.dot(result,zup);
+		Vec3.mul(support,zup,-1);
+		camera.cameracol.calcSupport(result,support);
+		var zmax= Vec3.dot(result,zup);
+
+		var offset=10;
+		var target = new Vec3();
+		Vec3.madd(target,target,xup,xmax+xmin);
+		Vec3.madd(target,target,yup,(ymax+ymin));
+		Vec3.mul(target,target,0.5);
+		Vec3.madd(target,target,zup,zmax+offset);
+
+		lightInstance.matrix[9]= 0;
+		lightInstance.matrix[10]= 5;
+		lightInstance.matrix[11]= 0;
 
 		Mat44.copyMat43(light.matrix,lightInstance.matrix);
 		Mat44.getInv(mat442,light.matrix);
 
-
-		Ono3d.calcOrthoMatrix(mat44,SHADOW_WIDTH,SHADOW_WIDTH,0.1,SHADOW_DEPTH)
+		Ono3d.calcOrthoMatrix(mat44,SHADOW_WIDTH,SHADOW_WIDTH,0.1,10)
 		Mat44.dot(light.viewmatrix,mat44,mat442);//影生成用のビュー行列
+
 
 
 		mat44[0]=xup[0];
@@ -147,27 +175,33 @@ Engine.goClass["camera"]= (function(){
 		mat44[9]=+zup[1];
 		mat44[10]=+zup[2];
 		mat44[11]=0;
-		var len=SHADOW_WIDTH*0.3;
-		mat44[12]=target[0]+zup[0]*len;
-		mat44[13]=target[1]+zup[1]*len;
-		mat44[14]=target[2]+zup[2]*len;
+		mat44[12]=target[0];
+		mat44[13]=target[1];
+		mat44[14]=target[2];
 		mat44[15]=1;
 		
 
 		Mat44.getInv(mat44,mat44);
 
-		ono3d.calcProjectionMatrix(mat442,1,1,10,SHADOW_WIDTH*3);
-
-
+		ono3d.calcProjectionMatrix(mat442,(xmax-xmin)/(zmin-zmax+offset)/2
+				,(ymax-ymin)/(offset)/2,offset,(zmax-zmin)+offset);
 
 		Mat44.dot(light.viewmatrix2,mat442,mat44);
 
 		Mat44.setInit(mat442);
 		mat442[5]=0;
 		mat442[9]=-1;
-		mat442[6]=1;
+		mat442[6]=-1;
 		mat442[10]=0;
 		Mat44.dot(light.viewmatrix2,mat442,light.viewmatrix2);
+
+
+		var a = new Vec4();
+		Vec4.set(a,-100,10,0,1);
+		Mat44.dotVec4(a,light.viewmatrix2,a);
+
+		Vec4.set(a,-100,-10,0,1);
+		Mat44.dotVec4(a,light.viewmatrix,a);
 
 
 		Vec3.poolFree(1);

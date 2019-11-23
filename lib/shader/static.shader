@@ -110,19 +110,13 @@ void main(void){
 	}
 	
 	depth = depth+(prev_depth-depth)*((depth-truedepth)/((prev_truedepth -prev_depth)+(depth-truedepth)));
-//	depth*=vNormpow;
 
 	vec2 uv = vUv + hoge  * depth;
 
-	vec4 lightpos=  vec4(vPos + depth*(eye_v2),1.0); 
+	vec4 lightPos=  vec4(vPos + depth*(eye_v2),1.0); 
+	lightPos= lightMat2* lightPos;
+	lightPos.xyz/=lightPos.w;
 
-	lightpos = lightMat2* lightpos;
-	lightpos.xy/=lightpos.w;
-
-	vec3 lightPos;
-	lightPos.z = (lightMat * vec4(vPos + depth*(eye_v2),1.0)).z; 
-	lightPos.x=lightpos.x;
-	lightPos.y=lightpos.y;
 
 	/*pbr*/ 
 	q = texture2D(uPbrMap,uv) * uPbr; 
@@ -164,9 +158,9 @@ void main(void){
 
 	/*影判定*/ 
 	highp float shadowmap; 
-	/*shadowmap=decodeFull_(texture2D(uShadowmap,(lightPos.xy+1.0)*0.5)); */
+	//shadowmap=decodeFull_(texture2D(uShadowmap,(lightPos.xy+1.0)*0.5)); 
 	shadowmap=decodeFull(uShadowmap,vec2(1024.0),(lightPos.xy+1.0)*0.5); 
-	diffuse = (1.0-sign((lightPos.z+1.0)*0.5 -0.0001 -shadowmap))*0.5 * diffuse; 
+	diffuse = (1.0-sign((lightPos.z+1.0)*0.5 -0.001 -shadowmap))*0.5 * diffuse; 
 
 
 	/*拡散反射+環境光+自己発光*/ 
