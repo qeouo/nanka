@@ -29,6 +29,8 @@ Engine.goClass["camera"]= (function(){
 		if(Util.pressOn){
 			this.a[1]+=(-(Util.cursorX-Util.oldcursorX)/WIDTH)*2;
 			this.a[0]+=(-(Util.cursorY-Util.oldcursorY)/HEIGHT)*2;
+			this.a[0]=Math.max(this.a[0],-(Math.PI/2-0.1));
+			this.a[0]=Math.min(this.a[0],(Math.PI/2-0.1));
 
 		}
 		this.a[0] =Math.min(this.a[0],Math.PI/2);
@@ -95,9 +97,10 @@ Engine.goClass["camera"]= (function(){
 
 		var m = new Mat43();
 
-		//Mat43.setInit(lightInstance.matrix);
+		Mat43.setInit(lightInstance.matrix);
 		Mat43.fromRotVector(m,Math.PI*0.5,1,0,0);  
 		Mat43.dot(lightInstance.matrix,lightInstance.matrix,m);
+		Mat44.copyMat43(light.matrix,lightInstance.matrix);
 
 		var mat44 = new Mat44();
 		var mat442 = new Mat44();
@@ -113,29 +116,64 @@ Engine.goClass["camera"]= (function(){
 		Vec3.mul(yup,yup,-1);
 		Vec3.set(zup,camera.matrix[6],camera.matrix[7],camera.matrix[8]);
 
+		var cameraz=new Vec3();
+		Vec3.copy(cameraz,zup);
+
 		Vec3.cross(xup,yup,zup);
+		var offset=10/Vec3.scalar(xup);
 		Vec3.norm(xup);
 		Vec3.cross(zup,xup,yup);
+
+
 		Vec3.norm(zup);
 
+		var target = new Vec3();
+		Vec3.madd(target,camera.p,cameraz,offset/Vec3.dot(zup,cameraz));
+		target[2]+=10;
 
 		var support= new Vec3();
 		var result= new Vec3();
 		Vec3.mul(support,xup,1);
-		camera.cameracol.calcSupport(result,support);
-		var xmin = Vec3.dot(result,xup);
+
+		var calcAngle=function(point,axis){
+			var z;
+			var vec3 = new Vec3();
+			Vec3.sub(vec3,point,target);
+			return Vec3.dot(vec3,axis)/Vec3.dot(vec3,zup);
+
+		}
+		var calcSupportAngle =function(axis,poses,ref_point){
+			var vec3 = new Vec3();
+			var pi=0;
+
+			Vec3.sub(vec3,poses[pi],ref_point);
+			Vec3.norm(vec3);
+			var l = Vec3.dot(vec3,axis);
+
+			for(pi=1;pi<poses.length;pi++){
+				Vec3.sub(vec3,poses[pi],ref_point);
+				Vec3.norm(vec3);
+				var l2 = Vec3.dot(vec3,axis);
+				if(l2<l){
+					l=l2;
+					n=pi;
+				}
+			}
+			return l;
+		}
+		var poses= camera.cameracol.poses;
+
+		Vec3.mul(support,xup,1);
+		var xminangle = calcSupportAngle(support,poses,target);
+
 		Vec3.mul(support,xup,-1);
-		camera.cameracol.calcSupport(result,support);
-		var xmax= Vec3.dot(result,xup);
+		var xmaxangle = calcSupportAngle(support,poses,target);
 
 		Vec3.mul(support,yup,1);
-		camera.cameracol.calcSupport(result,support);
-		var ymin = Vec3.dot(result,yup);
+		var yminangle = calcSupportAngle(support,poses,target);
+
 		Vec3.mul(support,yup,-1);
-		camera.cameracol.calcSupport(result,support);
-		var ymax= Vec3.dot(result,yup);
-		//ymin=-1;
-		//ymax=4;
+		var ymaxangle = calcSupportAngle(support,poses,target);
 
 		Vec3.mul(support,zup,1);
 		camera.cameracol.calcSupport(result,support);
@@ -144,22 +182,12 @@ Engine.goClass["camera"]= (function(){
 		camera.cameracol.calcSupport(result,support);
 		var zmax= Vec3.dot(result,zup);
 
-		var offset=10;
-		var target = new Vec3();
-		Vec3.madd(target,target,xup,xmax+xmin);
-		Vec3.madd(target,target,yup,(ymax+ymin));
-		Vec3.mul(target,target,0.5);
-		Vec3.madd(target,target,zup,zmax+offset);
+		//Vec3.madd(target,target,xup,xmax+xmin);
+		//Vec3.madd(target,target,yup,(ymax+ymin));
+		//Vec3.mul(target,target,0.5);
+		//Vec3.madd(target,target,zup,zmax+offset);
 
-		lightInstance.matrix[9]= 0;
-		lightInstance.matrix[10]= 5;
-		lightInstance.matrix[11]= 0;
 
-		Mat44.copyMat43(light.matrix,lightInstance.matrix);
-		Mat44.getInv(mat442,light.matrix);
-
-		Ono3d.calcOrthoMatrix(mat44,SHADOW_WIDTH,SHADOW_WIDTH,0.1,10)
-		Mat44.dot(light.viewmatrix,mat44,mat442);//影生成用のビュー行列
 
 
 
@@ -183,25 +211,37 @@ Engine.goClass["camera"]= (function(){
 
 		Mat44.getInv(mat44,mat44);
 
-		ono3d.calcProjectionMatrix(mat442,(xmax-xmin)/(zmin-zmax+offset)/2
-				,(ymax-ymin)/(offset)/2,offset,(zmax-zmin)+offset);
 
-		Mat44.dot(light.viewmatrix2,mat442,mat44);
+	//	ono3d.calcPerspectiveMatrix(mat442
+	//			,(xmax-xmin)/2/(zmax-zmin+offset)*offset
+	//			,-(xmax-xmin)/2/(zmax-zmin+offset)*offset
+	//			,(ymax-ymin)/2/(offset)*offset
+	//			,-(ymax-ymin)/2/(offset)*offset
+	//			,offset,(zmax-zmin)+offset);
+
+		ono3d.calcPerspectiveMatrix(mat442
+				,-xmaxangle*offset
+				,xminangle*offset
+				,-ymaxangle*offset
+				,yminangle*offset
+				,offset,(zmax-zmin)+offset);
+
+		Mat44.dot(light.viewmatrix,mat442,mat44);
 
 		Mat44.setInit(mat442);
 		mat442[5]=0;
 		mat442[9]=-1;
 		mat442[6]=-1;
 		mat442[10]=0;
-		Mat44.dot(light.viewmatrix2,mat442,light.viewmatrix2);
+		Mat44.dot(light.viewmatrix,mat442,light.viewmatrix);
 
 
-		var a = new Vec4();
-		Vec4.set(a,-100,10,0,1);
-		Mat44.dotVec4(a,light.viewmatrix2,a);
-
-		Vec4.set(a,-100,-10,0,1);
-		Mat44.dotVec4(a,light.viewmatrix,a);
+//		var a = new Vec4();
+//		Vec4.set(a,-100,10,0,1);
+//		Mat44.dotVec4(a,light.viewmatrix2,a);
+//
+//		Vec4.set(a,-100,-10,0,1);
+//		Mat44.dotVec4(a,light.viewmatrix,a);
 
 
 		Vec3.poolFree(1);

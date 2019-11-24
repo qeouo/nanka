@@ -56,7 +56,6 @@ varying mediump float vNormpow;
 
 uniform float uHeightBase;
 uniform mat4 lightMat; 
-uniform mat4 lightMat2; 
 uniform vec3 uLight; 
 uniform vec3 uLightColor; 
 uniform sampler2D uShadowmap; 
@@ -112,7 +111,7 @@ void main(void){
 	vec2 uv = vUv + hoge  * depth;
 
 	vec4 lightPos=  vec4(vPos + depth*(eye_v2),1.0); 
-	lightPos= lightMat2* lightPos;
+	lightPos= lightMat* lightPos;
 	lightPos.xyz/=lightPos.w;
 
 

@@ -1,14 +1,10 @@
 [vertexshader]
 uniform mat4 projectionMatrix;
-uniform mat4 projectionMatrix2;
-uniform mat4 projectionMatrix3;
 attribute vec3 aPos;
 varying highp float aZ; 
 varying highp float aW; 
 void main(void){
-	vec4 lightpos = vec4(aPos,1.0);
-	vec4 lightpos2 = projectionMatrix*lightpos;
-	gl_Position = projectionMatrix2 * lightpos;
+	gl_Position = projectionMatrix * vec4(aPos,1.0);
 
 	aZ=gl_Position.z;//gl_Position.w;
 	aW=gl_Position.w;
