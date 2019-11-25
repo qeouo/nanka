@@ -116,29 +116,26 @@ Engine.goClass["camera"]= (function(){
 		Vec3.copy(cameraz,zup);
 
 		Vec3.cross(xup,yup,zup);
-		var offset=10/Vec3.scalar(xup);
+		var offset=10/Math.abs(Vec3.dot(cameraz,zup));
 		Vec3.norm(xup);
 		Vec3.cross(zup,xup,yup);
-
-
 		Vec3.norm(zup);
-
-		var light_anchor_pos = new Vec3();
-		var alpha = Math.abs(Vec3.dot(yup,cameraz));
-		Vec3.madd(light_anchor_pos,camera.p,cameraz,offset*(1-alpha)/Vec3.dot(zup,cameraz));
-		Vec3.madd(light_anchor_pos,light_anchor_pos,zup,offset*alpha);
 
 		var support= new Vec3();
 		var result= new Vec3();
+
+		Vec3.mul(support,zup,1);
+		camera.cameracol.calcSupport(result,support);
+		var zmin = Vec3.dot(result,zup);
+		Vec3.mul(support,zup,-1);
+		camera.cameracol.calcSupport(result,support);
+		var zmax= Vec3.dot(result,zup);
+
+		var light_anchor_pos = new Vec3();
+		Vec3.madd(light_anchor_pos,camera.p,zup,offset);
+
 		Vec3.mul(support,xup,1);
 
-		var calcAngle=function(point,axis){
-			var z;
-			var vec3 = new Vec3();
-			Vec3.sub(vec3,point,light_anchor_pos);
-			return Vec3.dot(vec3,axis)/Vec3.dot(vec3,zup);
-
-		}
 		var calcSupportAngle =function(axis,poses,ref_point){
 			var vec3 = new Vec3();
 			var pi=0;
@@ -171,14 +168,9 @@ Engine.goClass["camera"]= (function(){
 		Vec3.mul(support,yup,-1);
 		var ymaxangle = -calcSupportAngle(support,poses,light_anchor_pos);
 
-		Vec3.mul(support,zup,1);
-		camera.cameracol.calcSupport(result,support);
-		var zmin = Vec3.dot(result,zup);
-		Vec3.mul(support,zup,-1);
-		camera.cameracol.calcSupport(result,support);
-		var zmax= Vec3.dot(result,zup);
 
 		var view_matrix = light.viewmatrix;
+
 
 		view_matrix[0]=xup[0];
 		view_matrix[1]=xup[1];
