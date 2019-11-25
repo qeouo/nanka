@@ -269,7 +269,7 @@ ret.Scene = (function(){
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		ono3d.setViewport(0,HEIGHT-WIDTH*0.3,WIDTH*0.3,WIDTH*0.3);
 		//Ono3d.drawCopy(ono3d.shadowTexture,0,0,1,1);
-	Ono3d.postEffect(ono3d.shadowTexture,1,1,-1,-1,shadowdecShader);
+	Ono3d.postEffect(ono3d.shadowTexture,0,1,1,-1,shadowdecShader);
 		//Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 
 
