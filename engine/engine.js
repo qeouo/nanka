@@ -374,6 +374,25 @@ var scene = new ret.Scene();
 			ono3d.aov=this.aov;
 
 		}
+
+		ret.prototype.calcCollision2=function(collision,matrix,z_near,z_far){
+			var v4=Vec4.poolAlloc();
+
+			for(var i=0;i<8;i++){
+				Vec3.copy(v4,scope[i]);
+				v4[3]=1;
+				if(v4[2]<0){
+					Vec4.mul(v4,v4,z_near);
+				}else{
+					Vec4.mul(v4,v4,z_far);
+				}
+				
+				Mat44.dotVec4(v4,matrix,v4);
+				Vec3.copy(collision.poses[i],v4);
+			}
+			collision.refresh();
+			Vec4.poolFree(1);
+		}
 		ret.prototype.calcCollision=function(collision,matrix){
 			var im = Mat44.poolAlloc();
 			var v4=Vec4.poolAlloc();
@@ -389,9 +408,9 @@ var scene = new ret.Scene();
 				v4[3]=1;
 				if(!matrix){
 					if(v4[2]<0){
-						Vec4.mul(v4,v4,ono3d.znear);
+						Vec4.mul(v4,v4,this.znear);
 					}else{
-						Vec4.mul(v4,v4,ono3d.zfar);
+						Vec4.mul(v4,v4,this.zfar);
 					}
 				}
 				Mat44.dotVec4(v4,im,v4);

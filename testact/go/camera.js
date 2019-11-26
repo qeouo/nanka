@@ -127,7 +127,7 @@ Engine.goClass["camera"]= (function(){
 
 
 		var sin_r = Math.abs(Vec3.dot(zup,cameraz));
-		zf = 100 * sin_r ;
+		zf = Math.max(20,100 * sin_r-50);
 
 		if(sin_r<0.7){
 			Vec3.cross(cameraz,cameraz,xup);
@@ -153,7 +153,7 @@ Engine.goClass["camera"]= (function(){
 
 		//描画領域計算
 		var poses=[
-			[0,0,zn,zn]
+			[0,0,-zn,zn]
 			,[-zf,-zf,zf,zf]
 			,[-zf,zf,zf,zf]
 			,[zf,zf,zf,zf]
@@ -167,6 +167,7 @@ Engine.goClass["camera"]= (function(){
 		var support= new Vec3();
 		var result= new Vec3();
 
+		camera.calcCollision2(camera.cameracol,projection_matrix,zn,zf);
 		Vec3.mul(support,zup,1);
 		camera.cameracol.calcSupport(result,support);
 		var zmin = Vec3.dot(result,zup);
@@ -175,7 +176,8 @@ Engine.goClass["camera"]= (function(){
 		var zmax= Vec3.dot(result,zup);
 
 		var light_anchor_pos = new Vec3();
-		Vec3.madd(light_anchor_pos,camera.p,cameraz,offset/Vec3.dot(zup,cameraz));
+		Vec3.madd(light_anchor_pos,camera.p,cameraz,Math.max(0,(zmax-Vec3.dot(camera.p,zup)))/Vec3.dot(zup,cameraz));
+		Vec3.madd(light_anchor_pos,light_anchor_pos,cameraz,offset/Vec3.dot(zup,cameraz));
 
 		Vec3.mul(support,xup,1);
 
@@ -249,9 +251,9 @@ Engine.goClass["camera"]= (function(){
 		Mat44.dot(view_matrix,projection_matrix,view_matrix);
 
 
-//		var a = new Vec4();
-//		Vec4.set(a,0,0,0,1);
-//		Mat44.dotVec4(a,light.viewmatrix,a);
+		var a = new Vec4();
+		Vec4.set(a,0,0,0,1);
+		Mat44.dotVec4(a,light.viewmatrix,a);
 
 
 		Vec3.poolFree(1);
