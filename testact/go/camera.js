@@ -24,7 +24,6 @@ Engine.goClass["camera"]= (function(){
 		var cameralen = 8;
 
 		var field=Engine.go["field"];
-		camera.zoom=0.6;
 
 		if(Util.pressOn){
 			this.a[1]+=(-(Util.cursorX-Util.oldcursorX)/WIDTH)*2;
@@ -103,23 +102,67 @@ Engine.goClass["camera"]= (function(){
 		Mat44.copyMat43(light.matrix,lightInstance.matrix);
 
 
+		// ライト行列計算 ------
+
+		var xup = new Vec3();
 		var yup = new Vec3();
 		var zup = new Vec3();
-		var xup = new Vec3();
+		var zn=1;
+		var zf=100;
+		var projection_matrix = new Mat44();
+		var view_matrix = new Mat43();
+
+		var cameraz=new Vec3();
+		var cameray=new Vec3();
 
 		//ライト向きとカメラ向きからライトレンダリング向き決める
 		Vec3.set(yup,lightInstance.matrix[6],lightInstance.matrix[7],lightInstance.matrix[8]);
 		Vec3.mul(yup,yup,-1);
-		Vec3.set(zup,camera.matrix[6],camera.matrix[7],camera.matrix[8]);
+		Vec3.set(cameraz,camera.matrix[6],camera.matrix[7],camera.matrix[8]);
 
-		var cameraz=new Vec3();
-		Vec3.copy(cameraz,zup);
-
-		Vec3.cross(xup,yup,zup);
-		var offset=10/Math.abs(Vec3.dot(cameraz,zup));
+		Vec3.cross(xup,yup,cameraz);
 		Vec3.norm(xup);
 		Vec3.cross(zup,xup,yup);
 		Vec3.norm(zup);
+
+
+		var sin_r = Math.abs(Vec3.dot(zup,cameraz));
+		zf = 100 * sin_r ;
+
+		if(sin_r<0.7){
+			Vec3.cross(cameraz,cameraz,xup);
+			Vec3.norm(cameraz);
+			if(Vec3.dot(cameraz,zup)<0){
+				Vec3.mul(cameraz,cameraz,-1);
+			}
+		}
+
+		var offset=(zn +  Math.sqrt(zn*zf))/sin_r;
+
+
+		ono3d.calcPerspectiveMatrix
+			(projection_matrix
+			,-camera.aov * zn
+			,camera.aov * zn
+			,camera.aov * (HEIGHT/WIDTH) * zn
+			,-camera.aov * (HEIGHT/WIDTH) * zn
+			,zn,zf);
+		Mat43.getInv(view_matrix,camera.matrix);
+		Mat44.dotMat43(projection_matrix,projection_matrix,view_matrix);
+		Mat44.getInv(projection_matrix,projection_matrix);
+
+		//描画領域計算
+		var poses=[
+			[0,0,zn,zn]
+			,[-zf,-zf,zf,zf]
+			,[-zf,zf,zf,zf]
+			,[zf,zf,zf,zf]
+			,[zf,-zf,zf,zf]
+		];
+		for(var pi=0;pi<poses.length;pi++){
+			Mat44.dotVec4(poses[pi],projection_matrix,poses[pi]);
+		}
+
 
 		var support= new Vec3();
 		var result= new Vec3();
@@ -132,7 +175,7 @@ Engine.goClass["camera"]= (function(){
 		var zmax= Vec3.dot(result,zup);
 
 		var light_anchor_pos = new Vec3();
-		Vec3.madd(light_anchor_pos,camera.p,zup,offset);
+		Vec3.madd(light_anchor_pos,camera.p,cameraz,offset/Vec3.dot(zup,cameraz));
 
 		Vec3.mul(support,xup,1);
 
@@ -154,7 +197,6 @@ Engine.goClass["camera"]= (function(){
 
 			return l;
 		}
-		var poses= camera.cameracol.poses;
 
 		Vec3.mul(support,xup,1);
 		var xminangle = calcSupportAngle(support,poses,light_anchor_pos);
@@ -180,27 +222,22 @@ Engine.goClass["camera"]= (function(){
 		view_matrix[5]=yup[1];
 		view_matrix[6]=yup[2];
 		view_matrix[7]=0;
-		view_matrix[8]=+zup[0];
-		view_matrix[9]=+zup[1];
-		view_matrix[10]=+zup[2];
+		view_matrix[8]=zup[0];
+		view_matrix[9]=zup[1];
+		view_matrix[10]=zup[2];
 		view_matrix[11]=0;
 		view_matrix[12]=light_anchor_pos[0];
 		view_matrix[13]=light_anchor_pos[1];
 		view_matrix[14]=light_anchor_pos[2];
 		view_matrix[15]=1;
-		
-
 		Mat44.getInv(view_matrix,view_matrix);
 
-
-		var projection_matrix = new Mat44();
 		ono3d.calcPerspectiveMatrix(projection_matrix
 			,xminangle*offset
 			,xmaxangle*offset
 			,ymaxangle*offset
 			,yminangle*offset
 			,offset,(zmax-zmin)+offset);
-
 
 		Mat44.dot(view_matrix,projection_matrix,view_matrix);
 

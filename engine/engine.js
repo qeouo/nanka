@@ -355,16 +355,6 @@ var scene = new ret.Scene();
 			,[1,-1,1]
 		];
 		ret.prototype.calcMatrix=function(){
-			//ono3d.setPers(this.zoom,HEIGHT/WIDTH,0.1,80.0);
-			//ono3d.setAov(this.zoom);
-
-			//ono3d.setTargetMatrix(1);
-			//ono3d.loadIdentity();
-			//ono3d.rotate(-this.a[2],0,0,1);
-			//ono3d.rotate(-this.a[0],1,0,0);
-			//ono3d.rotate(-this.a[1]+Math.PI,0,1,0);
-			//ono3d.translate(-this.p[0],-this.p[1],-this.p[2]);
-
 			var rot=new Vec3();
 			var scale =new Vec3();
 			var m=new Mat43();
