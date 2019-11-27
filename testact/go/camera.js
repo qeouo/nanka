@@ -107,7 +107,7 @@ Engine.goClass["camera"]= (function(){
 		var xup = new Vec3();
 		var yup = new Vec3();
 		var zup = new Vec3();
-		var zn=1;
+		var zn=5;
 		var zf=100;
 		var projection_matrix = new Mat44();
 		var view_matrix = new Mat43();
@@ -151,23 +151,12 @@ Engine.goClass["camera"]= (function(){
 		Mat44.dotMat43(projection_matrix,projection_matrix,view_matrix);
 		Mat44.getInv(projection_matrix,projection_matrix);
 
-		//描画領域計算
-		var poses=[
-			[0,0,-zn,zn]
-			,[-zf,-zf,zf,zf]
-			,[-zf,zf,zf,zf]
-			,[zf,zf,zf,zf]
-			,[zf,-zf,zf,zf]
-		];
-		for(var pi=0;pi<poses.length;pi++){
-			Mat44.dotVec4(poses[pi],projection_matrix,poses[pi]);
-		}
-
-
 		var support= new Vec3();
 		var result= new Vec3();
 
+		//描画領域計算
 		camera.calcCollision2(camera.cameracol,projection_matrix,zn,zf);
+
 		Vec3.mul(support,zup,1);
 		camera.cameracol.calcSupport(result,support);
 		var zmin = Vec3.dot(result,zup);
@@ -176,8 +165,9 @@ Engine.goClass["camera"]= (function(){
 		var zmax= Vec3.dot(result,zup);
 
 		var light_anchor_pos = new Vec3();
-		Vec3.madd(light_anchor_pos,camera.p,cameraz,Math.max(0,(zmax-Vec3.dot(camera.p,zup)))/Vec3.dot(zup,cameraz));
-		Vec3.madd(light_anchor_pos,light_anchor_pos,cameraz,offset/Vec3.dot(zup,cameraz));
+		Vec3.madd(light_anchor_pos,camera.p,cameraz,-zn);
+		Vec3.madd(light_anchor_pos,light_anchor_pos,cameraz
+			,(zmax-Vec3.dot(light_anchor_pos,zup)+offset)/Vec3.dot(zup,cameraz));
 
 		Vec3.mul(support,xup,1);
 
@@ -199,6 +189,7 @@ Engine.goClass["camera"]= (function(){
 
 			return l;
 		}
+		var poses = camera.cameracol.poses;
 
 		Vec3.mul(support,xup,1);
 		var xminangle = calcSupportAngle(support,poses,light_anchor_pos);
