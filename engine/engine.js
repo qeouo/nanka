@@ -957,7 +957,7 @@ var scene = new ret.Scene();
 		var lightInstance = Engine.go.field.instance.objectInstances["1sun"];
 
 		var m = new Mat43();
-		Mat43.setInit(lightInstance.matrix);
+		//Mat43.setInit(lightInstance.matrix);
 		Mat43.fromRotVector(m,Math.PI*0.5,1,0,0);  
 		Mat43.dot(lightInstance.matrix,lightInstance.matrix,m);
 		Mat44.copyMat43(light.matrix,lightInstance.matrix);
@@ -1030,7 +1030,7 @@ var scene = new ret.Scene();
 		Vec4.poolFree(1);
 
 		Vec3.madd(poses[8],camera.p,zup,-z_near);
-		Vec3.madd(poses[8],poses[8],yup,40);
+		Vec3.madd(poses[8],poses[8],yup,20);
 
 		//カメラ位置計算
 		var calcSupport=function(axis,poses,reverse){
