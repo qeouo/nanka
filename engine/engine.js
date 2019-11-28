@@ -220,6 +220,8 @@ ret.Scene = (function(){
 		}
 		performance.mark("drawGeometryEnd");
 		
+
+		Engine.calcLightMatrix();
 		// ステレオ描画設定
 		globalParam.stereo=-globalParam.stereoVolume * globalParam.stereomode*0.4;
 
@@ -941,6 +943,168 @@ var scene = new ret.Scene();
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 			
 		});
+	}
+
+
+	var lightArea_poses = [];
+	for(var pi=0;pi<8+1;pi++){
+		lightArea_poses.push(new Vec3());
+	}
+	ret.calcLightMatrix = function(){
+		var poses = lightArea_poses;
+		var camera = this.camera;
+		var light = Engine.ono3d.environments[0].sun;
+		var lightInstance = Engine.go.field.instance.objectInstances["1sun"];
+
+		var m = new Mat43();
+		Mat43.setInit(lightInstance.matrix);
+		Mat43.fromRotVector(m,Math.PI*0.5,1,0,0);  
+		Mat43.dot(lightInstance.matrix,lightInstance.matrix,m);
+		Mat44.copyMat43(light.matrix,lightInstance.matrix);
+
+
+		// ライト行列計算 ------
+
+		var xup = new Vec3();
+		var yup = new Vec3();
+		var zup = new Vec3();
+		var z_near=1;
+		var z_far=100;
+		var projection_matrix = new Mat44();
+		var view_matrix = new Mat43();
+
+		var cameraz=new Vec3();
+
+		//ライト向きとカメラ向きからライトレンダリング向き決める
+		Vec3.set(yup,-lightInstance.matrix[6],-lightInstance.matrix[7],-lightInstance.matrix[8]);
+		Vec3.set(cameraz,camera.matrix[6],camera.matrix[7],camera.matrix[8]);
+
+		Vec3.cross(xup,yup,cameraz);
+		Vec3.norm(xup);
+		Vec3.cross(zup,xup,yup);
+		Vec3.norm(zup);
+
+
+		var sin_r = Math.max(0.05,Math.abs(Vec3.dot(zup,cameraz)));
+		z_far = Math.max(20,100 * sin_r-50);
+
+		if(sin_r<0.7){
+			Vec3.cross(cameraz,cameraz,xup);
+			Vec3.norm(cameraz);
+			if(Vec3.dot(cameraz,zup)<0){
+				Vec3.mul(cameraz,cameraz,-1);
+			}
+		}
+
+		var offset=(z_near +  Math.sqrt(z_near*z_far))/sin_r;
+
+
+		ono3d.calcPerspectiveMatrix
+			(projection_matrix
+			,-camera.aov * z_near
+			,camera.aov * z_near
+			,camera.aov * (HEIGHT/WIDTH) * z_near
+			,-camera.aov * (HEIGHT/WIDTH) * z_near
+			,z_near,z_far);
+		Mat43.getInv(view_matrix,camera.matrix);
+		Mat44.dotMat43(projection_matrix,projection_matrix,view_matrix);
+		Mat44.getInv(projection_matrix,projection_matrix);
+
+		var support= new Vec3();
+		var result= new Vec3();
+
+		//描画領域計算
+		
+		var v4 = Vec4.poolAlloc();
+		for(var i=0;i<8;i++){
+			Vec4.set(v4,(i&1)*2-1,((i>>1)&1)*2-1,((i>>2)&1)*2-1,1);
+			if(v4[2]<0){
+				Vec4.mul(v4,v4,z_near);
+			}else{
+				Vec4.mul(v4,v4,z_far);
+			}
+			
+			Mat44.dotVec4(v4,projection_matrix,v4);
+			Vec3.copy(poses[i],v4);
+		}
+		Vec4.poolFree(1);
+
+		Vec3.madd(poses[8],camera.p,zup,-z_near);
+		Vec3.madd(poses[8],poses[8],yup,40);
+
+		//カメラ位置計算
+		var calcSupport=function(axis,poses,reverse){
+			var effic = 1;
+			if(reverse){
+				effic=-1;
+			}
+			var l = Vec3.dot(poses[0],axis)*effic;
+
+			for(pi=1;pi<poses.length;pi++){
+				var l2 = Vec3.dot(poses[pi],axis)*effic;
+				if(l2<l){
+					l=l2;
+				}
+			}
+
+			return l*effic;
+		}
+		var calcSupportAngle =function(axis,poses,ref_point,reverse){
+			var effic = 1;
+			if(reverse){
+				effic=-1;
+			}
+			var vec3 = new Vec3();
+			var pi=0;
+
+			Vec3.sub(vec3,poses[pi],ref_point);
+			var l = Vec3.dot(vec3,axis)/-Vec3.dot(vec3,zup)*effic;
+
+			for(pi=1;pi<poses.length;pi++){
+				Vec3.sub(vec3,poses[pi],ref_point);
+				var l2 = Vec3.dot(vec3,axis)/-Vec3.dot(vec3,zup)*effic;
+				if(l2<l){
+					l=l2;
+				}
+			}
+
+			return l*effic;
+		}
+		var light_anchor_pos = new Vec3();
+		Vec3.mul(light_anchor_pos,xup
+			,(calcSupport(xup,poses)+calcSupport(xup,poses,1))*0.5);
+		Vec3.madd(light_anchor_pos,light_anchor_pos,yup
+			,(calcSupport(yup,poses)+calcSupport(yup,poses,1))*0.5);
+		Vec3.madd(light_anchor_pos,light_anchor_pos,zup
+			,calcSupport(zup,poses,1) +offset);
+
+		//シャドウマップ用行列計算
+		var view_matrix = light.viewmatrix;
+		Mat44.set(view_matrix
+			,xup[0], xup[1], xup[2] ,0
+			,yup[0] ,yup[1] ,yup[2] ,0
+			,zup[0] ,zup[1] ,zup[2] ,0
+			,light_anchor_pos[0] ,light_anchor_pos[1] ,light_anchor_pos[2] ,1
+		);
+		Mat44.getInv(view_matrix,view_matrix);
+
+		ono3d.calcPerspectiveMatrix(projection_matrix
+			,calcSupportAngle(xup,poses,light_anchor_pos)   * offset 
+			,calcSupportAngle(xup,poses,light_anchor_pos,1) * offset 
+			,calcSupportAngle(yup,poses,light_anchor_pos,1) * offset 
+			,calcSupportAngle(yup,poses,light_anchor_pos)   * offset 
+			,offset,(calcSupport(zup,poses,1)-calcSupport(zup,poses))+offset);
+
+		Mat44.dot(view_matrix,projection_matrix,view_matrix);
+
+		Mat44.setInit(projection_matrix);
+		projection_matrix[5]=0;
+		projection_matrix[9]=-1;
+		projection_matrix[6]=-1;
+		projection_matrix[10]=0;
+		Mat44.dot(view_matrix,projection_matrix,view_matrix);
+
+
 	}
 
 	return ret;
