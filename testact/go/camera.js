@@ -90,6 +90,15 @@ Engine.goClass["camera"]= (function(){
 		camera.a[2] +=nangle(this.a[2]-camera.a[2])*0.1;
 
 
+		var m = new Mat43();
+		var light = Engine.ono3d.environments[0].sun;
+		var lightInstance = Engine.go.field.instance.objectInstances["1sun"];
+
+		//Mat43.setInit(lightInstance.matrix);
+		Mat43.fromRotVector(m,Math.PI*0.5,1,0,0);  
+		Mat43.dot(lightInstance.matrix,lightInstance.matrix,m);
+		Mat44.copyMat43(light.matrix,lightInstance.matrix);
+
 
 
 		Vec3.poolFree(1);

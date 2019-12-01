@@ -954,13 +954,7 @@ var scene = new ret.Scene();
 		var poses = lightArea_poses;
 		var camera = this.camera;
 		var light = Engine.ono3d.environments[0].sun;
-		var lightInstance = Engine.go.field.instance.objectInstances["1sun"];
 
-		var m = new Mat43();
-		//Mat43.setInit(lightInstance.matrix);
-		Mat43.fromRotVector(m,Math.PI*0.5,1,0,0);  
-		Mat43.dot(lightInstance.matrix,lightInstance.matrix,m);
-		Mat44.copyMat43(light.matrix,lightInstance.matrix);
 
 
 		// ライト行列計算 ------
@@ -976,7 +970,7 @@ var scene = new ret.Scene();
 		var cameraz=new Vec3();
 
 		//ライト向きとカメラ向きからライトレンダリング向き決める
-		Vec3.set(yup,-lightInstance.matrix[6],-lightInstance.matrix[7],-lightInstance.matrix[8]);
+		Vec3.set(yup,-light.matrix[8],-light.matrix[9],-light.matrix[10]);
 		Vec3.set(cameraz,camera.matrix[6],camera.matrix[7],camera.matrix[8]);
 
 		Vec3.cross(xup,yup,cameraz);
@@ -1091,9 +1085,13 @@ var scene = new ret.Scene();
 		ono3d.calcPerspectiveMatrix(projection_matrix
 			,calcSupportAngle(xup,poses,light_anchor_pos)   * offset 
 			,calcSupportAngle(xup,poses,light_anchor_pos,1) * offset 
-			,calcSupportAngle(yup,poses,light_anchor_pos,1) * offset 
-			,calcSupportAngle(yup,poses,light_anchor_pos)   * offset 
+			,80//calcSupportAngle(yup,poses,light_anchor_pos,1) * offset 
+			,-80//calcSupportAngle(yup,poses,light_anchor_pos)   * offset 
 			,offset,(calcSupport(zup,poses,1)-calcSupport(zup,poses))+offset);
+
+		projection_matrix[5]/= offset;
+		projection_matrix[13]= projection_matrix[9];
+		projection_matrix[9]=0;
 
 		Mat44.dot(view_matrix,projection_matrix,view_matrix);
 

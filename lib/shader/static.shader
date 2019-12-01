@@ -112,7 +112,7 @@ void main(void){
 
 	vec4 lightPos=  vec4(vPos + depth*(eye_v2),1.0); 
 	lightPos= lightMat* lightPos;
-	lightPos.xyz/=lightPos.w;
+	lightPos.xy/=lightPos.w;
 
 
 	/*pbr*/ 
@@ -157,7 +157,7 @@ void main(void){
 	highp float shadowmap; 
 	//shadowmap=decodeFull_(texture2D(uShadowmap,(lightPos.xy+1.0)*0.5)); 
 	shadowmap=decodeFull(uShadowmap,vec2(1024.0),(lightPos.xy+1.0)*0.5); 
-	diffuse = (1.0-sign((lightPos.z+1.0)*0.5 -0.001 -shadowmap))*0.5 * diffuse; 
+	diffuse = (1.0-sign((lightPos.z+1.0)*0.5 -(1.0/65535.0) -shadowmap))*0.5 * diffuse; 
 
 
 	/*拡散反射+環境光+自己発光*/ 
