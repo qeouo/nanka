@@ -155,7 +155,7 @@ void main(void){
 	/*影判定*/ 
 	highp float shadowmap; 
 	//shadowmap=decodeFull_(texture2D(uShadowmap,(lightPos.xy+1.0)*0.5)); 
-	shadowmap=decodeFull(uShadowmap,vec2(1024.0),(lightPos.xy+1.0)*0.5); 
+	shadowmap=decodeShadow(uShadowmap,vec2(1024.0),(lightPos.xy+1.0)*0.5).r; 
 	diffuse = (1.0-sign((lightPos.z+1.0)*0.5 -(1.0/65535.0)-shadowmap))*0.5 * diffuse; 
 
 	/*拡散反射+環境光+自己発光*/ 

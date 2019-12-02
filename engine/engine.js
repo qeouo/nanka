@@ -5,6 +5,7 @@ var Engine = (function(){
 	var shShader=[];
 	var sigmaShader;
 	var shadowdecShader;
+	var shadow_gauss_shader;
 
 	var customMaterial = new Ono3d.Material();
 	var ret = Engine;
@@ -187,6 +188,14 @@ ret.Scene = (function(){
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		ono3d.setViewport(0,HEIGHT-WIDTH*0.3,WIDTH*0.3,WIDTH*0.3);
 		//Ono3d.drawCopy(ono3d.shadowTexture,0,0,1,1);
+		//gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
+		//ono3d.setViewport(0,0,1024,1024);
+		//Engine.shadowGauss(1024,1024,1000,ono3d.shadowTexture,0,0,1,1);
+
+
+		//Ono3d.copyImage(ono3d.shadowTexture,0,0,0,0,1024,1024);
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		ono3d.setViewport(0,HEIGHT-WIDTH*0.3,WIDTH*0.3,WIDTH*0.3);
 		Ono3d.postEffect(ono3d.shadowTexture,0,1,1,-1,shadowdecShader);
 		//Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 	}
@@ -742,6 +751,7 @@ ret.scenes=[];
 
 	sigmaShader=Ono3d.loadShader("../tools/sigma.shader");
 	shadowdecShader=Ono3d.loadShader("../lib/shader/shadow_dec.shader");
+	shadow_gauss_shader=Ono3d.loadShader("../engine/gauss_shadow.shader");
 
 	for(var i=0;i<9;i++){
 		shShader.push(Ono3d.loadShader("../tools/sh"+i+".shader"));
@@ -1113,6 +1123,41 @@ ret.scenes=[];
 		projection_matrix[10]=0;
 		Mat44.dot(view_matrix,projection_matrix,view_matrix);
 
+
+	}
+
+	ret.shadowGauss=function(width,height,d,src,x,y,w,h){
+		//係数作成
+		var weight = new Array(5);
+		var t = 0.0;
+		for(var i = 0; i < weight.length; i++){
+			var r = 1.0 + 2.0 * i;
+			var we = Math.exp(-0.5 * (r * r) / d);
+			weight[i] = we;
+			if(i > 0){we *= 2.0;}
+			t += we;
+		}
+		for(i = 0; i < weight.length; i++){
+			weight[i] /= t;
+		}
+		var shader =shadow_gauss_shader;
+		var args=shader.unis;
+
+		gl.useProgram(shader.program);
+
+		gl.uniform1fv(args["weight"],weight);
+		gl.bindBuffer(gl.ARRAY_BUFFER, Rastgl.fullposbuffer);
+
+		//横ぼかし
+		gl.uniform2f(args["uAxis"],1/width,0);
+		Ono3d.postEffect(src,x,y,w,h,shader); 
+
+		Ono3d.copyImage(src,0,0,0,0,width,height);
+
+
+		//縦ぼかし
+		gl.uniform2f(args["uAxis"],0,1/height);
+		Ono3d.postEffect(src,0,0,width/src.width,height/src.height,shader); 
 
 	}
 

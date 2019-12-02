@@ -156,8 +156,17 @@ void main(void){
 	/*影判定*/ 
 	highp float shadowmap; 
 	//shadowmap=decodeFull_(texture2D(uShadowmap,(lightPos.xy+1.0)*0.5)); 
-	shadowmap=decodeFull(uShadowmap,vec2(1024.0),(lightPos.xy+1.0)*0.5); 
-	diffuse = (1.0-sign((lightPos.z+1.0)*0.5 -(1.0/65535.0) -shadowmap))*0.5 * diffuse; 
+	shadowmap=decodeShadow(uShadowmap,vec2(1024.0),(lightPos.xy+1.0)*0.5).r; 
+	highp float s2 =decodeShadow(uShadowmap,vec2(1024.0),(lightPos.xy+1.0)*0.5).g; 
+	highp float shadow_a = (1.0-sign((lightPos.z+1.0)*0.5 -(1.0/65535.0) -shadowmap))*0.5;
+	highp float nowz = (lightPos.z+1.0)*0.5;
+	if(nowz  -(1.0/65535.0) < shadowmap){
+		shadow_a=1.0;
+	}else{
+		shadow_a=(s2-shadowmap)/(nowz-shadowmap);
+	}
+
+	diffuse = shadow_a * diffuse; 
 
 
 	/*拡散反射+環境光+自己発光*/ 
@@ -165,6 +174,7 @@ void main(void){
 		+ textureRGBE(uLightMap,vec2(256.0),vUv2).rgb
 		;
 	vColor2 = vColor2 * baseCol;
+
 
 	/*透過合成*/ 
 	vColor2 = mix(vColor2,transCol.rgb,1.0 - opacity); 
