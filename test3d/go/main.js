@@ -3,7 +3,6 @@ Engine.goClass.main= (function(){
 	var ret = GoMain;
 	inherits(ret,Engine.defObj);
 
-	var objMan = Engine.objMan;
 	var ono3d = Engine.ono3d;
 	var onoPhy = Engine.onoPhy;
 	var WIDTH = Engine.WIDTH;
@@ -12,6 +11,7 @@ Engine.goClass.main= (function(){
 	var material=new Ono3d.Material();
 	Vec3.set(material.baseColor,0,0,0);
 	ret.prototype.init=function(){
+		var objMan = this.scene.objMan;
 
 		for(var i=objMan.objs.length;i--;){
 			if(this == objMan.objs[i])continue;

@@ -122,7 +122,7 @@ Engine.goClass["main"]= (function(){
 		if(stages.length<=stage){
 			return;
 		}
-		var objMan = Engine.objMan;
+		var objMan = this.scene.objMan;
 
 		for(var i=objMan.objs.length;i--;){
 			if(this == objMan.objs[i])continue;

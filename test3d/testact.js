@@ -1,4 +1,16 @@
 "use strict"
+var MainScene=(function(){
+	var ret = MainScene=function(){
+		Engine.Scene.apply(this);
+
+		var objMan = this.objMan;
+		Engine.go.main= objMan.createObj(Engine.goClass.main);
+	};
+	inherits(ret,Engine.Scene);
+	
+	return ret;
+})();
+
 
 //オブジェクト読み込み
 var gos=["camera","field","main"];
@@ -111,6 +123,7 @@ Engine.userInit=function(){
 	});
 
 	//メインオブジェクト作成
-	Engine.go.main= Engine.objMan.createObj(Engine.goClass.main);
+	//Engine.go.main= Engine.objMan.createObj(Engine.goClass.main);
+	Engine.scenes.push(new MainScene());
 }
 

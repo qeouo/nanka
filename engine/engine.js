@@ -107,6 +107,7 @@ var objPool=[];
 
 			obj.__proto__=c.prototype;
 
+			obj.scene = this.scene;
 			obj.init();
 
 			return obj;
@@ -162,21 +163,37 @@ var objPool=[];
 ret.Scene = (function(){
 	var Scene=function(){
 		this.objMan = new ObjMan();
+		this.objMan.scene = this;
 	};
 	var ret = Scene;
 	ret.prototype.move=function(){
 		this.objMan.update();
 		this.objMan.move();
 	}
+	ret.prototype.hudDraw=function(){
+		var objMan=this.objMan;
+		for(i=0;i<objMan.objs.length;i++){
+			//HUD描画
+			var obj = objMan.objs[i];
+			ono3d.setTargetMatrix(0)
+			ono3d.loadIdentity()
+			ono3d.rf=0;
+			obj.drawhud();
+		}
+
+
+		//テスト
+		var env = tex512;
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		ono3d.setViewport(0,HEIGHT-WIDTH*0.3,WIDTH*0.3,WIDTH*0.3);
+		//Ono3d.drawCopy(ono3d.shadowTexture,0,0,1,1);
+		Ono3d.postEffect(ono3d.shadowTexture,0,1,1,-1,shadowdecShader);
+		//Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
+	}
 	ret.prototype.draw=function(){
 		var objMan=this.objMan;
 		//描画関数
-		performance.mark("drawStart");
 
-		afID = 0;
-
-
-		framecount++;
 
 		var environment = ono3d.environments[0];
 		Util.hex2rgb(environment.sun.color,globalParam.lightColor1)
@@ -198,8 +215,6 @@ ret.Scene = (function(){
 		}
 
 			
-		performance.mark("drawGeometryStart");
-		var start = Date.now();
 
 		camera.calcMatrix();
 		camera.calcCollision(camera.cameracol);
@@ -218,79 +233,12 @@ ret.Scene = (function(){
 			ono3d.rf=0;
 			obj.draw();
 		}
-		performance.mark("drawGeometryEnd");
 		
 
 		Engine.calcLightMatrix();
 		// ステレオ描画設定
 		globalParam.stereo=-globalParam.stereoVolume * globalParam.stereomode*0.4;
 
-		performance.mark("drawRasteriseStart");
-
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		gl.depthMask(true);
-		gl.clear(gl.DEPTH_BUFFER_BIT);
-		drawSub(0,0,WIDTH,HEIGHT);
-		
-
-
-		//描画結果をバッファにコピー
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
-
-		//画面平均光度算出
-		if(globalParam.autoExposure){
-			Engine.calcExpose(bufTexture,(WIDTH-512)/2.0/1024,0 ,512/1024,HEIGHT/1024);
-		}else{
-			Engine.setExpose(globalParam.exposure_level,globalParam.exposure_upper);
-		}
-
-		if(globalParam.exposure_bloom ){
-			// ブルーム処理
-			ono3d.setViewport(0,0,WIDTH,HEIGHT);
-			Engine.bloom(bufTexture,globalParam.exposure_bloom);
-			Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
-		}
-
-		//テスト
-//		var env = tex512;
-//		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-//		ono3d.setViewport(0,0,WIDTH,HEIGHT);
-//		Ono3d.drawCopy(ono3d.shadowTexture,0,0,1,1);
-//		Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
-
-
-		//トーンマッピング
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		ono3d.setViewport(0,0,WIDTH,HEIGHT);
-		Engine.toneMapping(bufTexture,WIDTH/1024,HEIGHT/1024);
-		
-
-		//テスト
-		var env = tex512;
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		ono3d.setViewport(0,HEIGHT-WIDTH*0.3,WIDTH*0.3,WIDTH*0.3);
-		//Ono3d.drawCopy(ono3d.shadowTexture,0,0,1,1);
-	Ono3d.postEffect(ono3d.shadowTexture,0,1,1,-1,shadowdecShader);
-		//Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
-
-
-		ono3d.clear();
-
-		for(i=0;i<objMan.objs.length;i++){
-			//HUD描画
-			obj = objMan.objs[i];
-			ono3d.setTargetMatrix(0)
-			ono3d.loadIdentity()
-			ono3d.rf=0;
-			obj.drawhud();
-		}
-
-		//gl.getParameter(gl.VIEWPORT);
-		performance.mark("drawRasteriseEnd");
-		performance.mark("drawEnd");
-
-		mseccount += drawTime;
 	}
 	return ret;
 })();
@@ -311,7 +259,8 @@ ret.defObj= (function(){
 
 })();
 
-var scene = new ret.Scene();
+
+ret.scenes=[];
 
 	var i;
 	var pad =new Vec2();
@@ -557,8 +506,10 @@ var scene = new ret.Scene();
 		}
 		
 
-		var i;
-		scene.move();
+		for(var si=0;si<Engine.scenes.length;si++){
+			Engine.scenes[si].move();
+		}
+
 		var phytime=0;
 		if(globalParam.physics){
 			performance.mark("physicsStart");
@@ -631,7 +582,68 @@ var scene = new ret.Scene();
 
 
 	var drawFunc = function(){
-		scene.draw();
+		afID = 0;
+		framecount++;
+
+		performance.mark("drawStart");
+
+		performance.mark("drawGeometryStart");
+		for(var si=0;si<Engine.scenes.length;si++){
+			Engine.scenes[si].draw();
+		}
+		performance.mark("drawGeometryEnd");
+
+		performance.mark("drawRasteriseStart");
+
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		gl.depthMask(true);
+		gl.clear(gl.DEPTH_BUFFER_BIT);
+		drawSub(0,0,WIDTH,HEIGHT);
+		
+
+
+		//描画結果をバッファにコピー
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
+
+		//画面平均光度算出
+		if(globalParam.autoExposure){
+			Engine.calcExpose(bufTexture,(WIDTH-512)/2.0/1024,0 ,512/1024,HEIGHT/1024);
+		}else{
+			Engine.setExpose(globalParam.exposure_level,globalParam.exposure_upper);
+		}
+
+		if(globalParam.exposure_bloom ){
+			// ブルーム処理
+			ono3d.setViewport(0,0,WIDTH,HEIGHT);
+			Engine.bloom(bufTexture,globalParam.exposure_bloom);
+			Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
+		}
+
+		//テスト
+//		var env = tex512;
+//		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+//		ono3d.setViewport(0,0,WIDTH,HEIGHT);
+//		Ono3d.drawCopy(ono3d.shadowTexture,0,0,1,1);
+//		Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
+
+
+		//トーンマッピング
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		ono3d.setViewport(0,0,WIDTH,HEIGHT);
+		Engine.toneMapping(bufTexture,WIDTH/1024,HEIGHT/1024);
+		
+
+
+		ono3d.clear();
+
+		//gl.getParameter(gl.VIEWPORT);
+		performance.mark("drawRasteriseEnd");
+		for(var si=0;si<Engine.scenes.length;si++){
+			Engine.scenes[si].hudDraw();
+		}
+		performance.mark("drawEnd");
+		mseccount += drawTime;
 	}
 	ret.start = function(){
 		
@@ -716,7 +728,6 @@ var scene = new ret.Scene();
 
 	onoPhy = new OnoPhy();
 	ret.onoPhy = onoPhy;
-	ret.objMan = scene.objMan;
 	
 	Rastgl.ono3d = ono3d;
 

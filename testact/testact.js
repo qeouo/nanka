@@ -1,4 +1,15 @@
 "use strict"
+var MainScene=(function(){
+	var ret = MainScene=function(){
+		Engine.Scene.apply(this);
+
+		var objMan = this.objMan;
+		Engine.go.main= objMan.createObj(Engine.goClass.main);
+	};
+	inherits(ret,Engine.Scene);
+	
+	return ret;
+})();
 var Testact=(function(){
 	var ret={};
 
@@ -53,7 +64,8 @@ Engine.userInit=function(){
 	//初期処理
 
 	//メインオブジェクト作成
-	Engine.go.main= Engine.objMan.createObj(Engine.goClass.main);
+	
+	Engine.scenes.push(new MainScene());
 }
 
 	return ret;
