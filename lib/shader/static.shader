@@ -163,7 +163,9 @@ void main(void){
 	if(nowz  -(1.0/65535.0) < shadowmap){
 		shadow_a=1.0;
 	}else{
-		shadow_a=(s2-shadowmap)/(nowz-shadowmap);
+		highp float r2=s2-shadowmap*shadowmap;
+		shadow_a=r2/(r2+pow(nowz-shadowmap,2.0));
+		
 	}
 
 	diffuse = shadow_a * diffuse; 
