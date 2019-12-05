@@ -1106,8 +1106,8 @@ ret.scenes=[];
 		ono3d.calcPerspectiveMatrix(projection_matrix
 			,calcSupportAngle(xup,poses,light_anchor_pos)   * offset 
 			,calcSupportAngle(xup,poses,light_anchor_pos,1) * offset 
-			,80//calcSupportAngle(yup,poses,light_anchor_pos,1) * offset 
-			,-80//calcSupportAngle(yup,poses,light_anchor_pos)   * offset 
+			,10//calcSupportAngle(yup,poses,light_anchor_pos,1) * offset 
+			,-20//calcSupportAngle(yup,poses,light_anchor_pos)   * offset 
 			,offset,(calcSupport(zup,poses,1)-calcSupport(zup,poses))+offset);
 
 		projection_matrix[5]/= offset;

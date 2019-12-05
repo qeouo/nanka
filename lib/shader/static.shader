@@ -165,6 +165,7 @@ void main(void){
 	}else{
 		highp float r2=s2-shadowmap*shadowmap;
 		shadow_a=r2/(r2+pow(nowz-shadowmap,2.0));
+		shadow_a=min(1.0,max(0.0,shadow_a));
 		
 	}
 
