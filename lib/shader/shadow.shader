@@ -20,7 +20,7 @@ void main(void){
 	float z=aZ;//aW;
 	z=(z+1.0)*0.5;
 	//gl_FragColor= vec4(vec3(z),1.0);
-	gl_FragColor= vec4(packUXP16(z),packUXP16(z*z));
+	gl_FragColor= vec4(packUFP16(z),packUFP16(z*z));
 	
 	if(abs(gl_FragCoord.x-512.)>510. || abs(gl_FragCoord.y-512.)>510.){
 		gl_FragColor= vec4(1.,1.,1.,1.);

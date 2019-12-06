@@ -27,6 +27,6 @@ void main(void){
 	col += decodeFull_(texture2D(uSampler,(fc+scale*2.)*uUvScale+uUvOffset))*weight[2];
 	col += decodeFull_(texture2D(uSampler,(fc+scale*3.)*uUvScale+uUvOffset))*weight[3];
 	col += decodeFull_(texture2D(uSampler,(fc+scale*4.)*uUvScale+uUvOffset))*weight[4];
-	gl_FragColor= vec4(packUXP16(col.r),packUXP16(col.g));
+	gl_FragColor= vec4(packUFP16(col.r),packUFP16(col.g));
 	//gl_FragColor= vec4(texture2D(uSampler,fc).rg,vec2(encodeShadow(col.g)));
 }

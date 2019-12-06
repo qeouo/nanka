@@ -197,7 +197,7 @@ ret.Scene = (function(){
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		ono3d.setViewport(0,HEIGHT-WIDTH*0.3,WIDTH*0.3,WIDTH*0.3);
 		Ono3d.postEffect(ono3d.shadowTexture,0,1,1,-1,shadowdecShader);
-		//Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
+		Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 	}
 	ret.prototype.draw=function(){
 		var objMan=this.objMan;
