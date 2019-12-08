@@ -1,12 +1,28 @@
 "use strict"
 var MainScene=(function(){
+	var shadowdecShader;
 	var ret = MainScene=function(){
 		Engine.Scene.apply(this);
 
 		var objMan = this.objMan;
 		Engine.go.main= objMan.createObj(Engine.goClass.main);
+
+		shadowdecShader=Ono3d.loadShader("../lib/shader/shadow_dec.shader?1");
 	};
 	inherits(ret,Engine.Scene);
+
+	ret.prototype.hudDraw=function(){
+		Engine.Scene.prototype.hudDraw.apply(this);
+
+		//ƒeƒXƒg
+		var gl=globalParam.gl;
+		var ono3d = Engine.ono3d;
+		var HEIGHT=Engine.HEIGHT;
+		var WIDTH=Engine.WIDTH;
+		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+		ono3d.setViewport(0,HEIGHT-WIDTH*0.3,WIDTH*0.3,WIDTH*0.3);
+		Ono3d.postEffect(ono3d.shadowTexture,0,1,1,-1,shadowdecShader);
+	}
 	
 	return ret;
 })();

@@ -8,7 +8,7 @@ void main(void){
 
 	//gl_Position.z=gl_Position.z*gl_Position.w;
 	aZ=gl_Position.z;
-	gl_Position.z*=gl_Position.w;
+	//gl_Position.z*=gl_Position.w;
 	aW=gl_Position.w;
 }
 [fragmentshader]

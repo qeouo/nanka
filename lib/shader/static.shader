@@ -110,9 +110,6 @@ void main(void){
 
 	vec2 uv = vUv + hoge  * depth;
 
-	vec4 lightPos=  vec4(vPos + depth*(eye_v2),1.0); 
-	lightPos= lightMat* lightPos;
-	lightPos.xy/=lightPos.w;
 
 
 	/*pbr*/ 
@@ -154,19 +151,26 @@ void main(void){
 	diffuse = clamp((diffuse-lightThreshold1)*lightThreshold2,0.0,1.0); 
 
 	/*影判定*/ 
+	vec4 lightPos=  vec4(vPos + depth*(eye_v2),1.0); 
+	lightPos= lightMat* lightPos;
+	lightPos.xy/=lightPos.w;
 	highp float shadowmap; 
 	//shadowmap=decodeFull_(texture2D(uShadowmap,(lightPos.xy+1.0)*0.5)); 
 	shadowmap=decodeShadow(uShadowmap,vec2(1024.0),(lightPos.xy+1.0)*0.5).r; 
 	highp float s2 =decodeShadow(uShadowmap,vec2(1024.0),(lightPos.xy+1.0)*0.5).g; 
 	highp float shadow_a = (1.0-sign((lightPos.z+1.0)*0.5 -(1.0/65535.0) -shadowmap))*0.5;
 	highp float nowz = (lightPos.z+1.0)*0.5;
-	if(nowz  -(1.0/65535.0) < shadowmap){
+	if(nowz   < shadowmap ){
 		shadow_a=1.0;
 	}else{
-		highp float r2=s2-shadowmap*shadowmap;
-		shadow_a=r2/(r2+pow(nowz-shadowmap,2.0));
-		shadow_a=min(1.0,max(0.0,shadow_a));
-		
+		shadow_a=0.0;
+		//shadow_a = (nowz -shadowmap)*3.0; 
+
+		//highp float r2=s2-shadowmap*shadowmap;
+		//r2 = max(0.0,r2);
+		//shadow_a=r2/(r2+pow(nowz-shadowmap,2.0));
+		////shadow_a=max(0.0,shadow_a-0.6)*(1.0/0.4);
+		//shadow_a=min(1.0,max(0.0,shadow_a));
 	}
 
 	diffuse = shadow_a * diffuse; 

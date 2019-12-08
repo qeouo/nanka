@@ -4,7 +4,6 @@ var Engine = (function(){
 
 	var shShader=[];
 	var sigmaShader;
-	var shadowdecShader;
 	var shadow_gauss_shader;
 
 	var customMaterial = new Ono3d.Material();
@@ -183,21 +182,6 @@ ret.Scene = (function(){
 		}
 
 
-		//テスト
-		var env = tex512;
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		ono3d.setViewport(0,HEIGHT-WIDTH*0.3,WIDTH*0.3,WIDTH*0.3);
-		//Ono3d.drawCopy(ono3d.shadowTexture,0,0,1,1);
-		//gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-		//ono3d.setViewport(0,0,1024,1024);
-		//Engine.shadowGauss(1024,1024,1000,ono3d.shadowTexture,0,0,1,1);
-
-
-		//Ono3d.copyImage(ono3d.shadowTexture,0,0,0,0,1024,1024);
-		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-		ono3d.setViewport(0,HEIGHT-WIDTH*0.3,WIDTH*0.3,WIDTH*0.3);
-		Ono3d.postEffect(ono3d.shadowTexture,0,1,1,-1,shadowdecShader);
-		Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 	}
 	ret.prototype.draw=function(){
 		var objMan=this.objMan;
@@ -750,7 +734,6 @@ ret.scenes=[];
 	Util.loadJs("../engine/o3o.js",function(){
 
 	sigmaShader=Ono3d.loadShader("../tools/sigma.shader");
-	shadowdecShader=Ono3d.loadShader("../lib/shader/shadow_dec.shader");
 	shadow_gauss_shader=Ono3d.loadShader("../engine/gauss_shadow.shader");
 
 	for(var i=0;i<9;i++){
@@ -1106,8 +1089,8 @@ ret.scenes=[];
 		ono3d.calcPerspectiveMatrix(projection_matrix
 			,calcSupportAngle(xup,poses,light_anchor_pos)   * offset 
 			,calcSupportAngle(xup,poses,light_anchor_pos,1) * offset 
-			,10//calcSupportAngle(yup,poses,light_anchor_pos,1) * offset 
-			,-20//calcSupportAngle(yup,poses,light_anchor_pos)   * offset 
+			,30//calcSupportAngle(yup,poses,light_anchor_pos,1) * offset 
+			,-30//calcSupportAngle(yup,poses,light_anchor_pos)   * offset 
 			,offset,(calcSupport(zup,poses,1)-calcSupport(zup,poses))+offset);
 
 		projection_matrix[5]/= offset;
