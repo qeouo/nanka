@@ -83,6 +83,9 @@ vec4 textureTri(sampler2D texture,vec2 size,vec2 uv,float w){
 	vec4 q = textureRGBE(texture,size,uv*refx*0.5 + vec2(0.0,1.0-refx*0.5)); 
 	return mix(refCol,q,fract(w));
 }
+float checkShadow(sampler2D shadowmap,vec2 uv,float z){
+	return max(0.0,sign(decodeShadow(shadowmap,vec2(1024.0),uv).r - z)); 
+}
 void main(void){ 
 	vec3 eye = normalize(vEye); 
 	vec4 q;
@@ -163,14 +166,12 @@ void main(void){
 	if(nowz   < shadowmap ){
 		shadow_a=1.0;
 	}else{
-		shadow_a=0.0;
-		//shadow_a = (nowz -shadowmap)*3.0; 
-
-		//highp float r2=s2-shadowmap*shadowmap;
-		//r2 = max(0.0,r2);
-		//shadow_a=r2/(r2+pow(nowz-shadowmap,2.0));
-		////shadow_a=max(0.0,shadow_a-0.6)*(1.0/0.4);
-		//shadow_a=min(1.0,max(0.0,shadow_a));
+		float offset= (nowz -shadowmap)*0.1;
+		float sum=checkShadow(uShadowmap,(lightPos.xy+1.0)*0.5+vec2(1.0,0.0)*offset, nowz)
+			+checkShadow(uShadowmap,(lightPos.xy+1.0)*0.5+vec2(-1.0,0.0)*offset, nowz)
+			+checkShadow(uShadowmap,(lightPos.xy+1.0)*0.5+vec2(0.0,1.0)*offset, nowz) 
+			+checkShadow(uShadowmap,(lightPos.xy+1.0)*0.5+vec2(0.0,-1.0)*offset, nowz); 
+		shadow_a=sum/5.0;
 	}
 
 	diffuse = shadow_a * diffuse; 

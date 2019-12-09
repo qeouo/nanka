@@ -1,7 +1,7 @@
 Engine.goClass["field"]= (function(){
 	var ono3d = Engine.ono3d;
 	var onoPhy=Engine.onoPhy;
-	var fieldpath="f1.o3o?7";
+	var fieldpath="f1.o3o?8";
 	var GoField =function(){};
 	var gl = globalParam.gl;
 	var ret = GoField;

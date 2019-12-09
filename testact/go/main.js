@@ -1,7 +1,7 @@
 Engine.goClass["main"]= (function(){
 	var stage =0;
 	var stages=[
-		"f1.o3o&1"
+		"f1.o3o&2"
 		,"f2.o3o"
 		,"f3.o3o"
 		,"f4.o3o"
