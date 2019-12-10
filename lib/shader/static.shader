@@ -84,7 +84,8 @@ vec4 textureTri(sampler2D texture,vec2 size,vec2 uv,float w){
 	return mix(refCol,q,fract(w));
 }
 float checkShadow(sampler2D shadowmap,vec2 uv,float z){
-	return max(0.0,sign(decodeShadow(shadowmap,vec2(1024.0),uv).r - z)); 
+	//return max(0.0,sign(decodeShadow(shadowmap,vec2(1024.0),uv).r - z)); 
+	return max(0.0,sign(unpackUFP16(texture2D(shadowmap,uv).rg) - z)); 
 }
 void main(void){ 
 	vec3 eye = normalize(vEye); 
@@ -170,8 +171,14 @@ void main(void){
 		float sum=checkShadow(uShadowmap,(lightPos.xy+1.0)*0.5+vec2(1.0,0.0)*offset, nowz)
 			+checkShadow(uShadowmap,(lightPos.xy+1.0)*0.5+vec2(-1.0,0.0)*offset, nowz)
 			+checkShadow(uShadowmap,(lightPos.xy+1.0)*0.5+vec2(0.0,1.0)*offset, nowz) 
-			+checkShadow(uShadowmap,(lightPos.xy+1.0)*0.5+vec2(0.0,-1.0)*offset, nowz); 
-		shadow_a=sum/5.0;
+			+checkShadow(uShadowmap,(lightPos.xy+1.0)*0.5+vec2(0.0,-1.0)*offset, nowz)
+
+			+checkShadow(uShadowmap,(lightPos.xy+1.0)*0.5+vec2(0.7,-0.7)*offset, nowz)
+			+checkShadow(uShadowmap,(lightPos.xy+1.0)*0.5+vec2(-0.7,-0.7)*offset, nowz)
+			+checkShadow(uShadowmap,(lightPos.xy+1.0)*0.5+vec2(0.7,0.7)*offset, nowz) 
+			+checkShadow(uShadowmap,(lightPos.xy+1.0)*0.5+vec2(-0.7,0.7)*offset, nowz); 
+		shadow_a=sum/9.0;
+		shadow_a=min(1.0,shadow_a*2.0);
 	}
 
 	diffuse = shadow_a * diffuse; 

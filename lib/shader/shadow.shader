@@ -6,10 +6,7 @@ varying highp float aW;
 void main(void){
 	gl_Position = projectionMatrix * vec4(aPos,1.0);
 
-	//gl_Position.z=gl_Position.z*gl_Position.w;
 	aZ=gl_Position.z;
-	//gl_Position.z*=gl_Position.w;
-	aW=gl_Position.w;
 }
 [fragmentshader]
 precision lowp float; 
@@ -17,9 +14,8 @@ precision lowp float;
 varying highp float aZ; 
 varying highp float aW; 
 void main(void){
-	float z=aZ;//aW;
+	float z=aZ;
 	z=(z+1.0)*0.5;
-	//gl_FragColor= vec4(vec3(z),1.0);
 	gl_FragColor= vec4(packUFP16(z),packUFP16(z*z));
 	
 	if(abs(gl_FragCoord.x-512.)>510. || abs(gl_FragCoord.y-512.)>510.){
