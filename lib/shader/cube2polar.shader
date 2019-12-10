@@ -77,6 +77,6 @@ void main(void){
 //	angle.x=cos(r)*l;
 //	angle.z=sin(r)*l;
 
-    gl_FragColor = encode(textureRGBE( uSampler,vec2(1024.0,512.0),boxAngle2Uv(angle)));
+    gl_FragColor = encode(vec4(textureDecode( uSampler,vec2(1024.0,512.0),boxAngle2Uv(angle)),1.0));
 }
 

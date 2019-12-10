@@ -43,5 +43,5 @@ void main(void){
 	n=n/l;
 	l = coef/(l*l*l);
 
-  	gl_FragColor = packFloat(textureRGBE( uSampler,vec2(1024.0,512.0),vUv) * l * n.z*n.y);
+  	gl_FragColor = packFloat(textureDecode( uSampler,vec2(1024.0,512.0),vUv) * l * n.z*n.y);
 }

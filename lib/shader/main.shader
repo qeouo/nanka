@@ -75,12 +75,15 @@ uniform float lightThreshold2;
 uniform float uMetallic; 
 
 [common]
-vec4 textureTri(sampler2D texture,vec2 size,vec2 uv,float w){
+highp vec3 textureTri(sampler2D texture,vec2 size,vec2 uv,float w){
 	float refx = pow(0.5,floor(w)); 
 	uv.t = max(min(uv.t,0.5-0.5/(refx*size.y)),0.5/(refx*size.y));
-	vec4 refCol = textureRGBE(texture,size,uv*refx + vec2(0.0,1.0-refx)); 
-	vec4 q = textureRGBE(texture,size,uv*refx*0.5 + vec2(0.0,1.0-refx*0.5)); 
+	highp vec3 refCol = textureDecode(texture,size,uv*refx + vec2(0.0,1.0-refx)); 
+	highp vec3 q = textureDecode(texture,size,uv*refx*0.5 + vec2(0.0,1.0-refx*0.5)); 
 	return mix(refCol,q,fract(w));
+}
+float checkShadow(sampler2D shadowmap,vec2 uv,float z){
+	return max(0.0,sign(unpackUFP16(texture2D(shadowmap,uv).rg) - z)); 
 }
 void main(void){ 
 	vec3 eye = normalize(vEye); 
@@ -134,7 +137,7 @@ void main(void){
 	float refa = (rough -refx*refx*0.06)/((((1.0+refx)*(1.0+refx))-refx*refx)*0.06); 
 	refa = min(refa,1.0); 
 	vec2 refV = angle2uv(angle) * vec2(1.0,0.5); 
-	vec4 refCol = textureTri(uEnvMap,vec2(256.0),refV,refx+refa) ;
+	vec3 refCol = textureTri(uEnvMap,vec2(256.0),refV,refx+refa) ;
 
 	/*屈折*/ 
 	refx = min(floor(transRough/0.2),3.0); 
@@ -142,8 +145,8 @@ void main(void){
 	refa = min(refa,1.0); 
 	angle = normalize(uViewMat * nrm); 
 	refV = gl_FragCoord.xy/1024.0+angle.xy*(1.0-refractPower)*0.2; 
-	vec4 transCol = textureTri(uTransMap,vec2(1024.0),refV,refx+refa); 
-	transCol.rgb *=  baseCol; 
+	highp vec3 transCol = textureTri(uTransMap,vec2(1024.0),refV,refx+refa); 
+	transCol*=  baseCol; 
 
 	/*乱反射強度*/ 
 	float diffuse = max(-dot(nrm,uLight),0.0); 
@@ -154,17 +157,24 @@ void main(void){
 	lightPos= lightMat* lightPos;
 	lightPos.xy/=lightPos.w;
 	highp float shadowmap; 
-	//shadowmap=decodeFull_(texture2D(uShadowmap,(lightPos.xy+1.0)*0.5)); 
 	shadowmap=decodeShadow(uShadowmap,vec2(1024.0),(lightPos.xy+1.0)*0.5).r; 
-	highp float s2 =decodeShadow(uShadowmap,vec2(1024.0),(lightPos.xy+1.0)*0.5).g; 
-	highp float shadow_a = (1.0-sign((lightPos.z+1.0)*0.5 -(1.0/65535.0) -shadowmap))*0.5;
+	highp float shadow_a = 1.0;
 	highp float nowz = (lightPos.z+1.0)*0.5;
 	if(nowz   < shadowmap){
 		shadow_a=1.0;
 	}else{
-		highp float r2=s2-shadowmap*shadowmap;
-		shadow_a=r2/(r2+pow(nowz-shadowmap,2.0));
-		shadow_a=min(1.0,max(0.0,shadow_a));
+		float offset= (nowz -shadowmap)*0.1;
+		float sum=checkShadow(uShadowmap,(lightPos.xy+1.0)*0.5+vec2(1.0,0.0)*offset, nowz)
+			+checkShadow(uShadowmap,(lightPos.xy+1.0)*0.5+vec2(-1.0,0.0)*offset, nowz)
+			+checkShadow(uShadowmap,(lightPos.xy+1.0)*0.5+vec2(0.0,1.0)*offset, nowz) 
+			+checkShadow(uShadowmap,(lightPos.xy+1.0)*0.5+vec2(0.0,-1.0)*offset, nowz)
+
+			+checkShadow(uShadowmap,(lightPos.xy+1.0)*0.5+vec2(0.7,-0.7)*offset, nowz)
+			+checkShadow(uShadowmap,(lightPos.xy+1.0)*0.5+vec2(-0.7,-0.7)*offset, nowz)
+			+checkShadow(uShadowmap,(lightPos.xy+1.0)*0.5+vec2(0.7,0.7)*offset, nowz) 
+			+checkShadow(uShadowmap,(lightPos.xy+1.0)*0.5+vec2(-0.7,0.7)*offset, nowz); 
+		shadow_a=sum/9.0;
+		shadow_a=min(1.0,shadow_a*2.0);
 	}
 	diffuse = shadow_a * diffuse; 
 
@@ -175,13 +185,13 @@ void main(void){
 	vColor2 = vColor2 * baseCol;
 
 	/*透過合成*/ 
-	vColor2 = mix(vColor2,transCol.rgb,1.0 - opacity); 
+	vColor2 = mix(vColor2,transCol,1.0 - opacity); 
 
 	/* フレネル */ 
 	specular +=  max(specular,1.0-opacity)*(1.0 - specular)*pow(1.0 + min(dot(eye,nrm),0.0),5.0); 
 
 	/*全反射合成*/ 
-	vColor2 = mix(mix(vColor2,baseCol*refCol.rgb,uMetallic),refCol.rgb,specular); 
+	vColor2 = mix(mix(vColor2,baseCol*refCol,uMetallic),refCol,specular); 
 
 	/*スケーリング*/ 
 	gl_FragColor = encode(vec4(vColor2 * vEnvRatio,0.0)); 
