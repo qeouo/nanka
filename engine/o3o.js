@@ -2768,7 +2768,7 @@ var O3o=(function(){
 			}
 		}
 
-		if( ono3d.rf  & Ono3d.RF_OUTLINE ){
+		if( ono3d.rf  & Ono3d.RF_OUTLINE && 0){
 			//アウトライン作成
 			var bufFace,normal;
 			var bM44 = Mat44.poolAlloc();

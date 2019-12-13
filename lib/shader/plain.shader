@@ -10,5 +10,5 @@ precision lowp float;
 [common]
 uniform lowp vec4 uColor; 
 void main(void){ 
-	gl_FragColor = uColor;
+	gl_FragColor = decode(uColor);
 }
