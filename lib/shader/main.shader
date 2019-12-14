@@ -75,13 +75,6 @@ uniform float lightThreshold2;
 uniform float uMetallic; 
 
 [common]
-highp vec3 textureTri(sampler2D texture,vec2 size,vec2 uv,float w){
-	float refx = pow(0.5,floor(w)); 
-	uv.t = max(min(uv.t,0.5-0.5/(refx*size.y)),0.5/(refx*size.y));
-	highp vec3 refCol = textureDecode(texture,size,uv*refx + vec2(0.0,1.0-refx)); 
-	highp vec3 q = textureDecode(texture,size,uv*refx*0.5 + vec2(0.0,1.0-refx*0.5)); 
-	return mix(refCol,q,fract(w));
-}
 float checkShadow(sampler2D shadowmap,vec2 uv,float z){
 	return max(0.0,sign(unpackUFP16(texture2D(shadowmap,uv).rg) - z)); 
 }
@@ -194,5 +187,5 @@ void main(void){
 	vColor2 = mix(mix(vColor2,baseCol*refCol,uMetallic),refCol,specular); 
 
 	/*スケーリング*/ 
-	gl_FragColor = encode(vec4(vColor2 * vEnvRatio,0.0)); 
+	gl_FragColor = encode(vColor2 * vEnvRatio); 
 } 

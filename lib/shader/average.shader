@@ -13,8 +13,7 @@ precision lowp float;
 varying lowp vec2 vUv;
 uniform sampler2D uSampler;
 void main(void){
-	vec4 a = decode(texture2D(uSampler,vUv));
-	a.r = (a.r + a.g + a.b)/3.0;
-	a.g = (a.r + a.g + a.b)/3.0;
-	gl_FragColor= encode2(a);
+	highp vec3 a = decode(texture2D(uSampler,vUv));
+	a = vec3((a.r + a.g + a.b)/3.0);
+	gl_FragColor= encode2(a.rg);
 }

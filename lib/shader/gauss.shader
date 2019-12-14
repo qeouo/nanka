@@ -15,7 +15,7 @@ uniform lowp vec2 uUvScale;
 varying lowp vec2 vUv;
 [common]
 void main(void){
-	lowp vec3 col=vec3(0.);
+	highp vec3 col=vec3(0.);
 	lowp vec2 fc = vUv ;
 	lowp vec2 scale = uAxis;
 	lowp vec2 size =vec2(1024,1024);
@@ -28,5 +28,5 @@ void main(void){
 	col += (textureDecode(uSampler,size,(fc+scale*2.)*uUvScale+uUvOffset))*weight[2];
 	col += (textureDecode(uSampler,size,(fc+scale*3.)*uUvScale+uUvOffset))*weight[3];
 	col += (textureDecode(uSampler,size,(fc+scale*4.)*uUvScale+uUvOffset))*weight[4];
-	gl_FragColor= encode(vec4(col,1.0));
+	gl_FragColor= encode(col);
 }

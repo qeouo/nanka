@@ -16,8 +16,8 @@ uniform sampler2D uSampler2;
 uniform float v1;
 uniform float v2;
 void main(void){
-	vec4 a = decode(texture2D(uSampler,vUv));
-	vec4 a2 = decode(texture2D(uSampler2,vUv));
+	highp vec3 a = decode(texture2D(uSampler,vUv));
+	highp vec3 a2 = decode(texture2D(uSampler2,vUv));
 	gl_FragColor= encode(a*v1+a2*v2);
 }
 

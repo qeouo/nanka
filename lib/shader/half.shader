@@ -17,6 +17,6 @@ uniform mediump vec2 uUnit;
 void main(void){
 	vec2 unit = uUnit;
 	vec2 uv = vUv; 
-	gl_FragColor = encode(textureRGBE(uSampler,1.0/uUnit,vUv));
+	gl_FragColor = encode(textureDecode(uSampler,1.0/uUnit,vUv));
 }
 

@@ -16,5 +16,5 @@ uniform vec2 uUvScale;
 void main(void){
 	highp vec3 src= textureDecode(uSampler,vec2(1024.0,512.0)
 		,angle2uv(vAngle)*uUvScale+uUvOffset);
-	gl_FragColor = encode(vec4(src,1.0));
+	gl_FragColor = encode(src);
 }

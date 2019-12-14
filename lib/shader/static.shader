@@ -76,13 +76,6 @@ uniform float lightThreshold2;
 uniform float uMetallic; 
 
 [common]
-vec4 textureTri(sampler2D texture,vec2 size,vec2 uv,float w){
-	float refx = pow(0.5,floor(w)); 
-	uv.t = max(min(uv.t,0.5-0.5/(refx*size.y)),0.5/(refx*size.y));
-	vec4 refCol = textureRGBE(texture,size,uv*refx + vec2(0.0,1.0-refx)); 
-	vec4 q = textureRGBE(texture,size,uv*refx*0.5 + vec2(0.0,1.0-refx*0.5)); 
-	return mix(refCol,q,fract(w));
-}
 float checkShadow(sampler2D shadowmap,vec2 uv,float z){
 	//return max(0.0,sign(decodeShadow(shadowmap,vec2(1024.0),uv).r - z)); 
 	return max(0.0,sign(unpackUFP16(texture2D(shadowmap,uv).rg) - z)); 
@@ -139,7 +132,7 @@ void main(void){
 	float refa = (rough -refx*refx*0.06)/((((1.0+refx)*(1.0+refx))-refx*refx)*0.06); 
 	refa = min(refa,1.0); 
 	vec2 refV = angle2uv(angle) * vec2(1.0,0.5); 
-	vec4 refCol = textureTri(uEnvMap,vec2(256.0),refV,refx+refa) ;
+	highp vec3 refCol = textureTri(uEnvMap,vec2(256.0),refV,refx+refa) ;
 
 	/*屈折*/ 
 	refx = min(floor(transRough/0.2),3.0); 
@@ -147,8 +140,8 @@ void main(void){
 	refa = min(refa,1.0); 
 	angle = normalize(uViewMat * nrm); 
 	refV = gl_FragCoord.xy/1024.0+angle.xy*(1.0-refractPower)*0.2; 
-	vec4 transCol = textureTri(uTransMap,vec2(1024.0),refV,refx+refa); 
-	transCol.rgb *=  baseCol; 
+	highp vec3 transCol = textureTri(uTransMap,vec2(1024.0),refV,refx+refa); 
+	transCol *=  baseCol; 
 
 	/*乱反射強度*/ 
 	float diffuse = max(-dot(nrm,uLight),0.0); 
@@ -192,14 +185,14 @@ void main(void){
 
 
 	/*透過合成*/ 
-	vColor2 = mix(vColor2,transCol.rgb,1.0 - opacity); 
+	vColor2 = mix(vColor2,transCol,1.0 - opacity); 
 
 	/* フレネル */ 
 	specular +=  max(specular,1.0-opacity)*(1.0 - specular)*pow(1.0 + min(dot(eye,nrm),0.0),5.0); 
 
 	/*全反射合成*/ 
-	vColor2 = mix(vColor2,refCol.rgb,specular); 
+	vColor2 = mix(vColor2,refCol,specular); 
 
 	/*スケーリング*/ 
-	gl_FragColor = encode(vec4(vColor2 * vEnvRatio,0.0)); 
+	gl_FragColor = encode(vColor2 * vEnvRatio); 
 } 

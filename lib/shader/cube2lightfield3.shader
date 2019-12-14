@@ -17,7 +17,7 @@ const float r = 3.141592;
 void main(void){
 	vec2 unit = vec2(1.0/1024.0,1.0/512.0);
 	int i = int(floor(vUv.s * 6.0));
-	highp vec4 res;
+	highp vec3 res;
 	if(i==0) {
 		//front
 		res = 

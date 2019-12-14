@@ -36,8 +36,8 @@ uniform vec2 uUvScale;
 void main(void){
 	vec3 svec,tvec;
 	vec3 vAngle2;
-	highp vec4 col;
-	highp vec4 col2;
+	highp vec3 col;
+	highp vec3 col2;
 	highp vec3 color = vec3(0.0,0.0,0.0);
 	vec3 va;
 	//va.y = -sin(vUv.y*PI*0.5);
@@ -71,5 +71,5 @@ void main(void){
 	color = color / (float(MAX));
 	col2 = decode(texture2D(uDst,vUv));
 	color = mix(col2.rgb,color,uPow);
-	gl_FragColor = encode(vec4(color,1.0));
+	gl_FragColor = encode(color);
 }

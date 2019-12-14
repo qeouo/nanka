@@ -8,7 +8,7 @@ void main(void){
 [fragmentshader]
 precision lowp float; 
 [common]
-uniform lowp vec4 uColor; 
+uniform highp vec4 uColor; 
 void main(void){ 
-	gl_FragColor = decode(uColor);
+	gl_FragColor = encode(uColor.rgb);
 }

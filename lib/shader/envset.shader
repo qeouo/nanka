@@ -12,8 +12,8 @@ varying vec2 vUv;
 uniform sampler2D uSampler;
 [common]
 void main(void){
-	highp vec4 col;
-    col = texture2D(uSampler,vUv);
+	highp vec3 col;
+    col = texture2D(uSampler,vUv).rgb;
 	col.r = pow(col.r,2.2);
 	col.g = pow(col.g,2.2);
 	col.b = pow(col.b,2.2);

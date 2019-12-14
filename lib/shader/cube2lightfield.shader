@@ -19,6 +19,6 @@ uniform sampler2D uSampler;
 void main(void){
 	float l = length(vec3(fract(vUnit.s* 4.0)*2.0-1.0 ,fract(vUnit.t*2.0)*2.0-1.0,1.0));
 
-    gl_FragColor = encode(textureRGBE( uSampler,vec2(1024.0,512.0),vUv) / (l*l*l*16.0*16.0));
+    gl_FragColor = encode(textureDecode( uSampler,vec2(1024.0,512.0),vUv) / (l*l*l*16.0*16.0));
 }
 

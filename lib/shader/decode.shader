@@ -17,9 +17,8 @@ uniform float uAL; //平均値
 uniform float uLw; //最大値
 float uA = 0.18;
 void main(void){
-	vec4 a = decode(texture2D(uSampler,vUv));
-	vec4 b = texture2D(uSampler,vUv);
-	vec4 c = decode2(texture2D(uSampler2,vec2(0.0,511.0)/512.0));
+	highp vec3 a = decode(texture2D(uSampler,vUv));
+	highp vec2 c = decode2(texture2D(uSampler2,vec2(0.0,511.0)/512.0));
 	float aL = max(c.r,0.1); //平均値
 	float Lw = c.g*1.1; //最大値
 	a.rgb= a.rgb * uA / aL;
@@ -28,5 +27,5 @@ void main(void){
 	a.r= pow(a.r , 1.0/2.2);
 	a.g= pow(a.g , 1.0/2.2);
 	a.b= pow(a.b , 1.0/2.2);
-	gl_FragColor= a;
+	gl_FragColor= vec4(a,1.0);
 }
