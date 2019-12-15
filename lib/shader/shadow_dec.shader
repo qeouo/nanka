@@ -14,8 +14,7 @@ varying lowp vec2 vUv;
 uniform sampler2D uSampler;
 [common]
 void main(void){
-	highp float s=decodeShadow(uSampler,vec2(1024.0),vUv).r; 
-	highp float s2=decodeShadow(uSampler,vec2(1024.0),vUv).g; 
+	highp float s=decodeShadow(uSampler,vec2(1024.0),vUv); 
 	gl_FragColor= vec4(vec3(s),1.0);
 	
 }

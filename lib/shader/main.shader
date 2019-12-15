@@ -76,7 +76,7 @@ uniform float uMetallic;
 
 [common]
 float checkShadow(sampler2D shadowmap,vec2 uv,float z){
-	return max(0.0,sign(unpackUFP16(texture2D(shadowmap,uv).rg) - z)); 
+	return max(0.0,sign(unpackUXP16(texture2D(shadowmap,uv).rg) - z)); 
 }
 void main(void){ 
 	vec3 eye = normalize(vEye); 
@@ -150,7 +150,7 @@ void main(void){
 	lightPos= lightMat* lightPos;
 	lightPos.xy/=lightPos.w;
 	highp float shadowmap; 
-	shadowmap=decodeShadow(uShadowmap,vec2(1024.0),(lightPos.xy+1.0)*0.5).r; 
+	shadowmap=decodeShadow(uShadowmap,vec2(1024.0),(lightPos.xy+1.0)*0.5); 
 	highp float shadow_a = 1.0;
 	highp float nowz = (lightPos.z+1.0)*0.5;
 	if(nowz   < shadowmap){
