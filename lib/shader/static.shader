@@ -78,7 +78,7 @@ uniform float uMetallic;
 [common]
 float checkShadow(sampler2D shadowmap,vec2 uv,float z){
 	//return max(0.0,sign(decodeShadow(shadowmap,vec2(1024.0),uv).r - z)); 
-	return max(0.0,sign(unpackUXP16(texture2D(shadowmap,uv).rg) - z)); 
+	return max(0.0,sign(unpackUFP16(texture2D(shadowmap,uv).rg) - z)); 
 }
 void main(void){ 
 	vec3 eye = normalize(vEye); 

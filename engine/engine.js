@@ -606,7 +606,7 @@ ret.scenes=[];
 			Engine.setExpose(globalParam.exposure_level,globalParam.exposure_upper);
 		}
 
-		if(globalParam.exposure_bloom && 0){
+		if(globalParam.exposure_bloom ){
 			// ブルーム処理
 			ono3d.setViewport(0,0,WIDTH,HEIGHT);
 			Engine.bloom(bufTexture,globalParam.exposure_bloom);
