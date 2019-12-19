@@ -940,7 +940,7 @@ ret.scenes=[];
 			gl.viewport(0,0,image.width,image.height);
 			Ono3d.postEffect(image,0,0 ,1,1,ono3d.shaders["envset"]); 
 			gl.bindTexture(gl.TEXTURE_2D, image.glTexture);
-			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
 			Ono3d.copyImage(image,0,0,0,0,image.width,image.height);
 
 			gl.bindTexture(gl.TEXTURE_2D, null);
