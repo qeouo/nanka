@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Language" content="ja" />
 <meta http-equiv="Content-Style-Type" content="text/css" />
 <meta http-equiv="Content-Script-Type" content="text/javascript" />
-<title>hdr</title>
+<title>Deflatest</title>
 <style>
 </style>
 </head>
@@ -23,7 +23,7 @@ var encLZSS=function(utf8array){
 		var kmax=2;
 		for(var j=Math.max(0,i-65535);j<i;j++){
 			if(utf8array[i] === utf8array[j]){
-				for(var k=0;utf8array[i+k] === utf8array[j+k];k++){
+				for(var k=0;utf8array[i+k] === utf8array[j+k] && k<255;k++){
 				}
 				if(k>kmax){
 					kouho=i-j
@@ -60,17 +60,27 @@ var decLZSS=function(data){
 var table=[];
 var dectable=[];
 var encHaffman=function(src){
-	var counts=new Array(256);
-	for(var i=0;i<counts.length;i++){
-		counts[i]={};
-		counts[i].num=0;
-		counts[i].value=i;
-	}
+	var counts=[];
 	for(var i=0;i<src.length;i++){
 		if(isNaN(src[i])){
+			if(!counts[src[i].p]){
+				counts[src[i].p]={};
+				counts[src[i].p].num=0;
+				counts[src[i].p].value=src[i].p;
+			}
+			if(!counts[src[i].len]){
+				counts[src[i].len]={};
+				counts[src[i].len].num=0;
+				counts[src[i].len].value=src[i].len;
+			}
 			counts[src[i].p].num++;
 			counts[src[i].len].num++;
 		}else{
+			if(!counts[src[i]]){
+				counts[src[i]]={};
+				counts[src[i]].num=0;
+				counts[src[i]].value=src[i];
+			}
 			counts[src[i]].num++;
 		}
 	}
@@ -83,6 +93,12 @@ var encHaffman=function(src){
 			return 0;
 		}
 	});
+
+	var nodes=[];
+	for(var k in counts){
+		nodes.push(counts[k]);
+	}
+	counts=nodes;
 	for(var i=0;i<counts.length;i++){
 		if(counts[i].num===0){
 			counts = counts.slice(0,i);
@@ -153,10 +169,28 @@ var decHaffman=function(src){
 var format=function(src){
 	var result="";
 	for(var i=0;i<src.length;i++){
+		if(i!==0){
+			result+=",";
+		}
+
 		if(isNaN(src[i])){
-			result+=",["+src[i].p.toString(16)+","+src[i].len.toString(16)+"]";
+			result+="["+src[i].p.toString(16)+","+src[i].len.toString(16)+"]";
 		}else{
-			result+=","+src[i].toString(16);
+			result+=src[i].toString(16);
+		}
+	}
+	return result;
+}
+var formatHaffman=function(src){
+	var result="";
+	for(var i=0;i<src.length;i++){
+		if(i!==0){
+			result+=",";
+		}
+		if(isNaN(src[i])){
+			result+="["+src[i].p.toString(2).substr(1)+","+src[i].len.toString(2).substr(1)+"]";
+		}else{
+			result+=src[i].toString(2);
 		}
 	}
 	return result;
@@ -168,52 +202,61 @@ var onloadfunc=function(e){
 	src.addEventListener("input",function(evt){
 		var output_str="";
 		var str = src.value;
+		if(str.length===0){
+			output.innerHTML="";
+			return;
+		}
 		var utf8array=[];
 		var utf8str = unescape(encodeURIComponent(str));
 		for(var i=0;i<utf8str.length;i++){
 			utf8array.push(utf8str.charCodeAt(i));
 		}
-		output_str+="utf8:"+format(utf8array)+"\n";
+		output_str+="\n\n↓エンコード\n"
+		output_str+="UTF8:"+format(utf8array)+"\n";
 
 		var result = encLZSS(utf8array);
-		output_str+="lzss:"+format(result)+"\n";
+		output_str+="LZ77符号化:"+format(result)+"\n";
 
 		var haff = encHaffman(result);
 
-		output_str+="haff:"+format(haff)+"\n";
-		output_str+="table:";
+		output_str+="ハフマン符号化:"+formatHaffman(haff)+"\n";
+		output_str+="ハフマンテーブル:";
 		for(var key in table){
-			output_str+=","+table[key].toString(16) +"→"+Number(key).toString(16);
+			output_str+=","+Number(table[key]).toString(16) +"→"+Number(key).toString(2).substr(1);
 		}
 		output_str+="\n";
 
 
-		output_str+="\n\n↓デコード\n"
+		output_str+="\n\n↓こっからデコード\n"
 		result = decHaffman(haff);
 
-		output_str+="dechaff:"+format(result)+"\n";
+		output_str+="ハフマン復号化:"+format(result)+"\n";
 
 		var decode=decLZSS(result);
-		output_str+="lzss:"+decode+"\n";
+		output_str+="LZ77復号化:"+format(decode)+"\n";
 
 		var aaa ="";
 		for(var i=0;i<decode.length;i++){
 	  		aaa+=String.fromCharCode(decode[i]);
 		}
 		var utf16str = decodeURIComponent(escape(aaa));	
-		output_str+="復号:"+utf16str+"\n";
+		output_str+="復号結果:"+utf16str+"\n";
 
 		output.innerHTML = output_str;
 
 
 	});
+
+	Util.fireEvent(src,"input");
+
+
 }
 
 </script>
 
 <body onLoad="onloadfunc(event)">
 
-元<input type="text" id ="src"><br>
+元<input type="text" id ="src" size="128" value="うらにわにはにわにわにはにわにわとりがいる"><br>
 <div id="output" style="white-space:pre;"><div>
 </body>
 </html>
