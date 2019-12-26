@@ -153,6 +153,57 @@ var readFloat16=function(dv,offset){
 	return sign * b * Math.pow(2.0,idx);
 
 }
+
+var BufferStream =(function(){
+	var BufferStream =function(buffer,idx){
+		this.buffer=buffer;
+		this.idx=idx;
+	};
+	var ret  = BufferStream;
+
+	ret.prorotype.getInt32= function(le){
+		var ret =this.buffer.getInt32(this.idx>>3,le);
+		this.idx+=32;
+		return ret;
+	}
+	ret.prorotype.getUint32 = function(le){
+		var ret=this.buffer.getUint32(this.idx>>3,le);
+		this.idx+=32;
+		return ret;
+	}
+	ret.prorotype.getUint16= function(le){
+		var ret=this.buffer.getUint16(this.idx>>3,le);
+		this.idx+=16;
+		return ret;
+	}
+	ret.prorotype.getFloat32 = function(le){
+		var ret=this.buffer.getFloat32(this.idx>>3,le);
+		this.idx+=32;
+		return ret;
+	}
+	ret.readTextBuf=function(){
+		var dv = this.buffer;
+		var str="";
+		var a;
+		while((a=dv.getUint8(this.idx+=8)) !== 0){
+			str+=String.fromCharCode(a);
+		}
+		return str;
+	}
+	ret.prototype.readFloat16=function(le){
+		var dv = this.buffer;
+		var data = dv.getUint16(this.idx>>3,le);
+		this.idx+=16;
+		if(data === 0)return 0.0; 
+		var sign = (data>>15) &1;
+		sign = 1-sign*2 ;
+
+		var idx = ((data>>10)&31) -15;
+		var b = (data & 1023)*1.0/1024.0+ 1.0;
+		return sign * b * Math.pow(2.0,idx);
+	}
+}
+
 var imgFromExrBin= function(obj,arrayBuffer){
 	var idx=0;
 	var dv = new DataView(arrayBuffer);
