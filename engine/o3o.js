@@ -605,23 +605,7 @@ var O3o=(function(){
 			if(scene.world.envTexture){
 				var res =/[^\\\/]*$/.exec(scene.world.envTexture)
 				var path = currentdir + res[0];
-				scene.world.envTexture = loadTexture(path,function(image){
-					var gl = Rastgl.gl;
-					var envsize=16;
-					gl.disable(gl.BLEND);
-					gl.disable(gl.DEPTH_TEST);
-
-
-					gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-					gl.viewport(0,0,image.width,image.height);
-					Ono3d.postEffect(image,0,0 ,1,1,ono3d.shaders["envset"]); 
-					gl.bindTexture(gl.TEXTURE_2D, image.glTexture);
-					gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-					Ono3d.copyImage(image,0,0,0,0,image.width,image.height);
-
-					gl.bindTexture(gl.TEXTURE_2D, null);
-					gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-				});
+				scene.world.envTexture = Engine.loadEnvTexture(path);
 			}
 		}
 
@@ -631,9 +615,6 @@ var O3o=(function(){
 			material.baseColorMap = loadMap(material.baseColorMap,0);
 			material.pbrMap = loadMap(material.pbrMap,0);
 			material.hightMap = loadMap(material.hightMap,1);
-			if(material.lightMap !=="" && material.shader===""){
-				material.shader="static";
-			}
 			material.lightMap = loadMap(material.lightMap,0);
 
 			if(material.shader !== ""){

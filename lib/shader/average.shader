@@ -15,5 +15,5 @@ uniform sampler2D uSampler;
 void main(void){
 	highp vec3 a = decode(texture2D(uSampler,vUv));
 	a = vec3((a.r + a.g + a.b)/3.0);
-	gl_FragColor= encode2(a.rg);
+	gl_FragColor= vec4(packUFP16(a.r),packUFP16(a.g));
 }

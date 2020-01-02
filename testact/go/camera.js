@@ -74,6 +74,8 @@ Engine.goClass["camera"]= (function(){
 		camera.p[1]+=(this.p[1]-camera.p[1])*0.1
 		camera.p[2]+=(this.p[2]-camera.p[2])*0.1
 
+		camera.aov= 0.577;
+
 		homingCamera(this.a,vec3,this.p);
 		var nangle=function(a){
 			if(a>Math.PI){a-=Math.PI*2};

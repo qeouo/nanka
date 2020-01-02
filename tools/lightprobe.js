@@ -5,13 +5,27 @@ var shShader=[];
 var sigmaShader;
 var probs = new Collider();
 
-var objMan = Engine.objMan;
+var objMan = null;
 var ono3d = Engine.ono3d;
 var onoPhy = Engine.onoPhy;
 var camera = Engine.camera;
 var gl = globalParam.gl;
 var WIDTH = Engine.WIDTH;
 var HEIGHT = Engine.HEIGHT;
+
+
+var MainScene=(function(){
+	var ret = MainScene=function(){
+		Engine.Scene.apply(this);
+
+		objMan = this.objMan;
+		Engine.go.main= objMan.createObj(Engine.goClass.main);
+
+	};
+	inherits(ret,Engine.Scene);
+	
+	return ret;
+})();
 
 Engine.goClass.main= (function(){
 	var GoMain=function(){};
@@ -365,7 +379,8 @@ Engine.userInit=function(){
 	}
 	
 	//メインオブジェクト作成
-	Engine.go.main= Engine.objMan.createObj(Engine.goClass.main);
+	//Engine.go.main= Engine.objMan.createObj(Engine.goClass.main);
+	Engine.scenes.push(new MainScene());
 
 
 }
@@ -376,3 +391,4 @@ Engine.userInit=function(){
 		shShader.push(Ono3d.loadShader("sh"+i+".shader"));
 	}
 	Engine.enableDraw=false;
+

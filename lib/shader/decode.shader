@@ -16,6 +16,10 @@ uniform sampler2D uSampler2;
 uniform float uAL; //平均値
 uniform float uLw; //最大値
 float uA = 0.18;
+
+mediump vec2 decode2(vec4 src){
+	return vec2(unpackUFP16(src.rg),unpackUFP16(src.ba));
+}
 void main(void){
 	highp vec3 a = decode(texture2D(uSampler,vUv));
 	highp vec2 c = decode2(texture2D(uSampler2,vec2(0.0,511.0)/512.0));

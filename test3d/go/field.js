@@ -36,7 +36,7 @@ Engine.goClass.field= (function(){
 
 			scene.setFrame(0); //初期状態セット
 			instance = o3o.createInstance(); //インスタンス作成
-			Engine.go.field.instance=instance;
+			this.instance=instance;
 			instance.calcMatrix(0,true);
 			globalParam.instance=instance;
 
@@ -271,7 +271,7 @@ Engine.goClass.field= (function(){
 		var camera=Engine.camera;
 
 		var m43 = Mat43.poolAlloc();
-		if(field.scenes.length>0){
+		if(this.instance){
 			var objects = field.scenes[0].objects;
 			for(var i=0;i<objects.length;i++){
 				var object = objects[i];

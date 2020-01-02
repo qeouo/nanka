@@ -8,7 +8,7 @@ var Engine = (function(){
 
 	var customMaterial = new Ono3d.Material();
 	var ret = Engine;
-	var HEIGHT=512,WIDTH=960;
+	var HEIGHT=486,WIDTH=864;
 	ret.HEIGHT = HEIGHT;
 	ret.WIDTH= WIDTH;
 	var gl;
@@ -484,7 +484,7 @@ ret.scenes=[];
 	var mseccount=0;
 	var framecount=0;
 	var inittime=0;
-	var afID=0;
+	var drawFlg=false;
 	var mainloop=function(){
 		var nowTime = performance.now()
 		performance.mark("mainloopStart");
@@ -503,14 +503,11 @@ ret.scenes=[];
 			Engine.scenes[si].move();
 		}
 
-		var phytime=0;
 		if(globalParam.physics){
 			performance.mark("physicsStart");
 
 			for(var i=0;i<globalParam.step;i++){
-				var s=Date.now();
 				onoPhy.calc(1.0/globalParam.fps/globalParam.step);
-				phytime=Date.now()-s;
 			}
 			globalParam.physics_=1;
 			performance.mark("physicsEnd");
@@ -518,9 +515,14 @@ ret.scenes=[];
 		}
 
 
-		if(!afID && Engine.enableDraw){
-			afID = window.requestAnimationFrame(drawFunc);
-		}
+//		if(!afID && Engine.enableDraw){
+//			afID = window.requestAnimationFrame(drawFunc);
+		var nowTime = performance.now()
+//		}else{
+//			console.log("aa");
+//		}
+		drawFlg=true;
+
 		//drawFunc();
 
 		performance.mark("mainloopEnd");
@@ -575,7 +577,13 @@ ret.scenes=[];
 
 
 	var drawFunc = function(){
-		afID = 0;
+		window.requestAnimationFrame(drawFunc);
+		if(!drawFlg){
+			//更新されていない場合スルー
+		//	window.requestAnimationFrame(drawFunc);
+			return;
+		}
+		drawFlg=false;
 		framecount++;
 
 		performance.mark("drawStart");
@@ -613,13 +621,6 @@ ret.scenes=[];
 			Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
 		}
 
-		//テスト
-//		var env = tex512;
-//		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-//		ono3d.setViewport(0,0,WIDTH,HEIGHT);
-//		Ono3d.drawCopy(ono3d.shadowTexture,0,0,1,1);
-//		Ono3d.copyImage(bufTexture,0,0,0,0,WIDTH,HEIGHT);
-
 
 		//トーンマッピング
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
@@ -636,7 +637,7 @@ ret.scenes=[];
 			Engine.scenes[si].hudDraw();
 		}
 		performance.mark("drawEnd");
-		mseccount += drawTime;
+
 	}
 	ret.start = function(){
 		
@@ -666,6 +667,8 @@ ret.scenes=[];
 		Util.setFps(globalParam.fps,mainloop);
 		Util.fpsman();
 
+
+		drawFunc();
 	}
 
 	
@@ -679,6 +682,7 @@ ret.scenes=[];
 		canvasgl.width=WIDTH;
 		canvasgl.height=HEIGHT;
 		parentnode.appendChild(canvasgl);
+		canvasgl.style.width="100%";
 	}else{
 		ret.WIDTH=canvasgl.width;
 		ret.HEIGHT=canvasgl.height;
@@ -841,17 +845,41 @@ ret.scenes=[];
 		Ono3d.copyImage(averageTexture,0,511,0,511,1,1);
 
 	}
+
 	/** カメラの露光設定をセットする**/
+	var packUFP16 = function (dst,raw){ 
+		if(raw===0.0){
+			dst[0]=0;
+			dst[1]=0;
+			return;
+		}
+		var geta=15.0;
+		var idx = Math.min(Math.max((Math.floor(Math.log2(raw))),-geta),31.0-geta);
+		var f;
+		if(idx<0){
+			f = raw *(1<<(-idx)) ;
+		}else{
+			f = raw /(1<<idx) ;
+		}
+		f=(f-1.0)*256.0;
+		dst[0]=f|0;
+		dst[1]=(((f-(f|0))*8.0)<<5) + (idx+geta);
+		Vec2.mul(dst,dst,1.0/255.0);
+		return;
+	} 
 	ret.setExpose = function(level,upper){
-		var a = new Vec4();
+		var a = new Vec2();
+		var b = new Vec2();
 		var shaders=ono3d.shaders;
-		Vec4.set(a,level,upper,0.5,0.5);
+		//Vec4.set(a,level,upper,0.5,0.5);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
 		ono3d.setViewport(0,511,1,1);
 		gl.useProgram(shaders["fill"].program);
-		Ono3d.encode2(a,a);
+		packUFP16(a,level);
+		packUFP16(b,upper);
+		//encode2(a,a);
 		gl.uniform4f(shaders["fill"].unis["uColor"]
-			,a[0],a[1],a[2],a[3]);
+			,a[0],a[1],b[0],b[1]);
 			
 		Ono3d.postEffect(averageTexture,0,0,0,0,shaders["fill"]); 
 		Ono3d.copyImage(averageTexture,0,511,0,511,1,1);

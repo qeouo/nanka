@@ -12,6 +12,10 @@ precision lowp float;
 [common]
 varying lowp vec2 vUv;
 uniform sampler2D uSampler;
+
+mediump vec2 decode2(vec4 src){
+	return vec2(unpackUFP16(src.rg),unpackUFP16(src.ba));
+}
 void main(void){
 	float size = 512.0;
 	highp vec2 a = decode2(texture2D(uSampler,vUv));
@@ -20,5 +24,5 @@ void main(void){
 	highp vec2 d = decode2(texture2D(uSampler,vUv-vec2(1.0)/size));
 	a.r = (a.r + b.r + c.r + d.r)/4.0;
 	a.g = max(max(max(a.g ,b.g) ,c.g), d.g);
-	gl_FragColor= encode2(a);
+	gl_FragColor= vec4(packUFP16(a.r),packUFP16(a.g));
 }

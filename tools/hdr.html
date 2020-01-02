@@ -62,8 +62,8 @@ var enc=function(dst,src){
 }
 
 var cbloadHdr = function(obj,arrayBuffer){
-	idx=0;
-	dv = new DataView(arrayBuffer);
+	var idx=0;
+	var dv = new DataView(arrayBuffer);
 
 	//空行までスキップ
 	while(idx<dv.byteLength){
@@ -302,7 +302,6 @@ var onloadfunc=function(e){
 			var g= data[idx+1];
 			var b= data[idx+2];
 			var e= data[idx+3];
-			var pow=Math.pow(2,e-128)/256;
 
 			var str="position X:[x],Y:[y] \n value R:[r], G:[g], B:[b] ";
 			str=str.replace(/\[x\]/,x);

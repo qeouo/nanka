@@ -21,7 +21,7 @@ Engine.goClass["jiki"]= (function(){
 		this.matrix=new Mat43();
 
 		var t=this;
-		o3o = AssetManager.o3o("human.o3o?a1",function(o3o){
+		o3o = AssetManager.o3o("human.o3o?a2",function(o3o){
 
 			var armature=o3o.objects["アーマチュア"];
 
