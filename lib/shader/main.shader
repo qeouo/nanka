@@ -3,15 +3,15 @@ precision lowp float;
 attribute lowp vec3 aPos; 
 attribute lowp vec3 aNormal; 
 attribute lowp vec2 aUv; 
+attribute lowp float aEnvRatio;  
+uniform int uEnvIndex;  
+uniform mat4 projectionMatrix; 
+uniform vec3 anglePos;  
 varying lowp vec3 vEye; 
 varying lowp vec3 vPos; 
 varying lowp vec2 vUv; 
 varying mediump vec3 vNormal; 
-attribute lowp float aEnvRatio;  
 varying float vEnvRatio;  
-uniform int uEnvIndex;  
-uniform mat4 projectionMatrix; 
-uniform vec3 anglePos;  
 
 /*[lightprobe]
 attribute lowp vec3 aLightProbe;  
@@ -162,37 +162,33 @@ void main(void){
 
 	/*乱反射強度*/ 
 	float diffuse = max(-dot(nrm,uLight),0.0); 
-	//diffuse = clamp((diffuse-lightThreshold1)*lightThreshold2,0.0,1.0); 
 
 	/*影判定*/ 
 	vec4 lightPos=  vec4(vPos + depth*(eye_v2),1.0); 
 	lightPos= lightMat* lightPos;
 	lightPos.xy/=lightPos.w;
-	highp float shadowmap; 
-	shadowmap=decodeShadow(uShadowmap,vec2(1024.0),(lightPos.xy+1.0)*0.5); 
-	highp float shadow_a = 1.0;
+	highp float shadowmap=decodeShadow(uShadowmap,vec2(1024.0),(lightPos.xy+1.0)*0.5); 
 	highp float nowz = (lightPos.z+1.0)*0.5;
 	if(nowz   < shadowmap){
-		shadow_a=1.0;
+		shadowmap=1.0;
 	}else{
 		float offset= (nowz -shadowmap)*0.1;
-		float sum=checkShadow(uShadowmap,(lightPos.xy+1.0)*0.5+vec2(1.0,0.0)*offset, nowz)
-			+checkShadow(uShadowmap,(lightPos.xy+1.0)*0.5+vec2(-1.0,0.0)*offset, nowz)
-			+checkShadow(uShadowmap,(lightPos.xy+1.0)*0.5+vec2(0.0,1.0)*offset, nowz) 
-			+checkShadow(uShadowmap,(lightPos.xy+1.0)*0.5+vec2(0.0,-1.0)*offset, nowz)
+		vec2 current = (lightPos.xy+1.0)*0.5;
+		shadowmap=checkShadow(uShadowmap,current+vec2(1.0,0.0)*offset, nowz)
+			+checkShadow(uShadowmap,current+vec2(-1.0,0.0)*offset, nowz)
+			+checkShadow(uShadowmap,current+vec2(0.0,1.0)*offset, nowz) 
+			+checkShadow(uShadowmap,current+vec2(0.0,-1.0)*offset, nowz)
 
-			+checkShadow(uShadowmap,(lightPos.xy+1.0)*0.5+vec2(0.7,-0.7)*offset, nowz)
-			+checkShadow(uShadowmap,(lightPos.xy+1.0)*0.5+vec2(-0.7,-0.7)*offset, nowz)
-			+checkShadow(uShadowmap,(lightPos.xy+1.0)*0.5+vec2(0.7,0.7)*offset, nowz) 
-			+checkShadow(uShadowmap,(lightPos.xy+1.0)*0.5+vec2(-0.7,0.7)*offset, nowz); 
-		shadow_a=sum/9.0;
-		shadow_a=min(1.0,shadow_a*2.0);
+			+checkShadow(uShadowmap,current+vec2(0.7,-0.7)*offset, nowz)
+			+checkShadow(uShadowmap,current+vec2(-0.7,-0.7)*offset, nowz)
+			+checkShadow(uShadowmap,current+vec2(0.7,0.7)*offset, nowz) 
+			+checkShadow(uShadowmap,current+vec2(-0.7,0.7)*offset, nowz); 
+		shadowmap=min(1.0,shadowmap*2.0/9.0);
 	}
-	diffuse = shadow_a * diffuse; 
+	diffuse *= shadowmap;
 
 	/*拡散反射+環境光+自己発光*/ 
-	vec3 vColor2 = diffuse*uLightColor
-	   	+ uEmi;
+	vec3 vColor2 = diffuse*uLightColor + uEmi;
 
 
 	q = uPbr; 

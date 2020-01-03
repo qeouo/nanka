@@ -6,7 +6,7 @@ var Engine = (function(){
 	var sigmaShader;
 	var shadow_gauss_shader;
 
-	var customMaterial = new Ono3d.Material();
+	var customMaterial;
 	var ret = Engine;
 	var HEIGHT=486,WIDTH=864;
 	ret.HEIGHT = HEIGHT;
@@ -193,7 +193,8 @@ ret.Scene = (function(){
 		Util.hex2rgb(environment.area.color,globalParam.lightColor2)
 
 		if(globalParam.cMaterial){
-			var cMat = customMaterial;
+			var cMat = ono3d.materials[ono3d.materials_index];
+			ono3d.materials_index++;
 			var a=new Vec3();
 			Util.hex2rgb(cMat.baseColor,globalParam.baseColor);
 			cMat.opacity=globalParam.opacity;
@@ -205,6 +206,9 @@ ret.Scene = (function(){
 			cMat.subRoughness=globalParam.subRoughness;
 			Util.hex2rgb(cMat.metalColor,globalParam.metalColor);
 			cMat.texture=globalParam.cTexture;
+
+			cMat.shader=Ono3d.calcMainShaderName(cMat);
+			customMaterial=cMat;
 		}
 
 			
@@ -418,10 +422,13 @@ ret.scenes=[];
 
 		if(globalParam.shader===0){
 			if(globalParam.cMaterial){
-				ono3d.render(camera.p,customMaterial);
-			}else{
-				ono3d.render(camera.p);
+				var faces=ono3d.faces;
+				var s=ono3d.faces_index;
+				for(var fi=ono3d.faces_static_index;fi<s;fi++){
+					faces[fi].material = customMaterial;
+				}
 			}
+			ono3d.render(camera.p);
 		}
 		
 		gl.finish();
