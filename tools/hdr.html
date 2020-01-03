@@ -51,12 +51,18 @@ var enc=function(dst,src){
 	var dstdata=dst.data;
 	for(var i=0;i<srcdata.length;i+=4){
 		var m = Math.max(Math.max(srcdata[i],srcdata[i+1]),srcdata[i+2]);
-		var e = Math.ceil(Math.log2(Math.max(m,1)/255));
+		if(m===0){
+			e=-128;
+		}else{
+			m = Math.max(m,0.00001);
+			var e = Math.ceil(Math.log2(m));
+			e = Math.min(Math.max(e,-128),127);
+		}
 		var d=1.0/Math.pow(2,e);
 		for(var j=0;j<3;j++){
-			dstdata[i+j]=srcdata[i+j]*d;
+			dstdata[i+j]=srcdata[i+j]*255.0*d;
 		}
-		dstdata[i+3]=128+e;
+		dstdata[i+3]=e+128;
 	}
 
 }
@@ -156,10 +162,27 @@ var outputimg=function(img,obj){
 	var data=obj.data;
 	var srcdata=srcimg.data;
 	for(var i=0;i<data.length;i+=4){
+		srcdata[i]=data[i]*255;
+		srcdata[i+1]=data[i+1]*255;
+		srcdata[i+2]=data[i+2]*255;
+		srcdata[i+3]=data[i+3]*255;
+	}
+
+	ctx.putImageData(srcimg,0,0,0,0,obj.width,obj.height);
+	img.src=canvas.toDataURL("image/png");
+}
+var outputimg255=function(img,obj){
+	canvas.width=obj.width;
+	canvas.height=obj.height;
+	var srcimg=ctx.getImageData(0,0,obj.width,obj.height);
+
+	var data=obj.data;
+	var srcdata=srcimg.data;
+	for(var i=0;i<data.length;i+=4){
 		srcdata[i]=data[i];
 		srcdata[i+1]=data[i+1];
 		srcdata[i+2]=data[i+2];
-		srcdata[i+3]=255;
+		srcdata[i+3]=data[i+3];
 	}
 
 	ctx.putImageData(srcimg,0,0,0,0,obj.width,obj.height);
@@ -183,10 +206,10 @@ var onloadfunc=function(e){
 							var data=obj.data;
 							for(var i=0;i<data.length;i+=4){
 								var e = Math.pow(2.0,data[i+3]-128);
-								data[i]*=e;
-								data[i+1]*=e;
-								data[i+2]*=e;
-								data[i+3]=255;
+								data[i]*=e/255.0;
+								data[i+1]*=e/255.0;
+								data[i+2]*=e/255.0;
+								data[i+3]=1.0;
 
 							}
 
@@ -223,10 +246,10 @@ var onloadfunc=function(e){
 							var g = cindex["G"];
 							var b = cindex["B"];
 							for(var i=0;i<data.length;i+=4){
-								data[i]=channels[r].data[i>>2]*255;
-								data[i+1]=channels[g].data[i>>2]*255;
-								data[i+2]=channels[b].data[i>>2]*255;
-								data[i+3]=255;
+								data[i]=channels[r].data[i>>2];
+								data[i+1]=channels[g].data[i>>2];
+								data[i+2]=channels[b].data[i>>2];
+								data[i+3]=1.0;
 
 							}
 
@@ -248,7 +271,7 @@ var onloadfunc=function(e){
 							encobj.height=dst.height;
 							enc(encobj,dst);
 							imga = document.getElementById("rgbe");
-							outputimg(imga,encobj);
+							outputimg255(imga,encobj);
 							
 						});
 					}
@@ -306,9 +329,9 @@ var onloadfunc=function(e){
 			var str="position X:[x],Y:[y] \n value R:[r], G:[g], B:[b] ";
 			str=str.replace(/\[x\]/,x);
 			str=str.replace(/\[y\]/,y);
-			str=str.replace(/\[r\]/,(r/256.0).toFixed(4));
-			str=str.replace(/\[g\]/,(g/256.0).toFixed(4));
-			str=str.replace(/\[b\]/,(b/256.0).toFixed(4));
+			str=str.replace(/\[r\]/,(r).toFixed(4));
+			str=str.replace(/\[g\]/,(g).toFixed(4));
+			str=str.replace(/\[b\]/,(b).toFixed(4));
 			Util.setText(output,str);
 
 		},false);

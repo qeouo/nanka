@@ -198,7 +198,7 @@ void main(void){
 	q = uPbr; 
 /*[pbr]
 	/*pbr*/ 
-	q = texture2D(uPbrMap,uv) * uPbr; 
+	q *= texture2D(uPbrMap,uv) ; 
 [pbr]*/
 	float specular= q.x; 
 	float roughness = q.y; 

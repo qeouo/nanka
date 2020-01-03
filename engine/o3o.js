@@ -556,12 +556,12 @@ var O3o=(function(){
 	
 	var onloadfunc= function(o3o,url,buf){
 		var i,imax,j,jmax
-		if(buf.substring(0,11) ==="Metasequoia"){
-		}else if(buf.substring(0,16) ==='{"format":"Ono3d'){
+		//if(buf.substring(0,11) ==="Metasequoia"){
+		//}else if(buf.substring(0,16) ==='{"format":"Ono3d'){
 			loadret(o3o,url,buf)
-		}else{
-			return
-		}
+		//}else{
+		//	return
+		//}
 
 		var res =  /.*\//.exec(url)
 		var currentdir=""
@@ -582,8 +582,6 @@ var O3o=(function(){
 				gl.bindTexture(gl.TEXTURE_2D, image.glTexture);
 				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
 				gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-				//gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-				//gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 				//gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 				//gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 			};
