@@ -390,9 +390,9 @@ ret.scenes=[];
 		gl.disable(gl.BLEND);
 		gl.depthMask(true);
 		ono3d.setViewport(x,y,w,h);
-		ono3d.calcProjectionMatrix(
-			ono3d.projectionMatrix,camera.aov*camera.znear,camera.aov*HEIGHT/WIDTH*camera.znear
-			,camera.znear,camera.zfar);
+		//ono3d.calcProjectionMatrix(
+		//	ono3d.projectionMatrix,camera.aov*camera.znear,camera.aov*HEIGHT/WIDTH*camera.znear
+		//	,camera.znear,camera.zfar);
 
 		gl.clear(gl.DEPTH_BUFFER_BIT);
 		gl.depthMask(false);
@@ -493,6 +493,12 @@ ret.scenes=[];
 	var inittime=0;
 	var drawFlg=false;
 	var mainloop=function(){
+
+		drawFlg=true;
+		if(drawFlg){
+			drawFunc();
+			//drawFlg=false;
+		}
 		var nowTime = performance.now()
 		performance.mark("mainloopStart");
 		
@@ -522,15 +528,9 @@ ret.scenes=[];
 		}
 
 
-//		if(!afID && Engine.enableDraw){
-//			afID = window.requestAnimationFrame(drawFunc);
 		var nowTime = performance.now()
-//		}else{
-//			console.log("aa");
-//		}
-		drawFlg=true;
 
-		//drawFunc();
+
 
 		performance.mark("mainloopEnd");
 
@@ -582,16 +582,22 @@ ret.scenes=[];
 		return scripts[scripts.length - 1].parentNode;
 	}) (document.scripts || document.getElementsByTagName('script'));
 
+	var animationFunc = function(){
+		window.requestAnimationFrame(animationFunc);
+		drawFlg=true;
+		//if(!drawFlg){
+		//	//更新されていない場合スルー
+		////	window.requestAnimationFrame(drawFunc);
+		//	return;
+		//}
+		//drawFunc();
+	}
 
 	var drawFunc = function(){
-		window.requestAnimationFrame(drawFunc);
-		if(!drawFlg){
-			//更新されていない場合スルー
-		//	window.requestAnimationFrame(drawFunc);
-			return;
-		}
 		drawFlg=false;
 		framecount++;
+
+		ono3d.clear();
 
 		performance.mark("drawStart");
 
@@ -636,7 +642,6 @@ ret.scenes=[];
 		
 
 
-		ono3d.clear();
 
 		//gl.getParameter(gl.VIEWPORT);
 		performance.mark("drawRasteriseEnd");
@@ -644,6 +649,7 @@ ret.scenes=[];
 			Engine.scenes[si].hudDraw();
 		}
 		performance.mark("drawEnd");
+
 
 	}
 	ret.start = function(){
@@ -675,7 +681,8 @@ ret.scenes=[];
 		Util.fpsman();
 
 
-		drawFunc();
+//		drawFlg=true;
+//		animationFunc();
 	}
 
 	
@@ -769,12 +776,6 @@ ret.scenes=[];
 		var HEIGHT= ono3d.viewport[3];
 		var emiSize=0.5;
 
-		//黒で塗りつぶす
-		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
-		//gl.bindFramebuffer(gl.FRAMEBUFFER,null );
-		ono3d.setViewport(0,0,WIDTH,HEIGHT);
-//		gl.clearColor(0., 0., 0.,0.5);
-//		gl.clear(gl.COLOR_BUFFER_BIT);
 
 		//光テクスチャをぼかす
 
@@ -783,7 +784,7 @@ ret.scenes=[];
 		Ono3d.postEffect(image,0,0,WIDTH/image.width,HEIGHT/image.height,shaders["half"]);
 		Ono3d.copyImage(tex512,0,0,0,0,WIDTH*0.5,HEIGHT*0.5);
 
-		gl.clearColor(0., 0., 0.,0.5);
+		gl.clearColor(0., 0., 0.,0.0);
 		gl.clear(gl.COLOR_BUFFER_BIT);
 
 		var width=WIDTH*0.5; 

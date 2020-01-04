@@ -21,7 +21,10 @@ var MainScene=(function(){
 		var WIDTH=Engine.WIDTH;
 		gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 		ono3d.setViewport(0,HEIGHT-WIDTH*0.3,WIDTH*0.3,WIDTH*0.3);
-		Ono3d.postEffect(ono3d.shadowTexture,0,0,1,1,shadowdecShader);
+		//Ono3d.postEffect(ono3d.shadowTexture,0,0,1,1,shadowdecShader);
+		if(ono3d.environments[0].envTexture){
+			Ono3d.drawCopy(ono3d.environments[0].envTexture,0,0,1,1);
+		}
 	}
 	
 	return ret;
