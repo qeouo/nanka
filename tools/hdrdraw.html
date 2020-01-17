@@ -1,0 +1,90 @@
+<html>
+<head>
+<title>hdrdraw</title>
+<style>
+</style>
+</head>
+<script type="text/javascript" src="../lib/inherits.js"></script>
+<script type="text/javascript" src="../lib/util.js"></script>
+<script type="text/javascript" src="../lib/vector.js"></script>
+<script type="text/javascript" src="../lib/openexr.js"></script>
+<script type="text/javascript">
+"use strict"
+var ctx,canvas;
+var ctx_data=new Float32Array(512*512*4);
+
+var outputimg=function(img,obj){
+	canvas.width=obj.width;
+	canvas.height=obj.height;
+	var srcimg=ctx.getImageData(0,0,obj.width,obj.height);
+
+	var data=obj.data;
+	var srcdata=srcimg.data;
+	for(var i=0;i<data.length;i+=4){
+		srcdata[i]=data[i]*255;
+		srcdata[i+1]=data[i+1]*255;
+		srcdata[i+2]=data[i+2]*255;
+		srcdata[i+3]=data[i+3]*255;
+	}
+
+	ctx.putImageData(srcimg,0,0,0,0,obj.width,obj.height);
+}
+
+
+var onloadfunc=function(e){
+	canvas =  document.getElementById('c')
+	ctx =  canvas.getContext('2d')
+
+	var file=document.getElementById("f");
+	file.addEventListener("change",function(evt){
+		var img = new Image();
+		
+	});
+
+
+	canvas.addEventListener("mousemove",function(e){
+		var data = ctx_data;
+
+
+		var x=e.offsetX;
+		var y=e.offsetY;
+		var width=e.target.width;
+		var height=e.target.height;
+		var output = document.getElementsByTagName("span")[0];
+
+		if(x<0 || y<0 || x>=width || y>=height){return;}
+
+		var idx=(y*canvas.width+x)*4;
+		var r= data[idx];
+		var g= data[idx+1];
+		var b= data[idx+2];
+		var e= data[idx+3];
+
+		var str="position X:[x],Y:[y] \n value R:[r], G:[g], B:[b] ";
+		str=str.replace(/\[x\]/,x);
+		str=str.replace(/\[y\]/,y);
+		str=str.replace(/\[r\]/,(r).toFixed(4));
+		str=str.replace(/\[g\]/,(g).toFixed(4));
+		str=str.replace(/\[b\]/,(b).toFixed(4));
+		Util.setText(output,str);
+
+	},false);
+	
+ 
+}
+
+
+
+</script>
+
+<body onLoad="onloadfunc(event)">
+
+<input type="file" id="f">
+<div class="hoge">
+	<canvas width="512" height="512" id="c" ></canvas><br />
+	<br><span></span>
+</div>
+</div>
+</body>
+</html>
+

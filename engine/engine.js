@@ -751,12 +751,12 @@ ret.scenes=[];
 	Util.loadJs("../engine/assetmanager.js");
 	Util.loadJs("../engine/o3o.js",function(){
 
-	sigmaShader=Ono3d.loadShader("../tools/sigma.shader");
-	shadow_gauss_shader=Ono3d.loadShader("../engine/gauss_shadow.shader");
+		sigmaShader=Ono3d.loadShader("../lib/spherical_harmonics/sigma.shader");
+		shadow_gauss_shader=Ono3d.loadShader("../engine/gauss_shadow.shader");
 
-	for(var i=0;i<9;i++){
-		shShader.push(Ono3d.loadShader("../tools/sh"+i+".shader"));
-	}
+		for(var i=0;i<9;i++){
+			shShader.push(Ono3d.loadShader("../lib/spherical_harmonics/sh"+i+".shader"));
+		}
 
 		O3o.setOno3d(ono3d)
 		ono3d.init(canvas,ctx);
