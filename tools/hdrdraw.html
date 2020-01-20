@@ -2,6 +2,9 @@
 <head>
 <title>hdrdraw</title>
 <style>
+body{
+	background-color:gray;
+}
 .hoge{
 border:solid;
 overflow:scroll;
@@ -12,7 +15,7 @@ height:600px;
 .layers{
 border:solid;
 overflow:scroll;
-width:200px;
+width:300px;
 height:600px;
 }
 .layer{
@@ -21,88 +24,177 @@ width:100%;
 height:64px;
 }
 
+.layer2{
+background-color:red;
+}
+
 </style>
 </head>
 <script type="text/javascript" src="../lib/inherits.js"></script>
 <script type="text/javascript" src="../lib/util.js"></script>
 <script type="text/javascript" src="../lib/vector.js"></script>
 <script type="text/javascript" src="../lib/openexr.js"></script>
+<script type="text/javascript" src="../lib/slider.js"></script>
+<script type="text/javascript" src="../lib/colorpicker.js"></script>
 <script type="text/javascript">
 "use strict"
-var ctx,canvas;
-var ctx_data=new Float32Array(512*512*4);
-var img;
-var ctx2,canvas2;
+var ctx,canvas,ctx_imagedata;
+var thumbnail_ctx,thumbnail_canvas;
 var layers=[];
+var selectedLayer = -1;
 var layers_container;
 var layer_template;
 
 
-var refresh = function(layer){
-	var img = layer.img;
-	var img_data=img.data;
-	for(var di=0;di<canvas.width*canvas.height;di++){
-		var idx=di<<2;
-		for(var ii=0;ii<4;ii++){
-			ctx_data[idx+ii]=img_data[idx+ii];
-		}
-	}
-//	var imgdata=ctx2.createImageData(64,64);
-//	var imgdata_data = imgdata.data;
-//	var yr= img.height/imgdata.height;
-//	var xr= img.width/imgdata.width;
-//	for(var yi=0;yi<imgdata.height;yi++){
-//		for(var xi=0;xi<imgdata.width;xi++){
-//			var idx=(yi*imgdata.width + xi)<<2;
-//			var idx2=((yr*yi|0)*img.width+ (xr*xi|0))<<2;
-//			for(var ii=0;ii<4;ii++){
-//				imgdata_data[idx+ii]=img_data[idx2+ii]*255.0;
-//			}
-//		}
-//	}
-//	ctx2.putImageData(imgdata,0,0);
-	ctx2.drawImage(canvas,0,0,canvas.width,canvas.height,0,0,canvas2.width,canvas2.height);
-	var layer_img=layer.div.getElementsByTagName("img")[0];
-	layer_img.src=canvas2.toDataURL("image/png");
-}
-
 var Img = (function(){
-	var Img = function(){
+//イメージ
+	var Img = function(x,y){
+		if(!x){
+			x=0;
+			y=0;
+		}
+		this.width=x;
+		this.height=y;
 		this.data=null;
-		this.width=0;
-		this.height=0;
+		if(this.width){
+			this.data=new Float32Array(this.width*this.height*4);
+		}
+
 	};
 	var ret = Img;
 
 	return ret;
-});
+})();
 var Layer=(function(){
+//レイヤ
 	var Layer = function(){
-		ret.img;
-		ret.power=1.0;
-		ret.opacity=1.0;
-		ret.div=null;
+		this.img;
+		this.power=1.0;
+		this.alpha=1.0;
+		this.div=null;
+		this.width=0;
+		this.height=0;
+		this.blend_function=0;
+		this.name="";
 	};
 	var ret = Layer;
 	return ret;
 })();
+
+var main_img=new Img(0,0);
+
+
+var refreshMain=function(){
+	//レイヤ合成
+	var main_img_data = main_img.data;
+	var size = main_img.width * main_img.height;
+
+	for(var li=0;li<layers.length;li++){
+		var layer = layers[li];
+		var data = layer.img.data;
+		if(li===0){
+			for(var di=0;di<size;di++){
+				var idx = di<<2;
+				for(var ii=0;ii<4;ii++){
+					main_img.data[idx+ii]=data[idx+ii]*layer.power;
+				}
+				main_img.data[idx+3]=data[idx+3]*layer.alpha;
+			}
+		}else{
+			for(var di=0;di<size;di++){
+				var idx = di<<2;
+				var alpha=data[idx+3]*layer.alpha;
+				for(var ii=0;ii<3;ii++){
+					main_img_data[idx+ii]=main_img_data[idx+ii] * (1-alpha) +  data[idx+ii]*layer.power *alpha;
+				}
+				main_img_data[idx+3]=1-((1-main_img_data[idx+3] ) *  (1-alpha));
+			}
+		}
+	}
+
+
+	var img_data = main_img_data;
+	for(var di=0;di<canvas.width*canvas.height;di++){
+		var idx=di<<2;
+		for(var ii=0;ii<4;ii++){
+			ctx_imagedata.data[idx+ii]=img_data[idx+ii]*255.0;
+		}
+	}
+	ctx.putImageData(ctx_imagedata,0,0);
+}
+
+var refresh = function(layer,thumb){
+
+
+	//レイヤサムネイル更新
+
+	if(thumb){
+		var img = layer.img;
+		var img_data=img.data;
+	//	var imgdata=thumbnail_ctx.createImageData(64,64);
+	//	var imgdata_data = imgdata.data;
+	//	var yr= img.height/imgdata.height;
+	//	var xr= img.width/imgdata.width;
+	//	for(var yi=0;yi<imgdata.height;yi++){
+	//		for(var xi=0;xi<imgdata.width;xi++){
+	//			var idx=(yi*imgdata.width + xi)<<2;
+	//			var idx2=((yr*yi|0)*img.width+ (xr*xi|0))<<2;
+	//			for(var ii=0;ii<4;ii++){
+	//				imgdata_data[idx+ii]=img_data[idx2+ii]*255.0;
+	//			}
+	//		}
+	//	}
+		for(var di=0;di<canvas.width*canvas.height;di++){
+			var idx=di<<2;
+			for(var ii=0;ii<4;ii++){
+				ctx_imagedata.data[idx+ii]=img_data[idx+ii]*255.0;
+			}
+		}
+			
+		ctx.putImageData(ctx_imagedata,0,0);
+		thumbnail_ctx.clearRect(0,0,thumbnail_canvas.width,thumbnail_canvas.height);
+		thumbnail_ctx.drawImage(canvas,0,0,canvas.width,canvas.height,0,0,thumbnail_canvas.width,thumbnail_canvas.height);
+		var layer_img=layer.div.getElementsByTagName("img")[0];
+		layer_img.src=thumbnail_canvas.toDataURL("image/png");
+	}
+
+	var span = layer.div.getElementsByTagName("span")[0];
+	span.innerHTML = layer.name +"<br>alpha:" + parseFloat(layer.alpha).toFixed(4) +"<br>power:" + parseFloat(layer.power).toFixed(4);
+}
+
 
 var loadImg=function(url,func){
 	var image = new Image();
 	image.src=url;
 	var img=new Img();
 	image.onload=function(e){
-		canvas.width=image.width;
-		canvas.height=image.height;
-		ctx_data=new Float32Array(canvas.width*canvas.height*4);
-		ctx.drawImage(image,0,0);
+		img.width=image.width;
+		img.height=image.height;
+
+		if(canvas.width<img.width || canvas.height<img.height){
+			//開いた画像がキャンバスより大きい場合は広げる
+			if(canvas.width<img.width){
+				canvas.width=img.width;
+			}
+			if(canvas.height<img.height){
+				canvas.height=img.height;
+			}
+			ctx_imagedata=ctx.createImageData(canvas.width,canvas.height);
+			main_img.width=canvas.width;
+			main_img.height=canvas.height;
+			main_img.data=new Float32Array(main_img.width*main_img.height*4);
+		}
+
+		//ピクセルメモリ確保
 		img.data=new Float32Array(canvas.width*canvas.height*4);
-		var data=ctx.getImageData(0,0,image.width,image.height).data;
+
+		//ピクセルデータ取得
+		ctx.clearRect(0,0,canvas.width,canvas.height);
+		ctx.drawImage(image,0,0);
+		var data=ctx.getImageData(0,0,canvas.width,canvas.height).data;
 		for(var di=0;di<canvas.width*canvas.height*4;di++){
 			img.data[di]=data[di]/255.0;
 		}
-		img.width=image.width;
-		img.height=image.height;
 
 		if(func){
 			func(img);
@@ -114,42 +206,47 @@ var loadImg=function(url,func){
 var onloadfunc=function(e){
 	canvas =  document.getElementById('c')
 	ctx =  canvas.getContext('2d')
-	canvas2 =  document.createElement('canvas');
-	canvas2.width=64;
-	canvas2.height=64;
-	ctx2 =  canvas2.getContext('2d')
+	thumbnail_canvas =  document.createElement('canvas');
+	thumbnail_canvas.width=64;
+	thumbnail_canvas.height=64;
+	thumbnail_ctx =  thumbnail_canvas.getContext('2d')
 
 	var file=document.getElementById("f");
 	file.addEventListener("change",function(evt){
 		var reader=new FileReader();
+		var file=evt.target.files[0];
 		reader.onload=function(e){
 
 			var layer = new Layer();
 			var layer_div = layer_template.children[0].cloneNode(true);
+			layer_div.addEventListener("click",layerSelect);
 			layer.div=layer_div;
+
+			layers.push(layer);
 			
 			layers_container.appendChild(layer_div);
 
-			img=loadImg(e.target.result,function(d){
-				refresh(layer);
+			var img=loadImg(e.target.result,function(d){
+				refresh(layer,true);
 
+				refreshMain();
 			});
 			layer.img=img;
+			layer.name = file.name;
 		}
-		var file=evt.target.files[0];
 		reader.readAsDataURL(file);
 		
 	});
 
 
 	canvas.addEventListener("mousemove",function(e){
-		var data = ctx_data;
+		var data = main_img.data;
 
 
 		var x=e.offsetX;
 		var y=e.offsetY;
-		var width=e.target.width;
-		var height=e.target.height;
+		var width=main_img.width;
+		var height=main_img.height;
 		var output = document.getElementsByTagName("span")[0];
 
 		if(x<0 || y<0 || x>=width || y>=height){return;}
@@ -175,8 +272,45 @@ var onloadfunc=function(e){
 	layer_template= document.getElementById("layer_template");
 	layers_container = document.getElementById("layers_container");
 
+	var layerValues=["alpha","name","power"];
+	for(var i=0;i<layerValues.length;i++){
+		var member = layerValues[i];
+		var s = document.getElementById("layer_"+member);
+		var f = function(e){
+			if(selectedLayer>=0){
+				var layer = layers[selectedLayer];
+				var member = e.target.id.replace("layer_","");
+				layer[member]=e.target.value;
+				refresh(layer);
+				refreshMain();
+			}
+		}
+
+		s.addEventListener("change",f);
+	}
+
 }
 
+var layerSelect= function(e){
+	for(var li=0;li<layers.length;li++){
+	  var layer=layers[li];
+	  if(this === layers[li].div){
+	  	selectedLayer=li;
+		layers[li].div.classList.add("layer2");
+	  	var s = document.getElementById("layer_alpha");
+		s.value=layer.alpha;
+		Util.fireEvent(s,"change");
+	  	s = document.getElementById("layer_power");
+		s.value=layer.power;
+		Util.fireEvent(s,"change");
+	  	s = document.getElementById("layer_name");
+		s.value=layer.name;
+	  }else{
+		layers[li].div.classList.remove("layer2");
+	  }
+	}
+
+}
 
 
 </script>
@@ -194,10 +328,16 @@ var onloadfunc=function(e){
 
 <div style="display:none;" id="layer_template">
 	<div class="layer">
-	<img width="64" height="64">
+		<img width="64" height="64" style="border:solid;float:left;">
+		<span></span>
 	</div>
 </div>
+<div>
+name<input type="text" id="layer_name"/><br>
+alpha<input class="slider" id="layer_alpha" max="1"/><br>
+power<input class="slider" id="layer_power" max="10"/><br>
 <div class="layers" id="layers_container">
+</div>
 </div>
 </body>
 </html>
