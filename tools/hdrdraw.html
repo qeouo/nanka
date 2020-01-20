@@ -44,6 +44,7 @@ var layers=[];
 var selectedLayer = -1;
 var layers_container;
 var layer_template;
+var refreshoff=0;
 
 
 var Img = (function(){
@@ -87,38 +88,48 @@ var main_img=new Img(0,0);
 var refreshMain=function(){
 	//ƒŒƒCƒ„‡¬
 	var main_img_data = main_img.data;
-	var size = main_img.width * main_img.height;
+	var size = main_img.width * main_img.height<<2;
+	if(refreshoff){
+		return;
+	}
 
 	for(var li=0;li<layers.length;li++){
 		var layer = layers[li];
 		var data = layer.img.data;
+		var layer_alpha=layer.alpha;
+		var layer_power=layer.power;
 		if(li===0){
-			for(var di=0;di<size;di++){
-				var idx = di<<2;
-				for(var ii=0;ii<4;ii++){
-					main_img.data[idx+ii]=data[idx+ii]*layer.power;
-				}
-				main_img.data[idx+3]=data[idx+3]*layer.alpha;
+			for(var idx=0;idx<size;idx+=4){
+				main_img_data[idx+0]=data[idx+0]*layer_power;
+				main_img_data[idx+1]=data[idx+1]*layer_power;
+				main_img_data[idx+2]=data[idx+2]*layer_power;
+				main_img_data[idx+3]=data[idx+3]*layer_alpha;
 			}
 		}else{
-			for(var di=0;di<size;di++){
-				var idx = di<<2;
-				var alpha=data[idx+3]*layer.alpha;
-				for(var ii=0;ii<3;ii++){
-					main_img_data[idx+ii]=main_img_data[idx+ii] * (1-alpha) +  data[idx+ii]*layer.power *alpha;
-				}
-				main_img_data[idx+3]=1-((1-main_img_data[idx+3] ) *  (1-alpha));
+			for(var idx=0;idx<size;idx+=4){
+				var alpha=data[idx+3]*layer_alpha;
+				var dst_alpha = main_img_data[idx+3];
+				var dst_r = dst_alpha*(1-alpha);
+				var src_r = layer_power*alpha;
+				//for(var ii=0;ii<3;ii++){
+				//	main_img_data[idx+ii]=main_img_data[idx+ii] *dst_alpha * (1-alpha) +  data[idx+ii]*layer_power *alpha;
+				//}
+				main_img_data[idx+0]=main_img_data[idx+0] * dst_r +  data[idx+0]*src_r;
+				main_img_data[idx+1]=main_img_data[idx+1] * dst_r +  data[idx+1]*src_r;
+				main_img_data[idx+2]=main_img_data[idx+2] * dst_r +  data[idx+2]*src_r;
+				main_img_data[idx+3]=dst_r+alpha;
 			}
 		}
 	}
 
 
 	var img_data = main_img_data;
-	for(var di=0;di<canvas.width*canvas.height;di++){
-		var idx=di<<2;
-		for(var ii=0;ii<4;ii++){
-			ctx_imagedata.data[idx+ii]=img_data[idx+ii]*255.0;
-		}
+	var ctx_imagedata_data = ctx_imagedata.data;
+	for(var idx=0;idx<size;idx+=4){
+		ctx_imagedata_data[idx+0]=img_data[idx+0]*255;
+		ctx_imagedata_data[idx+1]=img_data[idx+1]*255;
+		ctx_imagedata_data[idx+2]=img_data[idx+2]*255;
+		ctx_imagedata_data[idx+3]=img_data[idx+3]*255;
 	}
 	ctx.putImageData(ctx_imagedata,0,0);
 }
@@ -295,6 +306,7 @@ var layerSelect= function(e){
 	for(var li=0;li<layers.length;li++){
 	  var layer=layers[li];
 	  if(this === layers[li].div){
+		refreshoff=true;
 	  	selectedLayer=li;
 		layers[li].div.classList.add("layer2");
 	  	var s = document.getElementById("layer_alpha");
@@ -305,6 +317,7 @@ var layerSelect= function(e){
 		Util.fireEvent(s,"change");
 	  	s = document.getElementById("layer_name");
 		s.value=layer.name;
+		refreshoff=false;
 	  }else{
 		layers[li].div.classList.remove("layer2");
 	  }
