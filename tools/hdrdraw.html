@@ -51,12 +51,7 @@ background-color:#FFBF00;
 </head>
 <script type="text/javascript" src="../lib/inherits.js"></script>
 <script type="text/javascript" src="../lib/util.js"></script>
-<script type="text/javascript" src="../lib/ono3d.js"></script>
-<script type="text/javascript" src="../lib/rastgl.js"></script>
 <script type="text/javascript" src="../lib/vector.js"></script>
-<script type="text/javascript" src="../lib/aabb.js"></script>
-<script type="text/javascript" src="../lib/collider.js"></script>
-<script type="text/javascript" src="../lib/onophy.js"></script>
 <script type="text/javascript" src="../lib/openexr.js"></script>
 <script type="text/javascript" src="../lib/slider.js"></script>
 <script type="text/javascript" src="../lib/colorpicker.js"></script>
@@ -70,13 +65,13 @@ var selectedLayer = -1;
 var layers_container;
 var layer_template;
 var refreshoff=0;
-var input_ev,input_bloom;
+var inputs=[];
 var shaders=[];
 var gl;
 
 
 var Img = (function(){
-//ƒCƒ[ƒW
+//ã‚¤ãƒ¡ãƒ¼ã‚¸
 	var Img = function(x,y){
 		if(!x){
 			x=0;
@@ -96,7 +91,7 @@ var Img = (function(){
 })();
 var layerValues=["name","blendfunc","alpha","power"];
 var Layer=(function(){
-//ƒŒƒCƒ„
+//ãƒ¬ã‚¤ãƒ¤
 	var Layer = function(){
 		this.name="";
 		this.img;
@@ -115,163 +110,166 @@ var main_img=null;
 var sub_img=null;
 
 
-var refreshMain=function(x,y,w,h){
-	if(!x){
-		x=0;
-		y=0;
-		w=main_img.width;
-		h=main_img.height;
-	}
-	//ƒŒƒCƒ„‡¬
-	var main_img_data = main_img.data;
-	var size = w * h <<2;
-	if(refreshoff){
-		return;
-	}
-	var gl = globalParam.gl;
-	var ono3d = Engine.ono3d;
+//var refreshMain=function(x,y,w,h){
+//	if(!x){
+//		x=0;
+//		y=0;
+//		w=main_img.width;
+//		h=main_img.height;
+//	}
+//	//ãƒ¬ã‚¤ãƒ¤åˆæˆ
+//	var main_img_data = main_img.data;
+//	var size = w * h <<2;
+//	if(refreshoff){
+//		return;
+//	}
+//	var gl = globalParam.gl;
+//	var ono3d = Engine.ono3d;
+//
+//	
+//	gl.disable(gl.DEPTH_TEST);
+//	gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+//	ono3d.setViewport(0,0,512,512);
+//
+//	gl.clear(gl.COLOR_BUFFER_BIT);
+//	Ono3d.copyImage(ono3d.transTextures[0],0,512,0,512,512,512);
+//	for(var li=0;li<layers.length;li++){
+//		var layer = layers[li];
+//		var data = layer.img.data;
+//		var layer_alpha=layer.alpha;
+//		var layer_power=layer.power;
+//
+//		var shader = shaders[layer.blendfunc];
+//		gl.useProgram(shader.program);
+//		gl.activeTexture(gl.TEXTURE1);
+//		gl.bindTexture(gl.TEXTURE_2D,ono3d.transTextures[0].glTexture);
+//		gl.uniform1i(shader.unis["uDst"],1);
+//		gl.uniform1f(shader.unis["uAlpha"],layer.alpha);
+//		gl.uniform1f(shader.unis["uPower"],layer.power);
+//		Ono3d.postEffect(layer,0,0,512/1024,512/1024,shader); 
+//
+//		Ono3d.copyImage(ono3d.transTextures[0],0,0,0,0,512,512);
+//	}
+//
+//		
+//	var bloom = parseFloat(inputs["bloom"].value);
+//	if(bloom){
+//		// ãƒ–ãƒ«ãƒ¼ãƒ å‡¦ç†
+//		ono3d.setViewport(0,0,512,512);
+//		Engine.bloom(ono3d.transTextures[0],bloom);
+//		//Ono3d.drawCopy(ono3d.transTextures[0],0,0,512/1024,512/1024); 
+//	}
+//}
+var funcs=[];
+funcs["normal"] = function(dst,dst_idx,src,src_idx,alpha,power){
+	var alpha=src[src_idx+3]*alpha;
+	var dst_alpha = dst[dst_idx+3];
+	var dst_r = dst_alpha*(1-alpha);
+	var src_r = power*alpha;
 
-	
-	gl.disable(gl.DEPTH_TEST);
-	gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-	ono3d.setViewport(0,0,512,512);
-
-	gl.clear(gl.COLOR_BUFFER_BIT);
-	Ono3d.copyImage(ono3d.transTextures[0],0,512,0,512,512,512);
-	for(var li=0;li<layers.length;li++){
-		var layer = layers[li];
-		var data = layer.img.data;
-		var layer_alpha=layer.alpha;
-		var layer_power=layer.power;
-
-		var shader = shaders[layer.blendfunc];
-		gl.useProgram(shader.program);
-		gl.activeTexture(gl.TEXTURE1);
-		gl.bindTexture(gl.TEXTURE_2D,ono3d.transTextures[0].glTexture);
-		gl.uniform1i(shader.unis["uDst"],1);
-		gl.uniform1f(shader.unis["uAlpha"],layer.alpha);
-		gl.uniform1f(shader.unis["uPower"],layer.power);
-		Ono3d.postEffect(layer,0,0,512/1024,512/1024,shader); 
-
-		Ono3d.copyImage(ono3d.transTextures[0],0,0,0,0,512,512);
-	}
-
-		
-	var bloom = parseFloat(input_bloom.value);
-	if(bloom){
-		// ƒuƒ‹[ƒ€ˆ—
-		ono3d.setViewport(0,0,512,512);
-		Engine.bloom(ono3d.transTextures[0],bloom);
-		//Ono3d.drawCopy(ono3d.transTextures[0],0,0,512/1024,512/1024); 
-	}
+	dst[dst_idx+0]=dst[dst_idx+0] * dst_r +  src[src_idx+0]*src_r;
+	dst[dst_idx+1]=dst[dst_idx+1] * dst_r +  src[src_idx+1]*src_r;
+	dst[dst_idx+2]=dst[dst_idx+2] * dst_r +  src[src_idx+2]*src_r;
+	dst[dst_idx+3]=dst_r+alpha;
 }
-var refreshMain2=function(x,y,w,h){
+funcs["mul"] = function(dst,dst_idx,src,src_idx,alpha,power){
+	var alpha=src[src_idx+3]*alpha;
+	var dst_alpha = dst[dst_idx+3];
+	var dst_r = dst_alpha*(1-alpha);
+	var src_r = power*alpha;
+
+	dst[dst_idx+0]=dst[dst_idx+0] * (dst_r +  src[src_idx+0]*src_r);
+	dst[dst_idx+1]=dst[dst_idx+1] * (dst_r +  src[src_idx+1]*src_r);
+	dst[dst_idx+2]=dst[dst_idx+2] * (dst_r +  src[src_idx+2]*src_r);
+	dst[dst_idx+3]=dst_r+alpha;
+}
+funcs["add"] = function(dst,dst_idx,src,src_idx,alpha,power){
+	var alpha=src[src_idx+3]*alpha;
+	var dst_alpha = dst[dst_idx+3];
+	var dst_r = dst_alpha*(1-alpha);
+	var src_r = power*alpha;
+
+	dst[dst_idx+3]=dst_r+alpha;
+	dst_r = dst_r + alpha;
+	dst[dst_idx+0]=dst[dst_idx+0] * dst_r + src[src_idx+0]*src_r;
+	dst[dst_idx+1]=dst[dst_idx+1] * dst_r + src[src_idx+1]*src_r;
+	dst[dst_idx+2]=dst[dst_idx+2] * dst_r + src[src_idx+2]*src_r;
+}
+var refreshMain=function(x,y,w,h){
+	if(refreshoff){
+		return;
+	}
+
 	if(!x){
+		//å¼•æ•°ç„¡ã—ã®å ´åˆã€å…¨åŸŸæ›´æ–°
 		x=0;
 		y=0;
 		w=main_img.width;
 		h=main_img.height;
 	}
-	//ƒŒƒCƒ„‡¬
+	var top = y;
+	var bottom = y+h;
+	var left = x;
+	var right = x+w;
 	var main_img_data = main_img.data;
-	var size = w * h <<2;
-	if(refreshoff){
-		return;
+	var main_img_width = main_img.width;
+
+	//0ã§åˆæœŸåŒ–
+	for(var yi=top;yi<bottom;yi++){
+		var idx = yi * main_img_width + left << 2;
+		var max = yi * main_img_width + right << 2;
+		for(;idx<max;idx+=4){
+			main_img_data[idx+0]=0;
+			main_img_data[idx+1]=0;
+			main_img_data[idx+2]=0;
+			main_img_data[idx+3]=0;
+		}
 	}
 
-
+	//ãƒ¬ã‚¤ãƒ¤åˆæˆ
 	for(var li=0;li<layers.length;li++){
 		var layer = layers[li];
-		var data = layer.img.data;
+		var layer_img_data = layer.img.data;
 		var layer_alpha=layer.alpha;
 		var layer_power=layer.power;
+		var layer_img_width = layer.img.width;
 
-		if(li===0){
-			for(var yi=0;yi<h;yi++){
-				var idx = (yi+ y) * main_img.width + x << 2;
-				var max = idx + (w << 2);
-				for(;idx<max;idx+=4){
-					main_img_data[idx+0]=data[idx+0]*layer_power;
-					main_img_data[idx+1]=data[idx+1]*layer_power;
-					main_img_data[idx+2]=data[idx+2]*layer_power;
-					main_img_data[idx+3]=data[idx+3]*layer_alpha;
-				}
-			}
-		}else{
-			var layer_blendfunc=layer.blendfunc;
-			switch(layer_blendfunc){
-			case "normal":
-				for(var yi=0;yi<h;yi++){
-					var idx = (yi+ y) * main_img.width + x << 2;
-					var max = idx + (w << 2);
-					for(;idx<max;idx+=4){
-						var alpha=data[idx+3]*layer_alpha;
-						var dst_alpha = main_img_data[idx+3];
-						var dst_r = dst_alpha*(1-alpha);
-						var src_r = layer_power*alpha;
+		left = Math.min(x,0);
+		top= Math.min(y,0);
+		right = Math.min(layer.img.width,w+x);
+		bottom = Math.min(layer.img.height,h+y);
 
-						main_img_data[idx+0]=main_img_data[idx+0] * dst_r +  data[idx+0]*src_r;
-						main_img_data[idx+1]=main_img_data[idx+1] * dst_r +  data[idx+1]*src_r;
-						main_img_data[idx+2]=main_img_data[idx+2] * dst_r +  data[idx+2]*src_r;
-						main_img_data[idx+3]=dst_r+alpha;
-					}
-				}
-				break;
-			case "add":
-				for(var yi=0;yi<h;yi++){
-					var idx = (yi+ y) * main_img.width + x << 2;
-					var max = idx + (w << 2);
-					for(;idx<max;idx+=4){
-						var alpha=data[idx+3]*layer_alpha;
-						var dst_alpha = main_img_data[idx+3];
-						var dst_r = dst_alpha*(1-alpha);
-						var src_r = layer_power*alpha;
-
-						main_img_data[idx+0]=main_img_data[idx+0] * (dst_r + alpha)+  data[idx+0]*src_r;
-						main_img_data[idx+1]=main_img_data[idx+1] * (dst_r + alpha)+  data[idx+1]*src_r;
-						main_img_data[idx+2]=main_img_data[idx+2] * (dst_r+ alpha) +  data[idx+2]*src_r;
-						main_img_data[idx+3]=dst_r+alpha;
-					}
-				}
-				break;
-			case "mul":
-				for(var yi=0;yi<h;yi++){
-					var idx = (yi+ y) * main_img.width + x << 2;
-					var max = idx + (w << 2);
-					for(;idx<max;idx+=4){
-						var alpha=data[idx+3]*layer_alpha;
-						var dst_alpha = main_img_data[idx+3];
-						var dst_r = dst_alpha*(1-alpha);
-						var src_r = layer_power*alpha;
-
-						main_img_data[idx+0]=main_img_data[idx+0] * (dst_r + data[idx+0]*src_r);
-						main_img_data[idx+1]=main_img_data[idx+1] * (dst_r + data[idx+1]*src_r);
-						main_img_data[idx+2]=main_img_data[idx+2] * (dst_r + data[idx+2]*src_r);
-						main_img_data[idx+3]=dst_r+alpha;
-					}
-				}
-				break;
+		var width = right-left;
+		var func = funcs[layer.blendfunc];
+		for(var yi=top;yi<bottom;yi++){
+			var idx = yi * main_img_width + left << 2;
+			var max = idx + (width<< 2);
+			var idx2 = yi * layer_img_width + left << 2;
+			for(;idx<max;idx+=4){
+				func(main_img_data,idx,layer_img_data,idx2,layer_alpha,layer_power);
+				idx2+=4;
 			}
 		}
+		
 	}
 
 	gauss(100);
 
-	var img_data = main_img_data;
 	var ctx_imagedata_data = ctx_imagedata.data;
-	var ev = parseFloat(input_ev.value);
+	var ev = parseFloat(inputs["ev"].value);
+	var gamma = 1.0/parseFloat(inputs["gamma"].value);
 	var r = Math.pow(2,-ev)*255;
 	for(var yi=0;yi<h;yi++){
-		var idx = (yi+ y) * main_img.width + x << 2;
+		var idx = (yi+ y) * main_img_width + x << 2;
 		var max = idx + (w << 2);
 		for(;idx<max;idx+=4){
-			ctx_imagedata_data[idx+0]=img_data[idx+0]*r;
-			ctx_imagedata_data[idx+1]=img_data[idx+1]*r;
-			ctx_imagedata_data[idx+2]=img_data[idx+2]*r;
-			ctx_imagedata_data[idx+3]=img_data[idx+3]*255;
+			ctx_imagedata_data[idx+0]=Math.pow(main_img_data[idx+0],gamma)*r;
+			ctx_imagedata_data[idx+1]=Math.pow(main_img_data[idx+1],gamma)*r;
+			ctx_imagedata_data[idx+2]=Math.pow(main_img_data[idx+2],gamma)*r;
+			ctx_imagedata_data[idx+3]=main_img_data[idx+3]*255;
 		}
 	}
-	//preview_ctx.putImageData(ctx_imagedata,x,y,x,y,w,h);
+	preview_ctx.putImageData(ctx_imagedata,x,y,x,y,w,h);
 
 	
 }
@@ -279,7 +277,7 @@ var refreshMain2=function(x,y,w,h){
 var refresh = function(layer,thumb){
 
 
-	//ƒŒƒCƒ„ƒTƒ€ƒlƒCƒ‹XV
+	//ãƒ¬ã‚¤ãƒ¤ã‚µãƒ ãƒã‚¤ãƒ«æ›´æ–°
 
 	if(thumb){
 		var img = layer.img;
@@ -339,7 +337,7 @@ var loadImg=function(url,func){
 		img.height=image.height;
 
 		if(canvas.width<img.width || canvas.height<img.height){
-			//ŠJ‚¢‚½‰æ‘œ‚ªƒLƒƒƒ“ƒoƒX‚æ‚è‘å‚«‚¢ê‡‚ÍL‚°‚é
+			//é–‹ã„ãŸç”»åƒãŒã‚­ãƒ£ãƒ³ãƒã‚¹ã‚ˆã‚Šå¤§ãã„å ´åˆã¯åºƒã’ã‚‹
 			if(canvas.width<img.width){
 				canvas.width=img.width;
 			}
@@ -355,15 +353,16 @@ var loadImg=function(url,func){
 		img.width=canvas.width;
 		img.height=canvas.height;
 
-		//ƒsƒNƒZƒ‹ƒƒ‚ƒŠŠm•Û
+		//ãƒ”ã‚¯ã‚»ãƒ«ãƒ¡ãƒ¢ãƒªç¢ºä¿
 		img.data=new Float32Array(canvas.width*canvas.height*4);
 
-		//ƒsƒNƒZƒ‹ƒf[ƒ^æ“¾
+		//ãƒ”ã‚¯ã‚»ãƒ«ãƒ‡ãƒ¼ã‚¿å–å¾—
 		ctx.clearRect(0,0,canvas.width,canvas.height);
 		ctx.drawImage(image,0,0);
 		var data=ctx.getImageData(0,0,canvas.width,canvas.height).data;
+		var r = 1.0/255.0;	
 		for(var di=0;di<canvas.width*canvas.height*4;di++){
-			img.data[di]=data[di]/255.0;
+			img.data[di]=data[di] * r;
 		}
 
 		if(func){
@@ -374,8 +373,8 @@ var loadImg=function(url,func){
 }
 
 var onloadfunc=function(e){
-	//preview=  document.getElementById('preview');
-	//preview_ctx =  preview.getContext('2d')
+	preview=  document.getElementById('preview');
+	preview_ctx =  preview.getContext('2d')
 	canvas =  document.getElementById('c')
 	ctx =  canvas.getContext('2d')
 	ctx_imagedata=ctx.createImageData(canvas.width,canvas.height);
@@ -408,12 +407,12 @@ var onloadfunc=function(e){
 	 			layer.width=img.width;
 	 			layer.height=img.height;
 
-				layer.glTexture = Rastgl.createTexture(null,1024,1024);
-	 var data=new Uint8Array(img.width*img.height*4);
-				for(var i=0;i<data.length;i++){
-	 				data[i] = img.data[i]*255;
-	 			}
-	 			Rastgl.subTexture(layer.glTexture,0,0,layer.img.width,layer.img.height,data);
+				//layer.glTexture = Rastgl.createTexture(null,1024,1024);
+				//var data=new Uint8Array(img.width*img.height*4);
+				//for(var i=0;i<data.length;i++){
+	 			//	data[i] = img.data[i]*255;
+	 			//}
+	 			//Rastgl.subTexture(layer.glTexture,0,0,layer.img.width,layer.img.height,data);
 	 					
 				refresh(layer,true);
 
@@ -476,12 +475,13 @@ var onloadfunc=function(e){
 		s.addEventListener("change",f);
 	}
 
-	input_ev = document.getElementById("ev");
-	input_ev.addEventListener("change",function(){refreshMain()});
 
-	input_bloom = document.getElementById("bloom");
-	input_bloom.addEventListener("change",function(){refreshMain()});
-
+	var input_ids=["ev","bloom","gamma"];
+	for(var i=0;i<input_ids.length;i++){
+		var id= input_ids[i];
+		inputs[id]= document.getElementById(id);
+		inputs[id].addEventListener("change",function(){refreshMain()});
+	}
 	var base=" [vertexshader] \n \
 	attribute vec2 aPos; \n \
 	uniform vec2 uUvScale; \n \
@@ -502,23 +502,23 @@ var onloadfunc=function(e){
 	vec4 dst = texture2D(uDst,vUv); \n \
 	";
 
-	shaders["normal"]=  Ono3d.createShader(base
-		+ "src.rgb *= uPower; \n \
-			src.a*= uAlpha; \n \
-			gl_FragColor = mix(dst,src,src.a); \n \
-	} ");
-	shaders["add"]=  Ono3d.createShader(base
-		+ "src.rgb *= uPower; \n \
-			src.a*= uAlpha; \n \
-			mediump float dstr = dst.a * (1.0-src.a)+src.a; \n \
-			gl_FragColor = vec4(dst.rgb* dstr +src.rgb*src.a,dstr); \n \
-	} ");
-	shaders["mul"]=  Ono3d.createShader(base
-		+ "src.rgb *= uPower; \n \
-			src.a*= uAlpha; \n \
-			mediump float dstr = dst.a * (1.0-src.a); \n \
-			gl_FragColor = vec4(dst.rgb* (dstr +src.rgb*src.a),dstr+src.a); \n \
-	} ");
+//	shaders["normal"]=  Ono3d.createShader(base
+//		+ "src.rgb *= uPower; \n \
+//			src.a*= uAlpha; \n \
+//			gl_FragColor = mix(dst,src,src.a); \n \
+//	} ");
+//	shaders["add"]=  Ono3d.createShader(base
+//		+ "src.rgb *= uPower; \n \
+//			src.a*= uAlpha; \n \
+//			mediump float dstr = dst.a * (1.0-src.a)+src.a; \n \
+//			gl_FragColor = vec4(dst.rgb* dstr +src.rgb*src.a,dstr); \n \
+//	} ");
+//	shaders["mul"]=  Ono3d.createShader(base
+//		+ "src.rgb *= uPower; \n \
+//			src.a*= uAlpha; \n \
+//			mediump float dstr = dst.a * (1.0-src.a); \n \
+//			gl_FragColor = vec4(dst.rgb* (dstr +src.rgb*src.a),dstr+src.a); \n \
+//	} ");
 }
 
 var layerSelect= function(e){
@@ -547,8 +547,12 @@ var gauss=function(d){
 	var MAX = 10;
 	var src= main_img;
 	var dst= sub_img;
-	var bloom = parseFloat(input_bloom.value);
-	//ŒW”ì¬
+	var bloom = parseFloat(inputs["bloom"].value);
+	if(bloom===0){
+		return;
+	}
+
+	//ä¿‚æ•°ä½œæˆ
 	var weight = new Array(MAX);
 	var t = 0.0;
 	for(var i = 0; i < weight.length; i++){
@@ -566,7 +570,37 @@ var gauss=function(d){
 	var w = src.width;
 	var data = src.data;
 	var dstdata = dst.data;
-	//‰¡‚Ú‚©‚µ
+	//æ¨ªã¼ã‹ã—
+	for(var y=0;y<h;y++){
+		for(var x=0;x<MAX;x++){
+	 		var idx= y * w + x <<2;
+			dstdata[idx+0]=data[idx+0]*weight[0];
+			dstdata[idx+1]=data[idx+1]*weight[0];
+			dstdata[idx+2]=data[idx+2]*weight[0];
+			for(var i=1;i<MAX;i++){
+	 			var idx2= y * w + Math.max(x -i,0) <<2;
+	 			var idx3= y * w + Math.min(x +i,0) <<2;
+				var r = weight[Math.abs(i)];
+				dstdata[idx+0]+=(data[idx2+0] +data[idx3+0])*r;
+				dstdata[idx+1]+=(data[idx2+1] +data[idx3+1])*r;
+				dstdata[idx+2]+=(data[idx2+2] +data[idx3+2])*r;
+			}
+		}
+		for(var x=w-MAX;x<w;x++){
+	 		var idx= y * w + x <<2;
+			dstdata[idx+0]=data[idx+0]*weight[0];
+			dstdata[idx+1]=data[idx+1]*weight[0];
+			dstdata[idx+2]=data[idx+2]*weight[0];
+			for(var i=1;i<MAX;i++){
+	 			var idx2= y * w + Math.max(x -i,0) <<2;
+	 			var idx3= y * w + Math.min(x +i,0) <<2;
+				var r = weight[Math.abs(i)];
+				dstdata[idx+0]+=(data[idx2+0] +data[idx3+0])*r;
+				dstdata[idx+1]+=(data[idx2+1] +data[idx3+1])*r;
+				dstdata[idx+2]+=(data[idx2+2] +data[idx3+2])*r;
+			}
+		}
+	 }
 	for(var yi=0;yi<h;yi++){
 		var idx = (yi) * w+ MAX << 2;
 		var max = idx + (w-(MAX*2) << 2);
@@ -582,12 +616,34 @@ var gauss=function(d){
 		}
 	}
 
-	//c‚Ú‚©‚µ
+	//ç¸¦ã¼ã‹ã—
 	data = dst.data;
 	dstdata = src.data;
 	for(var i=0;i<MAX;i++){
 		weight[i]*=bloom;
 	}
+
+	for(var y=0;y<MAX;y++){
+		for(var x=0;x<w;x++){
+	 		var idx= y * w + x <<2;
+			for(var i=-MAX+1;i<MAX;i++){
+	 			var idx2= Math.max(y+i,0) * w + x  <<2;
+				var r = weight[Math.abs(i)];
+				dstdata[idx+0]+=data[idx2+0] *r;
+				dstdata[idx+1]+=data[idx2+1] *r;
+				dstdata[idx+2]+=data[idx2+2] *r;
+			}
+
+	 		idx= (h-y-1) * w + x <<2;
+			for(var i=-MAX+1;i<MAX;i++){
+	 			var idx2= Math.min((h-y-1) +i,h-1) * w + x <<2;
+				var r = weight[Math.abs(i)];
+				dstdata[idx+0]+=data[idx2+0] *r;
+				dstdata[idx+1]+=data[idx2+1] *r;
+				dstdata[idx+2]+=data[idx2+2] *r;
+			}
+		}
+	 }
 	for(var yi=MAX;yi<h-MAX;yi++){
 		var idx = (yi) * w << 2;
 		var max = idx + (w << 2);
@@ -596,9 +652,11 @@ var gauss=function(d){
 			dstdata[idx+1]+=data[idx+1]*weight[0];
 			dstdata[idx+2]+=data[idx+2]*weight[0];
 	  		for(var i=1;i<MAX;i++){
-				dstdata[idx+0]+=(data[idx+0+(i*w<<2)] + data[idx+0-(i*w<<2)])*weight[i];
-				dstdata[idx+1]+=(data[idx+1+(i*w<<2)] + data[idx+1-(i*w<<2)])*weight[i];
-				dstdata[idx+2]+=(data[idx+2+(i*w<<2)] + data[idx+2-(i*w<<2)])*weight[i];
+	 			var idx2 = idx + (i*w<<2);
+	 			var idx3 = idx - (i*w<<2);
+				dstdata[idx+0]+=(data[idx2+0] + data[idx3+0])*weight[i];
+				dstdata[idx+1]+=(data[idx2+1] + data[idx3+1])*weight[i];
+				dstdata[idx+2]+=(data[idx2+2] + data[idx3+2])*weight[i];
 			}
 		}
 	}
@@ -609,12 +667,12 @@ var gauss=function(d){
 <body onLoad="onloadfunc(event)">
 
 <input type="file" id="f"><br>
+Î³<input class="slider" id="gamma" max="4" value="2.2"/><br>
 EV<input class="slider" id="ev" min="-5" max="5" value="0"/><br>
 bloom<input class="slider" id="bloom" max="1" value="0"/><br>
 <div style="float:left;">
 	<div class="hoge">
-		<!-- <canvas width="512" height="512" id="preview" ></canvas><br /> -->
-		<script type="text/javascript" src="../engine/engine.js"></script>
+		<canvas width="512" height="512" id="preview" ></canvas><br />
 		<canvas width="1" height="1" id="c"  style="display:none;"></canvas><br />
 	</div>
 	<br><span></span>
