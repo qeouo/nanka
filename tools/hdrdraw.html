@@ -43,7 +43,7 @@ background-color:white;
 	max-height:64px;
 }
 
-.layer2{
+.active_layer{
 background-color:#FFBF00;
 }
 
@@ -57,19 +57,6 @@ background-color:#FFBF00;
 <script type="text/javascript" src="../lib/colorpicker.js"></script>
 <script type="text/javascript">
 "use strict"
-var ctx,canvas,ctx_imagedata;
-var preview,preview_ctx;
-var thumbnail_ctx,thumbnail_canvas;
-var layers=[];
-var selectedLayer = -1;
-var layers_container;
-var layer_template;
-var refreshoff=0;
-var inputs=[];
-var shaders=[];
-var gl;
-
-
 var Img = (function(){
 //イメージ
 	var Img = function(x,y){
@@ -94,17 +81,29 @@ var Layer=(function(){
 //レイヤ
 	var Layer = function(){
 		this.name="";
-		this.img;
+		this.visible = true;
 		this.power=1.0;
 		this.alpha=1.0;
 		this.blendfunc="normal";
 		this.div=null;
 		this.width=0;
 		this.height=0;
+		this.img;
 	};
 	var ret = Layer;
 	return ret;
 })();
+var ctx,canvas,ctx_imagedata;
+var preview,preview_ctx;
+var thumbnail_ctx,thumbnail_canvas;
+var layers=[];
+var selectedLayer = -1;
+var layers_container;
+var refreshoff=0;
+var inputs=[];
+var shaders=[];
+var gl;
+
 
 var main_img=null;
 var sub_img=null;
@@ -253,20 +252,37 @@ var refreshMain=function(x,y,w,h){
 		
 	}
 
-	gauss(100);
+	var bloom = parseFloat(inputs["bloom"].value);
+	if(inputs["ch_bloom"].checked && bloom>0){
+		gauss(100,bloom);
+	}
 
 	var ctx_imagedata_data = ctx_imagedata.data;
 	var ev = parseFloat(inputs["ev"].value);
 	var gamma = 1.0/parseFloat(inputs["gamma"].value);
 	var r = Math.pow(2,-ev)*255;
-	for(var yi=0;yi<h;yi++){
-		var idx = (yi+ y) * main_img_width + x << 2;
-		var max = idx + (w << 2);
-		for(;idx<max;idx+=4){
-			ctx_imagedata_data[idx+0]=Math.pow(main_img_data[idx+0],gamma)*r;
-			ctx_imagedata_data[idx+1]=Math.pow(main_img_data[idx+1],gamma)*r;
-			ctx_imagedata_data[idx+2]=Math.pow(main_img_data[idx+2],gamma)*r;
-			ctx_imagedata_data[idx+3]=main_img_data[idx+3]*255;
+
+	if(inputs["ch_gamma"].checked){
+		for(var yi=0;yi<h;yi++){
+			var idx = (yi+ y) * main_img_width + x << 2;
+			var max = idx + (w << 2);
+			for(;idx<max;idx+=4){
+				ctx_imagedata_data[idx+0]=Math.pow(main_img_data[idx+0],gamma)*r;
+				ctx_imagedata_data[idx+1]=Math.pow(main_img_data[idx+1],gamma)*r;
+				ctx_imagedata_data[idx+2]=Math.pow(main_img_data[idx+2],gamma)*r;
+				ctx_imagedata_data[idx+3]=main_img_data[idx+3]*255;
+			}
+		}
+	}else{
+		for(var yi=0;yi<h;yi++){
+			var idx = (yi+ y) * main_img_width + x << 2;
+			var max = idx + (w << 2);
+			for(;idx<max;idx+=4){
+				ctx_imagedata_data[idx+0]=main_img_data[idx+0]*r;
+				ctx_imagedata_data[idx+1]=main_img_data[idx+1]*r;
+				ctx_imagedata_data[idx+2]=main_img_data[idx+2]*r;
+				ctx_imagedata_data[idx+3]=main_img_data[idx+3]*255;
+			}
 		}
 	}
 	preview_ctx.putImageData(ctx_imagedata,x,y,x,y,w,h);
@@ -394,6 +410,7 @@ var onloadfunc=function(e){
 		var file=evt.target.files[0];
 		reader.onload=function(e){
 
+			var layer_template= document.getElementById("layer_template");
 			var layer = new Layer();
 			var layer_div = layer_template.children[0].cloneNode(true);
 			layer_div.addEventListener("click",layerSelect);
@@ -401,6 +418,7 @@ var onloadfunc=function(e){
 
 			layers.push(layer);
 			
+			var layers_container = document.getElementById("layers_container");
 			layers_container.insertBefore(layer_div,layers_container.firstChild);
 
 			var img=loadImg(e.target.result,function(d){
@@ -456,12 +474,10 @@ var onloadfunc=function(e){
 	},false);
 	
 
-	layer_template= document.getElementById("layer_template");
-	layers_container = document.getElementById("layers_container");
 
-	for(var i=0;i<layerValues.length;i++){
-		var member = layerValues[i];
-		var s = document.getElementById("layer_"+member);
+	var layer_inputs = document.getElementById("layer_param").getElementsByTagName("input");
+	for(var i=0;i<layer_inputs.length;i++){
+		var input = layer_inputs[i];
 		var f = function(e){
 			if(selectedLayer>=0){
 				var layer = layers[selectedLayer];
@@ -472,36 +488,36 @@ var onloadfunc=function(e){
 			}
 		}
 
-		s.addEventListener("change",f);
+		input.addEventListener("change",f);
 	}
 
 
-	var input_ids=["ev","bloom","gamma"];
-	for(var i=0;i<input_ids.length;i++){
-		var id= input_ids[i];
-		inputs[id]= document.getElementById(id);
+	var input_tags = document.getElementById("div_view").getElementsByTagName("input");
+	for(var i=0;i<input_tags.length;i++){
+		var id= input_tags[i].getAttribute("id");
+		inputs[id]= input_tags[i];
 		inputs[id].addEventListener("change",function(){refreshMain()});
 	}
-	var base=" [vertexshader] \n \
-	attribute vec2 aPos; \n \
-	uniform vec2 uUvScale; \n \
-	uniform vec2 uUvOffset; \n \
-	varying vec2 vUv; \n \
-	void main(void){ \n \
-		gl_Position = vec4(aPos ,1.0,1.0); \n \
-			vUv = (aPos+ 1.0) * 0.5 * uUvScale +  uUvOffset; \n \
-	} \n \
-	[fragmentshader] \n \
-	varying lowp vec2 vUv; \n \
-	uniform mediump float uPower; \n \
-	uniform mediump float uAlpha; \n \
-	uniform sampler2D uSampler; \n \
-	uniform sampler2D uDst; \n  \
-	void main(void){ \n \
-	vec4 src = texture2D(uSampler,vUv); \n \
-	vec4 dst = texture2D(uDst,vUv); \n \
-	";
 
+//	var base=" [vertexshader] \n \
+//	attribute vec2 aPos; \n \
+//	uniform vec2 uUvScale; \n \
+//	uniform vec2 uUvOffset; \n \
+//	varying vec2 vUv; \n \
+//	void main(void){ \n \
+//		gl_Position = vec4(aPos ,1.0,1.0); \n \
+//			vUv = (aPos+ 1.0) * 0.5 * uUvScale +  uUvOffset; \n \
+//	} \n \
+//	[fragmentshader] \n \
+//	varying lowp vec2 vUv; \n \
+//	uniform mediump float uPower; \n \
+//	uniform mediump float uAlpha; \n \
+//	uniform sampler2D uSampler; \n \
+//	uniform sampler2D uDst; \n  \
+//	void main(void){ \n \
+//	vec4 src = texture2D(uSampler,vUv); \n \
+//	vec4 dst = texture2D(uDst,vUv); \n \
+//	";
 //	shaders["normal"]=  Ono3d.createShader(base
 //		+ "src.rgb *= uPower; \n \
 //			src.a*= uAlpha; \n \
@@ -522,35 +538,38 @@ var onloadfunc=function(e){
 }
 
 var layerSelect= function(e){
+//レイヤー一覧クリック時、クリックされたものをアクティブ化する
 	for(var li=0;li<layers.length;li++){
 	  var layer=layers[li];
 	  if(this === layers[li].div){
+		//パラメータ変更による再描画を一時的に無効にする
 		refreshoff=true;
+
 	  	selectedLayer=li;
-		layers[li].div.classList.add("layer2");
-		for(var i=0;i<layerValues.length;i++){
-			var member = layerValues[i];
-			var s = document.getElementById("layer_"+member);
-			s.value=layer[member];
-			Util.fireEvent(s,"change");
+		var layer_inputs = document.getElementById("layer_param").getElementsByTagName("input");
+		for(var i=0;i<layer_inputs.length;i++){
+			var input = layer_inputs[i];
+			var member = input.id.replace("layer_","");
+			if(member in layer){
+				input.value=layer[member];
+				Util.fireEvent(input,"change");
+	   		}
 		}
+
+		layers[li].div.classList.add("active_layer");
 		refreshoff=false;
 	  }else{
-		layers[li].div.classList.remove("layer2");
+		layers[li].div.classList.remove("active_layer");
 	  }
 	}
 
 }
 
 
-var gauss=function(d){
+var gauss=function(d,power){
 	var MAX = 10;
 	var src= main_img;
 	var dst= sub_img;
-	var bloom = parseFloat(inputs["bloom"].value);
-	if(bloom===0){
-		return;
-	}
 
 	//係数作成
 	var weight = new Array(MAX);
@@ -620,7 +639,7 @@ var gauss=function(d){
 	data = dst.data;
 	dstdata = src.data;
 	for(var i=0;i<MAX;i++){
-		weight[i]*=bloom;
+		weight[i]*=power;
 	}
 
 	for(var y=0;y<MAX;y++){
@@ -666,11 +685,11 @@ var gauss=function(d){
 
 <body onLoad="onloadfunc(event)">
 
-<input type="file" id="f"><br>
-γ<input class="slider" id="gamma" max="4" value="2.2"/><br>
+<div id="div_view" style="float:left;">
+ビュー<br>
+<input type="checkbox" id="ch_gamma">γ<input class="slider" id="gamma" max="4" value="2.2"/><br>
 EV<input class="slider" id="ev" min="-5" max="5" value="0"/><br>
-bloom<input class="slider" id="bloom" max="1" value="0"/><br>
-<div style="float:left;">
+<input type="checkbox" id="ch_bloom">bloom<input class="slider" id="bloom" max="1" value="0"/><br>
 	<div class="hoge">
 		<canvas width="512" height="512" id="preview" ></canvas><br />
 		<canvas width="1" height="1" id="c"  style="display:none;"></canvas><br />
@@ -687,18 +706,21 @@ bloom<input class="slider" id="bloom" max="1" value="0"/><br>
 	</div>
 </div>
 <div>
+レイヤ<br>
+<div id="layer_param">
 name<input type="text" id="layer_name"/><br>
 blendfunc<select type="text" id="layer_blendfunc"/>
 	<option value="normal">normal</option>
 	<option value="add">add</option>
 	<option value="mul">mul</option>
 	<option value="sub">sub</option>
-</select>
-	<br>
+</select><br>
 alpha<input class="slider" id="layer_alpha" max="1"/><br>
 power<input class="slider" id="layer_power" max="10"/><br>
+</div>
 <div class="layers" id="layers_container">
 </div>
+<input type="file" id="f"><br>
 </div>
 </body>
 </html>
