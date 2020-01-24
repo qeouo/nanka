@@ -36,6 +36,7 @@ background-color:white;
 }
 .layer .name{
 	background-color:lightgray;
+	border-color:black;
 
 }
 .layer .thumbnail{
@@ -45,6 +46,9 @@ background-color:white;
 
 .active_layer{
 background-color:#FFBF00;
+}
+.disable_layer{
+	border-style:dotted;
 }
 
 </style>
@@ -81,7 +85,7 @@ var Layer=(function(){
 //レイヤ
 	var Layer = function(){
 		this.name="";
-		this.visible = true;
+		this.display = true;
 		this.power=1.0;
 		this.alpha=1.0;
 		this.blendfunc="normal";
@@ -108,57 +112,6 @@ var gl;
 var main_img=null;
 var sub_img=null;
 
-
-//var refreshMain=function(x,y,w,h){
-//	if(!x){
-//		x=0;
-//		y=0;
-//		w=main_img.width;
-//		h=main_img.height;
-//	}
-//	//レイヤ合成
-//	var main_img_data = main_img.data;
-//	var size = w * h <<2;
-//	if(refreshoff){
-//		return;
-//	}
-//	var gl = globalParam.gl;
-//	var ono3d = Engine.ono3d;
-//
-//	
-//	gl.disable(gl.DEPTH_TEST);
-//	gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-//	ono3d.setViewport(0,0,512,512);
-//
-//	gl.clear(gl.COLOR_BUFFER_BIT);
-//	Ono3d.copyImage(ono3d.transTextures[0],0,512,0,512,512,512);
-//	for(var li=0;li<layers.length;li++){
-//		var layer = layers[li];
-//		var data = layer.img.data;
-//		var layer_alpha=layer.alpha;
-//		var layer_power=layer.power;
-//
-//		var shader = shaders[layer.blendfunc];
-//		gl.useProgram(shader.program);
-//		gl.activeTexture(gl.TEXTURE1);
-//		gl.bindTexture(gl.TEXTURE_2D,ono3d.transTextures[0].glTexture);
-//		gl.uniform1i(shader.unis["uDst"],1);
-//		gl.uniform1f(shader.unis["uAlpha"],layer.alpha);
-//		gl.uniform1f(shader.unis["uPower"],layer.power);
-//		Ono3d.postEffect(layer,0,0,512/1024,512/1024,shader); 
-//
-//		Ono3d.copyImage(ono3d.transTextures[0],0,0,0,0,512,512);
-//	}
-//
-//		
-//	var bloom = parseFloat(inputs["bloom"].value);
-//	if(bloom){
-//		// ブルーム処理
-//		ono3d.setViewport(0,0,512,512);
-//		Engine.bloom(ono3d.transTextures[0],bloom);
-//		//Ono3d.drawCopy(ono3d.transTextures[0],0,0,512/1024,512/1024); 
-//	}
-//}
 var funcs=[];
 funcs["normal"] = function(dst,dst_idx,src,src_idx,alpha,power){
 	var alpha=src[src_idx+3]*alpha;
@@ -228,6 +181,9 @@ var refreshMain=function(x,y,w,h){
 	//レイヤ合成
 	for(var li=0;li<layers.length;li++){
 		var layer = layers[li];
+		if(!layer.display){
+			continue;
+		}
 		var layer_img_data = layer.img.data;
 		var layer_alpha=layer.alpha;
 		var layer_power=layer.power;
@@ -290,7 +246,7 @@ var refreshMain=function(x,y,w,h){
 	
 }
 
-var refresh = function(layer,thumb){
+var refreshLayer = function(layer,thumb){
 
 
 	//レイヤサムネイル更新
@@ -298,29 +254,19 @@ var refresh = function(layer,thumb){
 	if(thumb){
 		var img = layer.img;
 		var img_data=img.data;
-	//	var imgdata=thumbnail_ctx.createImageData(64,64);
-	//	var imgdata_data = imgdata.data;
-	//	var yr= img.height/imgdata.height;
-	//	var xr= img.width/imgdata.width;
-	//	for(var yi=0;yi<imgdata.height;yi++){
-	//		for(var xi=0;xi<imgdata.width;xi++){
-	//			var idx=(yi*imgdata.width + xi)<<2;
-	//			var idx2=((yr*yi|0)*img.width+ (xr*xi|0))<<2;
-	//			for(var ii=0;ii<4;ii++){
-	//				imgdata_data[idx+ii]=img_data[idx2+ii]*255.0;
-	//			}
-	//		}
-	//	}
-		for(var di=0;di<canvas.width*canvas.height;di++){
-			var idx=di<<2;
-			for(var ii=0;ii<4;ii++){
-				ctx_imagedata.data[idx+ii]=img_data[idx+ii]*255.0;
+		for(var yi=0;yi<img.height;yi++){
+			for(var xi=0;xi<img.width;xi++){
+				var idx=yi*img.width + xi<<2;
+				var idx2=yi*canvas.width + xi<<2;
+				for(var ii=0;ii<4;ii++){
+					ctx_imagedata.data[idx2+ii]=img_data[idx+ii]*255.0;
+				}
 			}
 		}
 			
 		ctx.putImageData(ctx_imagedata,0,0);
 		thumbnail_ctx.clearRect(0,0,thumbnail_canvas.width,thumbnail_canvas.height);
-		thumbnail_ctx.drawImage(canvas,0,0,canvas.width,canvas.height,0,0,thumbnail_canvas.width,thumbnail_canvas.height);
+		thumbnail_ctx.drawImage(canvas,0,0,img.width,img.height,0,0,thumbnail_canvas.width,thumbnail_canvas.height);
 		var layer_img=layer.div.getElementsByTagName("img")[0];
 		layer_img.src=thumbnail_canvas.toDataURL("image/png");
 	}
@@ -339,10 +285,49 @@ var refresh = function(layer,thumb){
 		}
 	 	txt+="<br>" ;
 	}
+	 if(!layer.display){
+		layer.div.classList.add("disable_layer");
+	 }else{
+		layer.div.classList.remove("disable_layer");
+	 }
 
 	span.innerHTML = txt;
 }
 
+
+var loadExr=function(url,callback){
+	var img = new Img();
+	Util.loadBinary(url,function(buffer){
+		var obj={};
+		OpenEXR.fromArrayBuffer(obj,buffer);
+
+		img.width =img.width;
+		img.height=img.height;
+		img.data=new Float32Array(img.width*img.height*4);
+	 
+		//RGBAチャンネルの情報をdataにセットする
+		var channels=obj.attributes.channels;
+		var data = img.data;
+		var cindex={};
+		for(var i=0;i<channels.length;i++){
+			cindex[channels[i].name]=i;
+		}
+		var r = cindex["R"];
+		var g = cindex["G"];
+		var b = cindex["B"];
+		var a = cindex["A"];
+		for(var i=0;i<data.length;i+=4){
+			data[i]=channels[r].data[i>>2];
+			data[i+1]=channels[g].data[i>>2];
+			data[i+2]=channels[b].data[i>>2];
+			data[i+3]=channels[a].data[i>>2];
+		}
+		if(callback){
+			callback(obj);
+		}
+	});
+	return img;
+}
 
 var loadImg=function(url,func){
 	var image = new Image();
@@ -356,9 +341,11 @@ var loadImg=function(url,func){
 			//開いた画像がキャンバスより大きい場合は広げる
 			if(canvas.width<img.width){
 				canvas.width=img.width;
+				preview.width=img.width;
 			}
 			if(canvas.height<img.height){
 				canvas.height=img.height;
+				preview.height=img.height;
 			}
 			ctx_imagedata=ctx.createImageData(canvas.width,canvas.height);
 			main_img = new Img(canvas.width,canvas.height);
@@ -366,18 +353,16 @@ var loadImg=function(url,func){
 
 		}
 
-		img.width=canvas.width;
-		img.height=canvas.height;
 
 		//ピクセルメモリ確保
-		img.data=new Float32Array(canvas.width*canvas.height*4);
+		img.data=new Float32Array(img.width*img.height*4);
 
 		//ピクセルデータ取得
 		ctx.clearRect(0,0,canvas.width,canvas.height);
 		ctx.drawImage(image,0,0);
-		var data=ctx.getImageData(0,0,canvas.width,canvas.height).data;
-		var r = 1.0/255.0;	
-		for(var di=0;di<canvas.width*canvas.height*4;di++){
+		var data=ctx.getImageData(0,0,img.width,img.height).data;
+		var r = 1.0/255.0;
+		for(var di=0;di<img.width*img.height*4;di++){
 			img.data[di]=data[di] * r;
 		}
 
@@ -421,23 +406,42 @@ var onloadfunc=function(e){
 			var layers_container = document.getElementById("layers_container");
 			layers_container.insertBefore(layer_div,layers_container.firstChild);
 
-			var img=loadImg(e.target.result,function(d){
+			var img=null;
+			var fu =function(d){
+	 			var img = d;
 	 			layer.width=img.width;
 	 			layer.height=img.height;
 
-				//layer.glTexture = Rastgl.createTexture(null,1024,1024);
-				//var data=new Uint8Array(img.width*img.height*4);
-				//for(var i=0;i<data.length;i++){
-	 			//	data[i] = img.data[i]*255;
-	 			//}
-	 			//Rastgl.subTexture(layer.glTexture,0,0,layer.img.width,layer.img.height,data);
-	 					
-				refresh(layer,true);
+				if(canvas.width<img.width || canvas.height<img.height){
+					//開いた画像がキャンバスより大きい場合は広げる
+					if(canvas.width<img.width){
+						canvas.width=img.width;
+						preview.width=img.width;
+					}
+					if(canvas.height<img.height){
+						canvas.height=img.height;
+						preview.height=img.height;
+					}
+					ctx_imagedata=ctx.createImageData(canvas.width,canvas.height);
+					main_img = new Img(canvas.width,canvas.height);
+					sub_img = new Img(canvas.width,canvas.height);
 
+				}
+
+				refreshLayer(layer,true);
 				refreshMain();
-			});
+			}
+	 		if(/.*\.exr$/.test(file.name)){
+				img=loadExr(e.target.result,fu);
+	 		} else if(/.*\.png$/.test(file.name)){
+				img=loadImg(e.target.result,fu);
+	 		}
 			layer.img=img;
 			layer.name = file.name;
+
+			if(selectedLayer<0){
+				Util.fireEvent(layer_div,"click");
+			}
 		}
 		reader.readAsDataURL(file);
 		
@@ -445,8 +449,8 @@ var onloadfunc=function(e){
 
 
 	canvas.addEventListener("mousemove",function(e){
+		//カーソル下情報表示
 		var data = main_img.data;
-
 
 		var x=e.offsetX;
 		var y=e.offsetY;
@@ -475,17 +479,23 @@ var onloadfunc=function(e){
 	
 
 
+	//レイヤパラメータコントロール変更時反映
 	var layer_inputs = document.getElementById("layer_param").getElementsByTagName("input");
 	for(var i=0;i<layer_inputs.length;i++){
 		var input = layer_inputs[i];
 		var f = function(e){
-			if(selectedLayer>=0){
-				var layer = layers[selectedLayer];
-				var member = e.target.id.replace("layer_","");
+			if(selectedLayer<0){
+	  			return;
+	  		}
+			var layer = layers[selectedLayer];
+			var member = e.target.id.replace("layer_","");
+			if(e.target.getAttribute("type")==="checkbox"){
+	  			layer[member]=e.target.checked;
+			  }else{
 				layer[member]=e.target.value;
-				refresh(layer);
-				refreshMain();
 			}
+			refreshLayer(layer);
+			refreshMain();
 		}
 
 		input.addEventListener("change",f);
@@ -499,42 +509,8 @@ var onloadfunc=function(e){
 		inputs[id].addEventListener("change",function(){refreshMain()});
 	}
 
-//	var base=" [vertexshader] \n \
-//	attribute vec2 aPos; \n \
-//	uniform vec2 uUvScale; \n \
-//	uniform vec2 uUvOffset; \n \
-//	varying vec2 vUv; \n \
-//	void main(void){ \n \
-//		gl_Position = vec4(aPos ,1.0,1.0); \n \
-//			vUv = (aPos+ 1.0) * 0.5 * uUvScale +  uUvOffset; \n \
-//	} \n \
-//	[fragmentshader] \n \
-//	varying lowp vec2 vUv; \n \
-//	uniform mediump float uPower; \n \
-//	uniform mediump float uAlpha; \n \
-//	uniform sampler2D uSampler; \n \
-//	uniform sampler2D uDst; \n  \
-//	void main(void){ \n \
-//	vec4 src = texture2D(uSampler,vUv); \n \
-//	vec4 dst = texture2D(uDst,vUv); \n \
-//	";
-//	shaders["normal"]=  Ono3d.createShader(base
-//		+ "src.rgb *= uPower; \n \
-//			src.a*= uAlpha; \n \
-//			gl_FragColor = mix(dst,src,src.a); \n \
-//	} ");
-//	shaders["add"]=  Ono3d.createShader(base
-//		+ "src.rgb *= uPower; \n \
-//			src.a*= uAlpha; \n \
-//			mediump float dstr = dst.a * (1.0-src.a)+src.a; \n \
-//			gl_FragColor = vec4(dst.rgb* dstr +src.rgb*src.a,dstr); \n \
-//	} ");
-//	shaders["mul"]=  Ono3d.createShader(base
-//		+ "src.rgb *= uPower; \n \
-//			src.a*= uAlpha; \n \
-//			mediump float dstr = dst.a * (1.0-src.a); \n \
-//			gl_FragColor = vec4(dst.rgb* (dstr +src.rgb*src.a),dstr+src.a); \n \
-//	} ");
+    var a = document.getElementById("hoge");
+	a.addEventListener("contextmenu",save_view);
 }
 
 var layerSelect= function(e){
@@ -551,7 +527,11 @@ var layerSelect= function(e){
 			var input = layer_inputs[i];
 			var member = input.id.replace("layer_","");
 			if(member in layer){
-				input.value=layer[member];
+	  			if(input.getAttribute("type")==="checkbox"){
+	  				input.checked=layer[member];
+				}else{
+					input.value=layer[member];
+				}
 				Util.fireEvent(input,"change");
 	   		}
 		}
@@ -681,6 +661,17 @@ var gauss=function(d,power){
 	}
 
 }
+
+var save_view = function(e){
+	var a = e.target;
+    var blob = new Blob(["hogehoge"], {type: "application/octet-stream"});
+    var url = window.URL.createObjectURL(blob);
+
+    a.href = url;
+    a.target = '_blank';
+    a.download = "c\\hoge.txt";
+    //a.click();
+}
 </script>
 
 <body onLoad="onloadfunc(event)">
@@ -700,7 +691,7 @@ EV<input class="slider" id="ev" min="-5" max="5" value="0"/><br>
 
 <div style="display:none;" id="layer_template">
 	<div class="layer">
-		<img class="thumbnail" style="border:solid;float:left;">
+		<img class="thumbnail" style="border:solid 1px;float:left;">
 		<div class="name"></div>
 		<span></span>
 	</div>
@@ -708,7 +699,8 @@ EV<input class="slider" id="ev" min="-5" max="5" value="0"/><br>
 <div>
 レイヤ<br>
 <div id="layer_param">
-name<input type="text" id="layer_name"/><br>
+name<input type="text" id="layer_name"/>
+表示<input type="checkbox" id="layer_display"/><br>
 blendfunc<select type="text" id="layer_blendfunc"/>
 	<option value="normal">normal</option>
 	<option value="add">add</option>
@@ -721,6 +713,8 @@ power<input class="slider" id="layer_power" max="10"/><br>
 <div class="layers" id="layers_container">
 </div>
 <input type="file" id="f"><br>
+<input type="button" id="save_view" onclick="save_view()" value="表示内容を保存"><br>
+<a id="hoge" href="a">hoge</a>
 </div>
 </body>
 </html>
