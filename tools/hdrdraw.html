@@ -373,145 +373,6 @@ var loadImg=function(url,func){
 	return img;
 }
 
-var onloadfunc=function(e){
-	preview=  document.getElementById('preview');
-	preview_ctx =  preview.getContext('2d')
-	canvas =  document.getElementById('c')
-	ctx =  canvas.getContext('2d')
-	ctx_imagedata=ctx.createImageData(canvas.width,canvas.height);
-
-
-
-	main_img = new Img(canvas.width,canvas.height);
-	sub_img = new Img(canvas.width,canvas.height);
-	thumbnail_canvas =  document.createElement('canvas');
-	thumbnail_canvas.width=64;
-	thumbnail_canvas.height=64;
-	thumbnail_ctx =  thumbnail_canvas.getContext('2d')
-
-	var file=document.getElementById("f");
-	file.addEventListener("change",function(evt){
-		var reader=new FileReader();
-		var file=evt.target.files[0];
-		reader.onload=function(e){
-
-			var layer_template= document.getElementById("layer_template");
-			var layer = new Layer();
-			var layer_div = layer_template.children[0].cloneNode(true);
-			layer_div.addEventListener("click",layerSelect);
-			layer.div=layer_div;
-
-			layers.push(layer);
-			
-			var layers_container = document.getElementById("layers_container");
-			layers_container.insertBefore(layer_div,layers_container.firstChild);
-
-			var img=null;
-			var fu =function(d){
-	 			var img = d;
-	 			layer.width=img.width;
-	 			layer.height=img.height;
-
-				if(canvas.width<img.width || canvas.height<img.height){
-					//開いた画像がキャンバスより大きい場合は広げる
-					if(canvas.width<img.width){
-						canvas.width=img.width;
-						preview.width=img.width;
-					}
-					if(canvas.height<img.height){
-						canvas.height=img.height;
-						preview.height=img.height;
-					}
-					ctx_imagedata=ctx.createImageData(canvas.width,canvas.height);
-					main_img = new Img(canvas.width,canvas.height);
-					sub_img = new Img(canvas.width,canvas.height);
-
-				}
-
-				refreshLayer(layer,true);
-				refreshMain();
-			}
-	 		if(/.*\.exr$/.test(file.name)){
-				img=loadExr(e.target.result,fu);
-	 		} else if(/.*\.png$/.test(file.name)){
-				img=loadImg(e.target.result,fu);
-	 		}
-			layer.img=img;
-			layer.name = file.name;
-
-			if(selectedLayer<0){
-				Util.fireEvent(layer_div,"click");
-			}
-		}
-		reader.readAsDataURL(file);
-		
-	});
-
-
-	canvas.addEventListener("mousemove",function(e){
-		//カーソル下情報表示
-		var data = main_img.data;
-
-		var x=e.offsetX;
-		var y=e.offsetY;
-		var width=main_img.width;
-		var height=main_img.height;
-		var output = document.getElementsByTagName("span")[0];
-
-		if(x<0 || y<0 || x>=width || y>=height){return;}
-
-		var idx=(y*canvas.width+x)*4;
-		var r= data[idx];
-		var g= data[idx+1];
-		var b= data[idx+2];
-		var a= data[idx+3];
-
-		var str="position X:[x],Y:[y] \n value R:[r], G:[g], B:[b], A:[a] ";
-		str=str.replace(/\[x\]/,x);
-		str=str.replace(/\[y\]/,y);
-		str=str.replace(/\[r\]/,(r).toFixed(4));
-		str=str.replace(/\[g\]/,(g).toFixed(4));
-		str=str.replace(/\[b\]/,(b).toFixed(4));
-		str=str.replace(/\[a\]/,(a).toFixed(4));
-		Util.setText(output,str);
-
-	},false);
-	
-
-
-	//レイヤパラメータコントロール変更時反映
-	var layer_inputs = document.getElementById("layer_param").getElementsByTagName("input");
-	for(var i=0;i<layer_inputs.length;i++){
-		var input = layer_inputs[i];
-		var f = function(e){
-			if(selectedLayer<0){
-	  			return;
-	  		}
-			var layer = layers[selectedLayer];
-			var member = e.target.id.replace("layer_","");
-			if(e.target.getAttribute("type")==="checkbox"){
-	  			layer[member]=e.target.checked;
-			  }else{
-				layer[member]=e.target.value;
-			}
-			refreshLayer(layer);
-			refreshMain();
-		}
-
-		input.addEventListener("change",f);
-	}
-
-
-	var input_tags = document.getElementById("div_view").getElementsByTagName("input");
-	for(var i=0;i<input_tags.length;i++){
-		var id= input_tags[i].getAttribute("id");
-		inputs[id]= input_tags[i];
-		inputs[id].addEventListener("change",function(){refreshMain()});
-	}
-
-    var a = document.getElementById("hoge");
-	a.addEventListener("contextmenu",save_view);
-}
 
 var layerSelect= function(e){
 //レイヤー一覧クリック時、クリックされたものをアクティブ化する
@@ -672,6 +533,183 @@ var save_view = function(e){
     a.download = "c\\hoge.txt";
     //a.click();
 }
+
+var onloadfunc=function(e){
+	preview=  document.getElementById('preview');
+	preview_ctx =  preview.getContext('2d')
+	canvas =  document.getElementById('c')
+	ctx =  canvas.getContext('2d')
+	ctx_imagedata=ctx.createImageData(canvas.width,canvas.height);
+
+
+
+	main_img = new Img(canvas.width,canvas.height);
+	sub_img = new Img(canvas.width,canvas.height);
+	thumbnail_canvas =  document.createElement('canvas');
+	thumbnail_canvas.width=64;
+	thumbnail_canvas.height=64;
+	thumbnail_ctx =  thumbnail_canvas.getContext('2d')
+
+	var file=document.getElementById("f");
+	file.addEventListener("change",function(evt){
+		var reader=new FileReader();
+		var file=evt.target.files[0];
+		reader.onload=function(e){
+
+			var layer_template= document.getElementById("layer_template");
+			var layer = new Layer();
+			var layer_div = layer_template.children[0].cloneNode(true);
+			layer_div.addEventListener("click",layerSelect);
+			layer.div=layer_div;
+
+			layers.push(layer);
+			
+			var layers_container = document.getElementById("layers_container");
+			layers_container.insertBefore(layer_div,layers_container.firstChild);
+
+			var img=null;
+			var fu =function(d){
+	 			var img = d;
+	 			layer.width=img.width;
+	 			layer.height=img.height;
+
+				if(canvas.width<img.width || canvas.height<img.height){
+					//開いた画像がキャンバスより大きい場合は広げる
+					if(canvas.width<img.width){
+						canvas.width=img.width;
+						preview.width=img.width;
+					}
+					if(canvas.height<img.height){
+						canvas.height=img.height;
+						preview.height=img.height;
+					}
+					ctx_imagedata=ctx.createImageData(canvas.width,canvas.height);
+					main_img = new Img(canvas.width,canvas.height);
+					sub_img = new Img(canvas.width,canvas.height);
+
+				}
+
+				refreshLayer(layer,true);
+				refreshMain();
+			}
+	 		if(/.*\.exr$/.test(file.name)){
+				img=loadExr(e.target.result,fu);
+	 		} else if(/.*\.png$/.test(file.name)){
+				img=loadImg(e.target.result,fu);
+	 		}
+			layer.img=img;
+			layer.name = file.name;
+
+			if(selectedLayer<0){
+				Util.fireEvent(layer_div,"click");
+			}
+		}
+		reader.readAsDataURL(file);
+		
+	});
+
+
+	canvas.addEventListener("mousemove",function(e){
+		//カーソル下情報表示
+		var data = main_img.data;
+
+		var x=e.offsetX;
+		var y=e.offsetY;
+		var width=main_img.width;
+		var height=main_img.height;
+		var output = document.getElementsByTagName("span")[0];
+
+		if(x<0 || y<0 || x>=width || y>=height){return;}
+
+		var idx=(y*canvas.width+x)*4;
+		var r= data[idx];
+		var g= data[idx+1];
+		var b= data[idx+2];
+		var a= data[idx+3];
+
+		var str="position X:[x],Y:[y] \n value R:[r], G:[g], B:[b], A:[a] ";
+		str=str.replace(/\[x\]/,x);
+		str=str.replace(/\[y\]/,y);
+		str=str.replace(/\[r\]/,(r).toFixed(4));
+		str=str.replace(/\[g\]/,(g).toFixed(4));
+		str=str.replace(/\[b\]/,(b).toFixed(4));
+		str=str.replace(/\[a\]/,(a).toFixed(4));
+		Util.setText(output,str);
+
+	},false);
+	
+
+
+	//レイヤパラメータコントロール変更時反映
+	var layer_inputs = document.getElementById("layer_param").getElementsByTagName("input");
+	for(var i=0;i<layer_inputs.length;i++){
+		var input = layer_inputs[i];
+		var f = function(e){
+			if(selectedLayer<0){
+	  			return;
+	  		}
+			var layer = layers[selectedLayer];
+			var member = e.target.id.replace("layer_","");
+			if(e.target.getAttribute("type")==="checkbox"){
+	  			layer[member]=e.target.checked;
+			  }else{
+				layer[member]=e.target.value;
+			}
+			refreshLayer(layer);
+			refreshMain();
+		}
+
+		input.addEventListener("change",f);
+	}
+
+
+
+	var color_base =document.getElementById("color_base");
+	var color_lumi=document.getElementById("color_lumi");
+	var color_R=document.getElementById("color_R");
+	var color_G=document.getElementById("color_G");
+	var color_B=document.getElementById("color_B");
+	var color_A=document.getElementById("color_A");
+	var color_sample=document.getElementById("color_sample");
+
+	var createRGBA=function(){
+		var base = new Vec3();
+		var lumi = parseFloat(color_lumi.value);
+		Util.hex2rgb(base ,color_base.value);
+
+		color_R.value = base[0]*lumi;
+		color_G.value = base[1]*lumi;
+		color_B.value = base[2]*lumi;
+
+		Util.fireEvent(color_R,"change");
+		Util.fireEvent(color_G,"change");
+		Util.fireEvent(color_B,"change");
+		
+	}
+	var updateColorSample=function(){
+		var col=new Vec4();
+		Vec4.set(col,color_R.value,color_G.value,color_B.value,color_A.value);
+		Vec4.mul(col,col,255);
+		color_sample.style.backgroundColor=Util.rgba(col[0],col[1],col[2],col[3]);
+	}
+	color_base.addEventListener("change",createRGBA);
+	color_lumi.addEventListener("change",createRGBA);
+	color_R.addEventListener("change",updateColorSample);
+	color_G.addEventListener("change",updateColorSample);
+	color_B.addEventListener("change",updateColorSample);
+	color_A.addEventListener("change",updateColorSample);
+	
+
+	var input_tags = document.getElementById("div_view").getElementsByTagName("input");
+	for(var i=0;i<input_tags.length;i++){
+		var id= input_tags[i].getAttribute("id");
+		inputs[id]= input_tags[i];
+		inputs[id].addEventListener("change",function(){refreshMain()});
+	}
+
+    var a = document.getElementById("hoge");
+	a.addEventListener("contextmenu",save_view);
+}
 </script>
 
 <body onLoad="onloadfunc(event)">
@@ -686,6 +724,14 @@ EV<input class="slider" id="ev" min="-5" max="5" value="0"/><br>
 		<canvas width="1" height="1" id="c"  style="display:none;"></canvas><br />
 	</div>
 	<br><span></span>
+	
+	basecol<input class="colorpicker" id="color_base" value="ffffff"/>
+	lumi<input class="slider" id="color_lumi" max="100" value="1"><br>
+	R<input class="slider" id="color_R" max="100"/><br>
+	G<input class="slider" id="color_G" max="100"/><br>
+	B<input class="slider" id="color_B" max="100"/><br>
+	A<input class="slider" id="color_A" max="1" value="1"/><br>
+	<div id="color_sample" style="background-color:red;width:32px;height:32px;"></div>
 </div>
 
 
@@ -718,4 +764,5 @@ power<input class="slider" id="layer_power" max="10"/><br>
 </div>
 </body>
 </html>
+
 
