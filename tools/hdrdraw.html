@@ -301,8 +301,8 @@ var loadExr=function(url,callback){
 		var obj={};
 		OpenEXR.fromArrayBuffer(obj,buffer);
 
-		img.width =img.width;
-		img.height=img.height;
+		img.width =obj.width;
+		img.height=obj.height;
 		img.data=new Float32Array(img.width*img.height*4);
 	 
 		//RGBAチャンネルの情報をdataにセットする
@@ -315,12 +315,21 @@ var loadExr=function(url,callback){
 		var r = cindex["R"];
 		var g = cindex["G"];
 		var b = cindex["B"];
-		var a = cindex["A"];
-		for(var i=0;i<data.length;i+=4){
+		var size = img.width*img.height*4;
+		for(var i=0;i<size;i+=4){
 			data[i]=channels[r].data[i>>2];
 			data[i+1]=channels[g].data[i>>2];
 			data[i+2]=channels[b].data[i>>2];
-			data[i+3]=channels[a].data[i>>2];
+		}
+		var a = cindex["A"];
+		if(a){
+			for(var i=0;i<size;i+=4){
+				data[i+3]=channels[a].data[i>>2];
+			}
+		}else{
+			for(var i=0;i<size;i+=4){
+				data[i+3]=1;
+			}
 		}
 		if(callback){
 			callback(obj);
@@ -609,7 +618,7 @@ var onloadfunc=function(e){
 	});
 
 
-	canvas.addEventListener("mousemove",function(e){
+	preview.addEventListener("mousemove",function(e){
 		//カーソル下情報表示
 		var data = main_img.data;
 
@@ -617,7 +626,7 @@ var onloadfunc=function(e){
 		var y=e.offsetY;
 		var width=main_img.width;
 		var height=main_img.height;
-		var output = document.getElementsByTagName("span")[0];
+		var output = document.getElementById("status");
 
 		if(x<0 || y<0 || x>=width || y>=height){return;}
 
@@ -721,9 +730,9 @@ EV<input class="slider" id="ev" min="-5" max="5" value="0"/><br>
 <input type="checkbox" id="ch_bloom">bloom<input class="slider" id="bloom" max="1" value="0"/><br>
 	<div class="hoge">
 		<canvas width="512" height="512" id="preview" ></canvas><br />
-		<canvas width="1" height="1" id="c"  style="display:none;"></canvas><br />
+		<canvas width="1" height="1" id="c"  style="display:none;"></canvas>
 	</div>
-	<br><span></span>
+	<span id="status"></span><br>
 	
 	basecol<input class="colorpicker" id="color_base" value="ffffff"/>
 	lumi<input class="slider" id="color_lumi" max="100" value="1"><br>
