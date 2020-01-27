@@ -32,7 +32,7 @@ width:100%;
 height:64px;
 font-size:small;
 line-height:1;
-background-color:white;
+background-color:transparent;
 }
 .layer .name{
 	background-color:lightgray;
@@ -428,8 +428,7 @@ var loadImg=function(url,func){
 			ctx_imagedata=ctx.createImageData(canvas.width,canvas.height);
 			main_img = new Img(canvas.width,canvas.height);
 			sub_img = new Img(canvas.width,canvas.height);
-			gauss_img = new Img(canvas.width,canvas.height);
-
+			gauss_img = new Img(canvas.width,canvas.height); 
 		}
 
 
@@ -453,6 +452,15 @@ var loadImg=function(url,func){
 }
 
 
+var getLayerNum=function(div){
+	for(var li=0;li<layers.length;li++){
+		var layer=layers[li];
+		if(div=== layers[li].div){
+			return li;
+		}
+	}
+	return -1;
+}
 var layerSelect= function(e){
 //レイヤー一覧クリック時、クリックされたものをアクティブ化する
 	for(var li=0;li<layers.length;li++){
@@ -520,7 +528,7 @@ var gauss=function(d,power,px,py,pw,ph){
 			dstdata[idx+2]=data[idx+2]*weight[0];
 			for(var i=1;i<MAX;i++){
 	 			var idx2= y * w + Math.max(x -i,0) <<2;
-	 			var idx3= y * w + Math.min(x +i,0) <<2;
+	 			var idx3= y * w + Math.min(x +i,w-1) <<2;
 				var r = weight[Math.abs(i)];
 				dstdata[idx+0]+=(data[idx2+0] +data[idx3+0])*r;
 				dstdata[idx+1]+=(data[idx2+1] +data[idx3+1])*r;
@@ -535,7 +543,7 @@ var gauss=function(d,power,px,py,pw,ph){
 			dstdata[idx+2]=data[idx+2]*weight[0];
 			for(var i=1;i<MAX;i++){
 	 			var idx2= y * w + Math.max(x -i,0) <<2;
-	 			var idx3= y * w + Math.min(x +i,0) <<2;
+	 			var idx3= y * w + Math.min(x +i,w-1) <<2;
 				var r = weight[Math.abs(i)];
 				dstdata[idx+0]+=(data[idx2+0] +data[idx3+0])*r;
 				dstdata[idx+1]+=(data[idx2+1] +data[idx3+1])*r;
@@ -544,8 +552,8 @@ var gauss=function(d,power,px,py,pw,ph){
 		}
 	 }
 	for(var yi=py;yi<py+h;yi++){
-		var idx = (yi) * w+ Math.max(MAX,py) << 2;
-		var max = (yi)* w  + Math.min(w-MAX,py+ph) << 2;
+		var idx = (yi) * w+ Math.max(MAX,px) << 2;
+		var max = (yi)* w  + Math.min(w-MAX,px+pw) << 2;
 		for(;idx<max;idx+=4){
 			dstdata[idx+0]=data[idx+0]*weight[0];
 			dstdata[idx+1]=data[idx+1]*weight[0];
@@ -581,7 +589,7 @@ var gauss=function(d,power,px,py,pw,ph){
 		for(var y=Math.max(h-MAX,py);y<max;y++){
 	 		var idx= y * w + x <<2;
 			for(var i=-MAX+1;i<MAX;i++){
-	 			var idx2= Math.max(y+i,0) * w + x  <<2;
+	 			var idx2= Math.min(y+i,h-1) * w + x  <<2;
 				var r = weight[Math.abs(i)];
 				dstdata[idx+0]+=data[idx2+0] *r;
 				dstdata[idx+1]+=data[idx2+1] *r;
@@ -591,8 +599,8 @@ var gauss=function(d,power,px,py,pw,ph){
 	 }
 	 var max2 = Math.min(h-MAX,py+ph);
 	for(var yi=Math.max(MAX,py);yi<max2;yi++){
-		var idx = (yi) * w << 2;
-		var max = idx + (w << 2);
+		var idx = (yi) * w + px << 2;
+		var max= (yi) * w + (px+pw) << 2;
 		for(;idx<max;idx+=4){
 			dstdata[idx+0]+=data[idx+0]*weight[0];
 			dstdata[idx+1]+=data[idx+1]*weight[0];
@@ -680,6 +688,35 @@ var createNewLayer=function(e){
 	}
 
 	refreshLayer(layer,true);
+	refreshMain();
+
+}
+function DragStart(event) {
+     event.dataTransfer.setData("text", getLayerNum(event.currentTarget));
+}
+function dragover_handler(ev) {
+ ev.preventDefault();
+ ev.dataTransfer.dropEffect = "move";
+}	
+function Drop(event) {
+    var drag = event.dataTransfer.getData("text");
+	var drag_div = layers[drag].div;
+	if(drag_div === event.currentTarget){
+		return;
+	}
+	var layer=layers[drag];
+	layers.splice(drag,1);
+	var drop = getLayerNum(event.currentTarget);
+	var drop_div = layers[drop].div;
+
+	var layers_container = document.getElementById("layers_container");
+	if(event.offsetY<32){
+		layers_container.insertBefore(drag_div,drop_div);
+		layers.splice(drop+1,0,layer);
+	}else{
+		layers_container.insertBefore(drag_div,drop_div.nextSibling);
+		layers.splice(drop,0,layer);
+	}
 	refreshMain();
 
 }
@@ -934,6 +971,7 @@ var onloadfunc=function(e){
     var a = document.getElementById("new");
 	a.addEventListener("click",createNewLayer);
 }
+
 </script>
 
 <body onLoad="onloadfunc(event)">
@@ -963,7 +1001,7 @@ EV<input class="slider" id="ev" min="-5" max="5" value="0"/><br>
 
 
 <div style="display:none;" id="layer_template">
-	<div class="layer">
+	<div class="layer" draggable="true" ondragstart="DragStart(event)" ondragover="dragover_handler(event)" ondrop="Drop(event)">
 		<img class="thumbnail" style="border:solid 1px;float:left;">
 		<div class="name"></div>
 		<span></span>
