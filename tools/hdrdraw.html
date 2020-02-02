@@ -125,6 +125,7 @@ var gl;
 var joined_img=null;
 var horizon_img=null;
 var bloomed_img=null;
+var bloom_img=null;
 
 var funcs=[];
 funcs["normal"] = function(dst,dst_idx,src,src_idx,alpha,power){
@@ -192,11 +193,22 @@ var refreshMain=function(step,x,y,w,h){
 	var bottom = joined_img.height;
 
 	if(w){
+		left=x;
+		right=x+w;
+		top=y;
+		bottom=y+h;
+
 		//更新領域設定、はみ出している場合はクランプする
-		left=Math.max(0,x);
-		right=Math.min(joined_img.width,x+w);
-		top=Math.max(0,y);
-		bottom=Math.min(joined_img.height,y+h);
+		var bloomsize = 10;
+		left-=bloomsize;
+		right+=bloomsize;
+		top-=bloomsize;
+		bottom+=bloomsize;
+		
+		left=Math.max(0,left);
+		right=Math.min(joined_img.width,right);
+		top=Math.max(0,top);
+		bottom=Math.min(joined_img.height,bottom);
 	}
 
 	var joined_img_data = joined_img.data;
@@ -245,23 +257,37 @@ var refreshMain=function(step,x,y,w,h){
 			}
 			
 		}
+		//if(inputs["ch_bloom"].checked && bloom>0){
+		gauss(100,bloom,left,right,top,bottom);
+		//}
 	}
 
 	//ブルーム処理
 	//ブルーム前の絵はjoined_imgに残し、結果はbloomed_imgに出力
 	if(step<=1){
 		var bloom = parseFloat(inputs["bloom"].value);
+		var bloom_img_data = bloom_img.data;
+		var bloomed_img_data = bloomed_img.data;
 		if(inputs["ch_bloom"].checked && bloom>0){
-			gauss(100,bloom,left,right,top,bottom);
+			for(var yi=top;yi<bottom;yi++){
+				var idx = yi * joined_img_width + left << 2;
+				var max = yi * joined_img_width + right<< 2;
+				for(;idx<max;idx+=4){
+					bloom_img_data[idx]=joined_img_data[idx] + bloomed_img_data[idx]*bloom;
+					bloom_img_data[idx+1]=joined_img_data[idx+1]+ bloomed_img_data[idx+1]*bloom;
+					bloom_img_data[idx+2]=joined_img_data[idx+2]+bloomed_img_data[idx+2]*bloom;
+					bloom_img_data[idx+3]=joined_img_data[idx+3]+bloomed_img_data[idx+3]*bloom;
+				}
+			}
 		}else{
 			for(var yi=top;yi<bottom;yi++){
 				var idx = yi * joined_img_width + left << 2;
 				var max = yi * joined_img_width + right<< 2;
 				for(;idx<max;idx+=4){
-					bloomed_img.data[idx]=joined_img_data[idx];
-					bloomed_img.data[idx+1]=joined_img_data[idx+1];
-					bloomed_img.data[idx+2]=joined_img_data[idx+2];
-					bloomed_img.data[idx+3]=joined_img_data[idx+3];
+					bloom_img_data[idx]=joined_img_data[idx];
+					bloom_img_data[idx+1]=joined_img_data[idx+1];
+					bloom_img_data[idx+2]=joined_img_data[idx+2];
+					bloom_img_data[idx+3]=joined_img_data[idx+3];
 				}
 			}
 		}
@@ -274,7 +300,7 @@ var refreshMain=function(step,x,y,w,h){
 		var gamma = 1.0/parseFloat(inputs["gamma"].value);
 		var r = Math.pow(2,-ev)*255;
 
-		joined_img_data = bloomed_img.data;
+		joined_img_data = bloom_img.data;
 
 		if(inputs["ch_gamma"].checked){
 			for(var yi=top;yi<bottom;yi++){
@@ -382,9 +408,6 @@ var gauss=function(d,power,left,right,top,bottom){
 	//縦ぼかし
 	data = dst.data;
 	dstdata = bloomed_img.data;
-	for(var i=0;i<MAX;i++){
-		weight[i]*=power;
-	}
 
 	for(var x=left;x<right;x++){
 		var max = Math.min(MAX,bottom);
@@ -393,11 +416,11 @@ var gauss=function(d,power,left,right,top,bottom){
 		var max = bottom*width+ x<<2;
 		var r = weight[0];
 		for(;idx<max;idx+=width*4){
-			dstdata[idx+0]=joined_img_data[idx+0]+data[idx+0]*r;
-			dstdata[idx+1]=joined_img_data[idx+1]+data[idx+1]*r;
-			dstdata[idx+2]=joined_img_data[idx+2]+data[idx+2]*r;
+			dstdata[idx+0]=data[idx+0]*r;
+			dstdata[idx+1]=data[idx+1]*r;
+			dstdata[idx+2]=data[idx+2]*r;
 		}
-		
+	
 		y=top
 		max = Math.min(MAX,bottom);
 		for(;y<max;y++){
@@ -599,6 +622,7 @@ var loadImg=function(url,func){
 			joined_img = new Img(canvas.width,canvas.height);
 			horizon_img = new Img(canvas.width,canvas.height);
 			bloomed_img = new Img(canvas.width,canvas.height); 
+			bloom_img = new Img(canvas.width,canvas.height); 
 		}
 
 
@@ -623,13 +647,8 @@ var loadImg=function(url,func){
 
 
 var getLayerNum=function(div){
-	for(var li=0;li<layers.length;li++){
-		var layer=layers[li];
-		if(div=== layers[li].div){
-			return li;
-		}
-	}
-	return -1;
+	//divからレイヤー番号取得
+	return layers.findIndex(function(l){return l.div===div;});
 }
 var layerSelect= function(e){
 //レイヤー一覧クリック時、クリックされたものをアクティブ化する
@@ -740,6 +759,7 @@ var createLayer=function(img){
 		joined_img = new Img(canvas.width,canvas.height);
 		horizon_img = new Img(canvas.width,canvas.height);
 		bloomed_img= new Img(canvas.width,canvas.height);
+		bloom_img = new Img(canvas.width,canvas.height); 
 
 	}
 	layer.name ="new_layer";
@@ -757,6 +777,10 @@ var createNewLayer=function(e){
 	var width=document.getElementById("width").value;
 	var height=document.getElementById("height").value;
 	
+	if(isNaN(width) || isNaN(height) || width ==="" || height===""){
+		width=canvas.width;
+		height=canvas.height;
+	}
 	var img = new Img(width,height);
 	var layer=createLayer(img);
 
@@ -809,6 +833,7 @@ var onloadfunc=function(e){
 	joined_img = new Img(canvas.width,canvas.height);
 	horizon_img = new Img(canvas.width,canvas.height);
 	bloomed_img = new Img(canvas.width,canvas.height);
+	bloom_img = new Img(canvas.width,canvas.height);
 	thumbnail_canvas =  document.createElement('canvas');
 	thumbnail_canvas.width=64;
 	thumbnail_canvas.height=64;
@@ -836,51 +861,78 @@ var onloadfunc=function(e){
 	});
 
 
-	var press=0;
-	preview.addEventListener("mousedown",function(e){
-		press=1;
-	});
-	preview.addEventListener("mouseup",function(e){
-		press=0;
-	});
-	var bold=4;
-	preview.addEventListener("mousemove",function(e){
-		if(press && selected_layer){
-			var layer = selected_layer;
-			var img= layer.img;
-			var data = layer.img.data;
-			var x = e.offsetX;
-			var y = e.offsetY;
-			var left = Math.max(x-bold,0);
-			var right= Math.min(x+bold-1,img.width-1);
-			var top= Math.max(y-bold,0);
-			var bottom=Math.min(y+bold-1,img.height-1);
-			for(var dy=top;dy<=bottom;dy++){
-				for(var dx=left;dx<=right;dx++){
-					var idx = dy*layer.img.width+ dx<<2;
-					data[idx+0]=draw_col[0];
-					data[idx+1]=draw_col[1];
-					data[idx+2]=draw_col[2];
-					data[idx+3]=draw_col[3];
+	var old_p=new Vec2();
+	var vec2 =new Vec2();
+	var side = new Vec2();
+	var dist = new Vec2();
+	preview.oncontextmenu=function(e){return false;};
+	var drawfunc =function(e){
+		if(inputs["pen"].checked){
+			if((e.buttons & 1) && selected_layer){
+				var bold=parseFloat(inputs["bold"].value);
+				var layer = selected_layer;
+				var img= layer.img;
+				var data = layer.img.data;
+				vec2[0] = e.offsetX;
+				vec2[1] = e.offsetY;
+
+				var left = Math.min(vec2[0],old_p[0]);
+				var right= Math.max(vec2[0],old_p[0]);
+				var top= Math.min(vec2[1],old_p[1]);
+				var bottom= Math.max(vec2[1],old_p[1]);
+				
+				left = Math.max(left-bold,0);
+				right= Math.min(right+bold,img.width);
+				top= Math.max(top-bold,0);
+				bottom=Math.min(bottom+bold,img.height);
+
+				Vec2.sub(vec2,old_p,vec2);
+				var l = Vec2.scalar2(vec2);
+				if(l!==0){
+					Vec2.mul(vec2,vec2,1/l);
+				}else{
+					Vec2.set(vec2,0,0);
+				}
+				Vec2.set(side,vec2[1],-vec2[0]);
+				Vec2.norm(side);
+
+				for(var dy=top;dy<bottom;dy++){
+					for(var dx=left;dx<right;dx++){
+						var idx = dy*layer.img.width+ dx<<2;
+						dist[0]=dx-e.offsetX;
+						dist[1]=dy-e.offsetY;
+						if(Math.abs(Vec2.dot(dist,side))>bold){
+							continue;
+						}
+						l = Vec2.dot(vec2,dist);
+						if(l<=0){
+							if(Vec2.scalar2(dist)>bold*bold){
+								continue;
+							}
+						}
+						if(l>=1){
+							dist[0]=dx-old_p[0];
+							dist[1]=dy-old_p[1];
+							
+							if(Vec2.scalar2(dist)>bold*bold){
+								continue;
+							}
+						}
+						data[idx+0]=draw_col[0];
+						data[idx+1]=draw_col[1];
+						data[idx+2]=draw_col[2];
+						data[idx+3]=draw_col[3];
+					}
+				}
+
+				if(right-left>0 && bottom-top>0){
+					//再描画
+					refreshMain(0,left,top,right-left,bottom-top);
 				}
 			}
-
-			if(right-left>=0 && bottom-top>=0){
-
-				var bloomsize=0;
-				var bloom = parseFloat(inputs["bloom"].value);
-				if(inputs["ch_bloom"].checked && bloom>0){
-					bloomsize = 10;
-					left=Math.max(left-bloomsize,0);
-					right=Math.min(right+bloomsize,img.width-1);
-					top=Math.max(top-bloomsize,0);
-					bottom=Math.min(bottom+bloomsize,img.height-1);
-				}
-				refreshMain(0,left,top,right-left+1,bottom-top+1);
-			}
-
-			
 		}
+		old_p[0]=e.offsetX;
+		old_p[1]=e.offsetY;
 		//カーソル下情報表示
 		var data = joined_img.data;
 
@@ -905,10 +957,143 @@ var onloadfunc=function(e){
 		str=str.replace(/\[g\]/,(g).toFixed(4));
 		str=str.replace(/\[b\]/,(b).toFixed(4));
 		str=str.replace(/\[a\]/,(a).toFixed(4));
+
+		if(e.buttons & 2){
+			inputs["color_R"].value=r;
+			inputs["color_G"].value=g;
+			inputs["color_B"].value=b;
+			inputs["color_A"].value=a;
+
+			Util.fireEvent(inputs["color_R"],"change");
+			Util.fireEvent(inputs["color_G"],"change");
+			Util.fireEvent(inputs["color_B"],"change");
+			Util.fireEvent(inputs["color_A"],"change");
+		}
 		Util.setText(output,str);
 
-	},false);
+	};
 	
+	var fillStack=[];
+	var joined_r,joined_g,joined_b,joined_a;
+	var target_r,target_g,target_b,target_a;
+	var refresh_left,refresh_top,refresh_bottom,refresh_right;
+	var fillCheck = function(target_data,joined_data,idx){
+		if(joined_r===joined_data[idx]
+		&& joined_g===joined_data[idx+1]
+		&& joined_b===joined_data[idx+2]
+		&& joined_a===joined_data[idx+3]
+		&& target_r===target_data[idx]
+		&& target_g===target_data[idx+1]
+		&& target_b===target_data[idx+2]
+		&& target_a===target_data[idx+3]){
+			return true;
+		}else{
+			return false;
+		}
+
+	}
+	var fillSub=function(target,y,left,right){
+		var ref_data=joined_img.data;
+		var target_data=target.data;
+		var yidx = joined_img.width*y <<2;
+		var mode=0;
+		for(var xi=left;xi<right;xi++){
+			var idx2 = yidx + (xi<<2);
+			if(fillCheck(target_data,ref_data,idx2)){
+				if(mode===0){
+					fillStack.push(xi);
+					fillStack.push(y);
+					mode=1;
+				}
+			}else{
+				mode=0;
+			}
+		}
+	}
+	var fillFunc=function(target,x,y){
+		var yidx = target.width*y<<2;
+		var idx = yidx + (x<<2);
+		var ref_data = joined_img.data;
+		var target_data = target.data;
+		var left=x;
+		for(;left>=0;left--){
+			var idx2 = yidx + (left<<2);
+			if(fillCheck(target_data,ref_data,idx2)){
+			}else{
+				left+=1;
+				break;
+			}
+		}
+		var right=x;
+		for(;right<target.width;right++){
+			var idx2 = yidx + (right<<2);
+			if(fillCheck(target_data,ref_data,idx2)){
+			}else{
+				break;
+			}
+		}
+		var draw_r =draw_col[0];
+		var draw_g =draw_col[1];
+		var draw_b =draw_col[2];
+		var draw_a =draw_col[3];
+		for(var xi=left;xi<right;xi++){
+			idx = yidx + (xi<<2);
+			target_data[idx]=draw_r;
+			target_data[idx+1]=draw_g;
+			target_data[idx+2]=draw_b;
+			target_data[idx+3]=draw_a;
+		}
+
+		if(y>0){
+			fillSub(target,y-1,left,right);
+		}
+		if(y<target.height-1){
+			fillSub(target,y+1,left,right);
+		}
+		refresh_left=Math.min(refresh_left,left);
+		refresh_top=Math.min(refresh_top,y);
+		refresh_bottom=Math.max(refresh_bottom,y+1);
+		refresh_right=Math.max(refresh_right,right);
+
+	}
+	preview.addEventListener("mousemove",drawfunc,false);
+	preview.addEventListener("mousedown",function(e){
+		if(inputs["fill"].checked && (e.buttons &1)){
+			fillStack=[];
+			var x=e.offsetX;
+			var y=e.offsetY;
+			refresh_top=y;
+			refresh_bottom=y;
+			refresh_left=x;
+			refresh_right=x;
+			fillStack.push(x);
+			fillStack.push(y);
+			var layer = selected_layer;
+			var img= layer.img;
+			var idx = y*joined_img.width+x<<2;
+			joined_r=joined_img.data[idx];
+			joined_g=joined_img.data[idx+1];
+			joined_b=joined_img.data[idx+2];
+			joined_a=joined_img.data[idx+3];
+			target_r=img.data[idx];
+			target_g=img.data[idx+1];
+			target_b=img.data[idx+2];
+			target_a=img.data[idx+3];
+
+			while(1){
+				if(fillStack.length===0){
+					break;
+				}
+				y = fillStack.pop();
+				x = fillStack.pop();
+				fillFunc(img,x,y);
+			}
+			refreshMain(0,refresh_left,refresh_top,refresh_right-refresh_left,refresh_bottom-refresh_top);
+
+			
+		}
+		drawfunc(e)
+	},false);
 
 
 	//レイヤパラメータコントロール変更時反映
@@ -989,19 +1174,28 @@ var onloadfunc=function(e){
 
 	var input_tags = document.getElementById("div_view").getElementsByTagName("input");
 	for(var i=0;i<input_tags.length;i++){
-		var id= input_tags[i].getAttribute("id");
-		inputs[id]= input_tags[i];
-		inputs[id].addEventListener("change",function(e){
+		var input = input_tags[i]
+		input.addEventListener("change",function(e){
 
 			refreshColor();
 			if(e.target.id==="bloom"){
 				refreshMain(1);
 	  		}
-			if(e.target.id==="gamma" || e.target.id==="ev"){
+			if(e.target.id==="ch_bloom"){
+				refreshMain();
+	  		}
+			if(e.target.id==="ch_gamma" || e.target.id==="gamma" || e.target.id==="ev"){
 				refreshMain(2);
 	  		}
 			
 	  });
+	}
+
+	var elements= Array.prototype.slice.call(document.getElementsByTagName("input"));
+	elements.concat(Array.prototype.slice.call(document.getElementsByTagName("select")));
+	for(var i=0;i<elements.length;i++){
+		var id= elements[i].getAttribute("id");
+		inputs[id]= elements[i];
 	}
 
     var a = document.getElementById("save_ldr");
@@ -1016,12 +1210,13 @@ var onloadfunc=function(e){
 	a.addEventListener("click",createNewLayer);
 
 
-	var img = new Img(256,256);
+	var img = new Img(512,512);
 	var img_data = img.data;
 	for(var i=0;i<img_data.length;i++){
 		img_data[i]=1;
 	}
 	var layer=createLayer(img);
+	layer.name="default layer"
 	refreshLayer(layer,true);
 	refreshMain();
 }
@@ -1042,14 +1237,18 @@ EV<input class="slider" id="ev" min="-5" max="5" value="0"/><br>
 		<canvas width="1" height="1" id="c"  style="display:none;"></canvas>
 	</div>
 	<span id="status"></span><br>
-	
-	basecol<input class="colorpicker" id="color_base" value="ffffff"/>
-	lumi<input class="slider" id="color_lumi" max="100" value="1"><br>
-	<div id="color_sample" style="">
-	R<input class="slider" id="color_R" max="100"/><br>
-	G<input class="slider" id="color_G" max="100"/><br>
-	B<input class="slider" id="color_B" max="100"/><br>
-	A<input class="slider" id="color_A" max="1" value="1"/><br>
+		<label>pen<input type="radio" id="pen" name="tool" checked></label>
+		<label>fill<input type="radio" id="fill" name="tool"></label>
+	<div>
+		radius<input class="slider" id="bold" max="100" value="4"/><br>
+		basecol<input class="colorpicker" id="color_base" value="ffffff"/>
+		lumi<input class="slider" id="color_lumi" max="100" value="1"><br>
+		<div id="color_sample" style="">
+			R<input class="slider" id="color_R" max="100"/><br>
+			G<input class="slider" id="color_G" max="100"/><br>
+			B<input class="slider" id="color_B" max="100"/><br>
+			A<input class="slider" id="color_A" max="1" value="1"/><br>
+		</div>
 	</div>
 </div>
 
