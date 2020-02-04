@@ -121,6 +121,7 @@ var layers_container;
 var refreshoff=0;
 var inputs=[];
 var command_history=[];
+var history_cursor=-1;
 
 
 var joined_img=null;
@@ -868,14 +869,8 @@ var onloadfunc=function(e){
 	preview.oncontextmenu=function(e){return false;};
 	var drawfunc =function(e){
 		if(inputs["pen"].checked){
-			if((e.buttons & 1) && selected_layer){
+			if((e.buttons & 1) && pen_log.length>0){
 
-				if(pen_log.length===0){
-					var vec2 = new Vec2();
-					vec2[0]=e.offsetX;
-					vec2[1]=e.offsetY;
-					pen_log.push(vec2);
-				}
 				var vec2 = new Vec2();
 				vec2[0]=e.offsetX;
 				vec2[1]=e.offsetY;
@@ -929,25 +924,33 @@ var onloadfunc=function(e){
 	};
 	
 	preview.addEventListener("mouseup",function(e){
-		if(inputs["pen"].checked){
-			createLog(["pen",pen_log]);
+		if(pen_log.length>0){
+			pen_log=[];
 
 		}
 	},false);
 	preview.addEventListener("mousemove",drawfunc,false);
 	preview.addEventListener("mousedown",function(e){
 		if(inputs["fill"].checked && (e.buttons &1)){
-			fill(selected_layer,	e.offsetX,e.offsetY,draw_col);
 			createLog(["fill",e.offsetX,e.offsetY,draw_col]);
+			fill(selected_layer,	e.offsetX,e.offsetY,draw_col);
 		}
-		pen_log=[];
+		if(inputs["pen"].checked && (e.buttons &1)){
+			pen_log=[];
+			var vec2 = new Vec2();
+			vec2[0]=e.offsetX;
+			vec2[1]=e.offsetY;
+			pen_log.push(vec2);
 
+			createLog(["pen",pen_log]);
+		}
 		drawfunc(e)
+
 	},false);
     document.addEventListener('keypress', function(event){
  
 		if(event.keyCode===26){
-			 console.log("ctrlz");
+			undo();
 		}
          if (event.ctrlKey) {
          } else if (event.shiftKey) {
@@ -1078,6 +1081,7 @@ var onloadfunc=function(e){
 	layer.name="default layer"
 	refreshLayer(layer,true);
 	refreshMain();
+	createRGBA();
 }
 
 </script>

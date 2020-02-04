@@ -1,3 +1,20 @@
+var undo=function(obj){
+	if(history_cursor<0){
+		return;
+	}
+	 console.log("undo");
+	//inputs["history"].children[history_cursor].remove();
+	var log = command_history[history_cursor];
+	for(var i=0;i<log.difs.length;i++){
+
+	}
+	history_cursor--;
+
+	if(history_cursor>=0){
+		inputs["history"].selectedIndex=history_cursor;
+	}
+
+}
 var createLog=function(obj){
 	var log={};
 	log.obj=obj;
@@ -5,8 +22,11 @@ var createLog=function(obj){
 	var option=document.createElement("option");
 	option.innerHTML = ""+obj;
 	log.option=option;
+	command_history.splice(history_cursor,command_history.length-history_cursor-1);
 	command_history.push(log);
 	inputs["history"].appendChild(option);
+	history_cursor=command_history.length-1;
+	inputs["history"].selectedIndex=history_cursor;
 }
 
 	var fillStack=[];
@@ -60,7 +80,23 @@ var createLog=function(obj){
 		target_g=target.data[idx+1];
 		target_b=target.data[idx+2];
 		target_a=target.data[idx+3];
+		var draw_r =col[0];
+		var draw_g =col[1];
+		var draw_b =col[2];
+		var draw_a =col[3];
 
+		var ref_data = joined_img.data;
+		var target_data = target.data;
+		if(    target_r === draw_r
+			&& target_g === draw_g
+			&& target_b === draw_b
+			&& target_a === draw_a){
+			return;
+		}
+
+		var old_img = new Img(target.width,target.height);
+		copyImg(old_img,0,0,0,0,target.width,target.height);
+		
 		while(1){
 			if(fillStack.length===0){
 				break;
@@ -71,8 +107,6 @@ var createLog=function(obj){
 
 			var yidx = target.width*y<<2;
 			var idx = yidx + (x<<2);
-			var ref_data = joined_img.data;
-			var target_data = target.data;
 			var left=x;
 			for(;left>=0;left--){
 				var idx2 = yidx + (left<<2);
@@ -90,10 +124,6 @@ var createLog=function(obj){
 					break;
 				}
 			}
-			var draw_r =col[0];
-			var draw_g =col[1];
-			var draw_b =col[2];
-			var draw_a =col[3];
 			for(var xi=left;xi<right;xi++){
 				idx = yidx + (xi<<2);
 				target_data[idx]=draw_r;
@@ -113,8 +143,44 @@ var createLog=function(obj){
 			refresh_bottom=Math.max(refresh_bottom,y+1);
 			refresh_right=Math.max(refresh_right,right);
 		}
+
+		var width = refresh_right-refresh_left;
+		var height= refresh_bottom -refresh_top;
+		var dif_img = new Img(width,height);
+		copyImg(dif_img,0,0,old_img,left,top,width,height);
+		var command = command_history[command_history.length-1];
+		var dif={};
+		dif.img=dif_img;
+		dif.x=left;
+		dif.y=top;
+		if(!command.difs){
+			command.difs=[];
+		}
+		command.difs.push(dif);
+
 		refreshMain(0,refresh_left,refresh_top,refresh_right-refresh_left,refresh_bottom-refresh_top);
 	}
+var copyImg= function(dst,dst_x,dst_y,src,src_x,src_y,src_w,src_h){
+	var dst_data = dst.data;
+	var dst_width = dst.width;
+	var src_data = src.data;
+	var src_width = src.width;
+	var dst_idx = 0;
+	var src_idx = 0;
+	for(var yi=0;yi<src_h;yi++){
+		dst_idx = yi * dst_width + dst_x<<2;
+		src_idx = yi * src_width + src_x<<2;
+		for(var xi=0;xi<src_w;xi++){
+			dst_data[dst_idx+0] = src_data[src_idx+0];
+			dst_data[dst_idx+1] = src_data[src_idx+1];
+			dst_data[dst_idx+2] = src_data[src_idx+2];
+			dst_data[dst_idx+3] = src_data[src_idx+3];
+			dst_idx+=4;
+			src_idx+=4;
+		}
+
+	}
+}
 	var vec2 =new Vec2();
 	var side = new Vec2();
 	var dist = new Vec2();
