@@ -713,68 +713,6 @@ var save_ldr= function(e){
 }
 
 
- //レイヤ削除
-var deleteLayer=function(layer){
-	var li=layers.indexOf(layer);
-	 if(li<0){
-		 return;
-	 }
-	 
-
-	layers.splice(li,1);
-	layer.div.parentNode.removeChild(layer.div);
-
-	if(layer === selected_layer){
-		li = Math.max(li-1,0);
-		if(layers.length){
-			selected_layer = layers[li]
-			Util.fireEvent(selected_layer.div,"click");
-		}
-	}
-
-	refreshMain();
-}
-var createLayer=function(img){
-	var layer_template= document.getElementById("layer_template");
-	var layer = new Layer();
-	var layer_div = layer_template.children[0].cloneNode(true);
-	layer_div.addEventListener("click",layerSelect);
-	layer.div=layer_div;
-
-	layers.push(layer);
-	
-	var layers_container = document.getElementById("layers_container");
-	layers_container.insertBefore(layer_div,layers_container.firstChild);
-
-	layer.img=img;
-
-	if(canvas.width<img.width || canvas.height<img.height){
-		//開いた画像がキャンバスより大きい場合は広げる
-		if(canvas.width<img.width){
-			canvas.width=img.width;
-			preview.width=img.width;
-		}
-		if(canvas.height<img.height){
-			canvas.height=img.height;
-			preview.height=img.height;
-		}
-		ctx_imagedata=ctx.createImageData(canvas.width,canvas.height);
-		joined_img = new Img(canvas.width,canvas.height);
-		horizon_img = new Img(canvas.width,canvas.height);
-		bloomed_img= new Img(canvas.width,canvas.height);
-		bloom_img = new Img(canvas.width,canvas.height); 
-
-	}
-	layer.name ="new_layer";
-
-
-	if(!selected_layer){
-		Util.fireEvent(layer_div,"click");
-	}
-
-	 return layer;
-
-}
 var createNewLayer=function(e){
 	//新規レイヤーを作成
 	var width=document.getElementById("width").value;
@@ -785,8 +723,9 @@ var createNewLayer=function(e){
 		height=canvas.height;
 	}
 	var img = new Img(width,height);
-	var layer=createLayer(img);
-
+	var idx= layers.indexOf(selected_layer)+1;
+	
+	var layer=Command.createLayer(img,idx);
 //		for(var i=0;i<width*height*4;i++){
 //			img_data[i]=1;
 //		}
@@ -848,7 +787,10 @@ var onloadfunc=function(e){
 		var file=evt.target.files[0];
 		reader.onload=function(e){
 			var fu =function(img){
-	 			var layer=createLayer(img);
+				if(selected_layer>=0){
+					idx = layers.indexOf(selected_layer)+1;
+				}
+				var layer=Command.createLayer(img,idx);
 				layer.name = file.name;
 				refreshLayer(layer,true);
 				refreshMain(0);
@@ -878,7 +820,7 @@ var onloadfunc=function(e){
 				var index = pen_log.length-1;
 
 				var bold=parseFloat(inputs["bold"].value);
-	 			drawLine(selected_layer,pen_log[index-1],pen_log[index],bold,draw_col);
+	 			Command.drawLine(selected_layer,pen_log[index-1],pen_log[index],bold,draw_col);
 			}
 		}
 		old[0]=e.offsetX;
@@ -936,7 +878,7 @@ var onloadfunc=function(e){
 	preview.addEventListener("mousedown",function(e){
 		if(inputs["fill"].checked && (e.buttons &1)){
 			createLog("fill",{"x":e.offsetX,"y":e.offsetY,"color":draw_col,"layer":selected_layer});
-			fill(selected_layer,	e.offsetX,e.offsetY,draw_col);
+			Command.fill(selected_layer,	e.offsetX,e.offsetY,draw_col);
 		}
 		if(inputs["pen"].checked && (e.buttons &1)){
 			pen_log=[];
@@ -950,13 +892,15 @@ var onloadfunc=function(e){
 		drawfunc(e)
 
 	},false);
-    document.addEventListener('keypress', function(event){
+    document.addEventListener('keydown', function(event){
  
-		if(event.keyCode===26){
+		if(event.keyCode===90 && event.ctrlKey){
         	if (event.shiftKey) {
 				redo();
+				event.preventDefault();
 			}else{
 				undo();
+				event.preventDefault();
 			}
 		}
     });
@@ -1080,11 +1024,14 @@ var onloadfunc=function(e){
 	for(var i=0;i<img_data.length;i++){
 		img_data[i]=1;
 	}
-	var layer=createLayer(img);
+	var layer=Command.createLayer(img);
 	layer.name="default layer"
+	Util.fireEvent(layer.div,"click");
+
 	refreshLayer(layer,true);
 	refreshMain();
 	createRGBA();
+	
 }
 
 </script>
@@ -1142,7 +1089,7 @@ power<input class="slider" id="layer_power" max="10"/><br>
 </div>
 <div class="layers" id="layers_container">
 </div>
-<input type="button" id="delete_layer" value="レイヤ削除" onclick="deleteLayer(selected_layer);"><br>
+<input type="button" id="delete_layer" value="レイヤ削除" onclick="Command.deleteLayer(selected_layer);"><br>
 <input id="width" style="width:64px;"><input id="height" style="width:64px;"><input type="button" id="new" value="新規レイヤ"><br>
 <input type="file" id="f" accept="image/*,.hdr,.exr"><br>
 <a id="save_hdr" href="a">結合データをexrで保存(HDR)</a>

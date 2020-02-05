@@ -12,11 +12,27 @@ var redo=function(obj){
 	var param = log.param;
 	switch(log.command){
 	case "fill":
-		fill(param.layer,param.x,param.y,param.color);
+		Command.fill(param.layer,param.x,param.y,param.color);
 		break;
 	case "pen":
-		pen(param.layer,param.pen_log,param.bold,param.color);
+		Command.pen(param.layer,param.pen_log,param.bold,param.color);
 		break;
+	case "createLayer":
+		var layer = log.param.layer;
+		var idx = log.param.idx;
+
+		layers.splice(idx,0,layer);
+
+		var layers_container = document.getElementById("layers_container");
+		for(var li=layers.length;li--;){
+			layers_container.appendChild(layers[li].div);
+		}
+		break;
+	case "deleteLayer":
+		var layer = log.param.layer;
+		var idx = layers.indexOf(layer);
+		layers.splice(idx,1);
+		layer.div.remove();
 	}
 
 	inputs["history"].selectedIndex=history_cursor;
@@ -31,18 +47,79 @@ var undo=function(obj){
 
 	for(var di=log.difs.length;di--;){
 		var dif = log.difs[di];
-
 		copyImg(dif.layer.img,dif.x,dif.y,dif.img,0,0,dif.img.width,dif.img.height);
 	}
+
+	switch(log.command){
+	case "createLayer":
+		var layer = log.param.layer;
+		var idx = layers.indexOf(layer);
+		layers.splice(idx,1);
+		layer.div.remove();
+		layer.div.classList.remove("active_layer");
+
+		break;
+	case "deleteLayer":
+		var layer = log.param.layer;
+		var idx = log.param.idx;
+
+		layers.splice(idx,0,layer);
+
+		var layers_container = document.getElementById("layers_container");
+		for(var li=layers.length;li--;){
+			layers_container.appendChild(layers[li].div);
+		}
+		break;
+	}
+		
 	refreshMain();
 	history_cursor--;
 
 	inputs["history"].selectedIndex=history_cursor;
 
 }
+
+var createDif=function(layer,left,top,width,height){
+	var img = new Img(width,height);
+	copyImg(img,0,0,layer.img,left,top,width,height);
+	var dif={};
+	dif.img=img;
+	dif.x=left;
+	dif.y=top;
+	dif.layer=layer;
+	return dif;
+
+}
+var copyImg= function(dst,dst_x,dst_y,src,src_x,src_y,src_w,src_h){
+	var dst_data = dst.data;
+	var dst_width = dst.width;
+	var src_data = src.data;
+	var src_width = src.width;
+	var dst_idx = 0;
+	var src_idx = 0;
+	for(var yi=0;yi<src_h;yi++){
+		dst_idx = (yi + dst_y) * dst_width + dst_x<<2;
+		src_idx = (yi + src_y) * src_width + src_x<<2;
+		for(var xi=0;xi<src_w;xi++){
+			dst_data[dst_idx+0] = src_data[src_idx+0];
+			dst_data[dst_idx+1] = src_data[src_idx+1];
+			dst_data[dst_idx+2] = src_data[src_idx+2];
+			dst_data[dst_idx+3] = src_data[src_idx+3];
+			dst_idx+=4;
+			src_idx+=4;
+		}
+
+	}
+}
+var Log=function(){
+	this.command="";
+	this.param={};
+	this.difs=[];
+	
+}
 var createLog=function(command,param){
 	//ログ情報を作成しヒストリーに追加
-	var log={};
+	var log=new Log();
 	log.command=command;
 	log.param=param;
 	history_cursor++;
@@ -64,6 +141,18 @@ var createLog=function(command,param){
 	inputs["history"].appendChild(option);
 	inputs["history"].selectedIndex=history_cursor;
 }
+var deleteLog=function(){
+	var m = command_history.length - (history_cursor );
+	for(var hi=0;hi<m;hi++){
+		command_history[hi].option.remove();
+	}
+	command_history.splice(0,history_cursor+1);
+	history_cursor=0;
+	
+}
+var Command = (function(){
+	var  Command = function(){};
+	var ret = Command;
 
 	var fillStack=[];
 	var joined_r,joined_g,joined_b,joined_a;
@@ -98,7 +187,7 @@ var createLog=function(command,param){
 		}
 	}
 
-	var fill=function(layer,x,y,col){
+	ret.fill=function(layer,x,y,col){
 		fillStack=[];
 		refresh_top=y;
 		refresh_bottom=y;
@@ -187,56 +276,21 @@ var createLog=function(command,param){
 		layer.img = old_img;
 		var dif=createDif(layer,refresh_left,refresh_top,width,height);
 		layer.img=layer_img;
-		if(!command.difs){
-			command.difs=[];
-		}
 		command.difs.push(dif);
 
 		refreshMain(0,refresh_left,refresh_top,refresh_right-refresh_left,refresh_bottom-refresh_top);
 	}
 
-var createDif=function(layer,left,top,width,height){
-	var img = new Img(width,height);
-	copyImg(img,0,0,layer.img,left,top,width,height);
-	var dif={};
-	dif.img=img;
-	dif.x=left;
-	dif.y=top;
-	dif.layer=layer;
-	return dif;
 
-}
-var copyImg= function(dst,dst_x,dst_y,src,src_x,src_y,src_w,src_h){
-	var dst_data = dst.data;
-	var dst_width = dst.width;
-	var src_data = src.data;
-	var src_width = src.width;
-	var dst_idx = 0;
-	var src_idx = 0;
-	for(var yi=0;yi<src_h;yi++){
-		dst_idx = (yi + dst_y) * dst_width + dst_x<<2;
-		src_idx = (yi + src_y) * src_width + src_x<<2;
-		for(var xi=0;xi<src_w;xi++){
-			dst_data[dst_idx+0] = src_data[src_idx+0];
-			dst_data[dst_idx+1] = src_data[src_idx+1];
-			dst_data[dst_idx+2] = src_data[src_idx+2];
-			dst_data[dst_idx+3] = src_data[src_idx+3];
-			dst_idx+=4;
-			src_idx+=4;
-		}
-
-	}
-}
-
-	var pen=function(layer,pen_log,bold,col){
+	ret.pen=function(layer,pen_log,bold,col){
 		for(var li=0;li<pen_log.length-1;li++){
-			drawLine(layer,pen_log[li],pen_log[li+1],bold,col);
+			Command.drawLine(layer,pen_log[li],pen_log[li+1],bold,col);
 		}
 	}
 	var vec2 =new Vec2();
 	var side = new Vec2();
 	var dist = new Vec2();
-	var drawLine=function(layer,old_p,new_p,bold,col){
+	ret.drawLine=function(layer,old_p,new_p,bold,col){
 		var layer = selected_layer;
 		var img= layer.img;
 		var data = layer.img.data;
@@ -310,3 +364,87 @@ var copyImg= function(dst,dst_x,dst_y,src,src_x,src_y,src_w,src_h){
 			refreshMain(0,left,top,right-left,bottom-top);
 		}
 	}
+
+ //レイヤ削除
+ret.deleteLayer=function(layer){
+	var li=layers.indexOf(layer);
+	 if(li<0){
+		 return;
+	 }
+	 
+
+	layers.splice(li,1);
+	layer.div.parentNode.removeChild(layer.div);
+	layer.div.classList.remove("active_layer");
+
+	createLog("deleteLayer",{"layer":layer,"idx":li});
+
+	if(layer === selected_layer){
+		li = Math.max(li-1,0);
+		if(layers.length){
+			selected_layer = layers[li]
+			Util.fireEvent(selected_layer.div,"click");
+		}
+	}else{
+		selected_layer = null;
+	}
+
+
+	refreshMain();
+}
+	ret.createLayer=function(img,idx){
+		if( typeof idx=== 'undefined'){
+			idx=layers.length;
+		}
+		if(idx<0){
+			idx=layers.length;
+		}
+		var layer_template= document.getElementById("layer_template");
+		var layer = new Layer();
+		var layer_div = layer_template.children[0].cloneNode(true);
+		layer_div.addEventListener("click",layerSelect);
+		layer.div=layer_div;
+
+		
+
+		layer.img=img;
+
+		if(canvas.width<img.width || canvas.height<img.height){
+			//開いた画像がキャンバスより大きい場合は広げる
+			if(canvas.width<img.width){
+				canvas.width=img.width;
+				preview.width=img.width;
+			}
+			if(canvas.height<img.height){
+				canvas.height=img.height;
+				preview.height=img.height;
+			}
+			ctx_imagedata=ctx.createImageData(canvas.width,canvas.height);
+			joined_img = new Img(canvas.width,canvas.height);
+			horizon_img = new Img(canvas.width,canvas.height);
+			bloomed_img= new Img(canvas.width,canvas.height);
+			bloom_img = new Img(canvas.width,canvas.height); 
+
+		}
+		layer.name ="new_layer";
+
+
+		if(!selected_layer){
+			Util.fireEvent(layer_div,"click");
+		}
+
+		layers.splice(idx,0,layer);
+
+		var layers_container = document.getElementById("layers_container");
+		for(var li=layers.length;li--;){
+			layers_container.appendChild(layers[li].div);
+		}
+
+
+
+		createLog("createLayer",{"layer":layer,"idx":idx});
+		 return layer;
+
+	}
+	return ret;
+})();
