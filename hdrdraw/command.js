@@ -1,31 +1,67 @@
-var undo=function(obj){
-	if(history_cursor<0){
+
+var redo=function(obj){
+	if(history_cursor>=command_history.length-1){
+		//最新状態の場合は無効
 		return;
 	}
-	 console.log("undo");
-	//inputs["history"].children[history_cursor].remove();
-	var log = command_history[history_cursor];
-	for(var i=0;i<log.difs.length;i++){
+	
+	history_cursor++;
 
+	var log = command_history[history_cursor];
+
+	var param = log.param;
+	switch(log.command){
+	case "fill":
+		fill(param.layer,param.x,param.y,param.color);
+		break;
+	case "pen":
+		pen(param.layer,param.pen_log,param.bold,param.color);
+		break;
 	}
+
+	inputs["history"].selectedIndex=history_cursor;
+}
+var undo=function(obj){
+	if(history_cursor<0){
+		//最古の場合は無効
+		return;
+	}
+
+	var log = command_history[history_cursor];
+
+	for(var di=log.difs.length;di--;){
+		var dif = log.difs[di];
+
+		copyImg(dif.layer.img,dif.x,dif.y,dif.img,0,0,dif.img.width,dif.img.height);
+	}
+	refreshMain();
 	history_cursor--;
 
-	if(history_cursor>=0){
-		inputs["history"].selectedIndex=history_cursor;
-	}
+	inputs["history"].selectedIndex=history_cursor;
 
 }
-var createLog=function(obj){
+var createLog=function(command,param){
+	//ログ情報を作成しヒストリーに追加
 	var log={};
-	log.obj=obj;
+	log.command=command;
+	log.param=param;
+	history_cursor++;
 
-	var option=document.createElement("option");
-	option.innerHTML = ""+obj;
-	log.option=option;
-	command_history.splice(history_cursor,command_history.length-history_cursor-1);
+
+	//カーソル以降のヒストリ削除
+	var m = command_history.length - (history_cursor );
+	for(var hi=0;hi<m;hi++){
+		//command_history.pop();
+		inputs["history"].children[history_cursor].remove();
+	}
+	command_history.splice(history_cursor,command_history.length-(history_cursor));
+
+	//ヒストリ追加
 	command_history.push(log);
+	var option=document.createElement("option");
+	option.innerHTML = ""+command+"{"+param+"}";
+	log.option=option;
 	inputs["history"].appendChild(option);
-	history_cursor=command_history.length-1;
 	inputs["history"].selectedIndex=history_cursor;
 }
 
@@ -95,7 +131,7 @@ var createLog=function(obj){
 		}
 
 		var old_img = new Img(target.width,target.height);
-		copyImg(old_img,0,0,0,0,target.width,target.height);
+		copyImg(old_img,0,0,target,0,0,target.width,target.height);
 		
 		while(1){
 			if(fillStack.length===0){
@@ -146,13 +182,11 @@ var createLog=function(obj){
 
 		var width = refresh_right-refresh_left;
 		var height= refresh_bottom -refresh_top;
-		var dif_img = new Img(width,height);
-		copyImg(dif_img,0,0,old_img,left,top,width,height);
 		var command = command_history[command_history.length-1];
-		var dif={};
-		dif.img=dif_img;
-		dif.x=left;
-		dif.y=top;
+		var layer_img= layer.img;
+		layer.img = old_img;
+		var dif=createDif(layer,refresh_left,refresh_top,width,height);
+		layer.img=layer_img;
 		if(!command.difs){
 			command.difs=[];
 		}
@@ -160,6 +194,18 @@ var createLog=function(obj){
 
 		refreshMain(0,refresh_left,refresh_top,refresh_right-refresh_left,refresh_bottom-refresh_top);
 	}
+
+var createDif=function(layer,left,top,width,height){
+	var img = new Img(width,height);
+	copyImg(img,0,0,layer.img,left,top,width,height);
+	var dif={};
+	dif.img=img;
+	dif.x=left;
+	dif.y=top;
+	dif.layer=layer;
+	return dif;
+
+}
 var copyImg= function(dst,dst_x,dst_y,src,src_x,src_y,src_w,src_h){
 	var dst_data = dst.data;
 	var dst_width = dst.width;
@@ -168,8 +214,8 @@ var copyImg= function(dst,dst_x,dst_y,src,src_x,src_y,src_w,src_h){
 	var dst_idx = 0;
 	var src_idx = 0;
 	for(var yi=0;yi<src_h;yi++){
-		dst_idx = yi * dst_width + dst_x<<2;
-		src_idx = yi * src_width + src_x<<2;
+		dst_idx = (yi + dst_y) * dst_width + dst_x<<2;
+		src_idx = (yi + src_y) * src_width + src_x<<2;
 		for(var xi=0;xi<src_w;xi++){
 			dst_data[dst_idx+0] = src_data[src_idx+0];
 			dst_data[dst_idx+1] = src_data[src_idx+1];
@@ -181,6 +227,12 @@ var copyImg= function(dst,dst_x,dst_y,src,src_x,src_y,src_w,src_h){
 
 	}
 }
+
+	var pen=function(layer,pen_log,bold,col){
+		for(var li=0;li<pen_log.length-1;li++){
+			drawLine(layer,pen_log[li],pen_log[li+1],bold,col);
+		}
+	}
 	var vec2 =new Vec2();
 	var side = new Vec2();
 	var dist = new Vec2();
@@ -192,14 +244,23 @@ var copyImg= function(dst,dst_x,dst_y,src,src_x,src_y,src_w,src_h){
 		vec2[1] = new_p[1];
 
 		var left = Math.min(vec2[0],old_p[0]);
-		var right= Math.max(vec2[0],old_p[0]);
+		var right= Math.max(vec2[0],old_p[0])+1;
 		var top= Math.min(vec2[1],old_p[1]);
-		var bottom= Math.max(vec2[1],old_p[1]);
+		var bottom= Math.max(vec2[1],old_p[1])+1;
 		
 		left = Math.max(left-bold,0);
 		right= Math.min(right+bold,img.width);
 		top= Math.max(top-bold,0);
 		bottom=Math.min(bottom+bold,img.height);
+
+		//差分ログ作成
+		var command = command_history[history_cursor];
+		var dif=createDif(layer,left,top,right-left,bottom-top);
+		if(!command.difs){
+			command.difs=[];
+		}
+		command.difs.push(dif);
+
 
 		Vec2.sub(vec2,old_p,vec2);
 		var l = Vec2.scalar2(vec2);

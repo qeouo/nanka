@@ -925,6 +925,9 @@ var onloadfunc=function(e){
 	
 	preview.addEventListener("mouseup",function(e){
 		if(pen_log.length>0){
+			var log = command_history[history_cursor];
+			var bold=parseFloat(inputs["bold"].value);
+			log.param={"pen_log":pen_log,"bold":bold,"color":draw_col,"layer":selected_layer};
 			pen_log=[];
 
 		}
@@ -932,7 +935,7 @@ var onloadfunc=function(e){
 	preview.addEventListener("mousemove",drawfunc,false);
 	preview.addEventListener("mousedown",function(e){
 		if(inputs["fill"].checked && (e.buttons &1)){
-			createLog(["fill",e.offsetX,e.offsetY,draw_col]);
+			createLog("fill",{"x":e.offsetX,"y":e.offsetY,"color":draw_col,"layer":selected_layer});
 			fill(selected_layer,	e.offsetX,e.offsetY,draw_col);
 		}
 		if(inputs["pen"].checked && (e.buttons &1)){
@@ -942,7 +945,7 @@ var onloadfunc=function(e){
 			vec2[1]=e.offsetY;
 			pen_log.push(vec2);
 
-			createLog(["pen",pen_log]);
+			createLog("pen");
 		}
 		drawfunc(e)
 
@@ -950,12 +953,12 @@ var onloadfunc=function(e){
     document.addEventListener('keypress', function(event){
  
 		if(event.keyCode===26){
-			undo();
+        	if (event.shiftKey) {
+				redo();
+			}else{
+				undo();
+			}
 		}
-         if (event.ctrlKey) {
-         } else if (event.shiftKey) {
-         } else {
-         }
     });
 
 	//レイヤパラメータコントロール変更時反映
@@ -1104,7 +1107,7 @@ EV<input class="slider" id="ev" min="-5" max="5" value="0"/><br>
 		<label>fill<input type="radio" id="fill" name="tool"></label>
 	<div>
 		radius<input class="slider" id="bold" max="100" value="4"/><br>
-		basecol<input class="colorpicker" id="color_base" value="ffffff"/>
+		basecol<input class="colorpicker" id="color_base" value="ff0000"/>
 		lumi<input class="slider" id="color_lumi" max="100" value="1"><br>
 		<div id="color_sample" style="">
 			R<input class="slider" id="color_R" max="100"/><br>
