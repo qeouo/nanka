@@ -74,6 +74,7 @@ width:256px;
 <script type="text/javascript" src="../lib/slider.js"></script>
 <script type="text/javascript" src="../lib/colorpicker.js"></script>
 <script type="text/javascript" src="../lib/geono.js"></script>
+<script type="text/javascript" src="./log.js"></script>
 <script type="text/javascript" src="./command.js"></script>
 <script type="text/javascript">
 "use strict"
@@ -120,8 +121,6 @@ var selected_layer = null;
 var layers_container;
 var refreshoff=0;
 var inputs=[];
-var command_history=[];
-var history_cursor=-1;
 
 
 var joined_img=null;
@@ -763,6 +762,7 @@ function Drop(event) {
 	refreshMain(0);
 
 }
+var pen_log=null;
 var onloadfunc=function(e){
 	preview=  document.getElementById('preview');
 	preview_ctx =  preview.getContext('2d')
@@ -806,25 +806,21 @@ var onloadfunc=function(e){
 	});
 
 
-	var pen_log=[];
-	var old=new Vec2();
 	preview.oncontextmenu=function(e){return false;};
 	var drawfunc =function(e){
 		if(inputs["pen"].checked){
-			if((e.buttons & 1) && pen_log.length>0){
+			if((e.buttons & 1) && pen_log){
 
 				var vec2 = new Vec2();
 				vec2[0]=e.offsetX;
 				vec2[1]=e.offsetY;
-				pen_log.push(vec2);
-				var index = pen_log.length-1;
+				pen_log.param.points.push(vec2);
+				var index = pen_log.param.points.length-1;
 
 				var bold=parseFloat(inputs["bold"].value);
-	 			Command.drawLine(selected_layer,pen_log[index-1],pen_log[index],bold,draw_col);
+	 			Command.drawLine(selected_layer,pen_log.param.points[index-1],pen_log.param.points[index],bold,draw_col);
 			}
 		}
-		old[0]=e.offsetX;
-		old[1]=e.offsetY;
 		//カーソル下情報表示
 		var data = joined_img.data;
 
@@ -867,27 +863,24 @@ var onloadfunc=function(e){
 	
 	preview.addEventListener("mouseup",function(e){
 		if(pen_log.length>0){
-			var log = command_history[history_cursor];
-			var bold=parseFloat(inputs["bold"].value);
-			log.param={"pen_log":pen_log,"bold":bold,"color":draw_col,"layer":selected_layer};
-			pen_log=[];
+			pen_log=null;
 
 		}
 	},false);
 	preview.addEventListener("mousemove",drawfunc,false);
 	preview.addEventListener("mousedown",function(e){
 		if(inputs["fill"].checked && (e.buttons &1)){
-			createLog("fill",{"x":e.offsetX,"y":e.offsetY,"color":draw_col,"layer":selected_layer});
 			Command.fill(selected_layer,	e.offsetX,e.offsetY,draw_col);
 		}
 		if(inputs["pen"].checked && (e.buttons &1)){
-			pen_log=[];
+				var bold=parseFloat(inputs["bold"].value);
+			pen_log = History.createLog("pen",{"bold":bold,"color":draw_col,"layer":selected_layer});
+			pen_log.param.points=[];
 			var vec2 = new Vec2();
 			vec2[0]=e.offsetX;
 			vec2[1]=e.offsetY;
-			pen_log.push(vec2);
+			pen_log.param.points.push(vec2);
 
-			createLog("pen");
 		}
 		drawfunc(e)
 
@@ -896,12 +889,11 @@ var onloadfunc=function(e){
  
 		if(event.keyCode===90 && event.ctrlKey){
         	if (event.shiftKey) {
-				redo();
-				event.preventDefault();
+				History.redo();
 			}else{
-				undo();
-				event.preventDefault();
+				History.undo();
 			}
+			event.preventDefault();
 		}
     });
 
@@ -1032,6 +1024,7 @@ var onloadfunc=function(e){
 	refreshMain();
 	createRGBA();
 	
+	History.deleteLog();
 }
 
 </script>

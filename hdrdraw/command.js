@@ -1,95 +1,4 @@
 
-var redo=function(obj){
-	if(history_cursor>=command_history.length-1){
-		//最新状態の場合は無効
-		return;
-	}
-	
-	history_cursor++;
-
-	var log = command_history[history_cursor];
-
-	var param = log.param;
-	switch(log.command){
-	case "fill":
-		Command.fill(param.layer,param.x,param.y,param.color);
-		break;
-	case "pen":
-		Command.pen(param.layer,param.pen_log,param.bold,param.color);
-		break;
-	case "createLayer":
-		var layer = log.param.layer;
-		var idx = log.param.idx;
-
-		layers.splice(idx,0,layer);
-
-		var layers_container = document.getElementById("layers_container");
-		for(var li=layers.length;li--;){
-			layers_container.appendChild(layers[li].div);
-		}
-		break;
-	case "deleteLayer":
-		var layer = log.param.layer;
-		var idx = layers.indexOf(layer);
-		layers.splice(idx,1);
-		layer.div.remove();
-	}
-
-	inputs["history"].selectedIndex=history_cursor;
-}
-var undo=function(obj){
-	if(history_cursor<0){
-		//最古の場合は無効
-		return;
-	}
-
-	var log = command_history[history_cursor];
-
-	for(var di=log.difs.length;di--;){
-		var dif = log.difs[di];
-		copyImg(dif.layer.img,dif.x,dif.y,dif.img,0,0,dif.img.width,dif.img.height);
-	}
-
-	switch(log.command){
-	case "createLayer":
-		var layer = log.param.layer;
-		var idx = layers.indexOf(layer);
-		layers.splice(idx,1);
-		layer.div.remove();
-		layer.div.classList.remove("active_layer");
-
-		break;
-	case "deleteLayer":
-		var layer = log.param.layer;
-		var idx = log.param.idx;
-
-		layers.splice(idx,0,layer);
-
-		var layers_container = document.getElementById("layers_container");
-		for(var li=layers.length;li--;){
-			layers_container.appendChild(layers[li].div);
-		}
-		break;
-	}
-		
-	refreshMain();
-	history_cursor--;
-
-	inputs["history"].selectedIndex=history_cursor;
-
-}
-
-var createDif=function(layer,left,top,width,height){
-	var img = new Img(width,height);
-	copyImg(img,0,0,layer.img,left,top,width,height);
-	var dif={};
-	dif.img=img;
-	dif.x=left;
-	dif.y=top;
-	dif.layer=layer;
-	return dif;
-
-}
 var copyImg= function(dst,dst_x,dst_y,src,src_x,src_y,src_w,src_h){
 	var dst_data = dst.data;
 	var dst_width = dst.width;
@@ -111,49 +20,22 @@ var copyImg= function(dst,dst_x,dst_y,src,src_x,src_y,src_w,src_h){
 
 	}
 }
-var Log=function(){
-	this.command="";
-	this.param={};
-	this.difs=[];
-	
-}
-var createLog=function(command,param){
-	//ログ情報を作成しヒストリーに追加
-	var log=new Log();
-	log.command=command;
-	log.param=param;
-	history_cursor++;
-
-
-	//カーソル以降のヒストリ削除
-	var m = command_history.length - (history_cursor );
-	for(var hi=0;hi<m;hi++){
-		//command_history.pop();
-		inputs["history"].children[history_cursor].remove();
-	}
-	command_history.splice(history_cursor,command_history.length-(history_cursor));
-
-	//ヒストリ追加
-	command_history.push(log);
-	var option=document.createElement("option");
-	option.innerHTML = ""+command+"{"+param+"}";
-	log.option=option;
-	inputs["history"].appendChild(option);
-	inputs["history"].selectedIndex=history_cursor;
-}
-var deleteLog=function(){
-	var m = command_history.length - (history_cursor );
-	for(var hi=0;hi<m;hi++){
-		command_history[hi].option.remove();
-	}
-	command_history.splice(0,history_cursor+1);
-	history_cursor=0;
-	
-}
 var Command = (function(){
 	var  Command = function(){};
 	var ret = Command;
 
+var createDif=function(layer,left,top,width,height){
+	//更新領域の古い情報を保存
+	var img = new Img(width,height);
+	copyImg(img,0,0,layer.img,left,top,width,height);
+	var dif={};
+	dif.img=img;
+	dif.x=left;
+	dif.y=top;
+	dif.layer=layer;
+	return dif;
+
+}
 	var fillStack=[];
 	var joined_r,joined_g,joined_b,joined_a;
 	var target_r,target_g,target_b,target_a;
@@ -271,12 +153,15 @@ var Command = (function(){
 
 		var width = refresh_right-refresh_left;
 		var height= refresh_bottom -refresh_top;
-		var command = command_history[command_history.length-1];
-		var layer_img= layer.img;
-		layer.img = old_img;
-		var dif=createDif(layer,refresh_left,refresh_top,width,height);
-		layer.img=layer_img;
-		command.difs.push(dif);
+
+		var log = History.createLog("fill",{"x":x,"y":y,"color":col,"layer":layer});
+		if(log){
+			var layer_img= layer.img;
+			layer.img = old_img;
+			var dif=createDif(layer,refresh_left,refresh_top,width,height);
+			layer.img=layer_img;
+			log.difs.push(dif);
+		}
 
 		refreshMain(0,refresh_left,refresh_top,refresh_right-refresh_left,refresh_bottom-refresh_top);
 	}
@@ -307,13 +192,16 @@ var Command = (function(){
 		top= Math.max(top-bold,0);
 		bottom=Math.min(bottom+bold,img.height);
 
-		//差分ログ作成
-		var command = command_history[history_cursor];
-		var dif=createDif(layer,left,top,right-left,bottom-top);
-		if(!command.difs){
-			command.difs=[];
+
+		if(pen_log){
+			//差分ログ作成
+			var command = pen_log;
+			var dif=createDif(layer,left,top,right-left,bottom-top);
+			if(!command.difs){
+				command.difs=[];
+			}
+			command.difs.push(dif);
 		}
-		command.difs.push(dif);
 
 
 		Vec2.sub(vec2,old_p,vec2);
@@ -442,7 +330,7 @@ ret.deleteLayer=function(layer){
 
 
 
-		createLog("createLayer",{"layer":layer,"idx":idx});
+		History.createLog("createLayer",{"layer":layer,"idx":idx});
 		 return layer;
 
 	}
