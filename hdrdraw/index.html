@@ -771,6 +771,13 @@ var onloadfunc=function(e){
 	ctx_imagedata=ctx.createImageData(canvas.width,canvas.height);
 
 
+	var elements= Array.prototype.slice.call(document.getElementsByTagName("input"));
+	elements = elements.concat(Array.prototype.slice.call(document.getElementsByTagName("select")));
+	for(var i=0;i<elements.length;i++){
+		var id= elements[i].getAttribute("id");
+		inputs[id]= elements[i];
+	}
+
 
 	joined_img = new Img(canvas.width,canvas.height);
 	horizon_img = new Img(canvas.width,canvas.height);
@@ -922,22 +929,16 @@ var onloadfunc=function(e){
 
 
 
-	var color_base =document.getElementById("color_base");
-	var color_lumi=document.getElementById("color_lumi");
-	var color_R=document.getElementById("color_R");
-	var color_G=document.getElementById("color_G");
-	var color_B=document.getElementById("color_B");
-	var color_A=document.getElementById("color_A");
 	var color_sample=document.getElementById("color_sample");
 
 	var createRGBA=function(){
 		var base = new Vec3();
-		var lumi = parseFloat(color_lumi.value);
-		Util.hex2rgb(base ,color_base.value);
+		var lumi = parseFloat(inputs["color_lumi"].value);
+		Util.hex2rgb(base ,inputs["color_base"].value);
 
-		color_R.value = base[0]*lumi;
-		color_G.value = base[1]*lumi;
-		color_B.value = base[2]*lumi;
+		inputs["color_R"].value = base[0]*lumi;
+		inputs["color_G"].value = base[1]*lumi;
+		inputs["color_B"].value = base[2]*lumi;
 
 		Util.fireEvent(color_R,"change");
 		Util.fireEvent(color_G,"change");
@@ -992,12 +993,6 @@ var onloadfunc=function(e){
 	  });
 	}
 
-	var elements= Array.prototype.slice.call(document.getElementsByTagName("input"));
-	elements = elements.concat(Array.prototype.slice.call(document.getElementsByTagName("select")));
-	for(var i=0;i<elements.length;i++){
-		var id= elements[i].getAttribute("id");
-		inputs[id]= elements[i];
-	}
 
     var a = document.getElementById("save_ldr");
 	a.addEventListener("contextmenu",save_ldr);
