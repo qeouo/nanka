@@ -13,6 +13,9 @@
 body{
 	background-color:gray;
 }
+#history{
+	width:300px; 
+}
 .hoge{
 border:solid;
 overflow:scroll;
@@ -76,27 +79,12 @@ width:256px;
 <script type="text/javascript" src="../lib/geono.js"></script>
 <script type="text/javascript" src="./log.js"></script>
 <script type="text/javascript" src="./command.js"></script>
+<script type="text/javascript" src="./redraw.js"></script>
+<script type="text/javascript" src="./img.js"></script>
+<script type="text/javascript" src="./layer.js"></script>
 <script type="text/javascript">
 "use strict"
-var Img = (function(){
-//イメージ
-	var Img = function(x,y){
-		if(!x){
-			x=0;
-			y=0;
-		}
-		this.width=x;
-		this.height=y;
-		this.data=null;
-		if(this.width){
-			this.data=new Float32Array(this.width*this.height<<2);
-		}
 
-	};
-	var ret = Img;
-
-	return ret;
-})();
 var layerValues=["name","blendfunc","alpha","power"];
 var Layer=(function(){
 //レイヤ
@@ -113,597 +101,26 @@ var Layer=(function(){
 	return ret;
 })();
 var draw_col=new Vec4();
-var ctx,canvas,ctx_imagedata;
-var preview,preview_ctx;
+var preview,preview_ctx,preview_ctx_imagedata;
 var thumbnail_ctx,thumbnail_canvas;
-var layers=[];
-var selected_layer = null;
-var layers_container;
 var refreshoff=0;
 var inputs=[];
-
-
-var joined_img=null;
-var horizon_img=null;
-var bloomed_img=null;
-var bloom_img=null;
-
-var funcs=[];
-
-funcs["normal"] = function(dst,dst_idx,src,src_idx,alpha,power){
-	var alpha=src[src_idx+3]*alpha;
-	var dst_alpha = dst[dst_idx+3];
-	var dst_r = dst_alpha*(1-alpha);
-	var src_r = power*alpha;
-
-	dst[dst_idx+0]=dst[dst_idx+0] * dst_r +  src[src_idx+0]*src_r;
-	dst[dst_idx+1]=dst[dst_idx+1] * dst_r +  src[src_idx+1]*src_r;
-	dst[dst_idx+2]=dst[dst_idx+2] * dst_r +  src[src_idx+2]*src_r;
-	dst[dst_idx+3]=dst_r+alpha;
-}
-funcs["mul"] = function(dst,dst_idx,src,src_idx,alpha,power){
-	var alpha=src[src_idx+3]*alpha;
-	var dst_alpha = dst[dst_idx+3];
-	var dst_r = dst_alpha*(1-alpha);
-	var src_r = power*alpha;
-
-	dst[dst_idx+0]=dst[dst_idx+0] * (dst_r +  src[src_idx+0]*src_r);
-	dst[dst_idx+1]=dst[dst_idx+1] * (dst_r +  src[src_idx+1]*src_r);
-	dst[dst_idx+2]=dst[dst_idx+2] * (dst_r +  src[src_idx+2]*src_r);
-	dst[dst_idx+3]=dst_r+alpha;
-}
-funcs["add"] = function(dst,dst_idx,src,src_idx,alpha,power){
-	var alpha=src[src_idx+3]*alpha;
-	var dst_alpha = dst[dst_idx+3];
-	var dst_r = dst_alpha*(1-alpha);
-	var src_r = power*alpha;
-
-	dst[dst_idx+3]=dst_r+alpha;
-	dst_r = dst_r + alpha;
-	dst[dst_idx+0]=dst[dst_idx+0] * dst_r + src[src_idx+0]*src_r;
-	dst[dst_idx+1]=dst[dst_idx+1] * dst_r + src[src_idx+1]*src_r;
-	dst[dst_idx+2]=dst[dst_idx+2] * dst_r + src[src_idx+2]*src_r;
-}
-
-funcs["sub"] = function(dst,dst_idx,src,src_idx,alpha,power){
-	var alpha=src[src_idx+3]*alpha;
-	var dst_alpha = dst[dst_idx+3];
-	var dst_r = dst_alpha*(1-alpha);
-	var src_r = power*alpha;
-
-	dst[dst_idx+3]=dst_r+alpha;
-	dst_r = dst_r + alpha;
-	dst[dst_idx+0]=dst[dst_idx+0] * dst_r - src[src_idx+0]*src_r;
-	dst[dst_idx+1]=dst[dst_idx+1] * dst_r - src[src_idx+1]*src_r;
-	dst[dst_idx+2]=dst[dst_idx+2] * dst_r - src[src_idx+2]*src_r;
-}
-var refreshMain=function(step,x,y,w,h){
-	//プレビュー画面を更新
-	
-	if(refreshoff){
-		//更新禁止フラグが立っている場合は処理しない
-		return;
-	}
-	if( typeof step === 'undefined'){
-		step=0;
-	}
-
-	//引数無しの場合、デフォルトで更新領域は全域
-	var left = 0;
-	var right = joined_img.width; 
-	var top = 0;
-	var bottom = joined_img.height;
-
-	if(w){
-		left=x;
-		right=x+w;
-		top=y;
-		bottom=y+h;
-
-		//更新領域設定、はみ出している場合はクランプする
-		var bloomsize = 10;
-		left-=bloomsize;
-		right+=bloomsize;
-		top-=bloomsize;
-		bottom+=bloomsize;
-		
-		left=Math.max(0,left);
-		right=Math.min(joined_img.width,right);
-		top=Math.max(0,top);
-		bottom=Math.min(joined_img.height,bottom);
-	}
-
-	var joined_img_data = joined_img.data;
-	var joined_img_width = joined_img.width;
-
-	//0で初期化
-	if(step<=0){
-		for(var yi=top;yi<bottom;yi++){
-			var idx = yi * joined_img_width + left << 2;
-			var max = yi * joined_img_width + right << 2;
-			for(;idx<max;idx+=4){
-				joined_img_data[idx+0]=0;
-				joined_img_data[idx+1]=0;
-				joined_img_data[idx+2]=0;
-				joined_img_data[idx+3]=0;
-			}
-		}
-
-		//レイヤ合成
-		for(var li=0;li<layers.length;li++){
-			var layer = layers[li];
-
-			if(!layer.display){
-				//非表示の場合スルー
-				continue;
-			}
-			var layer_img_data = layer.img.data;
-			var layer_alpha=layer.alpha;
-			var layer_power=layer.power;
-			var layer_img_width = layer.img.width;
-			var func = funcs[layer.blendfunc];
-
-			var left2 = Math.max(left,0);
-			var top2 = Math.max(top,0);
-			var right2 = Math.min(layer.img.width,right);
-			var bottom2 = Math.min(layer.img.height,bottom);
-
-			for(var yi=top2;yi<bottom2;yi++){
-				var idx = yi * joined_img_width + left2 << 2;
-				var max = yi * joined_img_width + right2 << 2;
-				var idx2 = yi * layer_img_width + left2 << 2;
-				for(;idx<max;idx+=4){
-					func(joined_img_data,idx,layer_img_data,idx2,layer_alpha,layer_power);
-					idx2+=4;
-				}
-			}
-			
-		}
-		//if(inputs["ch_bloom"].checked && bloom>0){
-		gauss(100,bloom,left,right,top,bottom);
-		//}
-	}
-
-	//ブルーム処理
-	//ブルーム前の絵はjoined_imgに残し、結果はbloomed_imgに出力
-	if(step<=1){
-		var bloom = parseFloat(inputs["bloom"].value);
-		var bloom_img_data = bloom_img.data;
-		var bloomed_img_data = bloomed_img.data;
-		if(inputs["ch_bloom"].checked && bloom>0){
-			for(var yi=top;yi<bottom;yi++){
-				var idx = yi * joined_img_width + left << 2;
-				var max = yi * joined_img_width + right<< 2;
-				for(;idx<max;idx+=4){
-					bloom_img_data[idx]=joined_img_data[idx] + bloomed_img_data[idx]*bloom;
-					bloom_img_data[idx+1]=joined_img_data[idx+1]+ bloomed_img_data[idx+1]*bloom;
-					bloom_img_data[idx+2]=joined_img_data[idx+2]+bloomed_img_data[idx+2]*bloom;
-					bloom_img_data[idx+3]=joined_img_data[idx+3]+bloomed_img_data[idx+3]*bloom;
-				}
-			}
-		}else{
-			for(var yi=top;yi<bottom;yi++){
-				var idx = yi * joined_img_width + left << 2;
-				var max = yi * joined_img_width + right<< 2;
-				for(;idx<max;idx+=4){
-					bloom_img_data[idx]=joined_img_data[idx];
-					bloom_img_data[idx+1]=joined_img_data[idx+1];
-					bloom_img_data[idx+2]=joined_img_data[idx+2];
-					bloom_img_data[idx+3]=joined_img_data[idx+3];
-				}
-			}
-		}
-	}
-
-	if(step<=2){
-		//ガンマ補正とトーンマッピング
-		var ctx_imagedata_data = ctx_imagedata.data;
-		var ev = parseFloat(inputs["ev"].value);
-		var gamma = 1.0/parseFloat(inputs["gamma"].value);
-		var r = Math.pow(2,-ev)*255;
-
-		joined_img_data = bloom_img.data;
-
-		if(inputs["ch_gamma"].checked){
-			for(var yi=top;yi<bottom;yi++){
-				var idx = yi * joined_img_width + left << 2;
-				var max = yi * joined_img_width + right << 2;
-				for(;idx<max;idx+=4){
-					ctx_imagedata_data[idx+0]=Math.pow(joined_img_data[idx+0],gamma)*r;
-					ctx_imagedata_data[idx+1]=Math.pow(joined_img_data[idx+1],gamma)*r;
-					ctx_imagedata_data[idx+2]=Math.pow(joined_img_data[idx+2],gamma)*r;
-					ctx_imagedata_data[idx+3]=joined_img_data[idx+3]*255;
-				}
-			}
-		}else{
-			for(var yi=top;yi<bottom;yi++){
-				var idx = yi * joined_img_width + left << 2;
-				var max = yi * joined_img_width + right << 2;
-				for(;idx<max;idx+=4){
-					ctx_imagedata_data[idx+0]=joined_img_data[idx+0]*r;
-					ctx_imagedata_data[idx+1]=joined_img_data[idx+1]*r;
-					ctx_imagedata_data[idx+2]=joined_img_data[idx+2]*r;
-					ctx_imagedata_data[idx+3]=joined_img_data[idx+3]*255;
-				}
-			}
-		}
-	}
-
-	//結果をキャンバスに表示
-	preview_ctx.putImageData(ctx_imagedata,0,0,left,top,right-left,bottom-top);
-
-	
-}
-
-var gauss=function(d,power,left,right,top,bottom){
-	var MAX = 10;
-	var src= joined_img;
-	var dst= horizon_img;
-	var joined_img_data=joined_img.data;
-	
-
-	//係数作成
-	var weight = new Array(MAX);
-	var t = 0.0;
-	for(var i = 0; i < weight.length; i++){
-		var r = 1.0 + 2.0 * i;
-		var we = Math.exp(-0.5 * (r * r) / d);
-		weight[i] = we;
-		if(i > 0){we *= 2.0;}
-		t += we;
-	}
-	for(i = 0; i < weight.length; i++){
-		weight[i] /= t;
-	}
-
-	var height = joined_img.height;
-	var width = joined_img.width;
-	var data = src.data;
-	var dstdata = dst.data;
-	//横ぼかし
-	for(var y=top;y<bottom;y++){
-		var yidx= y * width;
-		var x = left;
-		var idx = yidx + left <<2;
-		var max = yidx + right <<2;
-		for(;idx<max;idx+=4){
-			dstdata[idx+0]=data[idx+0]*weight[0];
-			dstdata[idx+1]=data[idx+1]*weight[0];
-			dstdata[idx+2]=data[idx+2]*weight[0];
-		}
-		max = Math.min(MAX,right);
-		for(;x<max;x++){
-	 		var idx= yidx + x <<2;
-			for(var i=1;i<MAX;i++){
-	 			var idx2= yidx + Math.max(x -i,0) <<2;
-	 			var idx3= yidx + Math.min(x +i,width-1) <<2;
-				var r = weight[i];
-				dstdata[idx+0]+=(data[idx2+0] +data[idx3+0])*r;
-				dstdata[idx+1]+=(data[idx2+1] +data[idx3+1])*r;
-				dstdata[idx+2]+=(data[idx2+2] +data[idx3+2])*r;
-			}
-		}
-
-		max = right-MAX;
-		for(;x<max;x++){
-	 		var idx= yidx + x <<2;
-	  		for(var i=1;i<MAX;i++){
-				dstdata[idx+0]+=(data[idx+0+(i<<2)] + data[idx+0-(i<<2)])*weight[i];
-				dstdata[idx+1]+=(data[idx+1+(i<<2)] + data[idx+1-(i<<2)])*weight[i];
-				dstdata[idx+2]+=(data[idx+2+(i<<2)] + data[idx+2-(i<<2)])*weight[i];
-			}
-		}
-		var max = right;
-		for(;x<max;x++){
-	 		var idx= yidx + x <<2;
-			for(var i=1;i<MAX;i++){
-	 			var idx2= yidx + Math.max(x -i,0) <<2;
-	 			var idx3= yidx + Math.min(x +i,width-1) <<2;
-				var r = weight[i];
-				dstdata[idx+0]+=(data[idx2+0] +data[idx3+0])*r;
-				dstdata[idx+1]+=(data[idx2+1] +data[idx3+1])*r;
-				dstdata[idx+2]+=(data[idx2+2] +data[idx3+2])*r;
-			}
-		}
-	}
-
-	//縦ぼかし
-	data = dst.data;
-	dstdata = bloomed_img.data;
-
-	for(var x=left;x<right;x++){
-		var max = Math.min(MAX,bottom);
-
-		var idx = top*width + x<<2;
-		var max = bottom*width+ x<<2;
-		var r = weight[0];
-		for(;idx<max;idx+=width*4){
-			dstdata[idx+0]=data[idx+0]*r;
-			dstdata[idx+1]=data[idx+1]*r;
-			dstdata[idx+2]=data[idx+2]*r;
-		}
-	
-		y=top
-		max = Math.min(MAX,bottom);
-		for(;y<max;y++){
-	 		idx= y * width + x <<2;
-
-			for(var i=1;i<MAX;i++){
-	 			var idx2= Math.max(y-i,0) *width+ x  <<2;
-	 			var idx3= Math.min(y+i,height-1)*width+x <<2;
-				var r = weight[i];
-				dstdata[idx+0]+=(data[idx2+0] +data[idx3+0])*r;
-				dstdata[idx+1]+=(data[idx2+1] +data[idx3+1])*r;
-				dstdata[idx+2]+=(data[idx2+2] +data[idx3+2])*r;
-			}
-		 }
-		max = Math.min(height-MAX,bottom);
-		for(;y<max;y++){
-	 		idx= y * width + x <<2;
-
-			for(var i=1;i<MAX;i++){
-	 			var idx2= (y-i) *width+ x  <<2;
-	 			var idx3= (y+i)*width+x <<2;
-				var r = weight[i];
-				dstdata[idx+0]+=(data[idx2+0] +data[idx3+0])*r;
-				dstdata[idx+1]+=(data[idx2+1] +data[idx3+1])*r;
-				dstdata[idx+2]+=(data[idx2+2] +data[idx3+2])*r;
-			}
-		}
-		for(;y<bottom;y++){
-	 		idx= y * width + x <<2;
-
-			for(var i=1;i<MAX;i++){
-	 			var idx2= Math.max(y-i,0) *width+ x  <<2;
-	 			var idx3= Math.min(y+i,height-1)*width+x <<2;
-				var r = weight[i];
-				dstdata[idx+0]+=(data[idx2+0] +data[idx3+0])*r;
-				dstdata[idx+1]+=(data[idx2+1] +data[idx3+1])*r;
-				dstdata[idx+2]+=(data[idx2+2] +data[idx3+2])*r;
-			}
-		}
-	 }
-
-}
-
-var refreshLayer = function(layer,thumb){
-
-
-	//レイヤサムネイル更新
-
-	if(thumb){
-		var img = layer.img;
-		var img_data=img.data;
-		for(var yi=0;yi<img.height;yi++){
-			for(var xi=0;xi<img.width;xi++){
-				var idx=yi*img.width + xi<<2;
-				var idx2=yi*canvas.width + xi<<2;
-				for(var ii=0;ii<4;ii++){
-					ctx_imagedata.data[idx2+ii]=img_data[idx+ii]*255.0;
-				}
-			}
-		}
-			
-		ctx.putImageData(ctx_imagedata,0,0);
-		thumbnail_ctx.clearRect(0,0,thumbnail_canvas.width,thumbnail_canvas.height);
-		thumbnail_ctx.drawImage(canvas,0,0,img.width,img.height,0,0,thumbnail_canvas.width,thumbnail_canvas.height);
-		var layer_img=layer.div.getElementsByTagName("img")[0];
-		layer_img.src=thumbnail_canvas.toDataURL("image/png");
-	}
-
-	var div= layer.div.getElementsByTagName("div")[0];
-	div.innerHTML=layer.name;
-	var span = layer.div.getElementsByTagName("span")[0];
-	var txt="";
-	for(var i=1;i<layerValues.length;i++){
-		var member = layerValues[i];
-		txt +=  member +": ";
-		if(!isNaN(layer[member])){
-			txt += parseFloat(layer[member]).toFixed(4);
-		}else{
-			txt += layer[member];
-		}
-	 	txt+="<br>" ;
-	}
-	 if(!layer.display){
-		layer.div.classList.add("disable_layer");
-	 }else{
-		layer.div.classList.remove("disable_layer");
-	 }
-
-	span.innerHTML = txt;
-}
-
-
-var createExr=function(img){
-	var obj={};
-	obj.width =img.width;
-	obj.height=img.height;
-	
-	obj.attributes=[];
-	obj.attributes["compression"]=0;
-	obj.attributes["dataWindow"]={xMin:0,yMin:0,xMax:img.width-1,yMax:img.height-1};
-	obj.attributes["displayWindow"]={xMin:0,yMin:0,xMax:img.width-1,yMax:img.height-1};
-	obj.attributes["lineOrder"]=0;
-	obj.attributes["pixelAspectRatio"]=1;
-	obj.attributes["screenWindowCenter"]=[0,0];
-	obj.attributes["screenWindowWidth"]=1;
-
-	var size = img.width*img.height;
-	var channels=[];
-	for(var i=0;i<4;i++){
-		var channel={};
-		channel.data=new Float32Array(size);
-		channel.pixel_type=1;
-		channel.pLiner=0;
-		channel.reserved=0;
-		channel.xSampling=1;
-		channel.ySampling=1;
-		channels.push(channel);
-	}
-	channels[0].name="A";
-	channels[1].name="B";
-	channels[2].name="G";
-	channels[3].name="R";
-
-	var img_data = img.data;
-	for(var i=0;i<size;i++){
-		var idx=i<<2;
-		channels[0].data[i]=img_data[idx+3];
-		channels[1].data[i]=img_data[idx+2];
-		channels[2].data[i]=img_data[idx+1];
-		channels[3].data[i]=img_data[idx+0];
-	}
-	obj.attributes.channels=channels;
-
-
-	return OpenEXR.toArrayBuffer(obj);
-}
-var loadExr=function(url,callback){
-	var img = new Img();
-	Util.loadBinary(url,function(buffer){
-		var obj={};
-		OpenEXR.fromArrayBuffer(obj,buffer);
-
-		img.width =obj.width;
-		img.height=obj.height;
-		img.data=new Float32Array(img.width*img.height*4);
-	 
-		//RGBAチャンネルの情報をdataにセットする
-		var channels=obj.attributes.channels;
-		var data = img.data;
-		var cindex={};
-		for(var i=0;i<channels.length;i++){
-			cindex[channels[i].name]=i;
-		}
-		var r = cindex["R"];
-		var g = cindex["G"];
-		var b = cindex["B"];
-		var size = img.width*img.height*4;
-		for(var i=0;i<size;i+=4){
-			data[i]=channels[r].data[i>>2];
-			data[i+1]=channels[g].data[i>>2];
-			data[i+2]=channels[b].data[i>>2];
-		}
-		var a = cindex["A"];
-		if(a){
-			for(var i=0;i<size;i+=4){
-				data[i+3]=channels[a].data[i>>2];
-			}
-		}else{
-			for(var i=0;i<size;i+=4){
-				data[i+3]=1;
-			}
-		}
-		if(callback){
-			callback(obj);
-		}
-	});
-	return img;
-}
-
-var loadImg=function(url,func){
-	var image = new Image();
-	image.src=url;
-	var img=new Img();
-	image.onload=function(e){
-		img.width=image.width;
-		img.height=image.height;
-
-		if(canvas.width<img.width || canvas.height<img.height){
-			//開いた画像がキャンバスより大きい場合は広げる
-			if(canvas.width<img.width){
-				canvas.width=img.width;
-				preview.width=img.width;
-			}
-			if(canvas.height<img.height){
-				canvas.height=img.height;
-				preview.height=img.height;
-			}
-			ctx_imagedata=ctx.createImageData(canvas.width,canvas.height);
-			joined_img = new Img(canvas.width,canvas.height);
-			horizon_img = new Img(canvas.width,canvas.height);
-			bloomed_img = new Img(canvas.width,canvas.height); 
-			bloom_img = new Img(canvas.width,canvas.height); 
-		}
-
-
-		//ピクセルメモリ確保
-		img.data=new Float32Array(img.width*img.height*4);
-
-		//ピクセルデータ取得
-		ctx.clearRect(0,0,canvas.width,canvas.height);
-		ctx.drawImage(image,0,0);
-		var data=ctx.getImageData(0,0,img.width,img.height).data;
-		var r = 1.0/255.0;
-		for(var di=0;di<img.width*img.height*4;di++){
-			img.data[di]=data[di] * r;
-		}
-
-		if(func){
-			func(img);
-		}
-	}
-	return img;
-}
-
-
-var getLayerNum=function(div){
-	//divからレイヤー番号取得
-	return layers.findIndex(function(l){return l.div===div;});
-}
-var layerSelect= function(e){
-//レイヤー一覧クリック時、クリックされたものをアクティブ化する
-	for(var li=0;li<layers.length;li++){
-	  var layer=layers[li];
-	  if(this === layer.div){
-		//パラメータ変更による再描画を一時的に無効にする
-		refreshoff=true;
-
-	  	selected_layer=layer;
-	var layer_inputs = Array.prototype.slice.call(document.getElementById("layer_param").getElementsByTagName("input"));
-	layer_inputs = layer_inputs.concat(Array.prototype.slice.call(document.getElementById("layer_param").getElementsByTagName("select")));
-		for(var i=0;i<layer_inputs.length;i++){
-			var input = layer_inputs[i];
-			var member = input.id.replace("layer_","");
-			if(member in layer){
-	  			if(input.getAttribute("type")==="checkbox"){
-	  				input.checked=layer[member];
-				}else{
-					input.value=layer[member];
-				}
-				Util.fireEvent(input,"change");
-	   		}
-		}
-
-		layer.div.classList.add("active_layer");
-		refreshoff=false;
-	  }else{
-		layer.div.classList.remove("active_layer");
-	  }
-	}
-
-}
 
 
 
 var save_hdr= function(e){
 	var a = e.target;
-	//var url=preview.toDataURL("image/png");
-	var buffer = createExr(joined_img);
+	var buffer = joined_img.createExr();
     var blob = new Blob([buffer], {type: "application/octet-stream"});
     var url = window.URL.createObjectURL(blob);
 
     a.href = url;
     a.target = '_blank';
     a.download = "preview_hdr.exr";
-    //a.click();
 }
 var save_ldr= function(e){
 	var a = e.target;
 	var url=preview.toDataURL("image/png");
-    //var blob = new Blob([b], {type: "application/octet-stream"});
-    //var url = window.URL.createObjectURL(blob);
 
     a.href = url;
     a.target = '_blank';
@@ -712,63 +129,20 @@ var save_ldr= function(e){
 }
 
 
-var createNewLayer=function(e){
-	//新規レイヤーを作成
-	var width=document.getElementById("width").value;
-	var height=document.getElementById("height").value;
-	
-	if(isNaN(width) || isNaN(height) || width ==="" || height===""){
-		width=canvas.width;
-		height=canvas.height;
-	}
-	var img = new Img(width,height);
-	var idx= layers.indexOf(selected_layer)+1;
-	
-	var layer=Command.createLayer(img,idx);
-//		for(var i=0;i<width*height*4;i++){
-//			img_data[i]=1;
-//		}
-
-	refreshLayer(layer,true);
-	refreshMain(0);
-
-}
-function DragStart(event) {
-     event.dataTransfer.setData("text", getLayerNum(event.currentTarget));
-}
-function dragover_handler(ev) {
- ev.preventDefault();
- ev.dataTransfer.dropEffect = "move";
-}	
-function Drop(event) {
-    var drag = event.dataTransfer.getData("text");
-	var drag_div = layers[drag].div;
-	if(drag_div === event.currentTarget){
-		return;
-	}
-	var layer=layers[drag];
-	layers.splice(drag,1);
-	var drop = getLayerNum(event.currentTarget);
-	var drop_div = layers[drop].div;
-
-	var layers_container = document.getElementById("layers_container");
-	if(event.offsetY<32){
-		layers_container.insertBefore(drag_div,drop_div);
-		layers.splice(drop+1,0,layer);
-	}else{
-		layers_container.insertBefore(drag_div,drop_div.nextSibling);
-		layers.splice(drop,0,layer);
-	}
-	refreshMain(0);
-
-}
 var pen_log=null;
+var resetCanvas=function(width,height){
+	preview_ctx_imagedata=preview_ctx.createImageData(width,height);
+	joined_img = new Img(width,height);
+	horizon_img = new Img(width,height);
+	bloomed_img = new Img(width,height);
+	bloom_img = new Img(width,height);
+}
+
 var onloadfunc=function(e){
 	preview=  document.getElementById('preview');
 	preview_ctx =  preview.getContext('2d')
-	canvas =  document.getElementById('c')
-	ctx =  canvas.getContext('2d')
-	ctx_imagedata=ctx.createImageData(canvas.width,canvas.height);
+	preview_ctx_imagedata=preview_ctx.createImageData(preview.width,preview.height);
+
 
 
 	var elements= Array.prototype.slice.call(document.getElementsByTagName("input"));
@@ -778,11 +152,8 @@ var onloadfunc=function(e){
 		inputs[id]= elements[i];
 	}
 
+	resetCanvas(preview.width,preview.height);
 
-	joined_img = new Img(canvas.width,canvas.height);
-	horizon_img = new Img(canvas.width,canvas.height);
-	bloomed_img = new Img(canvas.width,canvas.height);
-	bloom_img = new Img(canvas.width,canvas.height);
 	thumbnail_canvas =  document.createElement('canvas');
 	thumbnail_canvas.width=64;
 	thumbnail_canvas.height=64;
@@ -794,18 +165,18 @@ var onloadfunc=function(e){
 		var file=evt.target.files[0];
 		reader.onload=function(e){
 			var fu =function(img){
-				if(selected_layer>=0){
-					idx = layers.indexOf(selected_layer)+1;
-				}
+				var idx = layers.indexOf(selected_layer)+1;
+				
+
 				var layer=Command.createLayer(img,idx);
 				layer.name = file.name;
 				refreshLayer(layer,true);
 				refreshMain(0);
 			}
 	 		if(/^image\//.test(file.type)){
-				loadImg(e.target.result,fu);
+				Img.loadImg(e.target.result,fu);
 	 		} else if(/.*\.exr$/.test(file.name)){
-				loadExr(e.target.result,fu);
+				Img.loadExr(e.target.result,fu);
 	 		}
 		}
 		reader.readAsDataURL(file);
@@ -821,7 +192,14 @@ var onloadfunc=function(e){
 				var vec2 = new Vec2();
 				vec2[0]=e.offsetX;
 				vec2[1]=e.offsetY;
-				pen_log.param.points.push(vec2);
+				var points = pen_log.param.points;
+				points.push(vec2);
+				pen_log.label = "[" + ("0000" + pen_log.id).slice(-4) + "]pen" ;
+				pen_log.label += "(" + points[0][0].toFixed(0)+ ","+ points[0][1].toFixed(0)+")-";
+				pen_log.label += (points.length-2) +"-";
+				pen_log.label += "(" + points[points.length-1][0].toFixed(0)+ ","+ points[points.length-1][1].toFixed(0)+")";
+				Util.setText(pen_log.option,pen_log.label);
+
 				var index = pen_log.param.points.length-1;
 
 				var bold=parseFloat(inputs["bold"].value);
@@ -839,7 +217,7 @@ var onloadfunc=function(e){
 
 		if(x<0 || y<0 || x>=width || y>=height){return;}
 
-		var idx=(y*canvas.width+x)*4;
+		var idx=(y*preview.width+x)*4;
 		var r= data[idx];
 		var g= data[idx+1];
 		var b= data[idx+2];
@@ -869,10 +247,7 @@ var onloadfunc=function(e){
 	};
 	
 	preview.addEventListener("mouseup",function(e){
-		if(pen_log.length>0){
-			pen_log=null;
-
-		}
+		pen_log=null;
 	},false);
 	preview.addEventListener("mousemove",drawfunc,false);
 	preview.addEventListener("mousedown",function(e){
@@ -881,7 +256,7 @@ var onloadfunc=function(e){
 		}
 		if(inputs["pen"].checked && (e.buttons &1)){
 				var bold=parseFloat(inputs["bold"].value);
-			pen_log = History.createLog("pen",{"bold":bold,"color":draw_col,"layer":selected_layer});
+			pen_log = History.createLog("pen",{"bold":bold,"color":draw_col.slice(),"layer":selected_layer});
 			pen_log.param.points=[];
 			var vec2 = new Vec2();
 			vec2[0]=e.offsetX;
@@ -892,6 +267,9 @@ var onloadfunc=function(e){
 		drawfunc(e)
 
 	},false);
+    inputs["history"].addEventListener('change', function(event){
+		History.rest(this.selectedIndex);
+	});
     document.addEventListener('keydown', function(event){
  
 		if(event.keyCode===90 && event.ctrlKey){
@@ -916,12 +294,12 @@ var onloadfunc=function(e){
 			var layer = selected_layer;
 			var member = e.target.id.replace("layer_","");
 			if(e.target.getAttribute("type")==="checkbox"){
-	  			layer[member]=e.target.checked;
+	  			Command.changeLayerAttribute(layer,member,e.target.checked);
+	  			//layer[member]=e.target.checked;
 			  }else{
-				layer[member]=e.target.value;
+	  			Command.changeLayerAttribute(layer,member,e.target.value);
+				//layer[member]=e.target.value;
 			}
-			refreshLayer(layer);
-			refreshMain(0);
 		}
 
 		input.addEventListener("change",f);
@@ -1035,7 +413,6 @@ EV<input class="slider" id="ev" min="-5" max="5" value="0"/><br>
 </div>
 	<div class="hoge">
 		<canvas width="512" height="512" id="preview" ></canvas><br />
-		<canvas width="1" height="1" id="c"  style="display:none;"></canvas>
 	</div>
 	<span id="status"></span><br>
 		<label>pen<input type="radio" id="pen" name="tool" checked></label>
@@ -1044,12 +421,12 @@ EV<input class="slider" id="ev" min="-5" max="5" value="0"/><br>
 		radius<input class="slider" id="bold" max="100" value="4"/><br>
 		basecol<input class="colorpicker" id="color_base" value="ff0000"/>
 		lumi<input class="slider" id="color_lumi" max="100" value="1"><br>
-		<div id="color_sample" style="">
-			R<input class="slider" id="color_R" max="100"/><br>
-			G<input class="slider" id="color_G" max="100"/><br>
-			B<input class="slider" id="color_B" max="100"/><br>
-			A<input class="slider" id="color_A" max="1" value="1"/><br>
-		</div>
+		<ul id="color_sample" style="">
+			<li>R<input class="slider" id="color_R" max="100"/></li>
+			<li>G<input class="slider" id="color_G" max="100"/></li>
+			<li>B<input class="slider" id="color_B" max="100"/></li>
+			<li>A<input class="slider" id="color_A" max="1" value="1"/></li>
+		</ul>
 	</div>
 </div>
 
@@ -1080,11 +457,14 @@ power<input class="slider" id="layer_power" max="10"/><br>
 <input type="button" id="delete_layer" value="レイヤ削除" onclick="Command.deleteLayer(selected_layer);"><br>
 <input id="width" style="width:64px;"><input id="height" style="width:64px;"><input type="button" id="new" value="新規レイヤ"><br>
 <input type="file" id="f" accept="image/*,.hdr,.exr"><br>
-<a id="save_hdr" href="a">結合データをexrで保存(HDR)</a>
-<a id="save_ldr" href="a">プレビュー画像をpngで保存(LDR)</a>
+<ui>
+<li><a id="save_hdr" href="a">結合データをHDRで保存(exr)</a></li>
+<li><a id="save_ldr" href="a">プレビュー画像をLDRで保存(png)</a></li>
+</ui>
 </div>
 <div style="float:left;">
-	<select size=30 style="width:200px;" id="history">
+ヒストリ<br>
+	<select size=30 id="history">
 	</select>
 </div>
 </body>
