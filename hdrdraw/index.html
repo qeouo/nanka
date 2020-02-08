@@ -358,10 +358,10 @@ var onloadfunc=function(e){
 		input.addEventListener("change",function(e){
 
 			refreshColor();
-			if(e.target.id==="bloom"){
+			if(e.target.id==="bloom_power"){
 				refreshMain(1);
 	  		}
-			if(e.target.id==="ch_bloom"){
+			if(e.target.id==="ch_bloom" || e.target.id==="bloom_size"){
 				refreshMain();
 	  		}
 			if(e.target.id==="ch_gamma" || e.target.id==="gamma" || e.target.id==="ev"){
@@ -409,7 +409,7 @@ var onloadfunc=function(e){
 ビュー<br>
 <input type="checkbox" id="ch_gamma">γ<input class="slider" id="gamma" max="4" value="2.2"/><br>
 EV<input class="slider" id="ev" min="-5" max="5" value="0"/><br>
-<label><input type="checkbox" id="ch_bloom">bloom</label><input class="slider" id="bloom" max="1" value="0"/><br>
+<label><input type="checkbox" id="ch_bloom">bloom</label>power<input class="slider" id="bloom_power" max="1" value="0.1"/>size<input class="slider" id="bloom_size" max="100" value="10"/><br>
 </div>
 	<div class="hoge">
 		<canvas width="512" height="512" id="preview" ></canvas><br />

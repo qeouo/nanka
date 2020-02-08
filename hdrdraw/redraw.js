@@ -62,6 +62,7 @@ var refreshMain=function(step,x,y,w,h){
 	if( typeof step === 'undefined'){
 		step=0;
 	}
+	var bloom_size = parseFloat(inputs["bloom_size"].value);
 
 	//引数無しの場合、デフォルトで更新領域は全域
 	var left = 0;
@@ -76,11 +77,10 @@ var refreshMain=function(step,x,y,w,h){
 		bottom=y+h;
 
 		//更新領域設定、はみ出している場合はクランプする
-		var bloomsize = 10;
-		left-=bloomsize;
-		right+=bloomsize;
-		top-=bloomsize;
-		bottom+=bloomsize;
+		left-=bloom_size;
+		right+=bloom_size;
+		top-=bloom_size;
+		bottom+=bloom_size;
 		
 		left=Math.max(0,left);
 		right=Math.min(joined_img.width,right);
@@ -135,14 +135,14 @@ var refreshMain=function(step,x,y,w,h){
 			
 		}
 		//if(inputs["ch_bloom"].checked && bloom>0){
-		gauss(100,bloom,left,right,top,bottom);
+		gauss(10*bloom_size,bloom_size,left,right,top,bottom);
 		//}
 	}
 
 	//ブルーム処理
 	//ブルーム前の絵はjoined_imgに残し、結果はbloomed_imgに出力
 	if(step<=1){
-		var bloom = parseFloat(inputs["bloom"].value);
+		var bloom = parseFloat(inputs["bloom_power"].value)*10;
 		var bloom_img_data = bloom_img.data;
 		var bloomed_img_data = bloomed_img.data;
 		if(inputs["ch_bloom"].checked && bloom>0){
@@ -210,8 +210,8 @@ var refreshMain=function(step,x,y,w,h){
 	
 }
 
-var gauss=function(d,power,left,right,top,bottom){
-	var MAX = 10;
+var gauss=function(d,size,left,right,top,bottom){
+	var MAX = size;
 	var src= joined_img;
 	var dst= horizon_img;
 	var joined_img_data=joined_img.data;

@@ -53,19 +53,53 @@ var createDif=function(layer,left,top,width,height){
 	var fillSub=function(target,y,left,right){
 		var ref_data=joined_img.data;
 		var target_data=target.data;
-		var yidx = joined_img.width*y <<2;
 		var mode=0;
+
+		//¶‚Ì’[‚ð’T‚·
+		var xi = left;
+		var yidx = target.width*y<<2;
+		for(;xi>=0;xi--){
+			var idx2 = yidx + (xi<<2);
+			if(fillCheck(target_data,ref_data,idx2)){
+				if(mode===0){
+					mode=1;
+				}
+			}else{
+				break;
+			}
+		}
+		if(mode===1){
+			fillStack.push(y);
+			fillStack.push(xi+1);
+		}
+
 		for(var xi=left;xi<right;xi++){
 			var idx2 = yidx + (xi<<2);
 			if(fillCheck(target_data,ref_data,idx2)){
 				if(mode===0){
-					fillStack.push(xi);
 					fillStack.push(y);
+					fillStack.push(xi);
 					mode=1;
 				}
 			}else{
-				mode=0;
+				if(mode===1){
+					fillStack.push(xi);
+					mode=0;
+				}
 			}
+		}
+
+		//‰E’[
+		if(mode===1){
+			var xi = right-1;
+			for(;xi<target.width;xi++){
+				var idx2 = yidx + (xi<<2);
+				if(fillCheck(target_data,ref_data,idx2)){
+				}else{
+					break;
+				}
+			}
+			fillStack.push(xi);
 		}
 	}
 
@@ -75,8 +109,8 @@ var createDif=function(layer,left,top,width,height){
 		refresh_bottom=y;
 		refresh_left=x;
 		refresh_right=x;
-		fillStack.push(x);
-		fillStack.push(y);
+
+
 		var target= layer.img;
 		var idx = y*joined_img.width+x<<2;
 		joined_r=joined_img.data[idx];
@@ -103,15 +137,8 @@ var createDif=function(layer,left,top,width,height){
 
 		var old_img = new Img(target.width,target.height);
 		copyImg(old_img,0,0,target,0,0,target.width,target.height);
-		
-		while(1){
-			if(fillStack.length===0){
-				break;
-			}
-			y = fillStack.pop();
-			x = fillStack.pop();
-			//fillFunc(img,x,y);
 
+			//¶‰E‚Ì’[‚ð’T‚·
 			var yidx = target.width*y<<2;
 			var idx = yidx + (x<<2);
 			var left=x;
@@ -131,6 +158,21 @@ var createDif=function(layer,left,top,width,height){
 					break;
 				}
 			}
+		fillStack.push(y);
+		fillStack.push(left);
+		fillStack.push(right);
+		
+		while(1){
+			if(fillStack.length===0){
+				break;
+			}
+			right = fillStack.pop();
+			left = fillStack.pop();
+			y    = fillStack.pop();
+			//fillFunc(img,x,y);
+
+			//“h‚è‚Â‚Ô‚µ
+			var yidx = target.width*y<<2;
 			for(var xi=left;xi<right;xi++){
 				idx = yidx + (xi<<2);
 				target_data[idx]=draw_r;
@@ -154,7 +196,7 @@ var createDif=function(layer,left,top,width,height){
 		var width = refresh_right-refresh_left;
 		var height= refresh_bottom -refresh_top;
 
-		var log = History.createLog("fill",{"x":x,"y":y,"color":col,"layer":layer},"fill("+ x +","+y+")");
+		var log = History.createLog("fill",{"x":x,"y":y,"color":col.slice(),"layer":layer},"fill("+ x +","+y+")");
 		if(log){
 			var layer_img= layer.img;
 			layer.img = old_img;
