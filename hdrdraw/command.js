@@ -168,11 +168,11 @@ var createDif=function(layer,left,top,width,height){
 			}
 			right = fillStack.pop();
 			left = fillStack.pop();
-			y    = fillStack.pop();
+			var yi = fillStack.pop();
 			//fillFunc(img,x,y);
 
 			//“h‚è‚Â‚Ô‚µ
-			var yidx = target.width*y<<2;
+			var yidx = target.width*yi<<2;
 			for(var xi=left;xi<right;xi++){
 				idx = yidx + (xi<<2);
 				target_data[idx]=draw_r;
@@ -181,15 +181,15 @@ var createDif=function(layer,left,top,width,height){
 				target_data[idx+3]=draw_a;
 			}
 
-			if(y>0){
-				fillSub(target,y-1,left,right);
+			if(yi>0){
+				fillSub(target,yi-1,left,right);
 			}
-			if(y<target.height-1){
-				fillSub(target,y+1,left,right);
+			if(yi<target.height-1){
+				fillSub(target,yi+1,left,right);
 			}
 			refresh_left=Math.min(refresh_left,left);
-			refresh_top=Math.min(refresh_top,y);
-			refresh_bottom=Math.max(refresh_bottom,y+1);
+			refresh_top=Math.min(refresh_top,yi);
+			refresh_bottom=Math.max(refresh_bottom,yi+1);
 			refresh_right=Math.max(refresh_right,right);
 		}
 

@@ -38,22 +38,22 @@ var refreshLayer = function(layer,thumb){
 
 	span.innerHTML = txt;
 
-	if(selected_layer===layer){
-		var layer_inputs = Array.prototype.slice.call(document.getElementById("layer_param").getElementsByTagName("input"));
-		layer_inputs = layer_inputs.concat(Array.prototype.slice.call(document.getElementById("layer_param").getElementsByTagName("select")));
-		for(var i=0;i<layer_inputs.length;i++){
-			var input = layer_inputs[i];
-			var member = input.id.replace("layer_","");
-			if(member in layer){
-				if(input.getAttribute("type")==="checkbox"){
-					input.checked=layer[member];
-				}else{
-					input.value=layer[member];
-				}
-				Util.fireEvent(input,"input");
-			}
-		}
-	}
+	//if(selected_layer===layer){
+	//	var layer_inputs = Array.prototype.slice.call(document.getElementById("layer_param").getElementsByTagName("input"));
+	//	layer_inputs = layer_inputs.concat(Array.prototype.slice.call(document.getElementById("layer_param").getElementsByTagName("select")));
+	//	for(var i=0;i<layer_inputs.length;i++){
+	//		var input = layer_inputs[i];
+	//		var member = input.id.replace("layer_","");
+	//		if(member in layer){
+	//			if(input.getAttribute("type")==="checkbox"){
+	//				input.checked=layer[member];
+	//			}else{
+	//				input.value=layer[member];
+	//			}
+	//			Util.fireEvent(input,"input");
+	//		}
+	//	}
+	//}
 	
 
 }
@@ -180,7 +180,7 @@ function Drop(event) {
 		layer.id=layer_id;
 		layer_id++;
 		layer.name ="layer"+("0000"+layer.id).slice(-4);
-		History.createLog("createLayer",{"layer":layer,"idx":idx},"createLayer ⇒ "+layer.name);
+		History.createLog("createLayer",{"layer":layer,"idx":idx},"createLayer ⇒ id:"+layer.id+"("+layer.name+")");
 		 return layer;
 
 	}
@@ -197,7 +197,7 @@ Command.deleteLayer=function(layer){
 	layer.div.parentNode.removeChild(layer.div);
 	layer.div.classList.remove("active_layer");
 
-	createLog("deleteLayer",{"layer":layer,"idx":li});
+	History.createLog("deleteLayer",{"layer":layer,"idx":li},"deleteLayer ⇒ id:"+layer.id+"("+layer.name+")");
 
 	if(layer === selected_layer){
 		li = Math.max(li-1,0);

@@ -134,15 +134,17 @@ var refreshMain=function(step,x,y,w,h){
 			}
 			
 		}
-		//if(inputs["ch_bloom"].checked && bloom>0){
-		gauss(10*bloom_size,bloom_size,left,right,top,bottom);
-		//}
+		if(inputs["ch_bloom"].checked ){
+		gauss(bloom_size,bloom_size,left,right,top,bottom);
+		}
 	}
 
 	//ブルーム処理
 	//ブルーム前の絵はjoined_imgに残し、結果はbloomed_imgに出力
 	if(step<=1){
-		var bloom = parseFloat(inputs["bloom_power"].value)*10;
+		var bloom = parseFloat(inputs["bloom_power"].value);
+		var _bloom = 1- bloom;
+
 		var bloom_img_data = bloom_img.data;
 		var bloomed_img_data = bloomed_img.data;
 		if(inputs["ch_bloom"].checked && bloom>0){
@@ -150,10 +152,10 @@ var refreshMain=function(step,x,y,w,h){
 				var idx = yi * joined_img_width + left << 2;
 				var max = yi * joined_img_width + right<< 2;
 				for(;idx<max;idx+=4){
-					bloom_img_data[idx]=joined_img_data[idx] + bloomed_img_data[idx]*bloom;
-					bloom_img_data[idx+1]=joined_img_data[idx+1]+ bloomed_img_data[idx+1]*bloom;
-					bloom_img_data[idx+2]=joined_img_data[idx+2]+bloomed_img_data[idx+2]*bloom;
-					bloom_img_data[idx+3]=joined_img_data[idx+3]+bloomed_img_data[idx+3]*bloom;
+					bloom_img_data[idx]=joined_img_data[idx]*_bloom + bloomed_img_data[idx]*bloom;
+					bloom_img_data[idx+1]=joined_img_data[idx+1]*_bloom+ bloomed_img_data[idx+1]*bloom;
+					bloom_img_data[idx+2]=joined_img_data[idx+2]*_bloom+bloomed_img_data[idx+2]*bloom;
+					bloom_img_data[idx+3]=joined_img_data[idx+3];//*_bloom+bloomed_img_data[idx+3]*bloom;
 				}
 			}
 		}else{
@@ -211,7 +213,7 @@ var refreshMain=function(step,x,y,w,h){
 }
 
 var gauss=function(d,size,left,right,top,bottom){
-	var MAX = size;
+	var MAX = size|0;
 	var src= joined_img;
 	var dst= horizon_img;
 	var joined_img_data=joined_img.data;
@@ -221,8 +223,8 @@ var gauss=function(d,size,left,right,top,bottom){
 	var weight = new Array(MAX);
 	var t = 0.0;
 	for(var i = 0; i < weight.length; i++){
-		var r = 1.0 + 2.0 * i;
-		var we = Math.exp(-0.5 * (r * r) / d);
+		var r = 1.0 +  i;
+		var we = Math.exp(- (r * r) / (2*d*10.0));
 		weight[i] = we;
 		if(i > 0){we *= 2.0;}
 		t += we;
@@ -241,10 +243,11 @@ var gauss=function(d,size,left,right,top,bottom){
 		var x = left;
 		var idx = yidx + left <<2;
 		var max = yidx + right <<2;
+		var r = weight[0];
 		for(;idx<max;idx+=4){
-			dstdata[idx+0]=data[idx+0]*weight[0];
-			dstdata[idx+1]=data[idx+1]*weight[0];
-			dstdata[idx+2]=data[idx+2]*weight[0];
+			dstdata[idx+0]=data[idx+0]*r;
+			dstdata[idx+1]=data[idx+1]*r;
+			dstdata[idx+2]=data[idx+2]*r;
 		}
 		max = Math.min(MAX,right);
 		for(;x<max;x++){
@@ -259,7 +262,7 @@ var gauss=function(d,size,left,right,top,bottom){
 			}
 		}
 
-		max = right-MAX;
+		max = Math.min(width-MAX,right);
 		for(;x<max;x++){
 	 		var idx= yidx + x <<2;
 	  		for(var i=1;i<MAX;i++){
@@ -268,7 +271,7 @@ var gauss=function(d,size,left,right,top,bottom){
 				dstdata[idx+2]+=(data[idx+2+(i<<2)] + data[idx+2-(i<<2)])*weight[i];
 			}
 		}
-		var max = right;
+		var max = Math.min(right,width);
 		for(;x<max;x++){
 	 		var idx= yidx + x <<2;
 			for(var i=1;i<MAX;i++){
@@ -325,7 +328,9 @@ var gauss=function(d,size,left,right,top,bottom){
 				dstdata[idx+2]+=(data[idx2+2] +data[idx3+2])*r;
 			}
 		}
-		for(;y<bottom;y++){
+
+		max = Math.min(height,bottom);
+		for(;y<max;y++){
 	 		idx= y * width + x <<2;
 
 			for(var i=1;i<MAX;i++){

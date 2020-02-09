@@ -5,7 +5,6 @@
 <meta http-equiv="Content-Language" content="ja" />
 <meta http-equiv="Content-Style-Type" content="text/css" />
 <meta http-equiv="Content-Script-Type" content="text/javascript" />
-
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Cache-Control" content="no-cache" />
 <title>hdrdraw</title>
@@ -246,11 +245,11 @@ var onloadfunc=function(e){
 
 	};
 	
-	preview.addEventListener("mouseup",function(e){
+	preview.addEventListener("pointerup",function(e){
 		pen_log=null;
 	},false);
-	preview.addEventListener("mousemove",drawfunc,false);
-	preview.addEventListener("mousedown",function(e){
+	preview.addEventListener("pointermove",drawfunc,false);
+	preview.addEventListener("pointerdown",function(e){
 		if(inputs["fill"].checked && (e.buttons &1)){
 			Command.fill(selected_layer,	e.offsetX,e.offsetY,draw_col);
 		}
@@ -384,7 +383,7 @@ var onloadfunc=function(e){
 	a.addEventListener("click",createNewLayer);
 
 
-	var img = new Img(512,512);
+	var img = new Img(256,256);
 	var img_data = img.data;
 	for(var i=0;i<img_data.length;i++){
 		img_data[i]=1;
@@ -398,7 +397,9 @@ var onloadfunc=function(e){
 	createRGBA();
 	
 	History.deleteLog();
+
 }
+var plugin;
 
 </script>
 
@@ -412,7 +413,7 @@ EV<input class="slider" id="ev" min="-5" max="5" value="0"/><br>
 <label><input type="checkbox" id="ch_bloom">bloom</label>power<input class="slider" id="bloom_power" max="1" value="0.1"/>size<input class="slider" id="bloom_size" max="100" value="10"/><br>
 </div>
 	<div class="hoge">
-		<canvas width="512" height="512" id="preview" ></canvas><br />
+		<canvas width="256" height="256" id="preview" ></canvas><br />
 	</div>
 	<span id="status"></span><br>
 		<label>pen<input type="radio" id="pen" name="tool" checked></label>
