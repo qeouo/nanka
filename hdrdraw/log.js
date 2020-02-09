@@ -91,11 +91,10 @@ ret.undo=function(){
 	History.disableLog();
 
 	var log = logs[history_cursor];
-
+	var layer = log.param.layer;
 
 	switch(log.command){
 	case "createLayer":
-		var layer = log.param.layer;
 		var idx = layers.indexOf(layer);
 		layers.splice(idx,1);
 		layer.div.remove();
@@ -122,6 +121,7 @@ ret.undo=function(){
 			copyImg(dif.layer.img,dif.x,dif.y,dif.img,0,0,dif.img.width,dif.img.height);
 		}
 		refreshMain();
+		refreshLayer(layer,true);
 		break;
 	}
 		

@@ -206,6 +206,7 @@ var createDif=function(layer,left,top,width,height){
 		}
 
 		refreshMain(0,refresh_left,refresh_top,refresh_right-refresh_left,refresh_bottom-refresh_top);
+		refreshLayer(layer,true);
 	}
 
 
@@ -213,6 +214,8 @@ var createDif=function(layer,left,top,width,height){
 		for(var li=0;li<pen_log.length-1;li++){
 			Command.drawLine(layer,pen_log[li],pen_log[li+1],bold,col);
 		}
+		refreshLayer(layer,true);
+
 	}
 	var vec2 =new Vec2();
 	var side = new Vec2();

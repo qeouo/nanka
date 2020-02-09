@@ -247,6 +247,8 @@ var onloadfunc=function(e){
 	
 	preview.addEventListener("pointerup",function(e){
 		pen_log=null;
+
+		refreshLayer(selected_layer,true);
 	},false);
 	preview.addEventListener("pointermove",drawfunc,false);
 	preview.addEventListener("pointerdown",function(e){
