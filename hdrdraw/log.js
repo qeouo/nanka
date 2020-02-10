@@ -6,6 +6,7 @@ var History = (function(){
 	var log_id=0;
 
 var logs=[];
+var undo_max=10;
 var history_cursor=-1;
 var enable_log=true;
 
@@ -174,6 +175,11 @@ ret.createLog=function(command,param,label){
 	inputs["history"].appendChild(log.option);
 	inputs["history"].selectedIndex=history_cursor;
 
+
+	if(history_cursor>=undo_max){
+		//アンドゥ制限超えた部分を無効化
+		logs[history_cursor-undo_max].option.setAttribute("disabled","disabled");
+	}
 	return log;
 }
 ret.deleteLog=function(){
