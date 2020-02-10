@@ -53,10 +53,10 @@ funcs["sub"] = function(dst,dst_idx,src,src_idx,alpha,power){
 	dst[dst_idx+2]=dst[dst_idx+2] * dst_r - src[src_idx+2]*src_r;
 }
 var refreshMain=function(step,x,y,w,h){
-	//ƒvƒŒƒrƒ…[‰æ–Ê‚ğXV
+	//ãƒ—ãƒ¬ãƒ“ãƒ¥ãƒ¼ç”»é¢ã‚’æ›´æ–°
 	
 	if(refreshoff){
-		//XV‹Ö~ƒtƒ‰ƒO‚ª—§‚Á‚Ä‚¢‚éê‡‚Íˆ—‚µ‚È‚¢
+		//æ›´æ–°ç¦æ­¢ãƒ•ãƒ©ã‚°ãŒç«‹ã£ã¦ã„ã‚‹å ´åˆã¯å‡¦ç†ã—ãªã„
 		return;
 	}
 	if( typeof step === 'undefined'){
@@ -64,7 +64,7 @@ var refreshMain=function(step,x,y,w,h){
 	}
 	var bloom_size = parseFloat(inputs["bloom_size"].value);
 
-	//ˆø”–³‚µ‚Ìê‡AƒfƒtƒHƒ‹ƒg‚ÅXV—Ìˆæ‚Í‘Sˆæ
+	//å¼•æ•°ç„¡ã—ã®å ´åˆã€ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆã§æ›´æ–°é ˜åŸŸã¯å…¨åŸŸ
 	var left = 0;
 	var right = joined_img.width; 
 	var top = 0;
@@ -76,7 +76,7 @@ var refreshMain=function(step,x,y,w,h){
 		top=y;
 		bottom=y+h;
 
-		//XV—Ìˆæİ’èA‚Í‚İo‚µ‚Ä‚¢‚éê‡‚ÍƒNƒ‰ƒ“ƒv‚·‚é
+		//æ›´æ–°é ˜åŸŸè¨­å®šã€ã¯ã¿å‡ºã—ã¦ã„ã‚‹å ´åˆã¯ã‚¯ãƒ©ãƒ³ãƒ—ã™ã‚‹
 		left-=bloom_size;
 		right+=bloom_size;
 		top-=bloom_size;
@@ -86,12 +86,17 @@ var refreshMain=function(step,x,y,w,h){
 		right=Math.min(joined_img.width,right);
 		top=Math.max(0,top);
 		bottom=Math.min(joined_img.height,bottom);
+
+		left=Math.floor(left);
+		right=Math.ceil(right);
+		top=Math.floor(top);
+		bottom=Math.ceil(bottom);
 	}
 
 	var joined_img_data = joined_img.data;
 	var joined_img_width = joined_img.width;
 
-	//0‚Å‰Šú‰»
+	//0ã§åˆæœŸåŒ–
 	if(step<=0){
 		for(var yi=top;yi<bottom;yi++){
 			var idx = yi * joined_img_width + left << 2;
@@ -104,12 +109,12 @@ var refreshMain=function(step,x,y,w,h){
 			}
 		}
 
-		//ƒŒƒCƒ„‡¬
+		//ãƒ¬ã‚¤ãƒ¤åˆæˆ
 		for(var li=0;li<layers.length;li++){
 			var layer = layers[li];
 
 			if(!layer.display){
-				//”ñ•\¦‚Ìê‡ƒXƒ‹[
+				//éè¡¨ç¤ºã®å ´åˆã‚¹ãƒ«ãƒ¼
 				continue;
 			}
 			var layer_img_data = layer.img.data;
@@ -139,8 +144,8 @@ var refreshMain=function(step,x,y,w,h){
 		}
 	}
 
-	//ƒuƒ‹[ƒ€ˆ—
-	//ƒuƒ‹[ƒ€‘O‚ÌŠG‚Íjoined_img‚Éc‚µAŒ‹‰Ê‚Íbloomed_img‚Éo—Í
+	//ãƒ–ãƒ«ãƒ¼ãƒ å‡¦ç†
+	//ãƒ–ãƒ«ãƒ¼ãƒ å‰ã®çµµã¯joined_imgã«æ®‹ã—ã€çµæœã¯bloomed_imgã«å‡ºåŠ›
 	if(step<=1){
 		var bloom = parseFloat(inputs["bloom_power"].value);
 		var _bloom = 1- bloom;
@@ -173,7 +178,7 @@ var refreshMain=function(step,x,y,w,h){
 	}
 
 	if(step<=2){
-		//ƒKƒ“ƒ}•â³‚Æƒg[ƒ“ƒ}ƒbƒsƒ“ƒO
+		//ã‚¬ãƒ³ãƒè£œæ­£ã¨ãƒˆãƒ¼ãƒ³ãƒãƒƒãƒ”ãƒ³ã‚°
 		var ctx_imagedata_data = preview_ctx_imagedata.data;
 		var ev = parseFloat(inputs["ev"].value);
 		var gamma = 1.0/parseFloat(inputs["gamma"].value);
@@ -206,7 +211,7 @@ var refreshMain=function(step,x,y,w,h){
 		}
 	}
 
-	//Œ‹‰Ê‚ğƒLƒƒƒ“ƒoƒX‚É•\¦
+	//çµæœã‚’ã‚­ãƒ£ãƒ³ãƒã‚¹ã«è¡¨ç¤º
 	preview_ctx.putImageData(preview_ctx_imagedata,0,0,left,top,right-left,bottom-top);
 
 	
@@ -219,7 +224,7 @@ var gauss=function(d,size,left,right,top,bottom){
 	var joined_img_data=joined_img.data;
 	
 
-	//ŒW”ì¬
+	//ä¿‚æ•°ä½œæˆ
 	var weight = new Array(MAX);
 	var t = 0.0;
 	for(var i = 0; i < weight.length; i++){
@@ -237,7 +242,7 @@ var gauss=function(d,size,left,right,top,bottom){
 	var width = joined_img.width;
 	var data = src.data;
 	var dstdata = dst.data;
-	//‰¡‚Ú‚©‚µ
+	//æ¨ªã¼ã‹ã—
 	for(var y=top;y<bottom;y++){
 		var yidx= y * width;
 		var x = left;
@@ -285,7 +290,7 @@ var gauss=function(d,size,left,right,top,bottom){
 		}
 	}
 
-	//c‚Ú‚©‚µ
+	//ç¸¦ã¼ã‹ã—
 	data = dst.data;
 	dstdata = bloomed_img.data;
 

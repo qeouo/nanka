@@ -25,7 +25,7 @@ var Command = (function(){
 	var ret = Command;
 
 var createDif=function(layer,left,top,width,height){
-	//XV—Ìˆæ‚ÌŒÃ‚¢î•ñ‚ğ•Û‘¶
+	//æ›´æ–°é ˜åŸŸã®å¤ã„æƒ…å ±ã‚’ä¿å­˜
 	var img = new Img(width,height);
 	copyImg(img,0,0,layer.img,left,top,width,height);
 	var dif={};
@@ -55,7 +55,7 @@ var createDif=function(layer,left,top,width,height){
 		var target_data=target.data;
 		var mode=0;
 
-		//¶‚Ì’[‚ğ’T‚·
+		//å·¦ã®ç«¯ã‚’æ¢ã™
 		var xi = left;
 		var yidx = target.width*y<<2;
 		for(;xi>=0;xi--){
@@ -89,7 +89,7 @@ var createDif=function(layer,left,top,width,height){
 			}
 		}
 
-		//‰E’[
+		//å³ç«¯
 		if(mode===1){
 			var xi = right-1;
 			for(;xi<target.width;xi++){
@@ -103,8 +103,10 @@ var createDif=function(layer,left,top,width,height){
 		}
 	}
 
-	ret.fill=function(layer,x,y,col){
+	ret.fill=function(layer,point_x,point_y,col){
 		fillStack=[];
+		var x = point_x|0;
+		var y = point_y|0;
 		refresh_top=y;
 		refresh_bottom=y;
 		refresh_left=x;
@@ -138,7 +140,7 @@ var createDif=function(layer,left,top,width,height){
 		var old_img = new Img(target.width,target.height);
 		copyImg(old_img,0,0,target,0,0,target.width,target.height);
 
-			//¶‰E‚Ì’[‚ğ’T‚·
+			//å·¦å³ã®ç«¯ã‚’æ¢ã™
 			var yidx = target.width*y<<2;
 			var idx = yidx + (x<<2);
 			var left=x;
@@ -171,7 +173,7 @@ var createDif=function(layer,left,top,width,height){
 			var yi = fillStack.pop();
 			//fillFunc(img,x,y);
 
-			//“h‚è‚Â‚Ô‚µ
+			//å¡—ã‚Šã¤ã¶ã—
 			var yidx = target.width*yi<<2;
 			for(var xi=left;xi<right;xi++){
 				idx = yidx + (xi<<2);
@@ -196,7 +198,7 @@ var createDif=function(layer,left,top,width,height){
 		var width = refresh_right-refresh_left;
 		var height= refresh_bottom -refresh_top;
 
-		var log = History.createLog("fill",{"x":x,"y":y,"color":col.slice(),"layer":layer},"fill("+ x +","+y+")");
+		var log = History.createLog("fill",{"x":point_x,"y":point_y,"color":new Float32Array(col),"layer":layer},"fill("+ point_x +","+point_y+")");
 		if(log){
 			var layer_img= layer.img;
 			layer.img = old_img;
@@ -234,14 +236,14 @@ var createDif=function(layer,left,top,width,height){
 		var top= Math.min(vec2[1],old_p[1]);
 		var bottom= Math.max(vec2[1],old_p[1])+1;
 		
-		left = clamp(left-bold,0,img.width);
-		right= clamp(right+bold,0,img.width);
-		top= clamp(top-bold,0,img.height);
-		bottom=clamp(bottom+bold,0,img.height);
+		left = Math.floor(clamp(left-bold,0,img.width));
+		right= Math.ceil(clamp(right+bold,0,img.width));
+		top= Math.floor(clamp(top-bold,0,img.height));
+		bottom=Math.ceil(clamp(bottom+bold,0,img.height));
 
 
 		if(pen_log){
-			//·•ªƒƒOì¬
+			//å·®åˆ†ãƒ­ã‚°ä½œæˆ
 			var command = pen_log;
 			var dif=createDif(layer,left,top,right-left,bottom-top);
 			if(!command.difs){
@@ -295,7 +297,7 @@ var createDif=function(layer,left,top,width,height){
 		}
 
 		if(right-left>0 && bottom-top>0){
-			//Ä•`‰æ
+			//å†æç”»
 			refreshMain(0,left,top,right-left,bottom-top);
 		}
 	}

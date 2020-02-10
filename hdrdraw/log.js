@@ -40,7 +40,7 @@ ret.getCurrent=function(){
 }
 ret.redo=function(){
 	if(history_cursor>=logs.length-1){
-		//�ŐV��Ԃ̏ꍇ�͖���
+		//最新状態の場合は無効
 		return;
 	}
 	History.disableLog();
@@ -85,7 +85,7 @@ ret.redo=function(){
 }
 ret.undo=function(){
 	if(history_cursor<0){
-		//�ŌÂ̏ꍇ�͖���
+		//最古の場合は無効
 		return;
 	}
 	History.disableLog();
@@ -143,7 +143,7 @@ ret.createLog=function(command,param,label){
 	if(!enable_log){
 		return null;
 	}
-	//���O�����쐬���q�X�g���[�ɒǉ�
+	//ログ情報を作成しヒストリーに追加
 	var log=new Log();
 	log.command=command;
 	log.param=param;
@@ -152,7 +152,7 @@ ret.createLog=function(command,param,label){
 	if( typeof label === 'undefined'){
 		label = command+"{"+param+"}";
 	}
-	log.label="[" + ("0000" + log.id).slice(-4) + "]" + label;
+	log.label="[" + ("0000" + log.id).substr(-4) + "]" + label;
 
 
 	log.option=document.createElement("option");
@@ -160,16 +160,16 @@ ret.createLog=function(command,param,label){
 
 	history_cursor++;
 
-	//�J�[�\���ȍ~�̃q�X�g���폜
+	//カーソル以降のヒストリ削除
 	var m = logs.length - (history_cursor );
 	for(var hi=history_cursor;hi<logs.length;hi++){
 		//logs.pop();
-		logs[hi].option.remove();
+		inputs["history"].removeChild(logs[hi].option);
 	}
 	logs.splice(history_cursor,logs.length-(history_cursor));
 
 
-	//�q�X�g���ǉ�
+	//ヒストリ追加
 	logs.push(log);
 	inputs["history"].appendChild(log.option);
 	inputs["history"].selectedIndex=history_cursor;
@@ -178,7 +178,7 @@ ret.createLog=function(command,param,label){
 }
 ret.deleteLog=function(){
 	for(var hi=0;hi<history_cursor+1;hi++){
-		logs[hi].option.remove();
+		inputs["history"].removeChild(logs[hi].option);
 	}
 	logs.splice(0,history_cursor+1);
 	history_cursor=-1;

@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 <head>
 
@@ -68,7 +69,6 @@ width:256px;
 }
 
 </style>
-</head>
 <script type="text/javascript" src="../lib/inherits.js"></script>
 <script type="text/javascript" src="../lib/util.js"></script>
 <script type="text/javascript" src="../lib/vector.js"></script>
@@ -216,7 +216,7 @@ var onloadfunc=function(e){
 
 		if(x<0 || y<0 || x>=width || y>=height){return;}
 
-		var idx=(y*preview.width+x)*4;
+		var idx=((y|0)*preview.width+(x|0))*4;
 		var r= data[idx];
 		var g= data[idx+1];
 		var b= data[idx+2];
@@ -225,10 +225,10 @@ var onloadfunc=function(e){
 		var str="position X:[x],Y:[y] \n value R:[r], G:[g], B:[b], A:[a] ";
 		str=str.replace(/\[x\]/,x);
 		str=str.replace(/\[y\]/,y);
-		str=str.replace(/\[r\]/,(r).toFixed(4));
-		str=str.replace(/\[g\]/,(g).toFixed(4));
-		str=str.replace(/\[b\]/,(b).toFixed(4));
-		str=str.replace(/\[a\]/,(a).toFixed(4));
+		str=str.replace(/\[r\]/,r.toFixed(4));
+		str=str.replace(/\[g\]/,g.toFixed(4));
+		str=str.replace(/\[b\]/,b.toFixed(4));
+		str=str.replace(/\[a\]/,a.toFixed(4));
 
 		if(e.buttons & 2){
 			inputs["color_R"].value=r;
@@ -257,7 +257,7 @@ var onloadfunc=function(e){
 		}
 		if(inputs["pen"].checked && (e.buttons &1)){
 				var bold=parseFloat(inputs["bold"].value);
-			pen_log = History.createLog("pen",{"bold":bold,"color":draw_col.slice(),"layer":selected_layer});
+			pen_log = History.createLog("pen",{"bold":bold,"color":new Float32Array(draw_col),"layer":selected_layer});
 			pen_log.param.points=[];
 			var vec2 = new Vec2();
 			vec2[0]=e.offsetX;
@@ -404,6 +404,7 @@ var onloadfunc=function(e){
 var plugin;
 
 </script>
+</head>
 
 <body onLoad="onloadfunc(event)">
 
@@ -446,7 +447,7 @@ EV<input class="slider" id="ev" min="-5" max="5" value="0"/><br>
 <div id="layer_param">
 name<input type="text" id="layer_name"/>
 表示<input type="checkbox" id="layer_display"/><br>
-blendfunc<select type="text" id="layer_blendfunc"/>
+blendfunc<select type="text" id="layer_blendfunc">
 	<option value="normal">normal</option>
 	<option value="add">add</option>
 	<option value="mul">mul</option>
