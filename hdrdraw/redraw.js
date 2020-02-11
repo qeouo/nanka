@@ -117,6 +117,9 @@ var refreshMain=function(step,x,y,w,h){
 				//非表示の場合スルー
 				continue;
 			}
+			if(!layer.img){
+				continue;
+			}
 			var layer_img_data = layer.img.data;
 			var layer_alpha=layer.alpha;
 			var layer_power=layer.power;

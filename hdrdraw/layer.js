@@ -2,19 +2,42 @@
 var layers=[];
 var selected_layer = null;
 var layers_container;
-var layer_id=0;
+var layer_id_count=0;
+
 var getLayerNum=function(div){
 	//divからレイヤー番号取得
 	return layers.findIndex(function(l){return l.div===div;});
 }
-
-var refreshLayer = function(layer,thumb){
+var refreshLayerThumbnail = function(layer){
 	//レイヤサムネイル更新
-	if(thumb){
-		layer.img.createThumbnail(thumbnail_ctx);
-		var layer_img=layer.div.getElementsByTagName("img")[0];
-		layer_img.src=thumbnail_canvas.toDataURL("image/png");
+	if(!layer){
+		return;
 	}
+	layer.img.createThumbnail(thumbnail_ctx);
+	var layer_img=layer.div.getElementsByTagName("img")[0];
+	layer_img.src=thumbnail_canvas.toDataURL("image/png");
+	
+}
+var refreshActiveLayerParam = function(){
+	var layer = selected_layer;
+	var layer_inputs = Array.prototype.slice.call(document.getElementById("layer_param").getElementsByTagName("input"));
+	layer_inputs = layer_inputs.concat(Array.prototype.slice.call(document.getElementById("layer_param").getElementsByTagName("select")));
+	for(var i=0;i<layer_inputs.length;i++){
+		var input = layer_inputs[i];
+		var member = input.id.replace("layer_","");
+		if(member in layer){
+			if(input.getAttribute("type")==="checkbox"){
+				input.checked=layer[member];
+			}else{
+				input.value=layer[member];
+			}
+			Util.fireEvent(input,"input");
+		}
+	}
+	
+}
+
+var refreshLayer = function(layer){
 
 	var div= layer.div.getElementsByTagName("div")[0];
 	div.innerHTML=layer.name;
@@ -38,23 +61,10 @@ var refreshLayer = function(layer,thumb){
 
 	span.innerHTML = txt;
 
-	//if(selected_layer===layer){
-	//	var layer_inputs = Array.prototype.slice.call(document.getElementById("layer_param").getElementsByTagName("input"));
-	//	layer_inputs = layer_inputs.concat(Array.prototype.slice.call(document.getElementById("layer_param").getElementsByTagName("select")));
-	//	for(var i=0;i<layer_inputs.length;i++){
-	//		var input = layer_inputs[i];
-	//		var member = input.id.replace("layer_","");
-	//		if(member in layer){
-	//			if(input.getAttribute("type")==="checkbox"){
-	//				input.checked=layer[member];
-	//			}else{
-	//				input.value=layer[member];
-	//			}
-	//			Util.fireEvent(input,"input");
-	//		}
-	//	}
-	//}
-	
+	if(layer === selected_layer){
+		refreshActiveLayerParam();
+	}
+
 
 }
 
@@ -100,46 +110,92 @@ var createNewLayer=function(e){
 		width=preview.width;
 		height=preview.height;
 	}
-	var img = new Img(width,height);
 	var idx= layers.indexOf(selected_layer)+1;
 	
-	var layer=Command.createLayer(img,idx);
+	var layer=Command.createNewLayer(width,height,idx);
 
-	refreshLayer(layer,true);
-	refreshMain(0);
 
 }
+var drag_div=null;
 function DragStart(event) {
      event.dataTransfer.setData("text", getLayerNum(event.currentTarget));
+	//var layers_container = document.getElementById("layers_container");
+	//layers_container.removeChild(event.currentTarget);
+	 drag_div=event.currentTarget;
 }
-function dragover_handler(ev) {
- ev.preventDefault();
- ev.dataTransfer.dropEffect = "move";
+function dragover_handler(event) {
+ event.preventDefault();
+ event.dataTransfer.dropEffect = "move";
+// console.log(drop);
+//
+// drop = getLayerNum(event.currentTarget);
+// var layers_container = document.getElementById("layers_container");
+// layers_container.insertBefore(drag_div,event.currentTarget);
 }	
 function Drop(event) {
-    var drag = event.dataTransfer.getData("text");
+    var drag = parseInt(event.dataTransfer.getData("text"));
 	var drag_div = layers[drag].div;
-	if(drag_div === event.currentTarget){
-		return;
-	}
+	//if(drag_div === event.currentTarget){
+	//	return;
+	//}
 	var layer=layers[drag];
-	layers.splice(drag,1);
+	//layers.splice(drag,1);
 	var drop = getLayerNum(event.currentTarget);
-	var drop_div = layers[drop].div;
+	//var drop_div = layers[drop].div;
 
 	var layers_container = document.getElementById("layers_container");
-	if(event.offsetY<32){
-		layers_container.insertBefore(drag_div,drop_div);
-		layers.splice(drop+1,0,layer);
-	}else{
-		layers_container.insertBefore(drag_div,drop_div.nextSibling);
-		layers.splice(drop,0,layer);
-	}
-	refreshMain(0);
 
+	var drop;
+	if(event.offsetY<32){
+		drop++;
+	}
+	if(drop>drag){
+		drop--;
+	}
+
+
+	Command.moveLayer(layer,drop);
+}
+function dragend(event) {
 }
 
-	Command.createLayer=function(img,idx){
+Command.moveLayer=function(layer,position){
+	var layer_num = layers.indexOf(layer);
+	if(position<0|| layers.length <= position){
+		return;
+	}	
+	if(layer_num === position){
+		return;
+	}	
+
+	layers.splice(layer_num,1);
+	layers.splice(position,0,layer);
+
+	var layers_container = document.getElementById("layers_container");
+
+	layers_container.removeChild(layer.div);
+	if(position===0){
+		layers_container.insertBefore(layer.div,null);
+	}else{
+		layers_container.insertBefore(layer.div,layers_container.children[layers.length-1-position]);
+	}
+	
+	History.createLog("moveLayer",{"layer_id":layer.id,"position":position},"moveLayer(id:"+layer.id+"("+layer.name+"), "+position+")",{"before":layer_num});
+
+
+	refreshMain(0);
+}
+
+	Command.createNewLayer=function(width,height,n){
+		var img = new Img(width,height);
+		
+		var layer =createLayer(img,n);
+		History.createLog("createNewLayer",{"layer_id":layer.id,"position":n,"width":width,"height":height},"createNewLayer ⇒ id:"+layer.id+"("+layer.name+")");
+	refreshMain(0);
+		return layer;
+
+	}
+	var createLayer=function(img,idx){
 		if( typeof idx=== 'undefined'){
 			idx=layers.length;
 		}
@@ -152,15 +208,15 @@ function Drop(event) {
 		layer_div.addEventListener("click",layerSelect);
 		layer.div=layer_div;
 
-		
-
 		layer.img=img;
 
-		if(img.width>=preview.width || img.height>=preview.height){
-			//開いた画像がキャンバスより大きい場合は広げる
-			preview.width=Math.max(img.width,preview.width);
-			preview.height=Math.max(img.height,preview.height);
-			resetCanvas(preview.width,preview.height);
+		if(img){
+			if(img.width>=preview.width || img.height>=preview.height){
+				//開いた画像がキャンバスより大きい場合は広げる
+				preview.width=Math.max(img.width,preview.width);
+				preview.height=Math.max(img.height,preview.height);
+				resetCanvas(preview.width,preview.height);
+			}
 		}
 
 
@@ -177,11 +233,16 @@ function Drop(event) {
 
 
 
-		layer.id=layer_id;
-		layer_id++;
+		layer.id=layer_id_count;
+		layer_id_count++;
 		layer.name ="layer"+("0000"+layer.id).slice(-4);
-		History.createLog("createLayer",{"layer":layer,"idx":idx},"createLayer ⇒ id:"+layer.id+"("+layer.name+")");
-		 return layer;
+
+		if(img){
+			refreshLayerThumbnail(layer);
+		}
+		refreshLayer(layer);
+
+		return layer;
 
 	}
 
@@ -197,7 +258,7 @@ Command.deleteLayer=function(layer){
 	layer.div.parentNode.removeChild(layer.div);
 	layer.div.classList.remove("active_layer");
 
-	History.createLog("deleteLayer",{"layer":layer,"idx":li},"deleteLayer ⇒ id:"+layer.id+"("+layer.name+")");
+	History.createLog("deleteLayer",{"layer_id":layer.id,"idx":li},"deleteLayer ⇒ id:"+layer.id+"("+layer.name+")",{"layer":layer});
 
 	if(layer === selected_layer){
 		li = Math.max(li-1,0);
@@ -216,7 +277,7 @@ Command.changeLayerAttribute=function(layer,name,value){
 	if(History.isEnableLog()){
 		var log =History.getCurrent();
 		if(log){
-			if(log.param.layer === layer
+			if(log.param.layer_id === layer.id
 				&& log.param.name === name){
 				log.param.after = value;
 				log.label = "layer"+layer.id + "."+name + "=" + value;
@@ -228,7 +289,7 @@ Command.changeLayerAttribute=function(layer,name,value){
 	}
 
 	if(flg){
-		History.createLog("changeLayerAttribute",{"layer":layer,"name":name,"before":layer[name],"after":value},"layer"+layer.id + "."+name + "=" + value);
+		History.createLog("changeLayerAttribute",{"layer_id":layer.id,"name":name,"value":value},"layer"+layer.id + "."+name + "=" + value,{"before":layer[name]});
 	}
 	layer[name] = value;
 

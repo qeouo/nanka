@@ -32,7 +32,6 @@ var createDif=function(layer,left,top,width,height){
 	dif.img=img;
 	dif.x=left;
 	dif.y=top;
-	dif.layer=layer;
 	return dif;
 
 }
@@ -198,25 +197,26 @@ var createDif=function(layer,left,top,width,height){
 		var width = refresh_right-refresh_left;
 		var height= refresh_bottom -refresh_top;
 
-		var log = History.createLog("fill",{"x":point_x,"y":point_y,"color":new Float32Array(col),"layer":layer},"fill("+ point_x +","+point_y+")");
+		var log = History.createLog("fill",{"layer_id":layer.id,"x":point_x,"y":point_y,"color":new Float32Array(col)},"fill("+ point_x +","+point_y+")",{"layer":layer});
 		if(log){
 			var layer_img= layer.img;
 			layer.img = old_img;
 			var dif=createDif(layer,refresh_left,refresh_top,width,height);
 			layer.img=layer_img;
-			log.difs.push(dif);
+			log.undo_data.difs=[];
+			log.undo_data.difs.push(dif);
 		}
 
 		refreshMain(0,refresh_left,refresh_top,refresh_right-refresh_left,refresh_bottom-refresh_top);
-		refreshLayer(layer,true);
+		refreshLayerThumbnail(layer);
 	}
 
 
-	ret.pen=function(layer,pen_log,bold,col){
-		for(var li=0;li<pen_log.length-1;li++){
-			Command.drawLine(layer,pen_log[li],pen_log[li+1],bold,col);
+	ret.pen=function(layer,points,col){
+		for(var li=0;li<points.length-1;li++){
+			Command.drawLine(layer,points[li],points[li+1],col);
 		}
-		refreshLayer(layer,true);
+		refreshLayerThumbnail(layer);
 
 	}
 	var vec2 =new Vec2();
@@ -225,16 +225,19 @@ var createDif=function(layer,left,top,width,height){
 	var clamp=function(value,min,max){
 		return Math.min(max,Math.max(min,value));
 	}
-	ret.drawLine=function(layer,old_p,new_p,bold,col){
+	ret.drawLine=function(layer,point0,point1,col){
 		var img= layer.img;
 		var data = layer.img.data;
+		var new_p = point1.pos;
+		var old_p = point0.pos;
 		vec2[0] = new_p[0];
 		vec2[1] = new_p[1];
+		var bold = Math.max(point1.size,point0.size);
 
-		var left = Math.min(vec2[0],old_p[0]);
-		var right= Math.max(vec2[0],old_p[0])+1;
-		var top= Math.min(vec2[1],old_p[1]);
-		var bottom= Math.max(vec2[1],old_p[1])+1;
+		var left = Math.min(new_p[0],old_p[0]);
+		var right= Math.max(new_p[0],old_p[0])+1;
+		var top= Math.min(new_p[1],old_p[1]);
+		var bottom= Math.max(new_p[1],old_p[1])+1;
 		
 		left = Math.floor(clamp(left-bold,0,img.width));
 		right= Math.ceil(clamp(right+bold,0,img.width));
@@ -244,16 +247,16 @@ var createDif=function(layer,left,top,width,height){
 
 		if(pen_log){
 			//差分ログ作成
-			var command = pen_log;
+			var log = pen_log;
 			var dif=createDif(layer,left,top,right-left,bottom-top);
-			if(!command.difs){
-				command.difs=[];
+			if(!log.undo_data.difs){
+				log.undo_data.difs=[];
 			}
-			command.difs.push(dif);
+			log.undo_data.difs.push(dif);
 		}
 
 
-		Vec2.sub(vec2,old_p,vec2);
+		Vec2.sub(vec2,new_p,old_p);
 		var l = Vec2.scalar2(vec2);
 		if(l!==0){
 			Vec2.mul(vec2,vec2,1/l);
@@ -267,25 +270,34 @@ var createDif=function(layer,left,top,width,height){
 		var g=col[1];
 		var b=col[2];
 		var a=col[3];
+		var point0size=point0.size;
+		var point1size=point1.size;
+		var point0size2=point0size*point0size;
+		var point1size2=point1size*point1size;
 		for(var dy=top;dy<bottom;dy++){
 			for(var dx=left;dx<right;dx++){
 				var idx = dy*layer.img.width+ dx<<2;
-				dist[0]=dx-new_p[0];
-				dist[1]=dy-new_p[1];
-				if(Math.abs(Vec2.dot(dist,side))>bold){
-					continue;
-				}
+				dist[0]=dx-old_p[0];
+				dist[1]=dy-old_p[1];
 				l = Vec2.dot(vec2,dist);
 				if(l<=0){
-					if(Vec2.scalar2(dist)>bold*bold){
+					//始点より前
+					if(Vec2.scalar2(dist)>point0size2){
 						continue;
 					}
-				}
-				if(l>=1){
+				}else if(l>=1){
+					//終端より後
 					dist[0]=dx-old_p[0];
 					dist[1]=dy-old_p[1];
 					
-					if(Vec2.scalar2(dist)>bold*bold){
+					if(Vec2.scalar2(dist)>point1size2){
+						continue;
+					}
+				}else{
+					//線半ば
+					var local_weight = point0size * (1-l) + point1size * l;
+					if(Math.abs(Vec2.dot(dist,side))>local_weight){
+						//線幅より外の場合
 						continue;
 					}
 				}
@@ -302,5 +314,39 @@ var createDif=function(layer,left,top,width,height){
 		}
 	}
 
+
+	Command.loadImageFile=function(file,n){
+		var reader=new FileReader();
+		var idx = n;
+		var layer=createLayer(null,idx);
+		reader.onload=function(e){
+			var fu =function(img){
+				
+				layer.img=img;
+				layer.name = file.name;
+
+				if(img.width>=preview.width || img.height>=preview.height){
+					//開いた画像がキャンバスより大きい場合は広げる
+					preview.width=Math.max(img.width,preview.width);
+					preview.height=Math.max(img.height,preview.height);
+					resetCanvas(preview.width,preview.height);
+				}
+				refreshLayerThumbnail(layer);
+				refreshLayer(layer);
+				refreshMain(0);
+
+			}
+	 		if(/^image\//.test(file.type)){
+				Img.loadImg(e.target.result,fu);
+	 		} else if(/.*\.exr$/.test(file.name)){
+				Img.loadExr(e.target.result,fu);
+	 		}
+		}
+		reader.readAsDataURL(file);
+
+		var log = History.createLog("loadImageFile",{"layer_id":layer.id,"file":file.name,"positon":n},"loadImageFIle("+file.name+")",{"file":file});
+
+		return layer;
+	}
 	return ret;
 })();
