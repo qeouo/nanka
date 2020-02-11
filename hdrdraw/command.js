@@ -287,8 +287,8 @@ var createDif=function(layer,left,top,width,height){
 					}
 				}else if(l>=1){
 					//終端より後
-					dist[0]=dx-old_p[0];
-					dist[1]=dy-old_p[1];
+					dist[0]=dx-new_p[0];
+					dist[1]=dy-new_p[1];
 					
 					if(Vec2.scalar2(dist)>point1size2){
 						continue;

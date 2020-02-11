@@ -19,8 +19,6 @@ body{
 .hoge{
 border:solid;
 overflow:scroll;
-width:600px;
-height:600px;
 }
 
 .layers{
@@ -384,12 +382,13 @@ var onloadfunc=function(e){
 	a.addEventListener("click",createNewLayer);
 
 
-	var layer=Command.createNewLayer(256,256,0);
+	var layer=Command.createNewLayer(512,512,0);
 	var img_data = layer.img.data;
 	for(var i=0;i<img_data.length;i++){
 		img_data[i]=1;
 	}
 	layer.name="default layer"
+	refreshLayerThumbnail(layer);
 	Util.fireEvent(layer.div,"click");
 
 	refreshMain();
@@ -461,7 +460,9 @@ power<input class="slider" id="layer_power" max="10"/><br>
 <input type="button" id="delete_layer" value="レイヤ削除" onclick="Command.deleteLayer(selected_layer);"><br>
 <input type="button" id="down_layer" value="↓" onclick="Command.moveLayer(selected_layer,layers.indexOf(selected_layer)-1);">
 <input type="button" id="up_layer" value="↑" onclick="Command.moveLayer(selected_layer,layers.indexOf(selected_layer)+1);"><br>
-<input id="width" style="width:64px;"><input id="height" style="width:64px;"><input type="button" id="new" value="新規レイヤ"><br>
+<input id="width" value="512" style="width:64px;">
+<input id="height" value="512" style="width:64px;">
+<input type="button" id="new" value="新規レイヤ"><br>
 <input type="file" id="f" accept="image/*,.hdr,.exr"><br>
 <ui>
 <li><a id="save_hdr" href="a">結合データをHDRで保存(exr)</a></li>
