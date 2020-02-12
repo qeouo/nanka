@@ -14,7 +14,6 @@ body{
 	background-color:gray;
 }
 #history{
-	width:300px; 
 }
 .hoge{
 border:solid;
@@ -422,8 +421,8 @@ var plugin;
 	<div>
 		半径<input class="slider" id="bold" max="100"  value="3"/>
 		<label><input type="checkbox" id="pressure"/>筆圧</label><br>
-		basecol<input class="colorpicker" id="color_base" value="ff0000"/>
-		lumi<input class="slider" id="color_lumi" max="100" value="1"><br>
+		ベース色<input class="colorpicker" id="color_base" value="ff0000"/>
+		明るさ<input class="slider" id="color_lumi" max="100" value="1"><br>
 		<ul id="color_sample" style="">
 			<li>R<input class="slider" id="color_R" max="100"/></li>
 			<li>G<input class="slider" id="color_G" max="100"/></li>
@@ -444,22 +443,26 @@ var plugin;
 <div style="float:left;">
 レイヤ<br>
 <div id="layer_param">
-name<input type="text" id="layer_name"/>
+名前<input type="text" id="layer_name"/>
 表示<input type="checkbox" id="layer_display"/><br>
-blendfunc<select type="text" id="layer_blendfunc">
+合成func<select type="text" id="layer_blendfunc">
 	<option value="normal">normal</option>
 	<option value="add">add</option>
 	<option value="mul">mul</option>
 	<option value="sub">sub</option>
 </select><br>
-alpha<input class="slider" id="layer_alpha" max="1"/><br>
-power<input class="slider" id="layer_power" max="10"/><br>
+α<input class="slider" id="layer_alpha" max="1"/><br>
+明るさ<input class="slider" id="layer_power" max="10"/><br>
 </div>
 <div class="layers" id="layers_container">
 </div>
-<input type="button" id="delete_layer" value="レイヤ削除" onclick="Command.deleteLayer(selected_layer);"><br>
+<div style="float:left;text-align:left;">
 <input type="button" id="down_layer" value="↓" onclick="Command.moveLayer(selected_layer,layers.indexOf(selected_layer)-1);">
-<input type="button" id="up_layer" value="↑" onclick="Command.moveLayer(selected_layer,layers.indexOf(selected_layer)+1);"><br>
+<input type="button" id="up_layer" value="↑" onclick="Command.moveLayer(selected_layer,layers.indexOf(selected_layer)+1);">
+</div>
+<div style="text-align:right;">
+<input type="button" id="delete_layer" value="レイヤ削除" onclick="Command.deleteLayer(selected_layer);"><br>
+</div>
 <input id="width" value="512" style="width:64px;">
 <input id="height" value="512" style="width:64px;">
 <input type="button" id="new" value="新規レイヤ"><br>
@@ -469,10 +472,17 @@ power<input class="slider" id="layer_power" max="10"/><br>
 <li><a id="save_ldr" href="a">プレビュー画像をLDRで保存(png)</a></li>
 </ui>
 </div>
+
 <div style="float:left;">
-ヒストリ<br>
-	<select size=30 id="history">
+操作履歴<br>
+	<select size=20 id="history">
 	</select>
+<pre>
+アンドゥ…ctrl+z
+リドゥ…ctrl+shift+z
+リストを直接選択でそこまで戻る
+最大10こ前まで
+</pre>
 </div>
 </body>
 </html>
