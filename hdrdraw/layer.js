@@ -41,7 +41,7 @@ var refreshLayer = function(layer){
 
 	var div= layer.div.getElementsByTagName("div")[0];
 	div.innerHTML=layer.name;
-	var span = layer.div.getElementsByTagName("span")[0];
+	var span = layer.div.getElementsByClassName("layer_attributes")[0];
 	var txt="";
 	for(var i=1;i<layerValues.length;i++){
 		var member = layerValues[i];
@@ -273,24 +273,24 @@ Command.deleteLayer=function(layer){
 }
 
 Command.changeLayerAttribute=function(layer,name,value){
-	var flg = true;
-	if(History.isEnableLog()){
-		var log =History.getCurrent();
-		if(log){
-			if(log.param.layer_id === layer.id
-				&& log.param.name === name){
-				log.param.after = value;
-				log.label = "layer"+layer.id + "."+name + "=" + value;
-				log.label="[" + ("0000" + log.id).slice(-4) + "]" + log.label;
-				Util.setText(log.option, log.label);
-				flg = false;
-			}
-		}
-	}
+	//var flg = true;
+	//if(History.isEnableLog()){
+	//	var log =History.getCurrent();
+	//	if(log){
+	//		if(log.param.layer_id === layer.id
+	//			&& log.param.name === name){
+	//			log.param.after = value;
+	//			log.label = "layer"+layer.id + "."+name + "=" + value;
+	//			log.label="[" + ("0000" + log.id).slice(-4) + "]" + log.label;
+	//			Util.setText(log.option, log.label);
+	//			flg = false;
+	//		}
+	//	}
+	//}
 
-	if(flg){
+	//if(flg){
 		History.createLog("changeLayerAttribute",{"layer_id":layer.id,"name":name,"value":value},"layer"+layer.id + "."+name + "=" + value,{"before":layer[name]});
-	}
+	//}
 	layer[name] = value;
 
 	refreshLayer(layer);

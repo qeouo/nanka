@@ -13,30 +13,32 @@
 body{
 	background-color:gray;
 }
-#history{
-}
-.hoge{
-border:solid;
-overflow:scroll;
+.canvas_area{
+	border:solid 1px;
+	overflow:scroll;
 }
 
 .layers{
-border:solid;
-overflow:scroll;
-width:300px;
-height:600px;
+	border:solid 1px;
+	overflow:visible scroll;
+	height:300px;
 }
 .layer{
-border:solid;
-width:100%;
+border:solid 1px;
 height:64px;
 font-size:small;
 line-height:1;
 background-color:transparent;
 }
 .layer .name{
-	background-color:lightgray;
+	//background-color:lightgray;
+	text-align:left;
 	border-color:black;
+	font-weight:bold;
+
+}
+.layer_attributes{
+	text-align:right;
 
 }
 .layer .thumbnail{
@@ -412,7 +414,7 @@ var plugin;
 拡散率<input class="slider" id="bloom_power" max="1" value="0.1"/>
 拡散範囲<input class="slider" id="bloom_size" max="100" value="10"/><br>
 </div>
-	<div class="hoge">
+	<div class="canvas_area">
 		<canvas width="256" height="256" id="preview" ></canvas><br />
 	</div>
 	<span id="status"></span><br>
@@ -437,7 +439,7 @@ var plugin;
 	<div class="layer" draggable="true" ondragstart="DragStart(event)" ondragover="dragover_handler(event)" ondrop="Drop(event)"  ondragend="dragend(event);">
 		<img class="thumbnail" style="border:solid 1px;float:left;">
 		<div class="name"></div>
-		<span></span>
+		<div class="layer_attributes"></div>
 	</div>
 </div>
 <div style="float:left;">

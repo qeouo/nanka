@@ -166,25 +166,41 @@ ret.createLog=function(command,param,label,undo_data){
 	if(!enable_log){
 		return null;
 	}
-	//ログ情報を作成しヒストリーに追加
-	var log=new Log();
-	log.command=command;
-	log.param=param;
-	if(undo_data){
-		log.undo_data = undo_data;
+	var log = null;
+	var flg = true;
+	if(history_cursor>=0){
+		var current_log=logs[history_cursor];
+		if(command === "changeLayerAttribute"){
+			if(current_log.param.layer_id === param.layer_id
+			&& current_log.param.name === param.name){
+				flg=false;
+			}
+		}else if(command === "moveLayer"){
+			if(current_log.param.layer_id === param.layer_id){
+				flg=false;
+			}
+		}
+		log = current_log;
 	}
-	log.id=log_id;
-	log_id++;
+	if(flg){
+		//ログ情報を作成しヒストリーに追加
+		var log=new Log();
+		log.command=command;
+		log.param=param;
+		if(undo_data){
+			log.undo_data = undo_data;
+		}
+		log.id=log_id;
+		log_id++;
+		log.option=document.createElement("option");
+		history_cursor++;
+	}
 	if( typeof label === 'undefined'){
 		label = command+"{"+param+"}";
 	}
 	log.label="[" + ("0000" + log.id).substr(-4) + "]" + label;
-
-
-	log.option=document.createElement("option");
 	Util.setText(log.option, log.label);
 
-	history_cursor++;
 
 	//カーソル以降のヒストリ削除
 	var m = logs.length - (history_cursor );
