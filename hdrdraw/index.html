@@ -82,24 +82,10 @@ width:128;
 <script type="text/javascript" src="./redraw.js"></script>
 <script type="text/javascript" src="./img.js"></script>
 <script type="text/javascript" src="./layer.js"></script>
+<script type="text/javascript" src="./file.js"></script>
 <script type="text/javascript">
 "use strict"
 
-var layerValues=["name","blendfunc","alpha","power"];
-var Layer=(function(){
-//レイヤ
-	var Layer = function(){
-		this.name="";
-		this.display = true;
-		this.power=1.0;
-		this.alpha=1.0;
-		this.blendfunc="normal";
-		this.div=null;
-		this.img=null;
-	};
-	var ret = Layer;
-	return ret;
-})();
 var draw_col=new Vec4();
 var refreshoff=0;
 var inputs=[];
@@ -225,6 +211,7 @@ var onloadfunc=function(e){
 		}
 	},false);
 	preview.addEventListener("pointermove",drawfunc,false);
+	preview.addEventListener("touchmove",function(e){e.preventDefault();},false);
 	preview.addEventListener("pointerdown",function(e){
 		if(inputs["fill"].checked && (e.buttons &1)){
 			Command.fill(selected_layer,	e.offsetX,e.offsetY,draw_col);
@@ -290,7 +277,7 @@ var onloadfunc=function(e){
 
 	var createRGBA=function(){
 		var base = new Vec3();
-		var lumi = parseFloat(inputs["color_lumi"].value);
+		var lumi = Math.pow(2,parseFloat(inputs["color_lumi"].value));
 		Util.hex2rgb(base ,inputs["color_base"].value);
 
 		inputs["color_R"].value = base[0]*lumi;
@@ -389,13 +376,13 @@ var plugin;
 <div id="div_view" >
 ビュー<br>
 <input type="checkbox" id="ch_gamma">ガンマ<input class="slider" id="gamma" max="4" value="2.2"/><br>
-露光<input class="slider" id="ev" min="-5" max="5" value="0"/><br>
+露光<input class="slider" id="ev" min="-10" max="10" value="0"/><br>
 <label><input type="checkbox" id="ch_bloom">拡散</label>
 拡散率<input class="slider" id="bloom_power" max="1" value="0.1"/>
 拡散範囲<input class="slider" id="bloom_size" max="100" value="10"/><br>
 </div>
 	<div class="canvas_area">
-		<canvas width="256" height="256" id="preview" ></canvas><br />
+		<canvas width="256" height="256" id="preview"></canvas><br />
 	</div>
 	<span id="status"></span><br>
 		<label><input type="radio" id="pen" name="tool" checked>ペン</label>
@@ -404,14 +391,14 @@ var plugin;
 		半径<input class="slider" id="bold" max="100"  value="3"/>
 		<label><input type="checkbox" id="pressure"/>筆圧</label><br>
 		ベース色<input class="colorpicker" id="color_base" value="ff0000"/>
-		明るさ<input class="slider" id="color_lumi" min="-10" max="10" value="1"><br>
+		明るさ<input class="slider" id="color_lumi" min="-10" max="10" value="0"><br>
 		<ul id="color_sample" style="">
 			<li>R<input class="slider" id="color_R" max="100"/></li>
 			<li>G<input class="slider" id="color_G" max="100"/></li>
 			<li>B<input class="slider" id="color_B" max="100"/></li>
 			<li>A<input class="slider" id="color_A" max="1" value="1"/></li>
 		</ul>
-		<canvas width="256" height="64" id="pen_preview" ></canvas><br />
+		<canvas width="256" height="64" id="pen_preview"  style="display:none;"></canvas><br />
 	</div>
 </div>
 
@@ -435,7 +422,7 @@ var plugin;
 	<option value="sub">sub</option>
 </select><br>
 α<input class="slider" id="layer_alpha" max="1"/><br>
-明るさ<input class="slider" id="layer_power" max="10"/><br>
+明るさ<input class="slider" id="layer_power" min="-10" max="10"/><br>
 </div>
 <div class="layers" id="layers_container">
 </div>

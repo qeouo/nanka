@@ -131,7 +131,7 @@ var refreshMain=function(step,x,y,w,h){
 			}
 			var layer_img_data = layer.img.data;
 			var layer_alpha=layer.alpha;
-			var layer_power=layer.power;
+			var layer_power=Math.pow(2,layer.power);
 			var layer_img_width = layer.img.width;
 			var func = funcs[layer.blendfunc];
 

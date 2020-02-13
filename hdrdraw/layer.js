@@ -1,4 +1,19 @@
 
+var layerValues=["name","blendfunc","alpha","power"];
+var Layer=(function(){
+//レイヤ
+	var Layer = function(){
+		this.name="";
+		this.display = true;
+		this.power=0.0;
+		this.alpha=1.0;
+		this.blendfunc="normal";
+		this.div=null;
+		this.img=null;
+	};
+	var ret = Layer;
+	return ret;
+})();
 var thumbnail_ctx,thumbnail_canvas;
 var layers=[];
 var selected_layer = null;
