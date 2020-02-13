@@ -31,9 +31,7 @@ line-height:1;
 background-color:transparent;
 }
 .layer .name{
-	//background-color:lightgray;
 	text-align:left;
-	border-color:black;
 	font-weight:bold;
 
 }
@@ -64,7 +62,7 @@ width:64px;
 #color_R + .js-slider
 ,#color_G + .js-slider
 ,#color_B + .js-slider{
-width:256px;
+width:128;
 }
 
 #preview{
@@ -103,41 +101,18 @@ var Layer=(function(){
 	return ret;
 })();
 var draw_col=new Vec4();
-var preview,preview_ctx,preview_ctx_imagedata;
-var thumbnail_ctx,thumbnail_canvas;
 var refreshoff=0;
 var inputs=[];
-
-
-
-var save_hdr= function(e){
-	var a = e.target;
-	var buffer = joined_img.createExr();
-    var blob = new Blob([buffer], {type: "application/octet-stream"});
-    var url = window.URL.createObjectURL(blob);
-
-    a.href = url;
-    a.target = '_blank';
-    a.download = "preview_hdr.exr";
-}
-var save_ldr= function(e){
-	var a = e.target;
-	var url=preview.toDataURL("image/png");
-
-    a.href = url;
-    a.target = '_blank';
-    a.download = "preview_ldr.png";
-    //a.click();
-}
-
+var pen_preview,pen_preview_ctx;
 
 var pen_log=null;
-var resetCanvas=function(width,height){
-	preview_ctx_imagedata=preview_ctx.createImageData(width,height);
-	joined_img = new Img(width,height);
-	horizon_img = new Img(width,height);
-	bloomed_img = new Img(width,height);
-	bloom_img = new Img(width,height);
+
+var penPreviewImg= new Img(256,64);
+
+var penPreview=function(){
+
+
+
 }
 
 var onloadfunc=function(e){
@@ -145,6 +120,11 @@ var onloadfunc=function(e){
 	preview_ctx =  preview.getContext('2d')
 	preview_ctx_imagedata=preview_ctx.createImageData(preview.width,preview.height);
 
+	pen_preview=  document.getElementById('pen_preview');
+	pen_preview_ctx =  pen_preview.getContext('2d')
+
+	pen_preview_ctx.fillStyle="white";
+	pen_preview_ctx.fillRect(0,0,pen_preview.width,pen_preview.height);
 
 
 	var elements= Array.prototype.slice.call(document.getElementsByTagName("input"));
@@ -154,7 +134,7 @@ var onloadfunc=function(e){
 		inputs[id]= elements[i];
 	}
 
-	resetCanvas(preview.width,preview.height);
+	resizeCanvas(preview.width,preview.height);
 
 	thumbnail_canvas =  document.createElement('canvas');
 	thumbnail_canvas.width=64;
@@ -424,13 +404,14 @@ var plugin;
 		半径<input class="slider" id="bold" max="100"  value="3"/>
 		<label><input type="checkbox" id="pressure"/>筆圧</label><br>
 		ベース色<input class="colorpicker" id="color_base" value="ff0000"/>
-		明るさ<input class="slider" id="color_lumi" max="100" value="1"><br>
+		明るさ<input class="slider" id="color_lumi" min="-10" max="10" value="1"><br>
 		<ul id="color_sample" style="">
 			<li>R<input class="slider" id="color_R" max="100"/></li>
 			<li>G<input class="slider" id="color_G" max="100"/></li>
 			<li>B<input class="slider" id="color_B" max="100"/></li>
 			<li>A<input class="slider" id="color_A" max="1" value="1"/></li>
 		</ul>
+		<canvas width="256" height="64" id="pen_preview" ></canvas><br />
 	</div>
 </div>
 

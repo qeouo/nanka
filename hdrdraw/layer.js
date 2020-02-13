@@ -1,4 +1,5 @@
 
+var thumbnail_ctx,thumbnail_canvas;
 var layers=[];
 var selected_layer = null;
 var layers_container;
@@ -215,7 +216,7 @@ Command.moveLayer=function(layer,position){
 				//開いた画像がキャンバスより大きい場合は広げる
 				preview.width=Math.max(img.width,preview.width);
 				preview.height=Math.max(img.height,preview.height);
-				resetCanvas(preview.width,preview.height);
+				resizeCanvas(preview.width,preview.height);
 			}
 		}
 

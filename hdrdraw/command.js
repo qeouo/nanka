@@ -214,35 +214,29 @@ var createDif=function(layer,left,top,width,height){
 
 	ret.pen=function(layer,points,col){
 		for(var li=0;li<points.length-1;li++){
-			Command.drawLine(layer,points[li],points[li+1],col);
+			drawPen(layer.img,points[li],points[li+1],col);
 		}
 		refreshLayerThumbnail(layer);
 
 	}
-	var vec2 =new Vec2();
-	var side = new Vec2();
-	var dist = new Vec2();
 	var clamp=function(value,min,max){
 		return Math.min(max,Math.max(min,value));
 	}
 	ret.drawLine=function(layer,point0,point1,col){
 		var img= layer.img;
-		var data = layer.img.data;
 		var new_p = point1.pos;
 		var old_p = point0.pos;
-		vec2[0] = new_p[0];
-		vec2[1] = new_p[1];
-		var bold = Math.max(point1.size,point0.size);
+		var max_size = Math.max(point1.size,point0.size);
 
 		var left = Math.min(new_p[0],old_p[0]);
 		var right= Math.max(new_p[0],old_p[0])+1;
 		var top= Math.min(new_p[1],old_p[1]);
 		var bottom= Math.max(new_p[1],old_p[1])+1;
 		
-		left = Math.floor(clamp(left-bold,0,img.width));
-		right= Math.ceil(clamp(right+bold,0,img.width));
-		top= Math.floor(clamp(top-bold,0,img.height));
-		bottom=Math.ceil(clamp(bottom+bold,0,img.height));
+		left = Math.floor(clamp(left-max_size,0,img.width));
+		right= Math.ceil(clamp(right+max_size,0,img.width));
+		top= Math.floor(clamp(top-max_size,0,img.height));
+		bottom=Math.ceil(clamp(bottom+max_size,0,img.height));
 
 
 		if(pen_log){
@@ -255,6 +249,33 @@ var createDif=function(layer,left,top,width,height){
 			log.undo_data.difs.push(dif);
 		}
 
+		drawPen(layer.img,point0,point1,col);
+
+		if(right-left>0 && bottom-top>0){
+			//再描画
+			refreshMain(0,left,top,right-left,bottom-top);
+		}
+	}
+	var vec2 =new Vec2();
+	var side = new Vec2();
+	var dist = new Vec2();
+	var drawPen=function(img,point0,point1,color){
+		var data = img.data;
+		var new_p = point1.pos;
+		var old_p = point0.pos;
+		vec2[0] = new_p[0];
+		vec2[1] = new_p[1];
+		var max_size = Math.max(point1.size,point0.size);
+
+		var left = Math.min(new_p[0],old_p[0]);
+		var right= Math.max(new_p[0],old_p[0])+1;
+		var top= Math.min(new_p[1],old_p[1]);
+		var bottom= Math.max(new_p[1],old_p[1])+1;
+		
+		left = Math.floor(clamp(left-max_size,0,img.width));
+		right= Math.ceil(clamp(right+max_size,0,img.width));
+		top= Math.floor(clamp(top-max_size,0,img.height));
+		bottom=Math.ceil(clamp(bottom+max_size,0,img.height));
 
 		Vec2.sub(vec2,new_p,old_p);
 		var l = Vec2.scalar2(vec2);
@@ -266,17 +287,17 @@ var createDif=function(layer,left,top,width,height){
 		Vec2.set(side,vec2[1],-vec2[0]);
 		Vec2.norm(side);
 
-		var r=col[0];
-		var g=col[1];
-		var b=col[2];
-		var a=col[3];
+		var r=color[0];
+		var g=color[1];
+		var b=color[2];
+		var a=color[3];
 		var point0size=point0.size;
 		var point1size=point1.size;
 		var point0size2=point0size*point0size;
 		var point1size2=point1size*point1size;
 		for(var dy=top;dy<bottom;dy++){
 			for(var dx=left;dx<right;dx++){
-				var idx = dy*layer.img.width+ dx<<2;
+				var idx = dy*img.width+ dx<<2;
 				dist[0]=dx-old_p[0];
 				dist[1]=dy-old_p[1];
 				l = Vec2.dot(vec2,dist);
@@ -308,10 +329,6 @@ var createDif=function(layer,left,top,width,height){
 			}
 		}
 
-		if(right-left>0 && bottom-top>0){
-			//再描画
-			refreshMain(0,left,top,right-left,bottom-top);
-		}
 	}
 
 

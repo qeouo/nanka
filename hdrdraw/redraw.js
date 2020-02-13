@@ -4,6 +4,15 @@ var horizon_img=null;
 var bloomed_img=null;
 var bloom_img=null;
 var funcs=[];
+var preview,preview_ctx,preview_ctx_imagedata;
+
+var resizeCanvas=function(width,height){
+	preview_ctx_imagedata=preview_ctx.createImageData(width,height);
+	joined_img = new Img(width,height);
+	horizon_img = new Img(width,height);
+	bloomed_img = new Img(width,height);
+	bloom_img = new Img(width,height);
+}
 
 funcs["normal"] = function(dst,dst_idx,src,src_idx,alpha,power){
 	var alpha=src[src_idx+3]*alpha;
