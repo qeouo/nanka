@@ -366,6 +366,10 @@ var createDif=function(layer,left,top,width,height){
 				data[idx+0]=r;
 				data[idx+1]=g;
 				data[idx+2]=b;
+				//data[idx+3]=;
+				l=clamp(l,0,1);
+				
+				var local_alpha= point0.pressure * (1-l) + point1.pressure * l;
 				data[idx+3]=a;
 			}
 		}
