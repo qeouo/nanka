@@ -103,21 +103,58 @@ var pen_preview_img= new Img(256,64);
 	var pen_preview_log = new Log();
 	var points=[];
 	pen_preview_log.param.points=points;
-	var MAX = 9;
+	var MAX = 17;
 	for(var i=0;i<MAX;i++){
 		var x = 2*i/(MAX-1)-1;
-		var vec2={"pos":new Vec2(),"pressure":0};
-		vec2.pos[0]=x*100+128;
-		vec2.pos[1]=Math.sin(x*Math.PI)*20+32;
-		vec2.pressure= (1-Math.abs(x));
+		var point={"pos":new Vec2(),"pressure":0};
+		point.pos[0]=x*100+128;
+		point.pos[1]=Math.sin(x*Math.PI)*20+32;
+		point.pressure= (1-Math.abs(x));
 		
-		points.push(vec2);
+		points.push(point);
 	}
 
-	var refreshPen=function(){
 
+	var refreshColor=function(){
+		var col=new Vec4();
+		Vec4.set(col,color_R.value,color_G.value,color_B.value,color_A.value);
+		Vec4.copy(draw_col,col);
+
+		var gamma = 1.0/parseFloat(inputs["gamma"].value);
+		var ev = parseFloat(inputs["ev"].value);
+		var r = Math.pow(2,-ev)*255;
+
+		if(inputs["ch_gamma"].checked){
+			col[0]=Math.pow(col[0],gamma)*r;
+			col[1]=Math.pow(col[1],gamma)*r;
+			col[2]=Math.pow(col[2],gamma)*r;
+		}else{
+			col[0]*=r;
+			col[1]*=r;
+			col[2]*=r;
+		}
+		col[3]=col[3]*255;
+//		refreshPen();
+	}
+	var refreshPen=function(){
+		refreshColor();
+		var enablePressure=false;
+
+		if(inputs["pressure"].checked){
+			enablePressure=true;
+		}
 		var bold=parseFloat(inputs["bold"].value);
 	  	var points = pen_preview_log.param.points;
+		for(var i=0;i<MAX;i++){
+			var x = 2*i/(MAX-1)-1;
+			var point=points[i];
+			if(enablePressure){
+				point.pressure= (1-Math.abs(x));
+			}else{
+				point.pressure= 1;
+			}
+			
+		}
 
 		pen_preview_img.clear();
 		for(var li=0;li<points.length-1;li++){
@@ -334,33 +371,12 @@ var onloadfunc=function(e){
 		Util.fireEvent(color_B,"change");
 		
 	}
-	var refreshColor=function(){
-		var col=new Vec4();
-		Vec4.set(col,color_R.value,color_G.value,color_B.value,color_A.value);
-		Vec4.copy(draw_col,col);
-
-		var gamma = 1.0/parseFloat(inputs["gamma"].value);
-		var ev = parseFloat(inputs["ev"].value);
-		var r = Math.pow(2,-ev)*255;
-
-		if(inputs["ch_gamma"].checked){
-			col[0]=Math.pow(col[0],gamma)*r;
-			col[1]=Math.pow(col[1],gamma)*r;
-			col[2]=Math.pow(col[2],gamma)*r;
-		}else{
-			col[0]*=r;
-			col[1]*=r;
-			col[2]*=r;
-		}
-		col[3]=col[3]*255;
-		refreshPen();
-	}
 	color_base.addEventListener("change",createRGBA);
 	color_lumi.addEventListener("change",createRGBA);
-	color_R.addEventListener("change",refreshColor);
-	color_G.addEventListener("change",refreshColor);
-	color_B.addEventListener("change",refreshColor);
-	color_A.addEventListener("change",refreshColor);
+	//color_R.addEventListener("change",refreshColor);
+	//color_G.addEventListener("change",refreshColor);
+	//color_B.addEventListener("change",refreshColor);
+	//color_A.addEventListener("change",refreshColor);
 	
 
 	var input_tags = document.getElementById("div_view").getElementsByTagName("input");
@@ -381,6 +397,12 @@ var onloadfunc=function(e){
 			
 	  });
 	}
+	var input_tags = document.getElementById("pen_status").getElementsByTagName("input");
+	for(var i=0;i<input_tags.length;i++){
+		var input = input_tags[i]
+		input.addEventListener("change",refreshPen );
+	}
+	  
 
 
     var a = document.getElementById("save_ldr");
@@ -429,10 +451,10 @@ var plugin;
 	<div class="canvas_area">
 		<canvas width="256" height="256" id="preview"></canvas><br />
 	</div>
-	<span id="status"></span><br>
+	<span id="status">position<br>value</span><br>
 		<label><input type="radio" id="pen" name="tool" checked>ペン</label>
 		<label><input type="radio" id="fill" name="tool">塗りつぶし</label>
-	<div>
+	<div id="pen_status">
 		半径<input class="slider" id="bold" max="100"  value="3" onchange="refreshPen();"/>
 		<label><input type="checkbox" id="pressure"/>筆圧</label><br>
 		ベース色<input class="colorpicker" id="color_base" value="ff0000"/>
