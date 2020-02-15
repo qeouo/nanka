@@ -219,14 +219,14 @@ var createDif=function(layer,left,top,width,height){
 		refreshLayerThumbnail(layer);
 
 	}
-	var clamp=function(value,min,max){
-		return Math.min(max,Math.max(min,value));
-	}
-	ret.drawLine=function(layer,point0,point1,col){
+	ret.drawLine=function(layer,point0,point1,bold,col){
 		var img= layer.img;
 		var new_p = point1.pos;
 		var old_p = point0.pos;
-		var max_size = Math.max(point1.size,point0.size);
+
+		var point0size=point0.pressure*bold;
+		var point1size=point1.pressure*bold;
+		var max_size = Math.max(point0size,point1size);
 
 		var left = Math.min(new_p[0],old_p[0]);
 		var right= Math.max(new_p[0],old_p[0])+1;
@@ -249,88 +249,13 @@ var createDif=function(layer,left,top,width,height){
 			log.undo_data.difs.push(dif);
 		}
 
-		drawPen(layer.img,point0,point1,col);
+		drawPen(layer.img,point0,point1,bold,col);
 
 		if(right-left>0 && bottom-top>0){
 			//再描画
 			refreshMain(0,left,top,right-left,bottom-top);
 		}
 	}
-	var vec2 =new Vec2();
-	var side = new Vec2();
-	var dist = new Vec2();
-	var drawPen=function(img,point0,point1,color){
-		var data = img.data;
-		var new_p = point1.pos;
-		var old_p = point0.pos;
-		vec2[0] = new_p[0];
-		vec2[1] = new_p[1];
-		var max_size = Math.max(point1.size,point0.size);
-
-		var left = Math.min(new_p[0],old_p[0]);
-		var right= Math.max(new_p[0],old_p[0])+1;
-		var top= Math.min(new_p[1],old_p[1]);
-		var bottom= Math.max(new_p[1],old_p[1])+1;
-		
-		left = Math.floor(clamp(left-max_size,0,img.width));
-		right= Math.ceil(clamp(right+max_size,0,img.width));
-		top= Math.floor(clamp(top-max_size,0,img.height));
-		bottom=Math.ceil(clamp(bottom+max_size,0,img.height));
-
-		Vec2.sub(vec2,new_p,old_p);
-		var l = Vec2.scalar2(vec2);
-		if(l!==0){
-			Vec2.mul(vec2,vec2,1/l);
-		}else{
-			Vec2.set(vec2,0,0);
-		}
-		Vec2.set(side,vec2[1],-vec2[0]);
-		Vec2.norm(side);
-
-		var r=color[0];
-		var g=color[1];
-		var b=color[2];
-		var a=color[3];
-		var point0size=point0.size;
-		var point1size=point1.size;
-		var point0size2=point0size*point0size;
-		var point1size2=point1size*point1size;
-		for(var dy=top;dy<bottom;dy++){
-			for(var dx=left;dx<right;dx++){
-				var idx = dy*img.width+ dx<<2;
-				dist[0]=dx-old_p[0];
-				dist[1]=dy-old_p[1];
-				l = Vec2.dot(vec2,dist);
-				if(l<=0){
-					//始点より前
-					if(Vec2.scalar2(dist)>point0size2){
-						continue;
-					}
-				}else if(l>=1){
-					//終端より後
-					dist[0]=dx-new_p[0];
-					dist[1]=dy-new_p[1];
-					
-					if(Vec2.scalar2(dist)>point1size2){
-						continue;
-					}
-				}else{
-					//線半ば
-					var local_weight = point0size * (1-l) + point1size * l;
-					if(Math.abs(Vec2.dot(dist,side))>local_weight){
-						//線幅より外の場合
-						continue;
-					}
-				}
-				data[idx+0]=r;
-				data[idx+1]=g;
-				data[idx+2]=b;
-				data[idx+3]=a;
-			}
-		}
-
-	}
-
 
 	Command.loadImageFile=function(file,n){
 		var reader=new FileReader();
@@ -367,3 +292,83 @@ var createDif=function(layer,left,top,width,height){
 	}
 	return ret;
 })();
+	var clamp=function(value,min,max){
+		return Math.min(max,Math.max(min,value));
+	}
+
+	var vec2 =new Vec2();
+	var side = new Vec2();
+	var dist = new Vec2();
+	var drawPen=function(img,point0,point1,size,color){
+		var data = img.data;
+		var new_p = point1.pos;
+		var old_p = point0.pos;
+		vec2[0] = new_p[0];
+		vec2[1] = new_p[1];
+
+		var point0size=point0.pressure*size;
+		var point1size=point1.pressure*size;
+		var point0size2=point0size*point0size;
+		var point1size2=point1size*point1size;
+		var max_size = Math.max(point0size,point1size);
+
+		var left = Math.min(new_p[0],old_p[0]);
+		var right= Math.max(new_p[0],old_p[0])+1;
+		var top= Math.min(new_p[1],old_p[1]);
+		var bottom= Math.max(new_p[1],old_p[1])+1;
+		
+		left = Math.floor(clamp(left-max_size,0,img.width));
+		right= Math.ceil(clamp(right+max_size,0,img.width));
+		top= Math.floor(clamp(top-max_size,0,img.height));
+		bottom=Math.ceil(clamp(bottom+max_size,0,img.height));
+
+		Vec2.sub(vec2,new_p,old_p);
+		var l = Vec2.scalar2(vec2);
+		if(l!==0){
+			Vec2.mul(vec2,vec2,1/l);
+		}else{
+			Vec2.set(vec2,0,0);
+		}
+		Vec2.set(side,vec2[1],-vec2[0]);
+		Vec2.norm(side);
+
+		var r=color[0];
+		var g=color[1];
+		var b=color[2];
+		var a=color[3];
+		for(var dy=top;dy<bottom;dy++){
+			for(var dx=left;dx<right;dx++){
+				var idx = dy*img.width+ dx<<2;
+				dist[0]=dx-old_p[0];
+				dist[1]=dy-old_p[1];
+				l = Vec2.dot(vec2,dist);
+				if(l<=0){
+					//始点より前
+					if(Vec2.scalar2(dist)>point0size2){
+						continue;
+					}
+				}else if(l>=1){
+					//終端より後
+					dist[0]=dx-new_p[0];
+					dist[1]=dy-new_p[1];
+					
+					if(Vec2.scalar2(dist)>point1size2){
+						continue;
+					}
+				}else{
+					//線半ば
+					var local_weight = point0size * (1-l) + point1size * l;
+					if(Math.abs(Vec2.dot(dist,side))>local_weight){
+						//線幅より外の場合
+						continue;
+					}
+				}
+				data[idx+0]=r;
+				data[idx+1]=g;
+				data[idx+2]=b;
+				data[idx+3]=a;
+			}
+		}
+
+	}
+

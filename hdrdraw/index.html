@@ -30,6 +30,11 @@ font-size:small;
 line-height:1;
 background-color:transparent;
 }
+
+.colorpicker{
+	width:48px;
+
+}
 .layer .name{
 	text-align:left;
 	font-weight:bold;
@@ -93,13 +98,52 @@ var pen_preview,pen_preview_ctx;
 
 var pen_log=null;
 
-var penPreviewImg= new Img(256,64);
+var pen_preview_img= new Img(256,64);
 
-var penPreview=function(){
+	var pen_preview_log = new Log();
+	var points=[];
+	pen_preview_log.param.points=points;
+	var MAX = 9;
+	for(var i=0;i<MAX;i++){
+		var x = 2*i/(MAX-1)-1;
+		var vec2={"pos":new Vec2(),"pressure":0};
+		vec2.pos[0]=x*100+128;
+		vec2.pos[1]=Math.sin(x*Math.PI)*20+32;
+		vec2.pressure= (1-Math.abs(x));
+		
+		points.push(vec2);
+	}
 
+	var refreshPen=function(){
 
+		var bold=parseFloat(inputs["bold"].value);
+	  	var points = pen_preview_log.param.points;
 
-}
+		pen_preview_img.clear();
+		for(var li=0;li<points.length-1;li++){
+			drawPen(pen_preview_img,points[li],points[li+1],bold,draw_col);
+		}
+
+		//結果をキャンバスに表示
+	  	var dst_data  = preview_ctx_imagedata.data;
+	  	var src_data = pen_preview_img.data;
+	  var r=255;
+		for(var yi=0;yi<pen_preview.height;yi++){
+			for(var xi=0;xi<pen_preview.width;xi++){
+			  var dst_idx = preview_ctx_imagedata.width * yi + xi <<2;
+			  var src_idx = pen_preview_img.width * yi + xi <<2;
+	  			dst_data[dst_idx+0] = src_data[src_idx +0]*r;
+	  			dst_data[dst_idx+1] = src_data[src_idx +1]*r;
+	  			dst_data[dst_idx+2] = src_data[src_idx +2]*r;
+	  			dst_data[dst_idx+3] = src_data[src_idx +3]*r;
+			}
+		}
+		pen_preview_ctx.putImageData(preview_ctx_imagedata,0,0
+	  		,0,0,pen_preview_img.width,pen_preview_img.height);
+
+		//pen_preview_ctx.fillStyle="rgb(" + draw_col[0]+","+draw_col[1]+","+draw_col[2]+")";
+		//pen_preview_ctx.fillRect(0,0,pen_preview.width,pen_preview.height);
+	}
 
 var onloadfunc=function(e){
 	preview=  document.getElementById('preview');
@@ -143,10 +187,11 @@ var onloadfunc=function(e){
 				var bold=parseFloat(inputs["bold"].value);
 
 				var vec2={"pos":new Vec2(),"size":bold};
-			vec2.pos[0]=e.offsetX;
-			vec2.pos[1]=e.offsetY;
+				vec2.pos[0]=e.offsetX;
+				vec2.pos[1]=e.offsetY;
+				vec2.pressure= 1;
 				if(inputs["pressure"].checked){
-					vec2.size *= e.pressure;
+					vec2.pressure= e.pressure;
 				}
 				var points = pen_log.param.points;
 				points.push(vec2);
@@ -160,7 +205,7 @@ var onloadfunc=function(e){
 
 				var p0=points[index-1];
 				var p1=points[index];
-	 			Command.drawLine(selected_layer,p0,p1,draw_col);
+	 			Command.drawLine(selected_layer,p0,p1,bold,draw_col);
 			}
 		}
 		//カーソル下情報表示
@@ -224,8 +269,9 @@ var onloadfunc=function(e){
 			var vec2={"pos":new Vec2(),"size":bold};
 			vec2.pos[0]=e.offsetX;
 			vec2.pos[1]=e.offsetY;
+			vec2.pressure =0;
 			if(inputs["pressure"].checked){
-				vec2.size *= e.pressure;
+				vec2.pressure= e.pressure;
 			}
 			pen_log.param.points.push(vec2);
 
@@ -273,7 +319,6 @@ var onloadfunc=function(e){
 
 
 
-	var color_sample=document.getElementById("color_sample");
 
 	var createRGBA=function(){
 		var base = new Vec3();
@@ -308,7 +353,7 @@ var onloadfunc=function(e){
 			col[2]*=r;
 		}
 		col[3]=col[3]*255;
-		color_sample.style.backgroundColor=Util.rgba(col[0],col[1],col[2],col[3]);
+		refreshPen();
 	}
 	color_base.addEventListener("change",createRGBA);
 	color_lumi.addEventListener("change",createRGBA);
@@ -388,17 +433,17 @@ var plugin;
 		<label><input type="radio" id="pen" name="tool" checked>ペン</label>
 		<label><input type="radio" id="fill" name="tool">塗りつぶし</label>
 	<div>
-		半径<input class="slider" id="bold" max="100"  value="3"/>
+		半径<input class="slider" id="bold" max="100"  value="3" onchange="refreshPen();"/>
 		<label><input type="checkbox" id="pressure"/>筆圧</label><br>
 		ベース色<input class="colorpicker" id="color_base" value="ff0000"/>
 		明るさ<input class="slider" id="color_lumi" min="-10" max="10" value="0"><br>
-		<ul id="color_sample" style="">
+		<ul id="color_sample" style="float:left;">
 			<li>R<input class="slider" id="color_R" max="100"/></li>
 			<li>G<input class="slider" id="color_G" max="100"/></li>
 			<li>B<input class="slider" id="color_B" max="100"/></li>
 			<li>A<input class="slider" id="color_A" max="1" value="1"/></li>
 		</ul>
-		<canvas width="256" height="64" id="pen_preview"  style="display:none;"></canvas><br />
+		<canvas width="256" height="64" id="pen_preview"  style=""></canvas><br />
 	</div>
 </div>
 
