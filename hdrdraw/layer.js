@@ -10,6 +10,7 @@ var Layer=(function(){
 		this.blendfunc="normal";
 		this.div=null;
 		this.img=null;
+		this.mask_alpha=0;
 	};
 	var ret = Layer;
 	return ret;
@@ -84,11 +85,12 @@ var refreshLayer = function(layer){
 
 }
 
-var layerSelect= function(e){
-//レイヤー一覧クリック時、クリックされたものをアクティブ化する
+var selectLayer=function(target_layer){
+	
+	selected_layer=-1;
 	for(var li=0;li<layers.length;li++){
 	  var layer=layers[li];
-	  if(this === layer.div){
+	  if(target_layer === layer){
 		//パラメータ変更による再描画を一時的に無効にする
 		refreshoff=true;
 
@@ -116,6 +118,14 @@ var layerSelect= function(e){
 	}
 
 }
+var layerSelect= function(e){
+//レイヤー一覧クリック時、クリックされたものをアクティブ化する
+
+	var num=getLayerNum(e.currentTarget);
+
+	selectLayer(layers[num]);
+
+}
 
 var createNewLayer=function(e){
 	//新規レイヤーを作成
@@ -134,10 +144,13 @@ var createNewLayer=function(e){
 }
 var drag_div=null;
 function DragStart(event) {
-     event.dataTransfer.setData("text", getLayerNum(event.currentTarget));
+	var num = getLayerNum(event.currentTarget);
+	if(num<0)return;
+     event.dataTransfer.setData("text", num);
 	//var layers_container = document.getElementById("layers_container");
 	//layers_container.removeChild(event.currentTarget);
 	 drag_div=event.currentTarget;
+	 selectLayer(layers[num]);
 }
 function dragover_handler(event) {
  event.preventDefault();
@@ -258,6 +271,7 @@ Command.moveLayer=function(layer,position){
 		}
 		refreshLayer(layer);
 
+		selectLayer(layer);
 		return layer;
 
 	}
@@ -279,8 +293,7 @@ Command.deleteLayer=function(layer){
 	if(layer === selected_layer){
 		li = Math.max(li-1,0);
 		if(layers.length){
-			selected_layer = layers[li]
-			Util.fireEvent(selected_layer.div,"click");
+			selectLayer(layers[li]);
 		}
 	}else{
 		selected_layer = null;

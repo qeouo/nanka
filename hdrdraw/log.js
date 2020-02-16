@@ -57,7 +57,7 @@ ret.redo=function(){
 	var layer = layers.find(function(a){return a.id===layer_id;});
 	switch(log.command){
 	case "fill":
-		Command.fill(layer,param.x,param.y,param.color);
+		Command.fill(layer,param.x,param.y,param.color,param.is_layer);
 		break;
 	case "pen":
 		Command.pen(layer,param.points,param.color);
@@ -111,11 +111,16 @@ ret.undo=function(){
 		
 		layer_id_count--;
 		if(selected_layer===layer){
-			selected_layer=null;
+			if(idx>0)idx-=1;
+			if(layers.length>0){
+				selectLayer(layers[idx]);
+			}else{
+				selectLayer(null);
+			}
+				
 		}
 		refreshMain();
 
-		break;
 		break;
 	case "deleteLayer":
 		var layer = undo_data.layer;

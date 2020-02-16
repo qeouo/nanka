@@ -39,7 +39,7 @@ var createDif=function(layer,left,top,width,height){
 	var joined_r,joined_g,joined_b,joined_a;
 	var target_r,target_g,target_b,target_a;
 	var refresh_left,refresh_top,refresh_bottom,refresh_right;
-	var fillCheck = function(target_data,joined_data,idx){
+	var fillCheck_all = function(target_data,joined_data,idx){
 		return (joined_r===joined_data[idx]
 		&& joined_g===joined_data[idx+1]
 		&& joined_b===joined_data[idx+2]
@@ -49,8 +49,19 @@ var createDif=function(layer,left,top,width,height){
 		&& target_b===target_data[idx+2]
 		&& target_a===target_data[idx+3]);
 	}
-	var fillSub=function(target,y,left,right){
-		var ref_data=joined_img.data;
+	var fillCheck_layer = function(target_data,joined_data,idx){
+		return ( target_r===target_data[idx]
+		&& target_g===target_data[idx+1]
+		&& target_b===target_data[idx+2]
+		&& target_a===target_data[idx+3]);
+	}
+	var fillSub=function(target,y,left,right,is_layer){
+		var fillCheck=fillCheck_all;
+		if(is_layer){
+			fillCheck=fillCheck_layer;
+		}
+		var ref_data = joined_img.data;
+
 		var target_data=target.data;
 		var mode=0;
 
@@ -102,7 +113,13 @@ var createDif=function(layer,left,top,width,height){
 		}
 	}
 
-	ret.fill=function(layer,point_x,point_y,col){
+	ret.fill=function(layer,point_x,point_y,col,is_layer){
+		var mask_alpha= layer.mask_alpha;
+		var one_minus_mask_alpha= 1-mask_alpha;
+		var fillCheck=fillCheck_all;
+		if(is_layer){
+			fillCheck=fillCheck_layer;
+		}
 		fillStack=[];
 		var x = point_x|0;
 		var y = point_y|0;
@@ -179,14 +196,14 @@ var createDif=function(layer,left,top,width,height){
 				target_data[idx]=draw_r;
 				target_data[idx+1]=draw_g;
 				target_data[idx+2]=draw_b;
-				target_data[idx+3]=draw_a;
+				target_data[idx+3]=target_data[idx+3]*mask_alpha+draw_a*one_minus_mask_alpha;
 			}
 
 			if(yi>0){
-				fillSub(target,yi-1,left,right);
+				fillSub(target,yi-1,left,right,is_layer);
 			}
 			if(yi<target.height-1){
-				fillSub(target,yi+1,left,right);
+				fillSub(target,yi+1,left,right,is_layer);
 			}
 			refresh_left=Math.min(refresh_left,left);
 			refresh_top=Math.min(refresh_top,yi);
@@ -197,7 +214,7 @@ var createDif=function(layer,left,top,width,height){
 		var width = refresh_right-refresh_left;
 		var height= refresh_bottom -refresh_top;
 
-		var log = History.createLog("fill",{"layer_id":layer.id,"x":point_x,"y":point_y,"color":new Float32Array(col)},"fill("+ point_x +","+point_y+")",{"layer":layer});
+		var log = History.createLog("fill",{"layer_id":layer.id,"x":point_x,"y":point_y,"color":new Float32Array(col),"is_layer":is_layer},"fill("+ point_x +","+point_y+")",{"layer":layer});
 		if(log){
 			var layer_img= layer.img;
 			layer.img = old_img;
@@ -214,7 +231,7 @@ var createDif=function(layer,left,top,width,height){
 
 	ret.pen=function(layer,points,col){
 		for(var li=0;li<points.length-1;li++){
-			drawPen(layer.img,points[li],points[li+1],col);
+			drawPen(layer.img,points[li],points[li+1],col,layer.mask);
 		}
 		refreshLayerThumbnail(layer);
 
@@ -249,7 +266,7 @@ var createDif=function(layer,left,top,width,height){
 			log.undo_data.difs.push(dif);
 		}
 
-		drawPen(layer.img,point0,point1,bold,col);
+		drawPen(layer.img,point0,point1,bold,col,layer.mask_alpha);
 
 		if(right-left>0 && bottom-top>0){
 			//再描画
@@ -299,7 +316,8 @@ var createDif=function(layer,left,top,width,height){
 	var vec2 =new Vec2();
 	var side = new Vec2();
 	var dist = new Vec2();
-	var drawPen=function(img,point0,point1,size,color){
+	var drawPen=function(img,point0,point1,size,color,mask_alpha){
+		var one_minus_mask_alpha= 1-mask_alpha;
 		var data = img.data;
 		var new_p = point1.pos;
 		var old_p = point0.pos;
@@ -369,8 +387,9 @@ var createDif=function(layer,left,top,width,height){
 				//data[idx+3]=;
 				l=clamp(l,0,1);
 				
-				var local_alpha= point0.pressure * (1-l) + point1.pressure * l;
-				data[idx+3]=a;
+				//var local_alpha= point0.pressure * (1-l) + point1.pressure * l;
+				data[idx+3]=data[idx+3]*mask_alpha+a*one_minus_mask_alpha;
+				//data[idx+3]=a;
 			}
 		}
 

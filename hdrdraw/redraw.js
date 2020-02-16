@@ -61,13 +61,24 @@ funcs["sub"] = function(dst,dst_idx,src,src_idx,alpha,power){
 	dst[dst_idx+1]=dst[dst_idx+1] * dst_r - src[src_idx+1]*src_r;
 	dst[dst_idx+2]=dst[dst_idx+2] * dst_r - src[src_idx+2]*src_r;
 }
-var refreshMain=function(step,x,y,w,h){
-	//プレビュー画面を更新
-	
+
+var refreshMain=function(_step,_x,_y,_w,_h){
 	if(refreshoff){
 		//更新禁止フラグが立っている場合は処理しない
 		return;
 	}
+	var step=_step;
+	var x=_x;
+	var y=_y;
+	var w=_w;
+	var h=_h;
+	window.requestAnimationFrame(function(e){
+			refreshMain_(step,x,y,w,h);
+	});
+}
+var refreshMain_=function(step,x,y,w,h){
+	//プレビュー画面を更新
+	
 	if( typeof step === 'undefined'){
 		step=0;
 	}
