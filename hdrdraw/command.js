@@ -236,7 +236,7 @@ var createDif=function(layer,left,top,width,height){
 		refreshLayerThumbnail(layer);
 
 	}
-	ret.drawLine=function(layer,point0,point1,bold,col){
+	ret.drawLine=function(layer,point0,point1,bold,col,pressure_mask){
 		var img= layer.img;
 		var new_p = point1.pos;
 		var old_p = point0.pos;
@@ -266,7 +266,7 @@ var createDif=function(layer,left,top,width,height){
 			log.undo_data.difs.push(dif);
 		}
 
-		drawPen(layer.img,point0,point1,bold,col,layer.mask_alpha);
+		drawPen(layer.img,point0,point1,bold,col,layer.mask_alpha,pressure_mask);
 
 		if(right-left>0 && bottom-top>0){
 			//再描画
@@ -316,7 +316,7 @@ var createDif=function(layer,left,top,width,height){
 	var vec2 =new Vec2();
 	var side = new Vec2();
 	var dist = new Vec2();
-	var drawPen=function(img,point0,point1,size,color,mask_alpha){
+	var drawPen=function(img,point0,point1,size,color,mask_alpha,pressure_mask){
 		var one_minus_mask_alpha= 1-mask_alpha;
 		var data = img.data;
 		var new_p = point1.pos;
@@ -324,8 +324,12 @@ var createDif=function(layer,left,top,width,height){
 		vec2[0] = new_p[0];
 		vec2[1] = new_p[1];
 
-		var point0size=point0.pressure*size;
-		var point1size=point1.pressure*size;
+		var point0size=size;
+		var point1size=size;
+		if(pressure_mask){
+			point0size*=point0.pressure;
+			point1size*=point1.pressure;
+		}
 		var point0size2=point0size*point0size;
 		var point1size2=point1size*point1size;
 		var max_size = Math.max(point0size,point1size);
@@ -381,14 +385,16 @@ var createDif=function(layer,left,top,width,height){
 						continue;
 					}
 				}
-				data[idx+0]=r;
+				var local_r=r;// point0.pressure * (1-l) + point1.pressure * l;
+
+				data[idx+0]=local_r;
 				data[idx+1]=g;
 				data[idx+2]=b;
 				//data[idx+3]=;
 				l=clamp(l,0,1);
 				
-				//var local_alpha= point0.pressure * (1-l) + point1.pressure * l;
-				data[idx+3]=data[idx+3]*mask_alpha+a*one_minus_mask_alpha;
+				var local_a= point0.pressure * (1-l) + point1.pressure * l;
+				data[idx+3]=data[idx+3]*mask_alpha+local_a*one_minus_mask_alpha;
 				//data[idx+3]=a;
 			}
 		}
