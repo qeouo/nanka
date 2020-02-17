@@ -156,29 +156,9 @@ var createDif=function(layer,left,top,width,height){
 		var old_img = new Img(target.width,target.height);
 		copyImg(old_img,0,0,target,0,0,target.width,target.height);
 
-			//左右の端を探す
-			var yidx = target.width*y<<2;
-			var idx = yidx + (x<<2);
-			var left=x;
-			for(;left>=0;left--){
-				var idx2 = yidx + (left<<2);
-				if(fillCheck(target_data,ref_data,idx2)){
-				}else{
-					left+=1;
-					break;
-				}
-			}
-			var right=x;
-			for(;right<target.width;right++){
-				var idx2 = yidx + (right<<2);
-				if(fillCheck(target_data,ref_data,idx2)){
-				}else{
-					break;
-				}
-			}
 		fillStack.push(y);
-		fillStack.push(left);
-		fillStack.push(right);
+		fillStack.push(x);
+		fillStack.push(x);
 		
 		while(1){
 			if(fillStack.length===0){
@@ -229,9 +209,9 @@ var createDif=function(layer,left,top,width,height){
 	}
 
 
-	ret.pen=function(layer,points,col){
+	ret.pen=function(layer,points,size,col,mask){
 		for(var li=0;li<points.length-1;li++){
-			drawPen(layer.img,points[li],points[li+1],col,layer.mask);
+			Command.drawLine(layer,points[li],points[li+1],size,col,mask);
 		}
 		refreshLayerThumbnail(layer);
 
@@ -241,9 +221,9 @@ var createDif=function(layer,left,top,width,height){
 		var new_p = point1.pos;
 		var old_p = point0.pos;
 
-		var point0size=point0.pressure*bold;
-		var point1size=point1.pressure*bold;
-		var max_size = Math.max(point0size,point1size);
+		var point0_size=point0.pressure*bold;
+		var point1_size=point1.pressure*bold;
+		var max_size = Math.max(point0_size,point1_size);
 
 		var left = Math.min(new_p[0],old_p[0]);
 		var right= Math.max(new_p[0],old_p[0])+1;
@@ -316,23 +296,27 @@ var createDif=function(layer,left,top,width,height){
 	var vec2 =new Vec2();
 	var side = new Vec2();
 	var dist = new Vec2();
-	var drawPen=function(img,point0,point1,size,color,mask_alpha,pressure_mask){
-		var one_minus_mask_alpha= 1-mask_alpha;
-		var data = img.data;
+	var drawPen=function(img,point0,point1,size,color,mask,pressure_mask){
+		var mask_alpha = 1-mask;
+		var img_data = img.data;
 		var new_p = point1.pos;
 		var old_p = point0.pos;
 		vec2[0] = new_p[0];
 		vec2[1] = new_p[1];
 
-		var point0size=size;
-		var point1size=size;
-		if(pressure_mask){
-			point0size*=point0.pressure;
-			point1size*=point1.pressure;
-		}
-		var point0size2=point0size*point0size;
-		var point1size2=point1size*point1size;
-		var max_size = Math.max(point0size,point1size);
+		var point0_pressure=point0.pressure;
+		var point1_pressure=point1.pressure;
+		var point1_0_pressure=point1.pressure - point0.pressure;
+
+		//var point0_size=size;
+		//var point1_0_size=0;
+		////if(pressure_mask){
+		//	point0_size*=point0.pressure;
+		//	point1_0_size =size*point1.pressure - point0_size;
+		////}
+		var point0_size2=size*size*point0_pressure*point0_pressure;
+		var point1_size2=size*size*point1_pressure*point1_pressure;
+		var max_size = Math.max(size*point0_pressure,size*point1_pressure);
 
 		var left = Math.min(new_p[0],old_p[0]);
 		var right= Math.max(new_p[0],old_p[0])+1;
@@ -364,22 +348,29 @@ var createDif=function(layer,left,top,width,height){
 				dist[0]=dx-old_p[0];
 				dist[1]=dy-old_p[1];
 				l = Vec2.dot(vec2,dist);
+				var local_pressure=0;
 				if(l<=0){
 					//始点より前
-					if(Vec2.scalar2(dist)>point0size2){
+					if(Vec2.scalar2(dist)>point0_size2){
 						continue;
 					}
+					local_pressure=point0_pressure;
 				}else if(l>=1){
 					//終端より後
 					dist[0]=dx-new_p[0];
 					dist[1]=dy-new_p[1];
 					
-					if(Vec2.scalar2(dist)>point1size2){
+					if(Vec2.scalar2(dist)>point1_size2){
 						continue;
 					}
+					local_pressure=point0_pressure+point1_0_pressure;
 				}else{
 					//線半ば
-					var local_weight = point0size * (1-l) + point1size * l;
+					
+					local_pressure = point1_0_pressure * l + point0_pressure ;
+					var local_weight = size  *( (local_pressure - 1)*pressure_mask + 1);
+					//var local_weight = point1_0_size  * l +point0_size;
+					//console.log(local_weight,local_weight2);
 					if(Math.abs(Vec2.dot(dist,side))>local_weight){
 						//線幅より外の場合
 						continue;
@@ -387,15 +378,14 @@ var createDif=function(layer,left,top,width,height){
 				}
 				var local_r=r;// point0.pressure * (1-l) + point1.pressure * l;
 
-				data[idx+0]=local_r;
-				data[idx+1]=g;
-				data[idx+2]=b;
-				//data[idx+3]=;
-				l=clamp(l,0,1);
+				img_data[idx+0]=local_r;
+				img_data[idx+1]=g;
+				img_data[idx+2]=b;
+				//img_data[idx+3]=;
 				
-				var local_a= point0.pressure * (1-l) + point1.pressure * l;
-				data[idx+3]=data[idx+3]*mask_alpha+local_a*one_minus_mask_alpha;
-				//data[idx+3]=a;
+				var local_alpha = local_pressure;
+				img_data[idx+3] += (local_alpha- img_data[idx+3]) * mask_alpha;
+				//img_data[idx+3]=a;
 			}
 		}
 

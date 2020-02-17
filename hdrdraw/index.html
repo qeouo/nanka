@@ -307,7 +307,11 @@ var onloadfunc=function(e){
 		}
 		if(inputs["pen"].checked && (e.buttons &1) && selected_layer){
 			var bold=parseFloat(inputs["bold"].value);
-			pen_log = History.createLog("pen",{"layer_id":selected_layer.id,"bold":bold,"color":new Float32Array(draw_col)},"pen",{"layer":selected_layer});
+			var pressure= 0;
+			if(inputs["pressure"].checked){
+				pressure=1;
+			}
+			pen_log = History.createLog("pen",{"layer_id":selected_layer.id,"size":bold,"color":new Float32Array(draw_col),"pressure_mask":pressure},"pen",{"layer":selected_layer});
 			pen_log.param.points=[];
 
 			var vec2={"pos":new Vec2(),"size":bold};
