@@ -209,31 +209,36 @@ var createDif=function(layer,left,top,width,height){
 	}
 
 
-	ret.pen=function(layer,points,size,col,mask){
+	ret.pen=function(layer,points,weight,col,mask){
 		for(var li=0;li<points.length-1;li++){
-			Command.drawLine(layer,points[li],points[li+1],size,col,mask);
+			Command.drawLine(layer,points[li],points[li+1],weight,col,mask);
 		}
 		refreshLayerThumbnail(layer);
 
 	}
-	ret.drawLine=function(layer,point0,point1,bold,col,pressure_mask){
+	ret.drawLine=function(layer,point0,point1,weight,col,pressure_mask){
 		var img= layer.img;
 		var new_p = point1.pos;
 		var old_p = point0.pos;
 
-		var point0_size=point0.pressure*bold;
-		var point1_size=point1.pressure*bold;
-		var max_size = Math.max(point0_size,point1_size);
+
+		var point0_weight = weight;
+		var point1_weight = weight;
+		if(pressure_mask &1){
+			point0_weight*=point0.pressure;
+			point1_weight*=point1.pressure;
+		}
+		var max_weight = Math.max(point0_weight,point1_weight);
 
 		var left = Math.min(new_p[0],old_p[0]);
 		var right= Math.max(new_p[0],old_p[0])+1;
 		var top= Math.min(new_p[1],old_p[1]);
 		var bottom= Math.max(new_p[1],old_p[1])+1;
 		
-		left = Math.floor(clamp(left-max_size,0,img.width));
-		right= Math.ceil(clamp(right+max_size,0,img.width));
-		top= Math.floor(clamp(top-max_size,0,img.height));
-		bottom=Math.ceil(clamp(bottom+max_size,0,img.height));
+		left = Math.floor(clamp(left-max_weight,0,img.width));
+		right= Math.ceil(clamp(right+max_weight,0,img.width));
+		top= Math.floor(clamp(top-max_weight,0,img.height));
+		bottom=Math.ceil(clamp(bottom+max_weight,0,img.height));
 
 
 		if(pen_log){
@@ -246,7 +251,7 @@ var createDif=function(layer,left,top,width,height){
 			log.undo_data.difs.push(dif);
 		}
 
-		drawPen(layer.img,point0,point1,bold,col,layer.mask_alpha,pressure_mask);
+		drawPen(layer.img,point0,point1,col,layer.mask_alpha,weight,pressure_mask);
 
 		if(right-left>0 && bottom-top>0){
 			//再描画
@@ -296,8 +301,10 @@ var createDif=function(layer,left,top,width,height){
 	var vec2 =new Vec2();
 	var side = new Vec2();
 	var dist = new Vec2();
-	var drawPen=function(img,point0,point1,size,color,mask,pressure_mask){
+	var drawPen=function(img,point0,point1,color,mask,weight,pressure_mask){
 		var mask_alpha = 1-mask;
+		var weight_pressure_effect = pressure_mask&1;
+		var alpha_pressure_effect = (pressure_mask&2)>>1;
 		var img_data = img.data;
 		var new_p = point1.pos;
 		var old_p = point0.pos;
@@ -308,25 +315,25 @@ var createDif=function(layer,left,top,width,height){
 		var point1_pressure=point1.pressure;
 		var point1_0_pressure=point1.pressure - point0.pressure;
 
-		//var point0_size=size;
-		//var point1_0_size=0;
-		////if(pressure_mask){
-		//	point0_size*=point0.pressure;
-		//	point1_0_size =size*point1.pressure - point0_size;
-		////}
-		var point0_size2=size*size*point0_pressure*point0_pressure;
-		var point1_size2=size*size*point1_pressure*point1_pressure;
-		var max_size = Math.max(size*point0_pressure,size*point1_pressure);
+		var point0_weight = weight;
+		var point1_weight = weight;
+		if(weight_pressure_effect){
+			point0_weight*=point0.pressure;
+			point1_weight*=point1.pressure;
+		}
+		var point0_weight2=point0_weight*point0_weight;
+		var point1_weight2=point1_weight*point1_weight;
+		var max_weight = Math.max(point0_weight,point1_weight);
 
 		var left = Math.min(new_p[0],old_p[0]);
 		var right= Math.max(new_p[0],old_p[0])+1;
 		var top= Math.min(new_p[1],old_p[1]);
 		var bottom= Math.max(new_p[1],old_p[1])+1;
 		
-		left = Math.floor(clamp(left-max_size,0,img.width));
-		right= Math.ceil(clamp(right+max_size,0,img.width));
-		top= Math.floor(clamp(top-max_size,0,img.height));
-		bottom=Math.ceil(clamp(bottom+max_size,0,img.height));
+		left = Math.floor(clamp(left-max_weight,0,img.width));
+		right= Math.ceil(clamp(right+max_weight,0,img.width));
+		top= Math.floor(clamp(top-max_weight,0,img.height));
+		bottom=Math.ceil(clamp(bottom+max_weight,0,img.height));
 
 		Vec2.sub(vec2,new_p,old_p);
 		var l = Vec2.scalar2(vec2);
@@ -351,7 +358,7 @@ var createDif=function(layer,left,top,width,height){
 				var local_pressure=0;
 				if(l<=0){
 					//始点より前
-					if(Vec2.scalar2(dist)>point0_size2){
+					if(Vec2.scalar2(dist)>point0_weight2){
 						continue;
 					}
 					local_pressure=point0_pressure;
@@ -360,7 +367,7 @@ var createDif=function(layer,left,top,width,height){
 					dist[0]=dx-new_p[0];
 					dist[1]=dy-new_p[1];
 					
-					if(Vec2.scalar2(dist)>point1_size2){
+					if(Vec2.scalar2(dist)>point1_weight2){
 						continue;
 					}
 					local_pressure=point0_pressure+point1_0_pressure;
@@ -368,9 +375,7 @@ var createDif=function(layer,left,top,width,height){
 					//線半ば
 					
 					local_pressure = point1_0_pressure * l + point0_pressure ;
-					var local_weight = size  *( (local_pressure - 1)*pressure_mask + 1);
-					//var local_weight = point1_0_size  * l +point0_size;
-					//console.log(local_weight,local_weight2);
+					var local_weight = weight  *( (local_pressure - 1)*weight_pressure_effect + 1);
 					if(Math.abs(Vec2.dot(dist,side))>local_weight){
 						//線幅より外の場合
 						continue;
@@ -383,7 +388,8 @@ var createDif=function(layer,left,top,width,height){
 				img_data[idx+2]=b;
 				//img_data[idx+3]=;
 				
-				var local_alpha = local_pressure;
+				//var local_alpha = a;//local_pressure;
+				var local_alpha = a *((local_pressure - 1)*alpha_pressure_effect + 1);
 				img_data[idx+3] += (local_alpha- img_data[idx+3]) * mask_alpha;
 				//img_data[idx+3]=a;
 			}

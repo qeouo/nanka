@@ -60,7 +60,7 @@ ret.redo=function(){
 		Command.fill(layer,param.x,param.y,param.color,param.is_layer);
 		break;
 	case "pen":
-		Command.pen(layer,param.points,param.size,param.color,layer.mask_alpha,param.pressure_mask);
+		Command.pen(layer,param.points,param.weight,param.color,layer.mask_alpha,param.pressure_mask);
 		break;
 	case "moveLayer":
 		Command.moveLayer(layer,log.param.position);
