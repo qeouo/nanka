@@ -36,7 +36,7 @@ var createHdp=function(){
 	var filedata = "testdata _ hogehoge";
 	var filesize=filedata.length;
 	ds2.setTextBuf(filedata);//ファイルデータ
-	var crc = calcCrc32(new Uint8Array(ds2.byteBuffer.buffer.slice(0,ds2.idx)));
+	var crc = calcCrc32(new Uint8Array(ds2.byteBuffer.buffer.slice(0,ds2.idx>>>3)));
 	
 	//ローカルファイルヘッダ
 	ds.setUint32(0x04034b50,true);//シグネチャ
@@ -46,12 +46,12 @@ var createHdp=function(){
 	ds.setUint16(0x0,true);//最終変更時間
 	ds.setUint16(0x0,true);//最終変更日時
 	ds.setUint32(crc,true);//CRC-32
-	ds.setUint32(filesize+1,true);//圧縮サイズ
-	ds.setUint32(filesize+1,true);//非圧縮サイズ
+	ds.setUint32(filesize,true);//圧縮サイズ
+	ds.setUint32(filesize,true);//非圧縮サイズ
 	var name="test.txt";
 	ds.setUint16(name.length,true);//ファイル名の長さ
 	ds.setUint16(0,true);//拡張フィールドの長さ
-	ds.setTextBuf(name,true);//ファイル名
+	ds.setTextBuf(name);//ファイル名
 	ds.fill(0x0,0);//拡張フィールド
 
 	var oldidx=ds.idx;
