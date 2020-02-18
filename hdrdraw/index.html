@@ -142,18 +142,9 @@ var pen_preview_img= new Img(256,64);
 	}
 	var refreshPen=function(){
 //		refreshColor();
-		var enable_pressure=false;
-
-		if(inputs["weight_pressure_effect"].checked){
-			enable_pressure=true;
-		}
 		var weight=parseFloat(inputs["weight"].value);
 	  	var points = pen_preview_log.param.points;
-		//for(var i=0;i<MAX;i++){
-		//	var x = 2*i/(MAX-1)-1;
-		//	var point=points[i];
-		//	point.pressure= 1-(i/(MAX-1));//(1-Math.abs(x));
-		//}
+
 		var pressure_effect_flg= 0;
 		if(inputs["weight_pressure_effect"].checked){
 			pressure_effect_flg|=1;
@@ -228,7 +219,6 @@ var onloadfunc=function(e){
 	var drawfunc =function(e){
 		if(inputs["pen"].checked){
 			if((e.buttons & 1) && pen_log){
-				var weight=parseFloat(inputs["weight"].value);
 
 				var point={"pos":new Vec2(),"pressure":e.pressure};
 				point.pos[0]=e.offsetX;
@@ -245,7 +235,8 @@ var onloadfunc=function(e){
 
 				var p0=points[index-1];
 				var p1=points[index];
-	 			Command.drawLine(selected_layer,p0,p1,weight,draw_col,pen_log.param.pressure_mask);
+				var param = pen_log.param;
+	 			Command.drawLine(selected_layer,p0,p1,param.weight,param.color,selected_layer.mask_alpha,param.pressure_mask);
 			}
 		}
 		//カーソル下情報表示
@@ -430,6 +421,10 @@ var onloadfunc=function(e){
 	}
 	  
 
+    var a = document.getElementById("save_hdp");
+	a.addEventListener("contextmenu",save_hdp);
+	a.addEventListener("click",save_hdp);
+	
 
     var a = document.getElementById("save_ldr");
 	a.addEventListener("contextmenu",save_ldr);
@@ -576,6 +571,7 @@ var plugin;
 最大10こ前まで
 </pre>
 <ul>
+<li><a id="save_hdp" href="a">プロジェクトファイルを保存(hdp))</a></li>
 <li><a id="save_hdr" href="a">結合データをHDRで保存(exr)</a></li>
 <li><a id="save_ldr" href="a">プレビュー画像をLDRで保存(png)</a></li>
 </ul>

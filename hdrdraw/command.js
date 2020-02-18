@@ -209,14 +209,14 @@ var createDif=function(layer,left,top,width,height){
 	}
 
 
-	ret.pen=function(layer,points,weight,col,mask){
+	ret.pen=function(layer,points,weight,col,color_mask,pressure_effect_flgs){
 		for(var li=0;li<points.length-1;li++){
-			Command.drawLine(layer,points[li],points[li+1],weight,col,mask);
+			Command.drawLine(layer,points[li],points[li+1],weight,col,color_mask,pressure_effect_flgs);
 		}
 		refreshLayerThumbnail(layer);
 
 	}
-	ret.drawLine=function(layer,point0,point1,weight,col,pressure_mask){
+	ret.drawLine=function(layer,point0,point1,weight,col,color_mask,pressure_effect_flg){
 		var img= layer.img;
 		var new_p = point1.pos;
 		var old_p = point0.pos;
@@ -224,7 +224,7 @@ var createDif=function(layer,left,top,width,height){
 
 		var point0_weight = weight;
 		var point1_weight = weight;
-		if(pressure_mask &1){
+		if(pressure_effect_flg &1){
 			point0_weight*=point0.pressure;
 			point1_weight*=point1.pressure;
 		}
@@ -251,7 +251,7 @@ var createDif=function(layer,left,top,width,height){
 			log.undo_data.difs.push(dif);
 		}
 
-		drawPen(layer.img,point0,point1,col,layer.mask_alpha,weight,pressure_mask);
+		drawPen(layer.img,point0,point1,col,color_mask,weight,pressure_effect_flg);
 
 		if(right-left>0 && bottom-top>0){
 			//再描画
