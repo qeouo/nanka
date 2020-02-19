@@ -82,6 +82,7 @@ margin:0px;
 <script type="text/javascript" src="../lib/util.js"></script>
 <script type="text/javascript" src="../lib/vector.js"></script>
 <script type="text/javascript" src="../lib/openexr.js"></script>
+<script type="text/javascript" src="../lib/zip.js"></script>
 <script type="text/javascript" src="../lib/slider.js"></script>
 <script type="text/javascript" src="../lib/colorpicker.js"></script>
 <script type="text/javascript" src="../lib/geono.js"></script>
@@ -438,6 +439,14 @@ var onloadfunc=function(e){
 	a.addEventListener("click",createNewLayer);
 
 
+	var file=document.getElementById("open_project");
+	inputs["open_project"].addEventListener("change",function(evt){
+		var file=evt.target.files[0];
+		Util.loadFile(file,Util.loadBinary,function(buffer){
+			var files=Zip.read(buffer);
+		});
+	});
+
 	var layer=Command.createNewLayer(512,512,0);
 	var img_data = layer.img.data;
 	for(var i=0;i<img_data.length;i++){
@@ -461,6 +470,7 @@ var plugin;
 <body onLoad="onloadfunc(event)">
 
 <div  style="float:left;">
+	<input type="file" id="open_project" accept="application/octet-stream/,.zip"><br>
 	ビュー<br>
 
 	<div id="tools">

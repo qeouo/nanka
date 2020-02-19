@@ -260,33 +260,29 @@ var createDif=function(layer,left,top,width,height){
 	}
 
 	Command.loadImageFile=function(file,n){
-		var reader=new FileReader();
-		var idx = n;
-		var layer=createLayer(null,idx);
-		reader.onload=function(e){
-			var fu =function(img){
-				
-				layer.img=img;
-				layer.name = file.name;
+		var layer=createLayer(null,n);
 
-				if(img.width>=preview.width || img.height>=preview.height){
-					//開いた画像がキャンバスより大きい場合は広げる
-					preview.width=Math.max(img.width,preview.width);
-					preview.height=Math.max(img.height,preview.height);
-					resetCanvas(preview.width,preview.height);
-				}
-				refreshLayerThumbnail(layer);
-				refreshLayer(layer);
-				refreshMain(0);
+		var fu =function(img){
+			
+			layer.img=img;
+			layer.name = file.name;
 
+			if(img.width>=preview.width || img.height>=preview.height){
+				//開いた画像がキャンバスより大きい場合は広げる
+				preview.width=Math.max(img.width,preview.width);
+				preview.height=Math.max(img.height,preview.height);
+				resetCanvas(preview.width,preview.height);
 			}
-	 		if(/^image\//.test(file.type)){
-				Img.loadImg(e.target.result,fu);
-	 		} else if(/.*\.exr$/.test(file.name)){
-				Img.loadExr(e.target.result,fu);
-	 		}
+			refreshLayerThumbnail(layer);
+			refreshLayer(layer);
+			refreshMain(0);
+
 		}
-		reader.readAsDataURL(file);
+	 	if(/^image\//.test(file.type)){
+			Util.loadFile(file,Img.loadImg,fu);
+	 	} else if(/.*\.exr$/.test(file.name)){
+			Util.loadFile(file,Img.loadExr,fu);
+	 	}
 
 		var log = History.createLog("loadImageFile",{"layer_id":layer.id,"file":file.name,"positon":n},"loadImageFIle("+file.name+")",{"file":file});
 

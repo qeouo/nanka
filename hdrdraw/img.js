@@ -97,6 +97,10 @@ var Img = (function(){
 			thumbnail_ctx.drawImage(canvas,0,0,img.width,img.height,0,0,thumbnail_canvas.width,thumbnail_canvas.height);
 	}
 	ret.loadImg=function(url,func){
+		if(typeof url !== "string"){
+			Util.loadFile(url,Img.loadImg,func);
+			return null;
+		}
 		var image = new Image();
 		image.src=url;
 		var img=new Img();
