@@ -22,7 +22,7 @@ var load_hdw=function(buffer){
 	}
 	resizeCanvas(256,256);
 
-	var work_data = JSON.parse(Util.convertString(work_file.data));
+	var work_data = JSON.parse(Util.utf8ToString(work_file.data));
 	for(var li=0;li<work_data.layers.length;li++){
 		var work_layer=work_data.layers[li];
 		var img_file_name = work_data.layers[li].id + ".exr";
@@ -65,7 +65,7 @@ var save_hdw= function(e){
 		var layer = layers[li];
 		var file={};
 		files.push(file);
-		file.data= layer.img.createExr();
+		file.data= new Uint8Array(layer.img.createExr());
 		file.name = layer.id+".exr";
 
 		//ƒŒƒCƒ„î•ñŽûW
@@ -81,7 +81,7 @@ var save_hdw= function(e){
 	}
 
 	var file = {}
-	file.data = new Uint8Array(Util.convertUtf8(JSON.stringify(work_data))).buffer;
+	file.data = Util.convertUtf8(JSON.stringify(work_data));
 	file.name="work.txt"
 	files.push(file);
 

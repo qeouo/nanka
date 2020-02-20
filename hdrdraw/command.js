@@ -278,13 +278,13 @@ var createDif=function(layer,left,top,width,height){
 			refreshMain(0);
 
 		}
-	 	if(/^image\//.test(file.type)){
-			Util.loadFile(file,Img.loadImg,fu);
-	 	} else if(/.*\.exr$/.test(file.name)){
+	 	if(/.*exr$/.test(file.name)){
 			Util.loadBinary(file,function(buffer){
 				var img=Img.loadExr(buffer);
 				fu(img);
 			});
+	 	}else if(/^image\//.test(file.type)){
+			Util.loadFile(file,Img.loadImg,fu);
 	 	}
 
 		var log = History.createLog("loadImageFile",{"layer_id":layer.id,"file":file.name,"positon":n},"loadImageFIle("+file.name+")",{"file":file});
