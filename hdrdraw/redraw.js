@@ -5,6 +5,15 @@ var bloomed_img=null;
 var bloom_img=null;
 var funcs=[];
 var preview,preview_ctx,preview_ctx_imagedata;
+var refreshoff=0;
+
+var disableRefresh=function(){
+	refreshoff=true;
+}
+var enableRefresh=function(){
+	refreshoff=false;
+}
+
 
 var resizeCanvas=function(width,height){
 	preview_ctx_imagedata=preview_ctx.createImageData(width,height);

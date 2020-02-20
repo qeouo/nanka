@@ -267,11 +267,11 @@ var createDif=function(layer,left,top,width,height){
 			layer.img=img;
 			layer.name = file.name;
 
-			if(img.width>=preview.width || img.height>=preview.height){
+			if(img.width>preview.width || img.height>preview.height){
 				//開いた画像がキャンバスより大きい場合は広げる
 				preview.width=Math.max(img.width,preview.width);
 				preview.height=Math.max(img.height,preview.height);
-				resetCanvas(preview.width,preview.height);
+				resizeCanvas(preview.width,preview.height);
 			}
 			refreshLayerThumbnail(layer);
 			refreshLayer(layer);
@@ -281,7 +281,10 @@ var createDif=function(layer,left,top,width,height){
 	 	if(/^image\//.test(file.type)){
 			Util.loadFile(file,Img.loadImg,fu);
 	 	} else if(/.*\.exr$/.test(file.name)){
-			Util.loadFile(file,Img.loadExr,fu);
+			Util.loadBinary(file,function(buffer){
+				var img=Img.loadExr(buffer);
+				fu(img);
+			});
 	 	}
 
 		var log = History.createLog("loadImageFile",{"layer_id":layer.id,"file":file.name,"positon":n},"loadImageFIle("+file.name+")",{"file":file});

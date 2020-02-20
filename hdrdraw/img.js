@@ -138,46 +138,47 @@ var Img = (function(){
 		}
 		return img;
 	}
-	ret.loadExr=function(url,callback){
-		var img = new Img();
-		Util.loadBinary(url,function(buffer){
-			var obj={};
-			OpenEXR.fromArrayBuffer(obj,buffer);
 
-			img.width =obj.width;
-			img.height=obj.height;
-			img.data=new Float32Array(img.width*img.height*4);
-		 
-			//RGBAチャンネルの情報をdataにセットする
-			var channels=obj.attributes.channels;
-			var data = img.data;
-			var cindex={};
-			for(var i=0;i<channels.length;i++){
-				cindex[channels[i].name]=i;
-			}
-			var r = cindex["R"];
-			var g = cindex["G"];
-			var b = cindex["B"];
-			var size = img.width*img.height*4;
+	ret.loadExr=function(buffer){
+		var img = new Img();
+		var obj={};
+		OpenEXR.fromArrayBuffer(obj,buffer);
+
+		img.width =obj.width;
+		img.height=obj.height;
+		img.data=new Float32Array(img.width*img.height*4);
+		
+		//RGBAチャンネルの情報をdataにセットする
+		var channels=obj.attributes.channels;
+		var data = img.data;
+		var cindex={};
+		cindex["R"]=-1;
+		cindex["G"]=-1;
+		cindex["B"]=-1;
+		cindex["A"]=-1;
+		for(var i=0;i<channels.length;i++){
+			cindex[channels[i].name]=i;
+		}
+		var r = cindex["R"];
+		var g = cindex["G"];
+		var b = cindex["B"];
+		var size = img.width*img.height*4;
+		for(var i=0;i<size;i+=4){
+			data[i]=channels[r].data[i>>2];
+			data[i+1]=channels[g].data[i>>2];
+			data[i+2]=channels[b].data[i>>2];
+		}
+		var a = cindex["A"];
+		if(a>=0){
 			for(var i=0;i<size;i+=4){
-				data[i]=channels[r].data[i>>2];
-				data[i+1]=channels[g].data[i>>2];
-				data[i+2]=channels[b].data[i>>2];
+				data[i+3]=channels[a].data[i>>2];
 			}
-			var a = cindex["A"];
-			if(a){
-				for(var i=0;i<size;i+=4){
-					data[i+3]=channels[a].data[i>>2];
-				}
-			}else{
-				for(var i=0;i<size;i+=4){
-					data[i+3]=1;
-				}
+		}else{
+			for(var i=0;i<size;i+=4){
+				data[i+3]=1;
 			}
-			if(callback){
-				callback(img);
-			}
-		});
+		}
+		
 		return img;
 	}
 	ret.prototype.clear=function(){

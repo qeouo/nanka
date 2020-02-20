@@ -96,7 +96,6 @@ margin:0px;
 "use strict"
 
 var draw_col=new Vec4();
-var refreshoff=0;
 var inputs=[];
 var pen_preview,pen_preview_ctx;
 
@@ -422,9 +421,9 @@ var onloadfunc=function(e){
 	}
 	  
 
-    var a = document.getElementById("save_hdp");
-	a.addEventListener("contextmenu",save_hdp);
-	a.addEventListener("click",save_hdp);
+    var a = document.getElementById("save_hdw");
+	a.addEventListener("contextmenu",save_hdw);
+	a.addEventListener("click",save_hdw);
 	
 
     var a = document.getElementById("save_ldr");
@@ -439,11 +438,10 @@ var onloadfunc=function(e){
 	a.addEventListener("click",createNewLayer);
 
 
-	var file=document.getElementById("open_project");
-	inputs["open_project"].addEventListener("change",function(evt){
+	inputs["open_hdw"].addEventListener("change",function(evt){
 		var file=evt.target.files[0];
 		Util.loadFile(file,Util.loadBinary,function(buffer){
-			var files=Zip.read(buffer);
+	  		load_hdw(buffer);
 		});
 	});
 
@@ -470,7 +468,7 @@ var plugin;
 <body onLoad="onloadfunc(event)">
 
 <div  style="float:left;">
-	<input type="file" id="open_project" accept="application/octet-stream/,.zip"><br>
+	<input type="file" value="画像ファイル読み込み" id="open_hdw" accept="application/octet-stream/,.zip"><br>
 	ビュー<br>
 
 	<div id="tools">
@@ -581,7 +579,7 @@ var plugin;
 最大10こ前まで
 </pre>
 <ul>
-<li><a id="save_hdp" href="a">プロジェクトファイルを保存(hdp))</a></li>
+<li><a id="save_hdw" href="a">ワークファイルを保存(hdw))</a></li>
 <li><a id="save_hdr" href="a">結合データをHDRで保存(exr)</a></li>
 <li><a id="save_ldr" href="a">プレビュー画像をLDRで保存(png)</a></li>
 </ul>
