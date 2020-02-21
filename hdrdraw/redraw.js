@@ -15,24 +15,17 @@ var enableRefresh=function(){
 }
 
 
-var resizeCanvas=function(width,height){
-	preview_ctx_imagedata=preview_ctx.createImageData(width,height);
-	joined_img = new Img(width,height);
-	horizon_img = new Img(width,height);
-	bloomed_img = new Img(width,height);
-	bloom_img = new Img(width,height);
-}
 
 funcs["normal"] = function(dst,dst_idx,src,src_idx,alpha,power){
-	var alpha=src[src_idx+3]*alpha;
+	var src_alpha=src[src_idx+3]*alpha;
 	var dst_alpha = dst[dst_idx+3];
-	var dst_r = dst_alpha*(1-alpha);
+	var dst_r = (1 - src_alpha);
 	var src_r = power*alpha;
 
 	dst[dst_idx+0]=dst[dst_idx+0] * dst_r +  src[src_idx+0]*src_r;
 	dst[dst_idx+1]=dst[dst_idx+1] * dst_r +  src[src_idx+1]*src_r;
 	dst[dst_idx+2]=dst[dst_idx+2] * dst_r +  src[src_idx+2]*src_r;
-	dst[dst_idx+3]=dst_r+alpha;
+	dst[dst_idx+3]=dst_alpha*dst_r+src_alpha;
 }
 funcs["mul"] = function(dst,dst_idx,src,src_idx,alpha,power){
 	var alpha=src[src_idx+3]*alpha;
@@ -154,16 +147,19 @@ var refreshMain_=function(step,x,y,w,h){
 			var layer_power=Math.pow(2,layer.power);
 			var layer_img_width = layer.img.width;
 			var func = funcs[layer.blendfunc];
+			var layer_position_x= layer.position[0];
+			var layer_position_y= layer.position[1];
 
-			var left2 = Math.max(left,0);
-			var top2 = Math.max(top,0);
-			var right2 = Math.min(layer.img.width,right);
-			var bottom2 = Math.min(layer.img.height,bottom);
+			//レイヤごとのクランプ
+			var left2 = Math.max(left,layer.position[0]);
+			var top2 = Math.max(top,layer.position[1]);
+			var right2 = Math.min(layer.img.width + layer_position_x ,right);
+			var bottom2 = Math.min(layer.img.height + layer_position_y ,bottom);
 
 			for(var yi=top2;yi<bottom2;yi++){
 				var idx = yi * joined_img_width + left2 << 2;
 				var max = yi * joined_img_width + right2 << 2;
-				var idx2 = yi * layer_img_width + left2 << 2;
+				var idx2 = (yi-layer_position_y) * layer_img_width + left2 - layer_position_x << 2;
 				for(;idx<max;idx+=4){
 					func(joined_img_data,idx,layer_img_data,idx2,layer_alpha,layer_power);
 					idx2+=4;
@@ -382,4 +378,64 @@ var gauss=function(d,size,left,right,top,bottom){
 	 }
 
 }
+var refreshLayer = function(layer){
+	var div= layer.div.getElementsByTagName("div")[0];
+	div.innerHTML=layer.name;
+	var span = layer.div.getElementsByClassName("layer_attributes")[0];
+	var txt="";
+	txt += "blendfunc: "+layer.blendfunc +"<br>";
+	txt += "position: ("+layer.position[0]+","+layer.position[1] +")"
+		+ "size: (" + layer.img.width + "," + layer.img.height +")<br>";
+	txt += "power: "+layer.power.toFixed(4)+"<br>";
+	txt += "alpha: "+layer.alpha.toFixed(4)+"<br>";
+	
+	 if(!layer.display){
+		layer.div.classList.add("disable_layer");
+	 }else{
+		layer.div.classList.remove("disable_layer");
+	 }
 
+	span.innerHTML = txt;
+
+	if(layer === selected_layer){
+		refreshActiveLayerParam();
+	}
+
+
+}
+
+var refreshLayerThumbnail = function(layer){
+	//レイヤサムネイル更新
+	if(!layer){
+		return;
+	}
+	layer.img.createThumbnail(thumbnail_ctx);
+	var layer_img=layer.div.getElementsByTagName("img")[0];
+	layer_img.src=thumbnail_canvas.toDataURL("image/png");
+	
+}
+var refreshActiveLayerParam = function(){
+	//アクティブレイヤパラメータ更新
+	var layer = selected_layer;
+	var layer_inputs = Array.prototype.slice.call(document.getElementById("layer_param").getElementsByTagName("input"));
+	layer_inputs = layer_inputs.concat(Array.prototype.slice.call(document.getElementById("layer_param").getElementsByTagName("select")));
+	for(var i=0;i<layer_inputs.length;i++){
+		var input = layer_inputs[i];
+		if(input.id ==="layer_width"){
+			input.value = layer.img.width;
+		}else if(input.id ==="layer_height"){
+			input.value = layer.img.height;
+		}else{
+			var member = input.id.replace("layer_","");
+			if(member in layer){
+				if(input.getAttribute("type")==="checkbox"){
+					input.checked=layer[member];
+				}else{
+					input.value=layer[member];
+				}
+				Util.fireEvent(input,"input");
+			}
+		}
+	}
+	
+}

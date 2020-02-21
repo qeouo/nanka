@@ -5,6 +5,12 @@ var History = (function(){
 
 	var log_id=0;
 
+Log=function(){
+	this.command="";
+	this.param={};
+	this.undo_data={};
+	
+}
 var logs=[];
 var undo_max=10;
 var history_cursor=-1;
@@ -75,7 +81,13 @@ ret.redo=function(){
 		Command.deleteLayer(layer);
 		break;
 	case "changeLayerAttribute":
-		Command.changeLayerAttribute(layer,log.param.name,log.param.value);
+		Command.changeLayerAttribute(layer,param.name,param.value);
+		break;
+	case "resizeCanvas":
+		Command.resizeCanvas(param.width,param.height);
+		break;
+	case "resizeLayer":
+		Command.resizeLayer(layer,param.width,param.height);
 		break;
 	}
 
@@ -140,8 +152,17 @@ ret.undo=function(){
 	case "changeLayerAttribute":
 		Command.changeLayerAttribute(layer,log.param.name,undo_data.before);
 		break;
+	case "resizeCanvas":
+		Command.resizeCanvas(undo_data.width,undo_data.height);
+		break;
+	case "resizeLayer":
+		Command.resizeLayer(layer,undo_data.width,undo_data.height);
+		break;
 	default:
-		var difs = undo_data.difs;
+		break;
+	}
+	var difs = undo_data.difs;
+	if(difs){
 
 		for(var di=difs.length;di--;){
 			var dif = difs[di];
@@ -149,7 +170,6 @@ ret.undo=function(){
 		}
 		refreshMain();
 		refreshLayerThumbnail(layer);
-		break;
 	}
 		
 	history_cursor--;
@@ -161,12 +181,6 @@ ret.undo=function(){
 	return false;
 }
 
-Log=function(){
-	this.command="";
-	this.param={};
-	this.undo_data={};
-	
-}
 ret.createLog=function(command,param,label,undo_data){
 	if(!enable_log){
 		return null;

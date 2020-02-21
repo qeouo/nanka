@@ -43,10 +43,13 @@ var load_hdw=function(buffer){
 			if(keys[ki]==="id"){
 				continue;
 			}
-			layer[keys[ki]]=work_layer[keys[ki]];
+			if(typeof layer[keys[ki]] ==="number"){
+				layer[keys[ki]]=parseFloat(work_layer[keys[ki]]);
+			}else{
+				layer[keys[ki]]=work_layer[keys[ki]];
+			}
 		}
 		refreshLayer(layer);
-
 	}
 
 	enableRefresh();
@@ -54,7 +57,7 @@ var load_hdw=function(buffer){
 	refreshMain(0);
 
 }
-var save_hdw= function(e){
+var save_hpw= function(e){
 	var files=[];
 	var work_data={};
 
@@ -81,7 +84,7 @@ var save_hdw= function(e){
 	}
 
 	var file = {}
-	file.data = Util.convertUtf8(JSON.stringify(work_data));
+	file.data = Util.stringToUtf8(JSON.stringify(work_data));
 	file.name="work.txt"
 	files.push(file);
 

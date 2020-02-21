@@ -6,10 +6,12 @@ var copyImg= function(dst,dst_x,dst_y,src,src_x,src_y,src_w,src_h){
 	var src_width = src.width;
 	var dst_idx = 0;
 	var src_idx = 0;
-	for(var yi=0;yi<src_h;yi++){
+	var max_yi = Math.min(src_h,dst.height -dst_y);
+	var max_xi = Math.min(src_w,dst.width-dst_x);
+	for(var yi=0;yi<max_yi;yi++){
 		dst_idx = (yi + dst_y) * dst_width + dst_x<<2;
 		src_idx = (yi + src_y) * src_width + src_x<<2;
-		for(var xi=0;xi<src_w;xi++){
+		for(var xi=0;xi<max_xi;xi++){
 			dst_data[dst_idx+0] = src_data[src_idx+0];
 			dst_data[dst_idx+1] = src_data[src_idx+1];
 			dst_data[dst_idx+2] = src_data[src_idx+2];
@@ -267,12 +269,6 @@ var createDif=function(layer,left,top,width,height){
 			layer.img=img;
 			layer.name = file.name;
 
-			if(img.width>preview.width || img.height>preview.height){
-				//開いた画像がキャンバスより大きい場合は広げる
-				preview.width=Math.max(img.width,preview.width);
-				preview.height=Math.max(img.height,preview.height);
-				resizeCanvas(preview.width,preview.height);
-			}
 			refreshLayerThumbnail(layer);
 			refreshLayer(layer);
 			refreshMain(0);
@@ -290,6 +286,63 @@ var createDif=function(layer,left,top,width,height){
 		var log = History.createLog("loadImageFile",{"layer_id":layer.id,"file":file.name,"positon":n},"loadImageFIle("+file.name+")",{"file":file});
 
 		return layer;
+	}
+
+	Command.resizeCanvas=function(width,height){
+		var old_width=preview.width;
+		var old_height=preview.height;
+
+
+		var log = History.createLog("resizeCanvas",{"width":width,"height":height},"reisizeCanavs",{"width":old_width,"height":old_height});
+
+
+		preview.width=width;
+		preview.height=height
+
+		preview_ctx_imagedata=preview_ctx.createImageData(width,height);
+		joined_img = new Img(width,height);
+		horizon_img = new Img(width,height);
+		bloomed_img = new Img(width,height);
+		bloom_img = new Img(width,height);
+
+		refreshMain(0);
+	}
+	Command.resizeLayer=function(layer,width,height){
+		var img = layer.img;
+		if(!img){
+			return;
+		}
+		var old_width=img.width;
+		var old_height=img.height;
+		
+		//差分ログ作成
+		var log = History.createLog("resizeLayer",{"layer_id":layer.id,"width":width,"height":height},"reisizeCanavs",{"width":old_width,"height":old_height});
+		if(log){
+			var dx = old_width-width;
+			var dy = old_height-height;
+			if(!log.undo_data.difs){
+				log.undo_data.difs=[];
+			}
+			var dif;
+			if(dx>0){
+				dif=createDif(layer,width,0,dx,old_height);
+				log.undo_data.difs.push(dif);
+			}
+			if(dy>0){
+				dif=createDif(layer,0,height,old_width,dy);
+				log.undo_data.difs.push(dif);
+			}
+		}
+		var old_img = img;
+
+		layer.img=new Img(width,height);
+		copyImg(layer.img,0,0,old_img,0,0,old_img.width,old_img.height);
+		refreshLayer(layer);
+		refreshMain(0,0,0,layer.img.width,layer.img.height);
+
+
+
+		refreshMain(0);
 	}
 	return ret;
 })();

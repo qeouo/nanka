@@ -8,13 +8,22 @@
 <meta http-equiv="Content-Script-Type" content="text/javascript" />
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Cache-Control" content="no-cache" />
-<title>hdrdraw</title>
+<title>hdr_paint</title>
 <style>
 body{
-	background-color:gray;
+	background-color:white;
 }
-.canvas_area{
-	border:solid 1px;
+input[type="text"]{
+	width:64px;
+}
+
+div.area{
+border:1px solid black;
+margin:4px 4px 0px 0px;
+padding:4px;
+	overflow:auto;
+}
+div.canvas_area{
 	overflow:scroll;
 }
 
@@ -74,7 +83,6 @@ width:128;
 	touch-action:none;
 }
 ul{
-margin:0px;
 }
 
 </style>
@@ -180,6 +188,19 @@ var pen_preview_img= new Img(256,64);
 		//pen_preview_ctx.fillRect(0,0,pen_preview.width,pen_preview.height);
 	}
 
+var refreshToolTab = function(){
+	var tool_radios = document.getElementById("tools").getElementsByTagName("input");
+	for(var i=0;i<tool_radios.length;i++){
+		var input = tool_radios[i];
+		var div=document.getElementById("status_"+input.id);
+		if(!div)continue;
+		if(input.checked){
+			div.style.display="inline-block";
+			}else{
+			div.style.display="none";
+		}
+	}
+}
 var onloadfunc=function(e){
 	preview=  document.getElementById('preview');
 	preview_ctx =  preview.getContext('2d')
@@ -199,7 +220,7 @@ var onloadfunc=function(e){
 		inputs[id]= elements[i];
 	}
 
-	resizeCanvas(preview.width,preview.height);
+	Command.resizeCanvas(512,512);
 
 	thumbnail_canvas =  document.createElement('canvas');
 	thumbnail_canvas.width=64;
@@ -256,7 +277,7 @@ var onloadfunc=function(e){
 		var b= data[idx+2];
 		var a= data[idx+3];
 
-		var str="position X:[x],Y:[y]  value R:[r], G:[g], B:[b], A:[a] ";
+		var str="X:[x],Y:[y]  R:[r], G:[g], B:[b], A:[a] ";
 		str=str.replace(/\[x\]/,x);
 		str=str.replace(/\[y\]/,y);
 		str=str.replace(/\[r\]/,r.toFixed(4));
@@ -350,6 +371,13 @@ var onloadfunc=function(e){
 	  			Command.changeLayerAttribute(layer,member,e.target.value);
 			}
 		}
+		if(input.id==="layer_width"  || input.id==="layer_height"){
+			f=function(e){
+				var width = parseInt(inputs["layer_width"].value);
+				var height= parseInt(inputs["layer_height"].value);
+				Command.resizeLayer(layer,width,height);
+			}
+		}
 
 		input.addEventListener("change",f);
 	}
@@ -401,16 +429,7 @@ var onloadfunc=function(e){
 	for(var i=0;i<tool_radios.length;i++){
 		var input = tool_radios[i]
 		input.addEventListener("change",function(e){
-			for(var i=0;i<tool_radios.length;i++){
-				var input = tool_radios[i];
-				var div=document.getElementById("status_"+input.id);
-				if(!div)continue;
-				if(input.checked){
-					div.style.display="block";
-					}else{
-					div.style.display="none";
-				}
-			}
+			refreshToolTab();
 		});
 	}
 	
@@ -421,9 +440,9 @@ var onloadfunc=function(e){
 	}
 	  
 
-    var a = document.getElementById("save_hdw");
-	a.addEventListener("contextmenu",save_hdw);
-	a.addEventListener("click",save_hdw);
+    var a = document.getElementById("save_hpw");
+	a.addEventListener("contextmenu",save_hpw);
+	a.addEventListener("click",save_hpw);
 	
 
     var a = document.getElementById("save_ldr");
@@ -433,17 +452,8 @@ var onloadfunc=function(e){
     var a = document.getElementById("save_hdr");
 	a.addEventListener("contextmenu",save_hdr);
 	a.addEventListener("click",save_hdr);
-	
-    var a = document.getElementById("new");
-	a.addEventListener("click",createNewLayer);
 
 
-	inputs["open_hdw"].addEventListener("change",function(evt){
-		var file=evt.target.files[0];
-		Util.loadFile(file,Util.loadBinary,function(buffer){
-	  		load_hdw(buffer);
-		});
-	});
 
 	var layer=Command.createNewLayer(512,512,0);
 	var img_data = layer.img.data;
@@ -456,12 +466,33 @@ var onloadfunc=function(e){
 
 	refreshMain();
 	refreshLayer(layer);
+	refreshToolTab();
 	createRGBA();
 	
+
 	History.deleteLog();
 
 }
-var plugin;
+var createNewLayer=function(e){
+	//新規レイヤーを作成
+	var width= parseInt(inputs["new_layer_width"].value);
+	var height= parseInt(inputs["new_layer_height"].value);
+	
+	if(!(width*height)){
+		width=preview.width;
+		height=preview.height;
+	}
+	var idx= layers.indexOf(selected_layer)+1;
+	
+	var layer=Command.createNewLayer(width,height,idx);
+
+
+}
+var resizeCanvas=function(e){
+	var width = parseInt(inputs["resize_width"].value);
+	var height= parseInt(inputs["resize_height"].value);
+	Command.resizeCanvas(width,height);
+}
 
 </script>
 </head>
@@ -469,36 +500,69 @@ var plugin;
 <body onLoad="onloadfunc(event)">
 
 <div  style="float:left;">
-	<input type="file" value="画像ファイル読み込み" id="open_hdw" accept="application/octet-stream/,.zip"><br>
-	ビュー<br>
 
-	<div id="tools">
-		<label><input type="radio" id="pen" name="tool" checked>ペン </label>
-		<label><input type="radio" id="fill" name="tool">塗りつぶし</label>
-	</div>
-	<div id="tool_status" style="height:128px;">
-		<div id="status_pen">
-			半径<input class="slider" id="weight" max="100"  value="3" onchange="refreshPen();"/>
-			筆圧影響
-			<label><input type="checkbox" id="weight_pressure_effect"/>半径</label>
-			<label><input type="checkbox" id="alpha_pressure_effect"/>アルファ</label>
-			<canvas width="256" height="64" id="pen_preview"  style=""></canvas>
+	<div class="area">
+		<div id="tools">
+			ツール
+			<label><input type="radio" id="pen" name="tool" checked>ペン </label>
+			<label><input type="radio" id="fill" name="tool">塗りつぶし</label>
+			<label><input type="radio" id="resize" name="tool">リサイズ</label>
+			<label><input type="radio" id="file" name="tool">ファイル</label>
 		</div>
-		<div id="status_fill">
-			<ul>
-				<li><label><input id="fill_layer" type="radio" name="fill_type" />レイヤ単体</label></li>
-				<li><label><input id="fill_joined" type="radio" name="fill_type" />結合画像</label></li>
-			</ul>
+		<div id="tool_status" style="height:128px;">
+			<div id="status_pen">
+				<div style="float:left;">
+					<div>半径<input class="slider" id="weight" max="100"  value="3" onchange="refreshPen();"/></div>
+					<div>
+						筆圧影響
+						<label><input type="checkbox" id="weight_pressure_effect"/>半径</label>
+						<label><input type="checkbox" id="alpha_pressure_effect"/>アルファ</label>
+					</div>
+				</div>
+					<canvas width="256" height="64" id="pen_preview"  style=""></canvas>
+			</div>
+			<div id="status_fill">
+				<ul>
+					<li><label><input id="fill_layer" type="radio" name="fill_type" />レイヤ単体</label></li>
+					<li><label><input id="fill_joined" type="radio" name="fill_type" />結合画像</label></li>
+				</ul>
+			</div>
+			<div id="status_resize">
+				幅<input id="resize_width" value="512" type="text">
+				高さ<input id="resize_height" value="512" type="text">
+				<input type="button" id="button_resize" value="リサイズ" onclick="resizeCanvas(event);"><br>
+			</div>
+			<div id="status_file">
+				<input style="display:none;" type="file" value="画像ファイル読み込み" id="open_hpw" accept="application/octet-stream/,.zip"
+				onchange="
+					var file=event.target.files[0];
+					Util.loadFile(file,Util.loadBinary,function(buffer){
+						load_hdw(buffer);
+					});
+				">
+				<ul>
+				<li><a id="opne_hpw" href="#" onclick="inputs['open_hpw'].click();return false;">ワークファイルを開く</a></li>
+				</ul>
+				<ul>
+				<li><a id="save_hpw" href="#">ワークファイルを保存(hpw))</a></li>
+				<li><a id="save_hdr" href="#">結合データをHDRで保存(exr)</a></li>
+				<li><a id="save_ldr" href="#">プレビュー画像をLDRで保存(png)</a></li>
+				</ul>
+			</div>
 		</div>
 	</div>
-	<div class="canvas_area">
-		<canvas width="256" height="256" id="preview"></canvas><br />
+	<div class="area canvas_area">
+	
+	<div style="float:left;text-align:left;">
+	ビュー
 	</div>
-	<div id="status">
+	<div id="status" style="text-align:right;">
 		positionvalue
 	</div>
+		<canvas width="256" height="256" id="preview"></canvas><br />
+	</div>
 
-	<div id="post_effect">
+	<div id="post_effect" class="area">
 		<div>ポストエフェクト</div>
 		<input type="checkbox" id="ch_gamma">ガンマ<input class="slider" id="gamma" max="4" value="2.2"/><br>
 		露光<input class="slider" id="ev" min="-10" max="10" value="0"/><br>
@@ -512,7 +576,7 @@ var plugin;
 
 
 <div style="float:left;">
-	<div id="color_selecter" style="">
+	<div id="color_selecter" class="area">
 		<div>カラーセレクタ</div>
 		ベース色<input class="colorpicker" id="color_base" value="ff0000"/>
 		明るさ<input class="slider" id="color_lumi" min="-10" max="10" value="0"><br>
@@ -523,17 +587,15 @@ var plugin;
 			<li>A<input class="slider" id="color_A" max="1" value="1"/></li>
 		</ul>
 	</div>
-	<div>
+	<div class="area">
 		レイヤ<br>
-		<div  style="">
-			<input id="width" value="512" style="width:64px;">
-			<input id="height" value="512" style="width:64px;">
-			<input type="button" id="new" value="新規レイヤ"><br>
-			<input type="file" id="f" accept="image/*,.hdr,.exr"><br>
-		</div>
-		<div id="layer_param" style="padding-top:32px;">
-			名前<input type="text" id="layer_name"/>
-			<label><input type="checkbox" id="layer_display"/>表示</label><br>
+		<div id="layer_param" >
+			<div style="width:100%;">
+				名前<input type="text" id="layer_name" style="width:100px;" >
+				<label><input type="checkbox" id="layer_display" style="width:30px;"/>表示</label><br>
+			</div>
+			幅<input type="text" id="layer_width" value="" >
+			高さ<input type="text" id="layer_height" value="">
 			合成func<select type="text" id="layer_blendfunc">
 				<option value="normal">normal</option>
 				<option value="add">add</option>
@@ -564,26 +626,30 @@ var plugin;
 				<div class="layer_attributes"></div>
 			</div>
 		</div>
+
+		<div  style="">
+			<input id="new_layer_width" value="512" type="text">
+			<input id="new_layer_height" value="512" type="text">
+			<input type="button" id="new" onclick="createNewLayer(event);" value="新規レイヤ"><br>
+			<input type="file" id="f" accept="image/*,.hdr,.exr"><br>
+		</div>
 	</div>
 
 </div>
 
 
-<div style="float:left;">
-操作履歴<br>
+<div style="float:left;" class="area">
+	操作履歴<br>
+	<div>
 	<select size=20 id="history">
 	</select>
-<pre>
-アンドゥ…ctrl+z
-リドゥ…ctrl+shift+z
-リストを直接選択でそこまで戻る
-最大10こ前まで
-</pre>
-<ul>
-<li><a id="save_hdw" href="a">ワークファイルを保存(hdw))</a></li>
-<li><a id="save_hdr" href="a">結合データをHDRで保存(exr)</a></li>
-<li><a id="save_ldr" href="a">プレビュー画像をLDRで保存(png)</a></li>
-</ul>
+	</div>
+	<ul>
+	<li><input type="button" id="button_undo" value="アンドゥ(ctrl+z)" onclick="History.undo()"></li>
+	<li><input type="button" id="button_redo" value="リドゥ(ctrl+shift+z)" onclick="History.redo()"></li>
+	</ul>
+	リストを直接選択でそこまで戻る<br>
+	最大10こ前まで
 </div>
 </body>
 </html>

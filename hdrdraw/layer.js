@@ -1,5 +1,4 @@
 
-var layerValues=["name","blendfunc","alpha","power"];
 var Layer=(function(){
 //レイヤ
 	var Layer = function(){
@@ -11,6 +10,7 @@ var Layer=(function(){
 		this.div=null;
 		this.img=null;
 		this.mask_alpha=0;
+		this.position =new Vec2();
 	};
 	var ret = Layer;
 	return ret;
@@ -25,65 +25,7 @@ var getLayerNum=function(div){
 	//divからレイヤー番号取得
 	return layers.findIndex(function(l){return l.div===div;});
 }
-var refreshLayerThumbnail = function(layer){
-	//レイヤサムネイル更新
-	if(!layer){
-		return;
-	}
-	layer.img.createThumbnail(thumbnail_ctx);
-	var layer_img=layer.div.getElementsByTagName("img")[0];
-	layer_img.src=thumbnail_canvas.toDataURL("image/png");
-	
-}
-var refreshActiveLayerParam = function(){
-	var layer = selected_layer;
-	var layer_inputs = Array.prototype.slice.call(document.getElementById("layer_param").getElementsByTagName("input"));
-	layer_inputs = layer_inputs.concat(Array.prototype.slice.call(document.getElementById("layer_param").getElementsByTagName("select")));
-	for(var i=0;i<layer_inputs.length;i++){
-		var input = layer_inputs[i];
-		var member = input.id.replace("layer_","");
-		if(member in layer){
-			if(input.getAttribute("type")==="checkbox"){
-				input.checked=layer[member];
-			}else{
-				input.value=layer[member];
-			}
-			Util.fireEvent(input,"input");
-		}
-	}
-	
-}
 
-var refreshLayer = function(layer){
-
-	var div= layer.div.getElementsByTagName("div")[0];
-	div.innerHTML=layer.name;
-	var span = layer.div.getElementsByClassName("layer_attributes")[0];
-	var txt="";
-	for(var i=1;i<layerValues.length;i++){
-		var member = layerValues[i];
-		txt +=  member +": ";
-		if(!isNaN(layer[member])){
-			txt += parseFloat(layer[member]).toFixed(4);
-		}else{
-			txt += layer[member];
-		}
-	 	txt+="<br>" ;
-	}
-	 if(!layer.display){
-		layer.div.classList.add("disable_layer");
-	 }else{
-		layer.div.classList.remove("disable_layer");
-	 }
-
-	span.innerHTML = txt;
-
-	if(layer === selected_layer){
-		refreshActiveLayerParam();
-	}
-
-
-}
 
 var selectLayer=function(target_layer){
 	
@@ -127,21 +69,6 @@ var layerSelect= function(e){
 
 }
 
-var createNewLayer=function(e){
-	//新規レイヤーを作成
-	var width=document.getElementById("width").value;
-	var height=document.getElementById("height").value;
-	
-	if(isNaN(width) || isNaN(height) || width ==="" || height===""){
-		width=preview.width;
-		height=preview.height;
-	}
-	var idx= layers.indexOf(selected_layer)+1;
-	
-	var layer=Command.createNewLayer(width,height,idx);
-
-
-}
 var drag_div=null;
 function DragStart(event) {
 	var num = getLayerNum(event.currentTarget);
@@ -238,15 +165,6 @@ Command.moveLayer=function(layer,position){
 		layer.div=layer_div;
 
 		layer.img=img;
-
-		if(img){
-			if(img.width>=preview.width || img.height>=preview.height){
-				//開いた画像がキャンバスより大きい場合は広げる
-				preview.width=Math.max(img.width,preview.width);
-				preview.height=Math.max(img.height,preview.height);
-				resizeCanvas(preview.width,preview.height);
-			}
-		}
 
 
 		if(!selected_layer){
