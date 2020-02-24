@@ -1,5 +1,5 @@
 
-var load_hdw=function(buffer){
+var loadHpd=function(buffer){
 
 	var fu =function(img){
 		

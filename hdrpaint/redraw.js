@@ -454,3 +454,98 @@ var refreshActiveLayerParam = function(){
 	}
 	
 }
+
+var pen_preview,pen_preview_ctx;
+var pen_log=null;
+var pen_preview_img= new Img(256,64);
+	var pen_preview_log = new Log();
+	var points=[];
+	pen_preview_log.param.points=points;
+	var MAX = 17;
+	for(var i=0;i<MAX;i++){
+		var x = 2*i/(MAX-1)-1;
+		var point={"pos":new Vec2(),"pressure":0};
+		point.pos[0]=x*100+128;
+		point.pos[1]=Math.sin(x*Math.PI)*20+32;
+		//point.pressure= (1-Math.abs(x));
+		point.pressure= 1-(i/(MAX-1));//(1-Math.abs(x));
+		
+		points.push(point);
+	}
+
+
+	var refreshColor=function(){
+		var col=new Vec4();
+		Vec4.set(col,color_R.value,color_G.value,color_B.value,color_A.value);
+		Vec4.copy(draw_col,col);
+
+		var gamma = 1.0/parseFloat(inputs["gamma"].value);
+		var ev = parseFloat(inputs["ev"].value);
+		var r = Math.pow(2,-ev)*255;
+
+		if(inputs["ch_gamma"].checked){
+			col[0]=Math.pow(col[0],gamma)*r;
+			col[1]=Math.pow(col[1],gamma)*r;
+			col[2]=Math.pow(col[2],gamma)*r;
+		}else{
+			col[0]*=r;
+			col[1]*=r;
+			col[2]*=r;
+		}
+		col[3]=col[3]*255;
+		refreshPen();
+	}
+	var refreshPen=function(){
+//		refreshColor();
+		var weight=parseFloat(inputs["weight"].value);
+	  	var points = pen_preview_log.param.points;
+
+		var pressure_effect_flg= 0;
+		if(inputs["weight_pressure_effect"].checked){
+			pressure_effect_flg|=1;
+		}
+		if(inputs["alpha_pressure_effect"].checked){
+			pressure_effect_flg|=2;
+		}
+
+
+		var alpha_direct=inputs["pen_alpha_direct"].checked;
+		pen_preview_img.clear();
+		for(var li=0;li<points.length-1;li++){
+			drawPen(pen_preview_img,points[li],points[li+1],draw_col,0,weight,pressure_effect_flg,alpha_direct);
+		}
+
+		//結果をキャンバスに表示
+	  	var dst_data  = preview_ctx_imagedata.data;
+	  	var src_data = pen_preview_img.data;
+	  var r=255;
+		for(var yi=0;yi<pen_preview.height;yi++){
+			for(var xi=0;xi<pen_preview.width;xi++){
+			  var dst_idx = preview_ctx_imagedata.width * yi + xi <<2;
+			  var src_idx = pen_preview_img.width * yi + xi <<2;
+	  			dst_data[dst_idx+0] = src_data[src_idx +0]*r;
+	  			dst_data[dst_idx+1] = src_data[src_idx +1]*r;
+	  			dst_data[dst_idx+2] = src_data[src_idx +2]*r;
+	  			dst_data[dst_idx+3] = src_data[src_idx +3]*r;
+			}
+		}
+		pen_preview_ctx.putImageData(preview_ctx_imagedata,0,0
+	  		,0,0,pen_preview_img.width,pen_preview_img.height);
+
+		//pen_preview_ctx.fillStyle="rgb(" + draw_col[0]+","+draw_col[1]+","+draw_col[2]+")";
+		//pen_preview_ctx.fillRect(0,0,pen_preview.width,pen_preview.height);
+	}
+
+var refreshToolTab = function(){
+	var tool_radios = document.getElementById("tools").getElementsByTagName("input");
+	for(var i=0;i<tool_radios.length;i++){
+		var input = tool_radios[i];
+		var div=document.getElementById("status_"+input.id);
+		if(!div)continue;
+		if(input.checked){
+			div.style.display="inline-block";
+			}else{
+			div.style.display="none";
+		}
+	}
+}

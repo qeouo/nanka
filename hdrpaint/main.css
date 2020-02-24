@@ -1,0 +1,82 @@
+body{
+	background-color:lightgray;
+}
+input[type="text"]{
+	width:64px;
+}
+
+div.area{
+background-color:gray;
+
+border:1px solid black;
+margin:4px 4px 0px 0px;
+padding:4px;
+	overflow:auto;
+}
+div.canvas_area{
+	overflow:scroll;
+}
+
+.layers{
+	border:solid 1px;
+	overflow:visible scroll;
+	height:300px;
+}
+.layer{
+border:solid 1px;
+height:64px;
+font-size:small;
+line-height:1;
+background-color:transparent;
+}
+
+.colorpicker{
+	width:48px;
+
+}
+.layer .name{
+	text-align:left;
+	font-weight:bold;
+
+}
+.layer_attributes{
+	text-align:right;
+
+}
+.layer .thumbnail{
+   background-image:url(back.png);
+	max-width:64px;
+	max-height:64px;
+}
+
+.active_layer{
+background-color:#FFBF00;
+}
+.disable_layer{
+	border-style:dotted;
+}
+.js-output{
+	text-align:right;
+}
+#color_R
+,#color_G
+,#color_B 
+,#color_A{
+width:64px;
+}
+#color_R + .js-slider
+,#color_G + .js-slider
+,#color_B + .js-slider{
+width:128;
+}
+
+#pen_preview{
+   background-image:url(back.png);
+}
+#preview{
+	border:1px solid black;
+		   background-image:url(back.png);
+
+	touch-action:none;
+}
+
