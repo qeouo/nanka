@@ -30,7 +30,8 @@
 "use strict"
 
 
-var draw_col=new Vec4();
+var doc ={};
+doc.draw_col=new Vec4();
 var inputs=[];
 
 
@@ -42,10 +43,14 @@ var onloadfunc=function(e){
 	pen_preview=  document.getElementById('pen_preview');
 	pen_preview_ctx =  pen_preview.getContext('2d')
 
-	pen_preview_ctx.fillStyle="white";
-	pen_preview_ctx.fillRect(0,0,pen_preview.width,pen_preview.height);
+	//レイヤサムネイル作成用キャンバス
+	thumbnail_canvas =  document.createElement('canvas');
+	thumbnail_canvas.width=64;
+	thumbnail_canvas.height=64;
+	thumbnail_ctx =  thumbnail_canvas.getContext('2d')
 
 
+	//最初に全コントロールを配列に入れる
 	var elements= Array.prototype.slice.call(document.getElementsByTagName("input"));
 	elements = elements.concat(Array.prototype.slice.call(document.getElementsByTagName("select")));
 	for(var i=0;i<elements.length;i++){
@@ -55,108 +60,63 @@ var onloadfunc=function(e){
 	}
 
 
-	Command.resizeCanvas(512,512);
 
-	thumbnail_canvas =  document.createElement('canvas');
-	thumbnail_canvas.width=64;
-	thumbnail_canvas.height=64;
-	thumbnail_ctx =  thumbnail_canvas.getContext('2d')
-
-	var file=document.getElementById("f");
-	file.addEventListener("change",function(evt){
-		var file=evt.target.files[0];
-		Command.loadImageFile(file,layers.indexOf(selected_layer)+1);
-		this.value=null;
-		
-	});
-
-
-	preview.oncontextmenu=function(e){return false;};
 	var drawfunc =function(e){
+		//描画関数
 		if(inputs["pen"].checked){
-			if((e.buttons & 1) && pen_log){
+			//ペンのとき
+			if(!(e.buttons & 1))return;
+			if(!pen_log)return;
 
-				var point={"pos":new Vec2(),"pressure":e.pressure};
+			var points = pen_log.param.points;
+			var point={"pos":new Vec2(),"pressure":e.pressure};
 
-				point.pos[0]= e.pageX - preview.offsetLeft;
-				point.pos[1]=e.pageY -preview.offsetTop;
-				var points = pen_log.param.points;
-				points.push(point);
-				pen_log.label = "[" + ("0000" + pen_log.id).slice(-4) + "]pen" ;
-				pen_log.label += "(" + points[0].pos[0].toFixed(0)+ ","+ points[0].pos[1].toFixed(0)+")-";
-				pen_log.label += (points.length-2) +"-";
-				pen_log.label += "(" + points[points.length-1].pos[0].toFixed(0)+ ","+ points[points.length-1].pos[1].toFixed(0)+")";
-				Util.setText(pen_log.option,pen_log.label);
+			//今回座標をパスに追加
+			point.pos[0]= e.pageX - preview.offsetLeft;
+			point.pos[1]= e.pageY - preview.offsetTop;
+			points.push(point);
 
-				var index = pen_log.param.points.length-1;
+			//ログ文面変更
+			pen_log.label = "[" + ("0000" + pen_log.id).slice(-4) + "]pen" ;
+			pen_log.label += "(" + points[0].pos[0].toFixed(0)+ ","+ points[0].pos[1].toFixed(0)+")-";
+			pen_log.label += (points.length-2) +"-";
+			pen_log.label += "(" + points[points.length-1].pos[0].toFixed(0)+ ","+ points[points.length-1].pos[1].toFixed(0)+")";
+			Util.setText(pen_log.option,pen_log.label);
 
-				var p0=points[index-1];
-				var p1=points[index];
-				var param = pen_log.param;
-	 			Command.drawLine(selected_layer,p0,p1,param.weight,param.color,selected_layer.mask_alpha,param.pressure_mask,param.alpha_direct);
-			}
+			//今回と前回の座標で直線病が
+			var index = pen_log.param.points.length-1;
+			var p0=points[index-1];
+			var p1=points[index];
+			var param = pen_log.param;
+	 		Command.drawLine(selected_layer,p0,p1,param.weight,param.color,selected_layer.mask_alpha,param.pressure_mask,param.alpha_direct);
+			
 		}else if(inputs["translate"].checked) {
+			//移動のとき
 			if((e.buttons & 1) && pen_log){
 				var x = (e.pageX|0) - drag_start[0];
 				var y = (e.pageY|0) - drag_start[1];
+				
+				//一旦元の座標に戻してから再度移動させる
 				Command.translateLayer(selected_layer,-pen_log.param.x,-pen_log.param.y);
 				Command.translateLayer(selected_layer,x,y);
 			}
 		}
 	};
-	var previewMove = function(e){
-		//カーソル下情報表示
-		var data = joined_img.data;
-
-		var x=e.offsetX;
-		var y=e.offsetY;
-		var width=joined_img.width;
-		var height=joined_img.height;
-		var output = document.getElementById("status");
-
-		if(x<0 || y<0 || x>=width || y>=height){return;}
-
-		var idx=((y|0)*preview.width+(x|0))*4;
-		var r= data[idx];
-		var g= data[idx+1];
-		var b= data[idx+2];
-		var a= data[idx+3];
-
-		var str="X:[x],Y:[y]  R:[r], G:[g], B:[b], A:[a] ";
-		str=str.replace(/\[x\]/,x);
-		str=str.replace(/\[y\]/,y);
-		str=str.replace(/\[r\]/,r.toFixed(4));
-		str=str.replace(/\[g\]/,g.toFixed(4));
-		str=str.replace(/\[b\]/,b.toFixed(4));
-		str=str.replace(/\[a\]/,a.toFixed(4));
-
-		if(e.buttons & 2){
-			inputs["color_R"].value=r;
-			inputs["color_G"].value=g;
-			inputs["color_B"].value=b;
-			inputs["color_A"].value=a;
-
-			Util.fireEvent(inputs["color_R"],"change");
-			Util.fireEvent(inputs["color_G"],"change");
-			Util.fireEvent(inputs["color_B"],"change");
-			Util.fireEvent(inputs["color_A"],"change");
-		}
-		Util.setText(output,str);
-	}
-	preview.addEventListener("pointermove",previewMove,false);
 	
+	preview.addEventListener("pointermove",function(e){refreshPreviewStatus(e);e.preventDefault();});
+	preview.addEventListener("contextmenu",function(e){return false;});
+	
+	window.addEventListener("pointermove",drawfunc,false);
 	window.addEventListener("pointerup",function(e){
-		if(pen_log){
-			pen_log=null;
-			if(inputs["pen"].checked){
-				refreshLayerThumbnail(selected_layer);
-				
-			}
+		if(!pen_log){
+			return;
+		}
+		pen_log=null;
+		if(inputs["pen"].checked){
+			refreshLayerThumbnail(selected_layer);
 		}
 	},false);
-	window.addEventListener("pointermove",drawfunc,false);
-	//preview.addEventListener("touchmove",function(e){e.preventDefault();},false);
-	preview.addEventListener("pointermove",function(e){e.preventDefault();},false);
+
 	var drag_start=new Vec2();
 	var drag_flg = false;
 
@@ -166,7 +126,7 @@ var onloadfunc=function(e){
 			if(inputs["fill_layer"].checked){
 				fill_layer=1;
 			}
-			Command.fill(selected_layer,e.offsetX,e.offsetY,draw_col,fill_layer);
+			Command.fill(selected_layer,e.offsetX,e.offsetY,doc.draw_col,fill_layer);
 		}else if(inputs["translate"].checked && (e.buttons &1) && selected_layer){
 			drag_start[0]= e.pageX | 0;
 			drag_start[1]= e.pageY | 0;
@@ -182,7 +142,7 @@ var onloadfunc=function(e){
 				pressure_effect_flg|=2;
 			}
 			var alpha_direct = inputs["pen_alpha_direct"].checked;
-			pen_log = History.createLog("pen",{"layer_id":selected_layer.id,"weight":weight,"color":new Float32Array(draw_col),"pressure_mask":pressure_effect_flg,"alpha_direct":alpha_direct},"pen",{"layer":selected_layer});
+			pen_log = History.createLog("pen",{"layer_id":selected_layer.id,"weight":weight,"color":new Float32Array(doc.draw_col),"pressure_mask":pressure_effect_flg,"alpha_direct":alpha_direct},"pen",{"layer":selected_layer});
 			pen_log.param.points=[];
 
 			var point={"pos":new Vec2(),"pressure":e.pressure};
@@ -192,7 +152,6 @@ var onloadfunc=function(e){
 			pen_log.param.points.push(point);
 
 		}
-		//previewMove(e);
 		Util(preview,"pointermove",e);
 
 		drawfunc(e)
@@ -304,16 +263,16 @@ var onloadfunc=function(e){
 	a.addEventListener("click",save_hpd);
 	
 
-    var a = document.getElementById("save_ldr");
+    a = document.getElementById("save_ldr");
 	a.addEventListener("contextmenu",save_ldr);
 	a.addEventListener("click",save_ldr);
 
-    var a = document.getElementById("save_hdr");
+    a = document.getElementById("save_hdr");
 	a.addEventListener("contextmenu",save_hdr);
 	a.addEventListener("click",save_hdr);
 
-
-
+//初期化
+	Command.resizeCanvas(512,512);
 	var layer=Command.createNewLayer(512,512,0);
 	var img_data = layer.img.data;
 	for(var i=0;i<img_data.length;i++){
@@ -321,7 +280,7 @@ var onloadfunc=function(e){
 	}
 	layer.name="default layer"
 	refreshLayerThumbnail(layer);
-	selectLayer(layer);
+	//selectLayer(layer);
 
 	refreshMain();
 	refreshLayer(layer);
@@ -425,7 +384,7 @@ var resizeCanvas=function(e){
 	<div id="status" style="text-align:right;">
 		positionvalue
 	</div>
-		<canvas width="256" height="256" id="preview"></canvas><br />
+		<canvas width="256" height="256" id="preview" ></canvas><br />
 	</div>
 
 	<div id="post_effect" class="area">
@@ -497,7 +456,11 @@ var resizeCanvas=function(e){
 			<input id="new_layer_width" value="512" type="text">
 			<input id="new_layer_height" value="512" type="text">
 			<input type="button" id="new" onclick="createNewLayer(event);" value="新規レイヤ"><br>
-			<input type="file" id="f" accept="image/*,.hdr,.exr"><br>
+			<input type="file" id="f" accept="image/*,.hdr,.exr" onchange="
+				var file=this.files[0];
+				Command.loadImageFile(file,layers.indexOf(selected_layer)+1);
+				this.value=null;">
+			<br>
 		</div>
 	</div>
 

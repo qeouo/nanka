@@ -397,8 +397,10 @@ var refreshLayer = function(layer){
 	var span = layer.div.getElementsByClassName("layer_attributes")[0];
 	var txt="";
 	txt += "blendfunc: "+layer.blendfunc +"<br>";
-	txt += "position: ("+layer.position[0]+","+layer.position[1] +")"
-		+ "size: (" + layer.img.width + "," + layer.img.height +")<br>";
+	if(layer.img){
+		txt += "position: ("+layer.position[0]+","+layer.position[1] +")"
+			+ "size: (" + layer.img.width + "," + layer.img.height +")<br>";
+	}
 	layer.power=parseFloat(layer.power);
 	txt += "power: "+layer.power.toFixed(4)+"<br>";
 	layer.alpha=parseFloat(layer.alpha);
@@ -477,7 +479,7 @@ var pen_preview_img= new Img(256,64);
 	var refreshColor=function(){
 		var col=new Vec4();
 		Vec4.set(col,color_R.value,color_G.value,color_B.value,color_A.value);
-		Vec4.copy(draw_col,col);
+		Vec4.copy(doc.draw_col,col);
 
 		var gamma = 1.0/parseFloat(inputs["gamma"].value);
 		var ev = parseFloat(inputs["ev"].value);
@@ -512,7 +514,7 @@ var pen_preview_img= new Img(256,64);
 		var alpha_direct=inputs["pen_alpha_direct"].checked;
 		pen_preview_img.clear();
 		for(var li=0;li<points.length-1;li++){
-			drawPen(pen_preview_img,points[li],points[li+1],draw_col,0,weight,pressure_effect_flg,alpha_direct);
+			drawPen(pen_preview_img,points[li],points[li+1],doc.draw_col,0,weight,pressure_effect_flg,alpha_direct);
 		}
 
 		//結果をキャンバスに表示
@@ -532,8 +534,6 @@ var pen_preview_img= new Img(256,64);
 		pen_preview_ctx.putImageData(preview_ctx_imagedata,0,0
 	  		,0,0,pen_preview_img.width,pen_preview_img.height);
 
-		//pen_preview_ctx.fillStyle="rgb(" + draw_col[0]+","+draw_col[1]+","+draw_col[2]+")";
-		//pen_preview_ctx.fillRect(0,0,pen_preview.width,pen_preview.height);
 	}
 
 var refreshToolTab = function(){
@@ -548,4 +548,44 @@ var refreshToolTab = function(){
 			div.style.display="none";
 		}
 	}
+}
+
+var refreshPreviewStatus = function(e){
+	//カーソル下情報表示
+	var data = joined_img.data;
+
+	var x=e.offsetX;
+	var y=e.offsetY;
+	var width=joined_img.width;
+	var height=joined_img.height;
+	var output = document.getElementById("status");
+
+	if(x<0 || y<0 || x>=width || y>=height){return;}
+
+	var idx=((y|0)*preview.width+(x|0))*4;
+	var r= data[idx];
+	var g= data[idx+1];
+	var b= data[idx+2];
+	var a= data[idx+3];
+
+	var str="X:[x],Y:[y]  R:[r], G:[g], B:[b], A:[a] ";
+	str=str.replace(/\[x\]/,x);
+	str=str.replace(/\[y\]/,y);
+	str=str.replace(/\[r\]/,r.toFixed(4));
+	str=str.replace(/\[g\]/,g.toFixed(4));
+	str=str.replace(/\[b\]/,b.toFixed(4));
+	str=str.replace(/\[a\]/,a.toFixed(4));
+
+	if(e.buttons & 2){
+		inputs["color_R"].value=r;
+		inputs["color_G"].value=g;
+		inputs["color_B"].value=b;
+		inputs["color_A"].value=a;
+
+		Util.fireEvent(inputs["color_R"],"change");
+		Util.fireEvent(inputs["color_G"],"change");
+		Util.fireEvent(inputs["color_B"],"change");
+		Util.fireEvent(inputs["color_A"],"change");
+	}
+	Util.setText(output,str);
 }
