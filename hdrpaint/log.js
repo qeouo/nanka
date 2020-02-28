@@ -242,10 +242,19 @@ ret.createLog=function(command,param,label,undo_data){
 		log.undo_data = undo_data;
 	}
 	
-	if( typeof label === 'undefined'){
-		label = command+"{"+param+"}";
+	if(!label || label===""){
+		var param_txt="";
+		var keys=Object.keys(param);
+		for(var ki=0;ki<keys.length;ki++){
+			var key = keys[ki];
+			if(ki){
+				param_txt+=",";
+			}
+			param_txt+=param[key];
+		}
+		label = command+"("+param_txt+")";
 	}
-	log.label="[" + ("0000" + log.id).substr(-4) + "]" + label;
+	log.label="" + ("0000" + log.id).substr(-4) + "| " + label;
 	Util.setText(log.option, log.label);
 
 

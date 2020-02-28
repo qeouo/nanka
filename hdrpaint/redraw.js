@@ -476,6 +476,20 @@ var pen_preview_img= new Img(256,64);
 	}
 
 
+	var createRGBA=function(){
+		var base = new Vec3();
+		var lumi = Math.pow(2,parseFloat(inputs["color_lumi"].value));
+		Util.hex2rgb(base ,inputs["color_base"].value);
+
+		inputs["color_R"].value = base[0]*lumi;
+		inputs["color_G"].value = base[1]*lumi;
+		inputs["color_B"].value = base[2]*lumi;
+
+		Util.fireEvent(color_R,"change");
+		Util.fireEvent(color_G,"change");
+		Util.fireEvent(color_B,"change");
+		
+	}
 	var refreshColor=function(){
 		var col=new Vec4();
 		Vec4.set(col,color_R.value,color_G.value,color_B.value,color_A.value);

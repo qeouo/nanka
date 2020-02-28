@@ -203,20 +203,6 @@ var onloadfunc=function(e){
 
 
 
-	var createRGBA=function(){
-		var base = new Vec3();
-		var lumi = Math.pow(2,parseFloat(inputs["color_lumi"].value));
-		Util.hex2rgb(base ,inputs["color_base"].value);
-
-		inputs["color_R"].value = base[0]*lumi;
-		inputs["color_G"].value = base[1]*lumi;
-		inputs["color_B"].value = base[2]*lumi;
-
-		Util.fireEvent(color_R,"change");
-		Util.fireEvent(color_G,"change");
-		Util.fireEvent(color_B,"change");
-		
-	}
 	color_base.addEventListener("change",createRGBA);
 	color_lumi.addEventListener("change",createRGBA);
 	color_R.addEventListener("change",refreshColor);
@@ -258,29 +244,39 @@ var onloadfunc=function(e){
 	}
 	  
 
+	inputs["open_hpd"].addEventListener("change",function(e){
+
+		var file=this.files[0];
+		Util.loadFile(file,Util.loadBinary,function(buffer){
+			loadHpd(buffer);
+			History.createLog("loadDocumentFile",{"file":file.name},null,null);
+		});
+		e.value="";
+	});
+
     var a = document.getElementById("save_hpd");
-	a.addEventListener("contextmenu",save_hpd);
-	a.addEventListener("click",save_hpd);
+	a.addEventListener("contextmenu",saveHpd);
+	a.addEventListener("click",saveHpd);
 	
 
     a = document.getElementById("save_ldr");
-	a.addEventListener("contextmenu",save_ldr);
-	a.addEventListener("click",save_ldr);
+	a.addEventListener("contextmenu",saveLdr);
+	a.addEventListener("click",saveLdr);
 
     a = document.getElementById("save_hdr");
-	a.addEventListener("contextmenu",save_hdr);
-	a.addEventListener("click",save_hdr);
+	a.addEventListener("contextmenu",saveHdr);
+	a.addEventListener("click",saveHdr);
 
 //初期化
 	Command.resizeCanvas(512,512);
-	var layer=Command.createNewLayer(512,512,0);
+	var layer=Command.createNewLayer(preview.width,preview.height,0);
 	var img_data = layer.img.data;
 	for(var i=0;i<img_data.length;i++){
 		img_data[i]=1;
 	}
 	layer.name="default layer"
+
 	refreshLayerThumbnail(layer);
-	//selectLayer(layer);
 
 	refreshMain();
 	refreshLayer(layer);
@@ -288,9 +284,9 @@ var onloadfunc=function(e){
 	createRGBA();
 	
 
-	History.deleteLog();
 	History.enableLog();
-	History.createLog("createNew",{},"createNew",null);
+	History.reset();
+	History.createLog("createNew",{width:preview.width,height:preview.height},null,null);
 
 }
 var createNewLayer=function(e){
@@ -360,10 +356,6 @@ var resizeCanvas=function(e){
 			<div id="status_file">
 				<input style="display:none;" type="file" value="画像ファイル読み込み" id="open_hpd" accept="application/octet-stream/,.hpd"
 				onchange="
-					var file=event.target.files[0];
-					Util.loadFile(file,Util.loadBinary,function(buffer){
-						loadHpd(buffer);
-					});
 				">
 				<ul>
 				<li><a id="opne_hpd" href="#" onclick="inputs['open_hpd'].click();return false;">ドキュメントファイルを開く</a></li>
