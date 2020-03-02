@@ -196,7 +196,7 @@ var createDif=function(layer,left,top,width,height){
 		var width = refresh_right-refresh_left;
 		var height= refresh_bottom -refresh_top;
 
-		var log = History.createLog("fill",{"layer_id":layer.id,"x":point_x,"y":point_y,"color":new Float32Array(col),"is_layer":is_layer},"fill("+ point_x +","+point_y+")",{"layer":layer});
+		var log = History.createLog("fill",{"layer_id":layer.id,"x":point_x,"y":point_y,"color":new Float32Array(col),"is_layer":is_layer},{"layer":layer});
 		if(log){
 			var layer_img= layer.img;
 			layer.img = old_img;
@@ -291,26 +291,40 @@ var createDif=function(layer,left,top,width,height){
 			Util.loadFile(file,Img.loadImg,fu);
 	 	}
 
-		var log = History.createLog("loadImageFile",{"layer_id":layer.id,"file":file.name,"positon":n},"loadImageFIle("+file.name+")",{"file":file});
+		var log = History.createLog("loadImageFile",{"layer_id":layer.id,"file":file.name,"positon":n},{"file":file});
 
 		return layer;
 	}
 
 	Command.translateLayer=function(layer,x,y){
-		layer.position[0]+=x;
-		layer.position[1]+=y;
-		var log = History.createLog("translateLayer",{"layer_id":layer.id,"x":x,"y":y},"translateLayer("+x+","+y+")",{});
+		var layer_id;
+		if(!layer){
+			//レイヤ指定無しの場合は全レイヤ移動
+			for(var li=0;li<layers.length;li++){
+				var l = layers[li];
+				l.position[0]+=x;
+				l.position[1]+=y;
+				refreshLayer(l);
+			}
+			layer_id = -1;
+		}else{
+			layer.position[0]+=x;
+			layer.position[1]+=y;
+			layer_id = layer.id;
+			refreshLayer(layer);
+		}
+		History.createLog("translateLayer",{"layer_id":layer_id,"x":x,"y":y},{});
 
-		refreshLayer(layer);
-		refreshMain(0,layer.position[0]-Math.abs(x),layer.position[1]-Math.abs(y)
-			,layer.img.width+Math.abs(x)*2,layer.img.height+Math.abs(y)*2);
+		refreshMain();
+//		refreshMain(0,layer.position[0]-Math.abs(x),layer.position[1]-Math.abs(y)
+//			,layer.img.width+Math.abs(x)*2,layer.img.height+Math.abs(y)*2);
 	}
 	Command.resizeCanvas=function(width,height){
 		var old_width=preview.width;
 		var old_height=preview.height;
 
 
-		var log = History.createLog("resizeCanvas",{"width":width,"height":height},"reisizeCanavs",{"width":old_width,"height":old_height});
+		var log = History.createLog("resizeCanvas",{"width":width,"height":height},{"width":old_width,"height":old_height});
 
 
 		preview.width=width;
@@ -333,7 +347,7 @@ var createDif=function(layer,left,top,width,height){
 		var old_height=img.height;
 		
 		//差分ログ作成
-		var log = History.createLog("resizeLayer",{"layer_id":layer.id,"width":width,"height":height},"reisizeCanavs",{"width":old_width,"height":old_height});
+		var log = History.createLog("resizeLayer",{"layer_id":layer.id,"width":width,"height":height},{"width":old_width,"height":old_height});
 		if(log){
 			var dx = old_width-width;
 			var dy = old_height-height;

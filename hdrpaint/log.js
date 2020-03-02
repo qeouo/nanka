@@ -9,7 +9,7 @@ Log=function(){
 	this.command="";
 	this.param={};
 	this.undo_data=null;
-	
+	this.logs=null;
 }
 var logs=[];
 var undo_max=10;
@@ -202,10 +202,11 @@ ret.undo=function(){
 	return false;
 }
 
-ret.createLog=function(command,param,label,undo_data){
+ret.createLog=function(command,param,undo_data){
 	if(!enable_log){
 		return null;
 	}
+	var label="";
 	var log = null;
 	if(history_cursor>=0){
 		var current_log=logs[history_cursor];
@@ -242,18 +243,17 @@ ret.createLog=function(command,param,label,undo_data){
 		log.undo_data = undo_data;
 	}
 	
-	if(!label || label===""){
-		var param_txt="";
-		var keys=Object.keys(param);
-		for(var ki=0;ki<keys.length;ki++){
-			var key = keys[ki];
-			if(ki){
-				param_txt+=",";
-			}
-			param_txt+=param[key];
+	var param_txt="";
+	var keys=Object.keys(param);
+	for(var ki=0;ki<keys.length;ki++){
+		var key = keys[ki];
+		if(ki){
+			param_txt+=",";
 		}
-		label = command+"("+param_txt+")";
+		param_txt+=param[key];
 	}
+	label = command+"("+param_txt+")";
+	
 	log.label="" + ("0000" + log.id).substr(-4) + "| " + label;
 	Util.setText(log.option, log.label);
 
