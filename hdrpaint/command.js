@@ -297,23 +297,28 @@ var createDif=function(layer,left,top,width,height){
 	}
 
 	Command.translateLayer=function(layer,x,y){
-		var layer_id;
+		var layer_id = -1;
+
+		if(layer){
+			layer_id = layer.id;
+		}
+
+		var log = History.createLog("translateLayer",{"layer_id":layer_id,"x":x,"y":y},{});
 		if(!layer){
 			//レイヤ指定無しの場合は全レイヤ移動
-			for(var li=0;li<layers.length;li++){
-				var l = layers[li];
-				l.position[0]+=x;
-				l.position[1]+=y;
-				refreshLayer(l);
-			}
-			layer_id = -1;
+			//for(var li=0;li<layers.length;li++){
+			//	var l = layers[li];
+			//	l.position[0]+=x;
+			//	l.position[1]+=y;
+			//	refreshLayer(l);
+
+			//}
 		}else{
 			layer.position[0]+=x;
 			layer.position[1]+=y;
 			layer_id = layer.id;
 			refreshLayer(layer);
 		}
-		History.createLog("translateLayer",{"layer_id":layer_id,"x":x,"y":y},{});
 
 		refreshMain();
 //		refreshMain(0,layer.position[0]-Math.abs(x),layer.position[1]-Math.abs(y)

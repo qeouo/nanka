@@ -9,7 +9,6 @@ Log=function(){
 	this.command="";
 	this.param={};
 	this.undo_data=null;
-	this.logs=null;
 }
 var logs=[];
 var undo_max=10;
@@ -72,6 +71,12 @@ ret.redo=function(){
 	history_cursor++;
 
 	var log = logs[history_cursor];
+	redo(log);
+	
+
+	inputs["history"].selectedIndex=history_cursor;
+}
+var redo=function(log){
 
 	var param = log.param;
 	var layer_id= param.layer_id;
@@ -109,7 +114,6 @@ ret.redo=function(){
 		break;
 	}
 
-	inputs["history"].selectedIndex=history_cursor;
 
 	History.enableLog();
 }
@@ -125,6 +129,16 @@ ret.undo=function(){
 	History.disableLog();
 
 	var log = logs[history_cursor];
+	undo(log);
+	
+
+	history_cursor--;
+
+	inputs["history"].selectedIndex=history_cursor;
+
+	History.enableLog();
+}
+var undo=function(log){
 	var undo_data = log.undo_data;
 
 	var param = log.param;
@@ -193,11 +207,6 @@ ret.undo=function(){
 		refreshLayerThumbnail(layer);
 	}
 		
-	history_cursor--;
-
-	inputs["history"].selectedIndex=history_cursor;
-
-	History.enableLog();
 
 	return false;
 }

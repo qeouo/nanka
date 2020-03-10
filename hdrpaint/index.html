@@ -96,9 +96,14 @@ var onloadfunc=function(e){
 				var x = (e.pageX|0) - drag_start[0];
 				var y = (e.pageY|0) - drag_start[1];
 				
+				var layer= selected_layer;
+				if(inputs["translate_joined"].checked){
+					//全レイヤ移動
+					layer=null;
+				}
 				//一旦元の座標に戻してから再度移動させる
-				Command.translateLayer(selected_layer,-pen_log.param.x,-pen_log.param.y);
-				Command.translateLayer(selected_layer,x,y);
+				Command.translateLayer(layer,-pen_log.param.x,-pen_log.param.y);
+				Command.translateLayer(layer,x,y);
 			}
 		}
 	};
@@ -131,7 +136,12 @@ var onloadfunc=function(e){
 			//レイヤ位置移動
 			drag_start[0]= e.pageX | 0;
 			drag_start[1]= e.pageY | 0;
-			pen_log = History.createLog("translateLayer",{"layer_id":selected_layer.id,"x":0,"y":0}
+			var layer_id= selected_layer.id;
+			if(inputs["translate_joined"].checked){
+				//全レイヤ移動
+				layer_id=-1;
+			}
+			pen_log = History.createLog("translateLayer",{"layer_id":layer_id,"x":0,"y":0}
 				,{"x":selected_layer.position[0],"y":selected_layer.position[1]});
 		}else if(inputs["pen"].checked && (e.buttons &1) && selected_layer){
 			var weight=parseFloat(inputs["weight"].value);
@@ -245,6 +255,14 @@ var onloadfunc=function(e){
 	}
 	  
 
+	inputs["btn_resize_canvas"].addEventListener("click",function(e){
+		var width = parseInt(inputs["resize_width"].value);
+		var height= parseInt(inputs["resize_height"].value);
+		Command.resizeCanvas(width,height);
+	});
+	inputs["btn_resize_layers"].addEventListener("click",function(e){
+		Command.resizeLayerAtCanvas();
+	});
 	inputs["open_hpd"].addEventListener("change",function(e){
 
 		var file=this.files[0];
@@ -306,9 +324,6 @@ var createNewLayer=function(e){
 
 }
 var resizeCanvas=function(e){
-	var width = parseInt(inputs["resize_width"].value);
-	var height= parseInt(inputs["resize_height"].value);
-	Command.resizeCanvas(width,height);
 }
 
 </script>
@@ -349,10 +364,17 @@ var resizeCanvas=function(e){
 					<li><label><input id="fill_joined" type="radio" name="fill_type" />結合画像</label></li>
 				</ul>
 			</div>
+			<div id="status_translate">
+				<ul>
+					<li><label><input id="translate_layer" type="radio" name="translate_type" />レイヤ単体</label></li>
+					<li><label><input id="translate_joined" type="radio" name="translate_type" />結合画像</label></li>
+				</ul>
+			</div>
 			<div id="status_resize">
 				幅<input id="resize_width" value="512" type="text">
 				高さ<input id="resize_height" value="512" type="text">
-				<input type="button" id="button_resize" value="リサイズ" onclick="resizeCanvas(event);"><br>
+				<input type="button" id="btn_resize_canvas" value="キャンバスをリサイズ" onclick="resizeCanvas(event);"><br>
+				<input type="button" id="btn_resize_layers" value="レイヤーをキャンバスに合わせる" onclick="resizeLayer(event);"><br>
 			</div>
 			<div id="status_file">
 				<input style="display:none;" type="file" value="画像ファイル読み込み" id="open_hpd" accept="application/octet-stream/,.hpd"
