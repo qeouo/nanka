@@ -61,22 +61,54 @@ ret.getCurrent=function(){
 		return null;
 	};
 }
-ret.redo=function(){
-	if(history_cursor>=logs.length-1){
-		//最新状態の場合は無効
-		return;
-	}
+ret.moveHistory=function(n){
 	History.disableLog();
-	
-	history_cursor++;
+	for(;history_cursor<n;){
+		history_cursor++
+		var log = logs[history_cursor];
+		redo(log);
+	}
 
-	var log = logs[history_cursor];
-	redo(log);
+	for(;history_cursor>n;){
+		var log = logs[history_cursor];
+		undo(log);
+		history_cursor--;
+	}
 	
 
-	inputs["history"].selectedIndex=history_cursor;
+	History.enableLog();
+}
+ret.redo=function(){
+
+	var option_index = inputs["history"].selectedIndex;
+	var options = inputs["history"].options;
+	if(option_index === inputs.length-1){
+		return;
+	}	
+	option_index++;
+	var option = options[option_index];
+	inputs["history"].selectedIndex = option_index;
+
+	History.moveHistory(parseInt(option.value));
+
+}
+
+ret.undo=function(){
+
+	var option_index = inputs["history"].selectedIndex;
+	var options = inputs["history"].options;
+	if(option_index === 0){
+		return;
+	}	
+	option_index--;
+	var option = options[option_index];
+	inputs["history"].selectedIndex = option_index;
+
+	History.moveHistory(option.value);
+
 }
 var redo=function(log){
+	History.disableLog();
 
 	var param = log.param;
 	var layer_id= param.layer_id;
@@ -114,27 +146,6 @@ var redo=function(log){
 		break;
 	}
 
-
-	History.enableLog();
-}
-ret.undo=function(){
-	if(history_cursor<0){
-		//最古の場合は無効
-		return true;
-	}
-	if(!logs[history_cursor].undo_data){
-		//アンドゥ情報が無い場合は無効
-		return true;
-	}
-	History.disableLog();
-
-	var log = logs[history_cursor];
-	undo(log);
-	
-
-	history_cursor--;
-
-	inputs["history"].selectedIndex=history_cursor;
 
 	History.enableLog();
 }
@@ -236,12 +247,21 @@ ret.createLog=function(command,param,undo_data){
 			}
 		}
 	}
+
+	var options = inputs["history"].options;
+	var option_index=0;
+	for(var oi =options.length;oi--;){
+		if(parseInt(options[oi].value) <= history_cursor){
+			option_index = oi;
+			break;
+		}
+	}
+
 	if(!log){
 		//ログ情報を作成しヒストリーに追加
 		log=new Log();
 		log.id=log_id;
 		log_id++;
-		log.option=document.createElement("option");
 		history_cursor++;
 		log.command=command;
 	}
@@ -263,29 +283,31 @@ ret.createLog=function(command,param,undo_data){
 	}
 	label = command+"("+param_txt+")";
 	
-	log.label="" + ("0000" + log.id).substr(-4) + "| " + label;
-	Util.setText(log.option, log.label);
-
-
 	//カーソル以降のヒストリ削除
-	var m = logs.length - (history_cursor );
-	for(var hi=history_cursor;hi<logs.length;hi++){
-		//logs.pop();
-		inputs["history"].removeChild(logs[hi].option);
+	for(var oi =options.length;oi>option_index+1;){
+		oi--;
+		inputs["history"].removeChild(options[oi]);
 	}
 	logs.splice(history_cursor,logs.length-(history_cursor));
 
-
 	//ヒストリ追加
+	var option = document.createElement("option");
+	option.value = history_cursor;
+
+	var label="" + ("0000" + log.id).substr(-4) + "| " + label;
+	Util.setText(option, label);
+	inputs["history"].appendChild(option);
+	inputs["history"].selectedIndex=options.length-1;
+
 	logs.push(log);
-	inputs["history"].appendChild(log.option);
-	inputs["history"].selectedIndex=history_cursor;
 
 
-	if(history_cursor>undo_max){
+	if(option_index>undo_max){
 		//アンドゥ制限超えた部分を無効化
-		logs[history_cursor-undo_max-1].option.setAttribute("disabled","disabled");
-		logs[history_cursor-undo_max].undo_data=null;
+		var old_option = options[option_index-undo_max-1];
+		var old_log = logs[old_option.value];
+		old_option.setAttribute("disabled","disabled");
+		old_log.undo_data=null;
 	}
 	return log;
 }
