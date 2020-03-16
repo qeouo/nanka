@@ -40,20 +40,20 @@ ret.setCursor=function(c){
 
 }
 
-ret.rest=function(target){
-	if(history_cursor<target){
-		for(;target > history_cursor;){
-			History.redo();
-		}
-	}
-	if(history_cursor>target){
-		for(;target < history_cursor;){
-			if(History.undo()){
-				break;
-			}
-		}
-	}
-}
+//ret.rest=function(target){
+//	if(history_cursor<target){
+//		for(;target > history_cursor;){
+//			History.redo();
+//		}
+//	}
+//	if(history_cursor>target){
+//		for(;target < history_cursor;){
+//			if(History.undo()){
+//				break;
+//			}
+//		}
+//	}
+//}
 ret.getCurrent=function(){
 	if(history_cursor>=0){
 		return logs[history_cursor];
@@ -71,6 +71,9 @@ ret.moveHistory=function(n){
 
 	for(;history_cursor>n;){
 		var log = logs[history_cursor];
+		if(!log.undo_data){
+			break;
+		}
 		undo(log);
 		history_cursor--;
 	}
@@ -82,7 +85,7 @@ ret.redo=function(){
 
 	var option_index = inputs["history"].selectedIndex;
 	var options = inputs["history"].options;
-	if(option_index === inputs.length-1){
+	if(option_index === options.length-1){
 		return;
 	}	
 	option_index++;

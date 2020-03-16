@@ -170,7 +170,9 @@ var onloadfunc=function(e){
 
 	},false);
     inputs["history"].addEventListener('change', function(event){
-		History.rest(this.selectedIndex);
+		var index = this.selectedIndex;
+		var option = this.options[index];
+		History.moveHistory(parseInt(option.value));
 	});
     document.addEventListener('keydown', function(event){
  
