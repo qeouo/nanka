@@ -106,10 +106,12 @@ var onloadfunc=function(e){
 				//一旦元の座標に戻してから再度移動させる
 				History.undo_(pen_log);
 				//Command.translateLayer(layer,-pen_log.param.x,-pen_log.param.y);
-				var log = History.createLog_("translateLayer",{"layer_id":layer.id,"x":x,"y":y},{});
-				History.appendLog(log);
-				History.redo_(log);
-				pen_log = log;
+				//var log = History.createLog_("translateLayer",{"layer_id":layer.id,"x":x,"y":y},{});
+				//History.appendLog(log);
+
+				pen_log.param.x=x;
+				pen_log.param.y=y;
+				History.redo_(pen_log);
 				//Command.translateLayer(layer,x,y);
 				
 			}
