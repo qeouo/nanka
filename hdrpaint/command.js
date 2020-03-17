@@ -303,7 +303,6 @@ var createDif=function(layer,left,top,width,height){
 			layer_id = layer.id;
 		}
 
-		var log = History.createLog("translateLayer",{"layer_id":layer_id,"x":x,"y":y},{});
 		if(!layer){
 			//レイヤ指定無しの場合は全レイヤ移動
 			//for(var li=0;li<layers.length;li++){

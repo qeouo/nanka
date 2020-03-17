@@ -34,26 +34,7 @@ ret.reset=function(){
 	logs=[];
 	history_cursor=-1;
 }
-ret.setCursor=function(c){
-	history_cursor=c;
-	inputs["history"].selectedIndex=c;
 
-}
-
-//ret.rest=function(target){
-//	if(history_cursor<target){
-//		for(;target > history_cursor;){
-//			History.redo();
-//		}
-//	}
-//	if(history_cursor>target){
-//		for(;target < history_cursor;){
-//			if(History.undo()){
-//				break;
-//			}
-//		}
-//	}
-//}
 ret.getCurrent=function(){
 	if(history_cursor>=0){
 		return logs[history_cursor];
@@ -107,10 +88,10 @@ ret.undo=function(){
 	var option = options[option_index];
 	inputs["history"].selectedIndex = option_index;
 
-	History.moveHistory(option.value);
+	History.moveHistory(parseInt(option.value));
 
 }
-var redo=function(log){
+var redo=History.redo_=function(log){
 	History.disableLog();
 
 	var param = log.param;
@@ -152,7 +133,7 @@ var redo=function(log){
 
 	History.enableLog();
 }
-var undo=function(log){
+var undo= History.undo_=function(log){
 	var undo_data = log.undo_data;
 
 	var param = log.param;
@@ -225,6 +206,66 @@ var undo=function(log){
 	return false;
 }
 
+ret.createLog_=function(command,param,undo_data){
+	log=new Log();
+	log.id=log_id;
+	log_id++;
+
+	log.command=command;
+	
+	if(param){
+		log.param=param;
+	}
+	if(undo_data){
+		log.undo_data = undo_data;
+	}
+	
+	return log;
+}
+ret.appendOption=function(){
+	//ヒストリ追加
+	var options = inputs["history"].options;
+	var option = document.createElement("option");
+	option.value = history_cursor;
+
+	var log = logs[history_cursor];
+
+	var param_txt="";
+	var param= log.param;
+	var command = log.command;
+	var keys=Object.keys(param);
+	for(var ki=0;ki<keys.length;ki++){
+		var key = keys[ki];
+		if(ki){
+			param_txt+=",";
+		}
+		param_txt+=param[key];
+	}
+	var label="" + ("0000" + log.id).substr(-4) + "| " 
+		+ command+"("+param_txt+")";
+	Util.setText(option, label);
+	inputs["history"].appendChild(option);
+	inputs["history"].selectedIndex=options.length-1;
+
+}
+ret.appendLog=function(log){
+	var options = inputs["history"].options;
+	//カーソル以降のヒストリ削除
+	history_cursor++;
+	for(var oi =options.length;oi--;){
+		var option = options[oi];
+		if(option.value<history_cursor){
+			break;
+		}
+		inputs["history"].removeChild(options[oi]);
+	}
+	logs.splice(history_cursor,logs.length-(history_cursor));
+
+	logs.push(log);
+
+
+
+}
 ret.createLog=function(command,param,undo_data){
 	if(!enable_log){
 		return null;
