@@ -104,15 +104,12 @@ var onloadfunc=function(e){
 				}
 
 				//一旦元の座標に戻してから再度移動させる
-				History.undo_(pen_log);
-				//Command.translateLayer(layer,-pen_log.param.x,-pen_log.param.y);
-				//var log = History.createLog_("translateLayer",{"layer_id":layer.id,"x":x,"y":y},{});
-				//History.appendLog(log);
+				Log.undo_(pen_log);
 
 				pen_log.param.x=x;
 				pen_log.param.y=y;
-				History.redo_(pen_log);
-				//Command.translateLayer(layer,x,y);
+				Log.redo_(pen_log);
+				Log.appendOption();
 				
 			}
 		}
@@ -126,7 +123,6 @@ var onloadfunc=function(e){
 		if(!pen_log){
 			return;
 		}
-		History.appendOption();
 		pen_log=null;
 		if(inputs["pen"].checked){
 			refreshLayerThumbnail(selected_layer);
@@ -142,7 +138,9 @@ var onloadfunc=function(e){
 			if(inputs["fill_layer"].checked){
 				fill_layer=1;
 			}
-			Command.fill(selected_layer,e.offsetX,e.offsetY,doc.draw_col,fill_layer);
+			var log = Log.createLog("fill",{"layer_id":layer.id,"x":e.offsetX,"y":e.offsetY,"color":new Float32Array(doc.draw_col),"is_layer":fill_layer});
+			Log.redo_(log);
+			//Command.fill(selected_layer,e.offsetX,e.offsetY,doc.draw_col,fill_layer);
 		}else if(inputs["translate"].checked && (e.buttons &1) && selected_layer){
 			//レイヤ位置移動
 			drag_start[0]= e.pageX | 0;
@@ -152,10 +150,10 @@ var onloadfunc=function(e){
 				//全レイヤ移動
 				layer_id=-1;
 			}
-			//pen_log = History.createLog("translateLayer",{"layer_id":layer_id,"x":0,"y":0}
-			//	,{"x":selected_layer.position[0],"y":selected_layer.position[1]});
-			pen_log = History.createLog_("translateLayer",{"layer_id":layer_id,"x":0,"y":0},{});
-			History.appendLog(pen_log);
+			pen_log = Log.createLog("translateLayer",{"layer_id":layer_id,"x":0,"y":0}
+				,{"x":selected_layer.position[0],"y":selected_layer.position[1]});
+			//pen_log = Log.createLog_("translateLayer",{"layer_id":layer_id,"x":0,"y":0},{});
+			//Log.appendLog(pen_log);
 		}else if(inputs["pen"].checked && (e.buttons &1) && selected_layer){
 			var weight=parseFloat(inputs["weight"].value);
 			var pressure_effect_flg= 0;
@@ -166,7 +164,7 @@ var onloadfunc=function(e){
 				pressure_effect_flg|=2;
 			}
 			var alpha_direct = inputs["pen_alpha_direct"].checked;
-			pen_log = History.createLog("pen",{"layer_id":selected_layer.id,"weight":weight,"color":new Float32Array(doc.draw_col),"pressure_mask":pressure_effect_flg,"alpha_direct":alpha_direct},{"layer":selected_layer});
+			pen_log = Log.createLog("pen",{"layer_id":selected_layer.id,"weight":weight,"color":new Float32Array(doc.draw_col),"pressure_mask":pressure_effect_flg,"alpha_direct":alpha_direct},{"layer":selected_layer});
 			pen_log.param.points=[];
 
 			var point={"pos":new Vec2(),"pressure":e.pressure};
@@ -184,15 +182,15 @@ var onloadfunc=function(e){
     inputs["history"].addEventListener('change', function(event){
 		var index = this.selectedIndex;
 		var option = this.options[index];
-		History.moveHistory(parseInt(option.value));
+		Log.moveLog(parseInt(option.value));
 	});
     document.addEventListener('keydown', function(event){
  
 		if(event.keyCode===90 && event.ctrlKey){
         	if (event.shiftKey) {
-				History.redo();
+				Log.redo();
 			}else{
-				History.undo();
+				Log.undo();
 			}
 			event.preventDefault();
 		}
@@ -283,9 +281,20 @@ var onloadfunc=function(e){
 		var file=this.files[0];
 		Util.loadFile(file,Util.loadBinary,function(buffer){
 			loadHpd(buffer);
-			History.createLog("loadDocumentFile",{"file":file.name},null);
+			Log.createLog("loadDocumentFile",{"file":file.name},null);
 		});
 		e.value="";
+	});
+
+	inputs["down_layer"].addEventListener("click",function(e){
+		var position = layers.indexOf(selected_layer);
+		var log = Log.createLog("moveLayer",{"layer_id":selected_layer.id,"position":position-1},{"before":position});
+		Log.redo_(log);
+	});
+	inputs["up_layer"].addEventListener("click",function(e){
+		var position = layers.indexOf(selected_layer);
+		var log = Log.createLog("moveLayer",{"layer_id":selected_layer.id,"position":position+1},{"before":position});
+		Log.redo_(log);
 	});
 
     var a = document.getElementById("save_hpd");
@@ -318,9 +327,9 @@ var onloadfunc=function(e){
 	createRGBA();
 	
 
-	History.enableLog();
-	History.reset();
-	History.createLog("createNew",{width:preview.width,height:preview.height},null);
+	Log.enableLog();
+	Log.reset();
+	Log.createLog("createNew",{width:preview.width,height:preview.height},null);
 
 }
 var createNewLayer=function(e){
@@ -464,8 +473,8 @@ var resizeCanvas=function(e){
 
 		<div>
 			<div style="float:left;text-align:left;">
-				<input type="button" id="down_layer" value="↓" onclick="Command.moveLayer(selected_layer,layers.indexOf(selected_layer)-1);">
-				<input type="button" id="up_layer" value="↑" onclick="Command.moveLayer(selected_layer,layers.indexOf(selected_layer)+1);">
+				<input type="button" id="down_layer" value="↓">
+				<input type="button" id="up_layer" value="↑" >
 			</div>
 			<div style="text-align:right;">
 				<input type="button" id="delete_layer" value="レイヤ削除" onclick="Command.deleteLayer(selected_layer);"><br>
@@ -504,8 +513,8 @@ var resizeCanvas=function(e){
 	</select>
 	</div>
 	<ul>
-	<li><input type="button" id="button_undo" value="アンドゥ(ctrl+z)" onclick="History.undo()"></li>
-	<li><input type="button" id="button_redo" value="リドゥ(ctrl+shift+z)" onclick="History.redo()"></li>
+	<li><input type="button" id="button_undo" value="アンドゥ(ctrl+z)" onclick="Log.undo()"></li>
+	<li><input type="button" id="button_redo" value="リドゥ(ctrl+shift+z)" onclick="Log.redo()"></li>
 	</ul>
 	リストを直接選択でそこまで戻る<br>
 	最大10こ前まで

@@ -115,7 +115,18 @@ var createDif=function(layer,left,top,width,height){
 		}
 	}
 
-	ret.fill=function(layer,point_x,point_y,col,is_layer){
+	ret.fill=function(log,undo_flg){
+		if(undo_flg){
+			return;
+		}
+
+		var param = log.param;
+		var layer = layers.find(function(a){return a.id===param.layer_id;});
+		point_x = param.point_x;
+		point_y = param.point_y;
+		is_layer = param.is_layer;
+		col = param.color;
+
 		var mask_alpha= layer.mask_alpha;
 		var one_minus_mask_alpha= 1-mask_alpha;
 		var fillCheck=fillCheck_all;
@@ -196,8 +207,8 @@ var createDif=function(layer,left,top,width,height){
 		var width = refresh_right-refresh_left;
 		var height= refresh_bottom -refresh_top;
 
-		var log = History.createLog("fill",{"layer_id":layer.id,"x":point_x,"y":point_y,"color":new Float32Array(col),"is_layer":is_layer},{"layer":layer});
-		if(log){
+		if(!log.undo_data){
+			log.undo_data={};
 			var layer_img= layer.img;
 			layer.img = old_img;
 			var dif=createDif(layer,refresh_left,refresh_top,width,height);
@@ -291,16 +302,19 @@ var createDif=function(layer,left,top,width,height){
 			Util.loadFile(file,Img.loadImg,fu);
 	 	}
 
-		var log = History.createLog("loadImageFile",{"layer_id":layer.id,"file":file.name,"positon":n},{"file":file});
+		var log = Log.createLog("loadImageFile",{"layer_id":layer.id,"file":file.name,"positon":n},{"file":file});
 
 		return layer;
 	}
 
-	Command.translateLayer=function(layer,x,y){
-		var layer_id = -1;
-
-		if(layer){
-			layer_id = layer.id;
+	Command.translateLayer=function(log,undo_flg){
+		var param = log.param;
+		var layer = layers.find(function(a){return a.id===param.layer_id;});
+		var x = param.x;
+		var y = param.y;
+		if(undo_flg){
+			x*=-1;
+			y*=-1;
 		}
 
 		if(!layer){
@@ -315,7 +329,6 @@ var createDif=function(layer,left,top,width,height){
 		}else{
 			layer.position[0]+=x;
 			layer.position[1]+=y;
-			layer_id = layer.id;
 			refreshLayer(layer);
 		}
 
@@ -328,7 +341,7 @@ var createDif=function(layer,left,top,width,height){
 		var old_height=preview.height;
 
 
-		var log = History.createLog("resizeCanvas",{"width":width,"height":height},{"width":old_width,"height":old_height});
+		var log = Log.createLog("resizeCanvas",{"width":width,"height":height},{"width":old_width,"height":old_height});
 
 
 		preview.width=width;
@@ -351,7 +364,7 @@ var createDif=function(layer,left,top,width,height){
 		var old_height=img.height;
 		
 		//差分ログ作成
-		var log = History.createLog("resizeLayer",{"layer_id":layer.id,"width":width,"height":height},{"width":old_width,"height":old_height});
+		var log = Log.createLog("resizeLayer",{"layer_id":layer.id,"width":width,"height":height},{"width":old_width,"height":old_height});
 		if(log){
 			var dx = old_width-width;
 			var dy = old_height-height;

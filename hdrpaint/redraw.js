@@ -460,7 +460,7 @@ var refreshActiveLayerParam = function(){
 var pen_preview,pen_preview_ctx;
 var pen_log=null;
 var pen_preview_img= new Img(256,64);
-	var pen_preview_log = new Log();
+	var pen_preview_log = new Log.CommandLog();
 	var points=[];
 	pen_preview_log.param.points=points;
 	var MAX = 17;

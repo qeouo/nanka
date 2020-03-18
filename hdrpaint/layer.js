@@ -110,13 +110,23 @@ function Drop(event) {
 	}
 
 
-	Command.moveLayer(layer,drop);
+	var log = Log.createLog("moveLayer",{"layer_id":layer.id,"position":position},{"before":layer_num});
+	Log.redo_(log);
 }
 function dragend(event) {
 }
 
-Command.moveLayer=function(layer,position){
+Command.moveLayer=function(log,undo_flg){
+
+	var param = log.param;
+	var layer = layers.find(function(a){return a.id===param.layer_id;});
+	var position = param.position;
 	var layer_num = layers.indexOf(layer);
+
+	if(undo_flg){
+		position = log.undo_data.before;
+	}
+	
 	if(position<0|| layers.length <= position){
 		return;
 	}	
@@ -136,7 +146,6 @@ Command.moveLayer=function(layer,position){
 		layers_container.insertBefore(layer.div,layers_container.children[layers.length-1-position]);
 	}
 	
-	History.createLog("moveLayer",{"layer_id":layer.id,"position":position},"moveLayer(id:"+layer.id+"("+layer.name+"), "+position+")",{"before":layer_num});
 
 
 	refreshMain(0);
@@ -146,7 +155,7 @@ Command.moveLayer=function(layer,position){
 		var img = new Img(width,height);
 		
 		var layer =createLayer(img,n);
-		History.createLog("createNewLayer",{"layer_id":layer.id,"position":n,"width":width,"height":height},"createNewLayer ⇒ id:"+layer.id+"("+layer.name+")",{});
+		Log.createLog("createNewLayer",{"layer_id":layer.id,"position":n,"width":width,"height":height},"createNewLayer ⇒ id:"+layer.id+"("+layer.name+")",{});
 	refreshMain(0);
 		return layer;
 
@@ -206,7 +215,7 @@ Command.deleteLayer=function(layer){
 	layer.div.parentNode.removeChild(layer.div);
 	layer.div.classList.remove("active_layer");
 
-	History.createLog("deleteLayer",{"layer_id":layer.id,"idx":li},"deleteLayer ⇒ id:"+layer.id+"("+layer.name+")",{"layer":layer});
+	Log.createLog("deleteLayer",{"layer_id":layer.id,"idx":li},"deleteLayer ⇒ id:"+layer.id+"("+layer.name+")",{"layer":layer});
 
 	if(layer === selected_layer){
 		li = Math.max(li-1,0);
@@ -221,8 +230,8 @@ Command.deleteLayer=function(layer){
 
 Command.changeLayerAttribute=function(layer,name,value){
 	//var flg = true;
-	//if(History.isEnableLog()){
-	//	var log =History.getCurrent();
+	//if(Log.isEnableLog()){
+	//	var log =Log.getCurrent();
 	//	if(log){
 	//		if(log.param.layer_id === layer.id
 	//			&& log.param.name === name){
@@ -236,7 +245,7 @@ Command.changeLayerAttribute=function(layer,name,value){
 	//}
 
 	//if(flg){
-		History.createLog("changeLayerAttribute",{"layer_id":layer.id,"name":name,"value":value},"layer"+layer.id + "."+name + "=" + value,{"before":layer[name]});
+		Log.createLog("changeLayerAttribute",{"layer_id":layer.id,"name":name,"value":value},"layer"+layer.id + "."+name + "=" + value,{"before":layer[name]});
 	//}
 	layer[name] = value;
 
