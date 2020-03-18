@@ -222,14 +222,26 @@ var createDif=function(layer,left,top,width,height){
 	}
 
 
-	ret.pen=function(layer,points,weight,col,color_mask,pressure_effect_flgs,alpha_direct){
+	ret.pen=function(log,undo_flg){
+		if(undo_flg){
+			return;
+		}
+		var param = log.param;
+		var layer = layers.find(function(a){return a.id===param.layer_id;});
+		var points = param.points;
+		var weight= param.weight;
+		var color= param.color;
+		var color_mask= layer.mask_alpha;
+		var pressure_effect_flgs= param.pressure_effect_flgs;
+		var alpha_direct = param.alpha_direct;
+
 		for(var li=0;li<points.length-1;li++){
-			Command.drawLine(layer,points[li],points[li+1],weight,col,color_mask,pressure_effect_flgs,alpha_direct);
+			Command.drawLine(layer,points[li],points[li+1],weight,color,color_mask,pressure_effect_flgs,alpha_direct);
 		}
 		refreshLayerThumbnail(layer);
 
 	}
-	ret.drawLine=function(layer,point0,point1,weight,col,color_mask,pressure_effect_flg,alpha_direct){
+	ret.drawLine=function(layer,point0,point1,weight,col,color_mask,pressure_effect_flgs,alpha_direct){
 		var img= layer.img;
 		var new_p = point1.pos;
 		var old_p = point0.pos;
@@ -237,7 +249,7 @@ var createDif=function(layer,left,top,width,height){
 
 		var point0_weight = weight;
 		var point1_weight = weight;
-		if(pressure_effect_flg &1){
+		if(pressure_effect_flgs &1){
 			point0_weight*=point0.pressure;
 			point1_weight*=point1.pressure;
 		}
@@ -270,7 +282,7 @@ var createDif=function(layer,left,top,width,height){
 		Vec2.sub(point0.pos,org_pos0,layer.position);
 		Vec2.sub(point1.pos,org_pos1,layer.position);
 
-		drawPen(layer.img,point0,point1,col,color_mask,weight,pressure_effect_flg,alpha_direct);
+		drawPen(layer.img,point0,point1,col,color_mask,weight,pressure_effect_flgs,alpha_direct);
 		point0.pos=org_pos0;
 		point1.pos=org_pos1;
 

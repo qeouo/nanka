@@ -60,37 +60,6 @@ var Log = (function(){
 		Log.enableLog();
 	}
 
-	ret.redo=function(){
-		//リドゥ
-
-		var option_index = inputs["history"].selectedIndex;
-		var options = inputs["history"].options;
-		if(option_index === options.length-1){
-			return;
-		}	
-		option_index++;
-		var option = options[option_index];
-		inputs["history"].selectedIndex = option_index;
-
-		Log.moveLog(parseInt(option.value));
-
-	}
-
-	ret.undo=function(){
-		//アンドゥ
-
-		var option_index = inputs["history"].selectedIndex;
-		var options = inputs["history"].options;
-		if(option_index === 0){
-			return;
-		}	
-		option_index--;
-		var option = options[option_index];
-		inputs["history"].selectedIndex = option_index;
-
-		Log.moveLog(parseInt(option.value));
-
-	}
 	var redo=Log.redo_=function(log){
 		//コマンドログからコマンドを実行する
 		Log.disableLog();
@@ -99,9 +68,6 @@ var Log = (function(){
 		var layer_id= param.layer_id;
 		var layer = layers.find(function(a){return a.id===layer_id;});
 		switch(log.command){
-		case "pen":
-			Command.pen(layer,param.points,param.weight,param.color,layer.mask_alpha,param.pressure_mask);
-			break;
 		case "createNewLayer":
 			Command.createNewLayer(param.width,param.height,param.position);
 			break;
