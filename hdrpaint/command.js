@@ -26,6 +26,13 @@ var Command = (function(){
 	var  Command = function(){};
 	var ret = Command;
 
+	ret.executeCommand = function(command,param,undo_data){
+		var log = Log.createLog(command,param,undo_data);
+		Log.appendOption();
+		Command[log.command](log);
+		return log;
+	}
+
 var createDif=function(layer,left,top,width,height){
 	//更新領域の古い情報を保存
 	var img = new Img(width,height);
@@ -269,10 +276,10 @@ var createDif=function(layer,left,top,width,height){
 		if(pen_log){
 			//差分ログ作成
 			var log = pen_log;
-			var dif=createDif(layer,left-layer.position[0],top-layer.position[1],right-left,bottom-top);
-			if(!log.undo_data.difs){
-				log.undo_data.difs=[];
+			if(log.undo_data){
+				log.undo_data={"difs":[]};
 			}
+			var dif=createDif(layer,left-layer.position[0],top-layer.position[1],right-left,bottom-top);
 			log.undo_data.difs.push(dif);
 		}
 		var org_pos0=point0.pos;
@@ -292,18 +299,10 @@ var createDif=function(layer,left,top,width,height){
 		}
 	}
 
-	Command.loadImageFile=function(file,n){
-		var layer=createLayer(null,n);
-
+	Command.loadImageFile_=function(file,n){
+		var position = n;
 		var fu =function(img){
-			
-			layer.img=img;
-			layer.name = file.name;
-
-			refreshLayerThumbnail(layer);
-			refreshLayer(layer);
-			refreshMain(0);
-
+			Command.executeCommand("loadImageFile",{"file":file.name,"position":position},{"img":img});
 		}
 	 	if(/.*exr$/.test(file.name)){
 			Util.loadBinary(file,function(buffer){
@@ -313,8 +312,85 @@ var createDif=function(layer,left,top,width,height){
 	 	}else if(/^image\//.test(file.type)){
 			Util.loadFile(file,Img.loadImg,fu);
 	 	}
+	}
 
-		var log = Log.createLog("loadImageFile",{"layer_id":layer.id,"file":file.name,"positon":n},{"file":file});
+	var removeNewLayer = function(idx){
+		var layer = layers[idx];
+		layers.splice(idx,1);
+		layer.div.remove();
+		layer.div.classList.remove("active_layer");
+		
+		layer_id_count--;
+		if(selected_layer===layer){
+			if(idx>0)idx-=1;
+			if(layers.length>0){
+				selectLayer(layers[idx]);
+			}else{
+				selectLayer(null);
+			}
+				
+		}
+		refreshMain();
+	}
+	Command.createNewLayer=function(log,undo_flg){
+		var param = log.param;
+		var width = param.width;
+		var height= param.height;
+		var n= param.position;
+
+		if(undo_flg){
+			removeNewLayer(n);
+			return;
+		}
+		if(!log.undo_data){
+			log.undo_data={};
+		}
+		var img = new Img(width,height);
+		
+
+
+		var layer =createLayer(img,n);
+		refreshMain(0);
+		return layer;
+
+	}
+
+
+	Command.changeLayerAttribute=function(log,undo_flg){
+		var param = log.param;
+		var name = param.name;
+		var value = param.value;
+		var layer = layers.find(function(a){return a.id===param.layer_id;});
+		if(undo_flg){
+			value = log.undo_data.value;
+		}
+		if(!log.undo_data){
+			log.undo_data = {"value" :layer[name]};
+		}
+		layer[name] = value;
+
+		refreshLayer(layer);
+		refreshMain(0);
+	}
+
+	Command.loadImageFile=function(log,undo_flg){
+		var param = log.param;
+		var n  = param.position;
+		var img = log.undo_data.img;
+
+		if(undo_flg){
+			removeNewLayer(n);
+			return;
+		}
+		var layer=createLayer(null,n);
+
+
+		layer.img=img;
+		layer.name = file.name;
+
+		refreshLayerThumbnail(layer);
+		refreshLayer(layer);
+		refreshMain(0);
 
 		return layer;
 	}
@@ -348,13 +424,19 @@ var createDif=function(layer,left,top,width,height){
 //		refreshMain(0,layer.position[0]-Math.abs(x),layer.position[1]-Math.abs(y)
 //			,layer.img.width+Math.abs(x)*2,layer.img.height+Math.abs(y)*2);
 	}
-	Command.resizeCanvas=function(width,height){
+	Command.resizeCanvas=function(log,undo_flg){
+		var width = log.param.width;
+		var height = log.param.height;
 		var old_width=preview.width;
 		var old_height=preview.height;
 
-
-		var log = Log.createLog("resizeCanvas",{"width":width,"height":height},{"width":old_width,"height":old_height});
-
+		if(undo_flg){
+			width = log.undo_data.width;
+			height = log.undo_data.height;
+		}
+		if(!log.undo_data){
+			log.undo_data = {"width":old_width,"height":old_height};
+		}
 
 		preview.width=width;
 		preview.height=height
@@ -367,22 +449,31 @@ var createDif=function(layer,left,top,width,height){
 
 		refreshMain(0);
 	}
-	Command.resizeLayer=function(layer,width,height){
+	Command.resizeLayer=function(log,undo_flg){
+
+		var param = log.param;
+		var layer = layers.find(function(a){return a.id===param.layer_id;});
 		var img = layer.img;
 		if(!img){
 			return;
 		}
 		var old_width=img.width;
 		var old_height=img.height;
+		var width  = param.width;
+		var height= param.height;
+
+		if(undo_flg){
+			width=log.undo_data.width;
+			height=log.undo_data.height;
+		}
 		
 		//差分ログ作成
-		var log = Log.createLog("resizeLayer",{"layer_id":layer.id,"width":width,"height":height},{"width":old_width,"height":old_height});
-		if(log){
+		if(!log.undo_data){
+			log.undo_data = {"width":old_width,"height":old_height};
 			var dx = old_width-width;
 			var dy = old_height-height;
-			if(!log.undo_data.difs){
-				log.undo_data.difs=[];
-			}
+			log.undo_data.difs=[];
+			
 			var dif;
 			if(dx>0){
 				dif=createDif(layer,width,0,dx,old_height);
@@ -403,6 +494,52 @@ var createDif=function(layer,left,top,width,height){
 
 
 		refreshMain(0);
+	}
+
+	Command.deleteLayer=function(log,undo_flg){
+		var layer_id = log.param.layer_id;
+
+		var idx= layers.findIndex(function(a){return a.id===layer_id;});
+		var layer = layers[idx];
+		if(undo_flg){
+			var layer = log.undo_data.layer;
+			var idx = log.undo_data.position;
+
+			layers.splice(idx,0,layer);
+
+			var layers_container = document.getElementById("layers_container");
+			for(var li=layers.length;li--;){
+				layers_container.appendChild(layers[li].div);
+			}
+			refreshMain();
+			return;
+		}
+
+		if(log.undo_data){
+			log.undo_data ={"layer":layer,"position":idx};
+		}
+
+	 	//レイヤ削除
+		var li=layers.indexOf(layer);
+		 if(li<0){
+			 return;
+		 }
+		 
+
+		layers.splice(li,1);
+		layer.div.parentNode.removeChild(layer.div);
+		layer.div.classList.remove("active_layer");
+
+
+		if(layer === selected_layer){
+			li = Math.max(li-1,0);
+			if(layers.length){
+				selectLayer(layers[li]);
+			}
+		}else{
+			selected_layer = null;
+		}
+		refreshMain();
 	}
 	return ret;
 })();

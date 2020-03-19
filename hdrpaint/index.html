@@ -104,11 +104,11 @@ var onloadfunc=function(e){
 				}
 
 				//一旦元の座標に戻してから再度移動させる
-				Log.undo_(pen_log);
+				Command[pen_log.command](pen_log,true);
 
 				pen_log.param.x=x;
 				pen_log.param.y=y;
-				Log.redo_(pen_log);
+				Command[pen_log.command](pen_log);
 				Log.appendOption();
 				
 			}
@@ -138,9 +138,7 @@ var onloadfunc=function(e){
 			if(inputs["fill_layer"].checked){
 				fill_layer=1;
 			}
-			var log = Log.createLog("fill",{"layer_id":layer.id,"x":e.offsetX,"y":e.offsetY,"color":new Float32Array(doc.draw_col),"is_layer":fill_layer});
-			Log.redo_(log);
-			//Command.fill(selected_layer,e.offsetX,e.offsetY,doc.draw_col,fill_layer);
+			Command.executeCommand("fill",{"layer_id":layer.id,"x":e.offsetX,"y":e.offsetY,"color":new Float32Array(doc.draw_col),"is_layer":fill_layer});
 		}else if(inputs["translate"].checked && (e.buttons &1) && selected_layer){
 			//レイヤ位置移動
 			drag_start[0]= e.pageX | 0;
@@ -150,10 +148,7 @@ var onloadfunc=function(e){
 				//全レイヤ移動
 				layer_id=-1;
 			}
-			pen_log = Log.createLog("translateLayer",{"layer_id":layer_id,"x":0,"y":0}
-				,{"x":selected_layer.position[0],"y":selected_layer.position[1]});
-			//pen_log = Log.createLog_("translateLayer",{"layer_id":layer_id,"x":0,"y":0},{});
-			//Log.appendLog(pen_log);
+			pen_log = Command.executeCommand("translateLayer",{"layer_id":layer_id,"x":0,"y":0} ,{"x":selected_layer.position[0],"y":selected_layer.position[1]},1);
 		}else if(inputs["pen"].checked && (e.buttons &1) && selected_layer){
 			var weight=parseFloat(inputs["weight"].value);
 			var pressure_effect_flgs= 0;
@@ -164,8 +159,7 @@ var onloadfunc=function(e){
 				pressure_effect_flgs|=2;
 			}
 			var alpha_direct = inputs["pen_alpha_direct"].checked;
-			pen_log = Log.createLog("pen",{"layer_id":selected_layer.id,"weight":weight,"color":new Float32Array(doc.draw_col),"pressure_effect_flgs":pressure_effect_flgs,"alpha_direct":alpha_direct},{"layer":selected_layer});
-			pen_log.param.points=[];
+			pen_log = Command.executeCommand("pen",{"layer_id":selected_layer.id,"points":[],"weight":weight,"color":new Float32Array(doc.draw_col),"pressure_effect_flgs":pressure_effect_flgs,"alpha_direct":alpha_direct});
 
 			var point={"pos":new Vec2(),"pressure":e.pressure};
 			point.pos[0]= e.pageX - preview.offsetLeft;
@@ -211,16 +205,17 @@ var onloadfunc=function(e){
 			var layer = selected_layer;
 			var member = e.target.id.replace("layer_","");
 			if(e.target.getAttribute("type")==="checkbox"){
-	  			Command.changeLayerAttribute(layer,member,e.target.checked);
+				Command.executeCommand("changeLayerAttribute",{"layer_id":layer.id,"name":member,"value":e.target.checed});
 			  }else{
-	  			Command.changeLayerAttribute(layer,member,e.target.value);
+				Command.executeCommand("changeLayerAttribute",{"layer_id":layer.id,"name":member,"value":e.target.value});
 			}
 		}
 		if(input.id==="layer_width"  || input.id==="layer_height"){
 			f=function(e){
 				var width = parseInt(inputs["layer_width"].value);
 				var height= parseInt(inputs["layer_height"].value);
-				Command.resizeLayer(layer,width,height);
+				Command.executeCommand("resizeLayer",{"layer_id":layer.id,"width":width,"height":height});
+				//Command.resizeLayer(layer,width,height);
 			}
 		}
 
@@ -274,7 +269,7 @@ var onloadfunc=function(e){
 	inputs["btn_resize_canvas"].addEventListener("click",function(e){
 		var width = parseInt(inputs["resize_width"].value);
 		var height= parseInt(inputs["resize_height"].value);
-		Command.resizeCanvas(width,height);
+		Command.executeCommand("resizeCanvas",{"width":width,"height":height});
 	});
 	inputs["btn_resize_layers"].addEventListener("click",function(e){
 		Command.resizeLayerAtCanvas();
@@ -291,13 +286,14 @@ var onloadfunc=function(e){
 
 	inputs["down_layer"].addEventListener("click",function(e){
 		var position = layers.indexOf(selected_layer);
-		var log = Log.createLog("moveLayer",{"layer_id":selected_layer.id,"position":position-1},{"before":position});
-		Log.redo_(log);
+		Command.executeCommand("moveLayer",{"layer_id":selected_layer.id,"position":position-1});
 	});
 	inputs["up_layer"].addEventListener("click",function(e){
 		var position = layers.indexOf(selected_layer);
-		var log = Log.createLog("moveLayer",{"layer_id":selected_layer.id,"position":position+1},{"before":position});
-		Log.redo_(log);
+		Command.executeCommand("moveLayer",{"layer_id":selected_layer.id,"position":position+1});
+	});
+	inputs["delete_layer"].addEventListener("click",function(e){
+		Command.executeCommand("deleteLayer",{"layer_id":selected_layer.id});
 	});
 
     var a = document.getElementById("save_hpd");
@@ -314,8 +310,11 @@ var onloadfunc=function(e){
 	a.addEventListener("click",saveHdr);
 
 //初期化
-	Command.resizeCanvas(512,512);
-	var layer=Command.createNewLayer(preview.width,preview.height,0);
+	Command.executeCommand("resizeCanvas",{"width":512,"height":512});
+	Log.reset();
+	//var layer=Command.createNewLayer(preview.width,preview.height,0);
+	Command.executeCommand("createNewLayer",{"position":0,"width":preview.width,"height":preview.height});
+	var layer = layers[0];
 	var img_data = layer.img.data;
 	for(var i=0;i<img_data.length;i++){
 		img_data[i]=1;
@@ -330,9 +329,6 @@ var onloadfunc=function(e){
 	createRGBA();
 	
 
-	Log.enableLog();
-	Log.reset();
-	Log.createLog("createNew",{width:preview.width,height:preview.height},null);
 
 }
 
@@ -378,11 +374,10 @@ var createNewLayer=function(e){
 	}
 	var idx= layers.indexOf(selected_layer)+1;
 	
-	var layer=Command.createNewLayer(width,height,idx);
+	Command.executeCommand("createNewLayer",{"position":idx,"width":width,"height":height});
+	//var layer=Command.createNewLayer(width,height,idx);
 
 
-}
-var resizeCanvas=function(e){
 }
 
 </script>
@@ -432,8 +427,8 @@ var resizeCanvas=function(e){
 			<div id="status_resize">
 				幅<input id="resize_width" value="512" type="text">
 				高さ<input id="resize_height" value="512" type="text">
-				<input type="button" id="btn_resize_canvas" value="キャンバスをリサイズ" onclick="resizeCanvas(event);"><br>
-				<input type="button" id="btn_resize_layers" value="レイヤーをキャンバスに合わせる" onclick="resizeLayer(event);"><br>
+				<input type="button" id="btn_resize_canvas" value="キャンバスをリサイズ"><br>
+				<input type="button" id="btn_resize_layers" value="レイヤーをキャンバスに合わせる" ><br>
 			</div>
 			<div id="status_file">
 				<input style="display:none;" type="file" value="画像ファイル読み込み" id="open_hpd" accept="application/octet-stream/,.hpd"
@@ -512,7 +507,7 @@ var resizeCanvas=function(e){
 				<input type="button" id="up_layer" value="↑" >
 			</div>
 			<div style="text-align:right;">
-				<input type="button" id="delete_layer" value="レイヤ削除" onclick="Command.deleteLayer(selected_layer);"><br>
+				<input type="button" id="delete_layer" value="レイヤ削除" ><br>
 			</div>
 		</div>
 		<div class="layers" id="layers_container">
@@ -532,7 +527,7 @@ var resizeCanvas=function(e){
 			<input type="button" id="new" onclick="createNewLayer(event);" value="新規レイヤ"><br>
 			<input type="file" id="f" accept="image/*,.hdr,.exr" onchange="
 				var file=this.files[0];
-				Command.loadImageFile(file,layers.indexOf(selected_layer)+1);
+				Command.loadImageFile_(file,layers.indexOf(selected_layer)+1);
 				this.value=null;">
 			<br>
 		</div>

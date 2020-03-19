@@ -15,17 +15,6 @@ var Log = (function(){
 	var undo_max=10; //undo情報最大保持ステップ数
 	var command_log_cursor=-1; //現在のログ位置(undo redoで移動する)
 
-	var enable_log=false; //trueのときコマンドログ作成
-	ret.disableLog=function(){
-		enable_log=false;
-	}
-	ret.enableLog=function(){
-		enable_log=true;
-	}
-	ret.isEnableLog=function(){
-		return enable_log;
-	}
-
 	ret.reset=function(){
 		//コマンドログとヒストリをすべて削除
 		log_id=0;
@@ -40,11 +29,11 @@ var Log = (function(){
 
 	ret.moveLog=function(n){
 		//指定された番号のコマンドログが実行された状態にする
-		Log.disableLog();
 		for(;command_log_cursor<n;){
 			command_log_cursor++
 			var log = command_logs[command_log_cursor];
-			redo(log);
+			//コマンドログからコマンドを実行する
+			Command[log.command](log);
 		}
 
 		for(;command_log_cursor>n;){
@@ -52,122 +41,35 @@ var Log = (function(){
 			if(!log.undo_data){
 				break;
 			}
-			undo(log);
+
+			Command[log.command](log,true);
+
+			var difs = log.undo_data.difs;
+			if(difs){
+				//画像戻す
+				var param = log.param;
+				var layer_id= param.layer_id;
+				var layer = layers.find(function(a){return a.id===layer_id;});
+
+				for(var di=difs.length;di--;){
+					var dif = difs[di];
+					copyImg(layer.img,dif.x,dif.y,dif.img,0,0,dif.img.width,dif.img.height);
+				}
+				refreshMain();
+				refreshLayerThumbnail(layer);
+			}
+
 			command_log_cursor--;
 		}
 		
 
-		Log.enableLog();
 	}
 
-	var redo=Log.redo_=function(log){
-		//コマンドログからコマンドを実行する
-		Log.disableLog();
-
-		var param = log.param;
-		var layer_id= param.layer_id;
-		var layer = layers.find(function(a){return a.id===layer_id;});
-		switch(log.command){
-		case "createNewLayer":
-			Command.createNewLayer(param.width,param.height,param.position);
-			break;
-		case "loadImageFile":
-			Command.loadImageFile(log.undo_data.file,param.position);
-			break;
-		case "deleteLayer":
-			Command.deleteLayer(layer);
-			break;
-		case "changeLayerAttribute":
-			Command.changeLayerAttribute(layer,param.name,param.value);
-			break;
-		case "resizeCanvas":
-			Command.resizeCanvas(param.width,param.height);
-			break;
-		case "resizeLayer":
-			Command.resizeLayer(layer,param.width,param.height);
-			break;
-		default:
-			Command[log.command](log);
-			break;
-		}
-
-
-		Log.enableLog();
-	}
-	var undo= Log.undo_=function(log){
-		//コマンドログのundo情報より状態を戻す
-		//
-		var undo_data = log.undo_data;
-
-		var param = log.param;
-		var layer_id= param.layer_id;
-		var layer = layers.find(function(a){return a.id===layer_id;});
-
-		switch(log.command){
-		case "createNewLayer":
-		case "loadImageFile":
-			var idx = layers.indexOf(layer);
-			layers.splice(idx,1);
-			layer.div.remove();
-			layer.div.classList.remove("active_layer");
-			
-			layer_id_count--;
-			if(selected_layer===layer){
-				if(idx>0)idx-=1;
-				if(layers.length>0){
-					selectLayer(layers[idx]);
-				}else{
-					selectLayer(null);
-				}
-					
-			}
-			refreshMain();
-
-			break;
-		case "deleteLayer":
-			var layer = undo_data.layer;
-			var idx = log.param.idx;
-
-			layers.splice(idx,0,layer);
-
-			var layers_container = document.getElementById("layers_container");
-			for(var li=layers.length;li--;){
-				layers_container.appendChild(layers[li].div);
-			}
-			refreshMain();
-			break;
-		case "changeLayerAttribute":
-			Command.changeLayerAttribute(layer,log.param.name,undo_data.before);
-			break;
-		case "resizeCanvas":
-			Command.resizeCanvas(undo_data.width,undo_data.height);
-			break;
-		case "resizeLayer":
-			Command.resizeLayer(layer,undo_data.width,undo_data.height);
-			break;
-		default:
-			Command[log.command](log,true);
-			break;
-		}
-		var difs = undo_data.difs;
-		if(difs){
-
-			for(var di=difs.length;di--;){
-				var dif = difs[di];
-				copyImg(layer.img,dif.x,dif.y,dif.img,0,0,dif.img.width,dif.img.height);
-			}
-			refreshMain();
-			refreshLayerThumbnail(layer);
-		}
-			
-
-		return false;
-	}
-
-	ret.createLog_=function(command,param,undo_data){
+	ret.createLog=function(command,param,flg){
+		//ログオブジェクトを作成する
 		var log = null;
 
-		if(command_log_cursor>=0){
+		if(command_log_cursor>=0 && flg){
 			var current_log=command_logs[command_log_cursor];
 			if(command === current_log.command){
 				if(command === "changeLayerAttribute"){
@@ -186,20 +88,22 @@ var Log = (function(){
 				}
 			}
 		}
+		//カーソル以降のヒストリ削除
+		command_logs.splice(command_log_cursor+1,command_logs.length-(command_log_cursor+1));
 		if(!log){
 			log=new CommandLog();
 			log.id=log_id;
 			log_id++;
-			Log.appendLog(log);
+
+			command_log_cursor++;
+
+			command_logs.push(log);
 		}
 
 		log.command=command;
 		
 		if(param){
 			log.param=param;
-		}
-		if(undo_data){
-			log.undo_data = undo_data;
 		}
 		
 		return log;
@@ -264,25 +168,6 @@ var Log = (function(){
 
 		return option;
 
-	}
-	ret.appendLog=function(log){
-		command_log_cursor++;
-
-		//カーソル以降のヒストリ削除
-		command_logs.splice(command_log_cursor,command_logs.length-(command_log_cursor));
-
-		command_logs.push(log);
-
-	}
-	ret.createLog=function(command,param,undo_data){
-		if(!enable_log){
-			return null;
-		}
-		var log = Log.createLog_(command,param,undo_data);
-		Log.appendOption();
-
-
-		return log;
 	}
 
 	return ret;

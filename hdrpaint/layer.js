@@ -82,11 +82,6 @@ function DragStart(event) {
 function dragover_handler(event) {
  event.preventDefault();
  event.dataTransfer.dropEffect = "move";
-// console.log(drop);
-//
-// drop = getLayerNum(event.currentTarget);
-// var layers_container = document.getElementById("layers_container");
-// layers_container.insertBefore(drag_div,event.currentTarget);
 }	
 function Drop(event) {
     var drag = parseInt(event.dataTransfer.getData("text"));
@@ -110,8 +105,7 @@ function Drop(event) {
 	}
 
 
-	var log = Log.createLog("moveLayer",{"layer_id":layer.id,"position":position},{"before":layer_num});
-	Log.redo_(log);
+	Command.executeCommand("moveLayer",{"layer_id":layer.id,"position":drop});
 }
 function dragend(event) {
 }
@@ -149,107 +143,53 @@ Command.moveLayer=function(log,undo_flg){
 
 
 	refreshMain(0);
+
+	if(!log.undo_data){
+		log.undo_data = {"before":layer_num};
+	}
 }
 
-	Command.createNewLayer=function(width,height,n){
-		var img = new Img(width,height);
-		
-		var layer =createLayer(img,n);
-		Log.createLog("createNewLayer",{"layer_id":layer.id,"position":n,"width":width,"height":height},"createNewLayer ⇒ id:"+layer.id+"("+layer.name+")",{});
-	refreshMain(0);
-		return layer;
 
+var createLayer=function(img,idx){
+	if( typeof idx=== 'undefined'){
+		idx=layers.length;
 	}
-	var createLayer=function(img,idx){
-		if( typeof idx=== 'undefined'){
-			idx=layers.length;
-		}
-		if(idx<0){
-			idx=layers.length;
-		}
-		var layer_template= document.getElementById("layer_template");
-		var layer = new Layer();
-		var layer_div = layer_template.children[0].cloneNode(true);
-		layer_div.addEventListener("click",layerSelect);
-		layer.div=layer_div;
+	if(idx<0){
+		idx=layers.length;
+	}
+	var layer_template= document.getElementById("layer_template");
+	var layer = new Layer();
+	var layer_div = layer_template.children[0].cloneNode(true);
+	layer_div.addEventListener("click",layerSelect);
+	layer.div=layer_div;
 
-		layer.img=img;
+	layer.img=img;
 
 
-		if(!selected_layer){
-			Util.fireEvent(layer_div,"click");
-		}
-
-		layers.splice(idx,0,layer);
-
-		var layers_container = document.getElementById("layers_container");
-		for(var li=layers.length;li--;){
-			layers_container.appendChild(layers[li].div);
-		}
-
-
-
-		layer.id=layer_id_count;
-		layer_id_count++;
-		layer.name ="layer"+("0000"+layer.id).slice(-4);
-
-		if(img){
-			refreshLayerThumbnail(layer);
-		}
-		refreshLayer(layer);
-
-		selectLayer(layer);
-		return layer;
-
+	if(!selected_layer){
+		Util.fireEvent(layer_div,"click");
 	}
 
- //レイヤ削除
-Command.deleteLayer=function(layer){
-	var li=layers.indexOf(layer);
-	 if(li<0){
-		 return;
-	 }
-	 
+	layers.splice(idx,0,layer);
 
-	layers.splice(li,1);
-	layer.div.parentNode.removeChild(layer.div);
-	layer.div.classList.remove("active_layer");
-
-	Log.createLog("deleteLayer",{"layer_id":layer.id,"idx":li},"deleteLayer ⇒ id:"+layer.id+"("+layer.name+")",{"layer":layer});
-
-	if(layer === selected_layer){
-		li = Math.max(li-1,0);
-		if(layers.length){
-			selectLayer(layers[li]);
-		}
-	}else{
-		selected_layer = null;
+	var layers_container = document.getElementById("layers_container");
+	for(var li=layers.length;li--;){
+		layers_container.appendChild(layers[li].div);
 	}
-	refreshMain();
-}
 
-Command.changeLayerAttribute=function(layer,name,value){
-	//var flg = true;
-	//if(Log.isEnableLog()){
-	//	var log =Log.getCurrent();
-	//	if(log){
-	//		if(log.param.layer_id === layer.id
-	//			&& log.param.name === name){
-	//			log.param.after = value;
-	//			log.label = "layer"+layer.id + "."+name + "=" + value;
-	//			log.label="[" + ("0000" + log.id).slice(-4) + "]" + log.label;
-	//			Util.setText(log.option, log.label);
-	//			flg = false;
-	//		}
-	//	}
-	//}
 
-	//if(flg){
-		Log.createLog("changeLayerAttribute",{"layer_id":layer.id,"name":name,"value":value},"layer"+layer.id + "."+name + "=" + value,{"before":layer[name]});
-	//}
-	layer[name] = value;
 
+	layer.id=layer_id_count;
+	layer_id_count++;
+	layer.name ="layer"+("0000"+layer.id).slice(-4);
+
+	if(img){
+		refreshLayerThumbnail(layer);
+	}
 	refreshLayer(layer);
-	refreshMain(0);
+
+	selectLayer(layer);
+	return layer;
 
 }
+
