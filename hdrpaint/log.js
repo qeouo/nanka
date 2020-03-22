@@ -30,13 +30,14 @@ var Log = (function(){
 	ret.moveLog=function(n){
 		//指定された番号のコマンドログが実行された状態にする
 		for(;command_log_cursor<n;){
+			//リドゥ
 			command_log_cursor++
 			var log = command_logs[command_log_cursor];
-			//コマンドログからコマンドを実行する
 			Command[log.command](log);
 		}
 
 		for(;command_log_cursor>n;){
+			//アンドゥ
 			var log = command_logs[command_log_cursor];
 			if(!log.undo_data){
 				break;
@@ -65,11 +66,11 @@ var Log = (function(){
 
 	}
 
-	ret.createLog=function(command,param,flg){
+	ret.createLog=function(command,param){
 		//ログオブジェクトを作成する
 		var log = null;
 
-		if(command_log_cursor>=0 && flg){
+		if(command_log_cursor>=0){
 			var current_log=command_logs[command_log_cursor];
 			if(command === current_log.command){
 				if(command === "changeLayerAttribute"){
@@ -159,7 +160,7 @@ var Log = (function(){
 		
 		if(options.length>undo_max){
 			//アンドゥ制限超えた部分を無効化
-			var old_option = options[options.length-undo_max];
+			var old_option = options[options.length-undo_max-1];
 			var old_log = command_logs[old_option.value];
 			old_option.setAttribute("disabled","disabled");
 			old_log.undo_data=null;

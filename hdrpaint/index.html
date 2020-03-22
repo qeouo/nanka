@@ -63,6 +63,8 @@ var onloadfunc=function(e){
 
 	var drawfunc =function(e){
 		//描画関数
+		var x = e.pageX - (preview.offsetLeft + preview.clientLeft);
+		var y = e.pageY - (preview.offsetTop + preview.clientTop);
 		if(inputs["pen"].checked){
 			//ペンのとき
 			if(!(e.buttons & 1))return;
@@ -72,8 +74,8 @@ var onloadfunc=function(e){
 			var point={"pos":new Vec2(),"pressure":e.pressure};
 
 			//今回座標をパスに追加
-			point.pos[0]= e.pageX - preview.offsetLeft;
-			point.pos[1]= e.pageY - preview.offsetTop;
+			point.pos[0]= x;
+			point.pos[1]= y;
 			points.push(point);
 
 			//ログ文面変更
@@ -94,14 +96,9 @@ var onloadfunc=function(e){
 		}else if(inputs["translate"].checked) {
 			//移動のとき
 			if((e.buttons & 1) && pen_log){
-				var x = (e.pageX|0) - drag_start[0];
-				var y = (e.pageY|0) - drag_start[1];
+				x = (x|0) - drag_start[0];
+				y = (y|0) - drag_start[1];
 				
-				var layer= selected_layer;
-				if(inputs["translate_joined"].checked){
-					//全レイヤ移動
-					layer=null;
-				}
 
 				//一旦元の座標に戻してから再度移動させる
 				Command[pen_log.command](pen_log,true);
@@ -115,10 +112,9 @@ var onloadfunc=function(e){
 		}
 	};
 	
-	preview.addEventListener("pointermove",function(e){refreshPreviewStatus(e);e.preventDefault();});
+	preview.addEventListener("pointermove",function(e){drawfunc(e);refreshPreviewStatus(e);e.preventDefault();});
 	preview.addEventListener("contextmenu",function(e){return false;});
 	
-	window.addEventListener("pointermove",drawfunc,false);
 	window.addEventListener("pointerup",function(e){
 		if(!pen_log){
 			return;
@@ -133,16 +129,18 @@ var onloadfunc=function(e){
 	var drag_flg = false;
 
 	preview.addEventListener("pointerdown",function(e){
+		var x = e.pageX - (preview.offsetLeft + preview.clientLeft);
+		var y = e.pageY - (preview.offsetTop + preview.clientTop);
 		if(inputs["fill"].checked && (e.buttons &1)){
 			var fill_layer=0;
 			if(inputs["fill_layer"].checked){
 				fill_layer=1;
 			}
-			Command.executeCommand("fill",{"layer_id":layer.id,"x":e.offsetX,"y":e.offsetY,"color":new Float32Array(doc.draw_col),"is_layer":fill_layer});
+			Command.executeCommand("fill",{"layer_id":layer.id,"x":x,"y":y,"color":new Float32Array(doc.draw_col),"is_layer":fill_layer});
 		}else if(inputs["translate"].checked && (e.buttons &1) && selected_layer){
 			//レイヤ位置移動
-			drag_start[0]= e.pageX | 0;
-			drag_start[1]= e.pageY | 0;
+			drag_start[0]= x | 0;
+			drag_start[1]= y | 0;
 			var layer_id= selected_layer.id;
 			if(inputs["translate_joined"].checked){
 				//全レイヤ移動
@@ -162,8 +160,8 @@ var onloadfunc=function(e){
 			pen_log = Command.executeCommand("pen",{"layer_id":selected_layer.id,"points":[],"weight":weight,"color":new Float32Array(doc.draw_col),"pressure_effect_flgs":pressure_effect_flgs,"alpha_direct":alpha_direct});
 
 			var point={"pos":new Vec2(),"pressure":e.pressure};
-			point.pos[0]= e.pageX - preview.offsetLeft;
-			point.pos[1]=e.pageY -preview.offsetTop;
+			point.pos[0]=x;
+			point.pos[1]=y;
 			
 			pen_log.param.points.push(point);
 
@@ -212,9 +210,20 @@ var onloadfunc=function(e){
 		}
 		if(input.id==="layer_width"  || input.id==="layer_height"){
 			f=function(e){
+				var layer = selected_layer;
 				var width = parseInt(inputs["layer_width"].value);
 				var height= parseInt(inputs["layer_height"].value);
 				Command.executeCommand("resizeLayer",{"layer_id":layer.id,"width":width,"height":height});
+			}
+		}
+		if(input.id==="layer_x"  || input.id==="layer_y"){
+			f=function(e){
+				var layer = selected_layer;
+				var x= parseInt(inputs["layer_x"].value);
+				var y= parseInt(inputs["layer_y"].value);
+				x-=layer.position[0];
+				y-=layer.position[1];
+				Command.executeCommand("translateLayer",{"layer_id":layer.id,"x":x,"y":y});
 				//Command.resizeLayer(layer,width,height);
 			}
 		}
@@ -279,7 +288,7 @@ var onloadfunc=function(e){
 		var file=this.files[0];
 		Util.loadFile(file,Util.loadBinary,function(buffer){
 			loadHpd(buffer);
-			Log.createLog("loadDocumentFile",{"file":file.name},null);
+			Log.createLog("loadDocumentFile",{"file":file.name});
 		});
 		e.value="";
 	});
@@ -356,8 +365,11 @@ var undo=function(){
 	if(option_index === 0){
 		return;
 	}	
+	var option = options[option_index-1];
+	if(option.disabled){
+		return;
+	}
 	option_index--;
-	var option = options[option_index];
 	inputs["history"].selectedIndex = option_index;
 
 	Log.moveLog(parseInt(option.value));
@@ -399,7 +411,7 @@ var createNewLayer=function(e){
 		<div id="tool_status" style="height:128px;">
 			<div id="status_pen">
 				<div style="float:left;">
-					<div>半径<input class="slider" id="weight" max="100"  value="3" onchange="refreshPen();"/></div>
+					<div>直径<input class="slider" id="weight" max="100"  value="3" onchange="refreshPen();"/></div>
 					<div>
 						筆圧影響
 						<label><input type="checkbox" id="weight_pressure_effect"/>半径</label>
@@ -420,13 +432,13 @@ var createNewLayer=function(e){
 			</div>
 			<div id="status_translate">
 				<ul>
-					<li><label><input id="translate_layer" type="radio" name="translate_type" />レイヤ単体</label></li>
+					<li><label><input id="translate_layer" type="radio" name="translate_type" checked/>レイヤ単体</label></li>
 					<li><label><input id="translate_joined" type="radio" name="translate_type" />結合画像</label></li>
 				</ul>
 			</div>
 			<div id="status_resize">
-				幅<input id="resize_width" value="512" type="text">
-				高さ<input id="resize_height" value="512" type="text">
+				サイズ<input id="resize_width" value="512" type="text" class="size">
+				<input id="resize_height" value="512" type="text" class="size">
 				<input type="button" id="btn_resize_canvas" value="キャンバスをリサイズ"><br>
 				<input type="button" id="btn_resize_layers" value="レイヤーをキャンバスに合わせる" ><br>
 			</div>
@@ -488,8 +500,10 @@ var createNewLayer=function(e){
 				名前<input type="text" id="layer_name" style="width:100px;" >
 				<label><input type="checkbox" id="layer_display" style="width:30px;"/>表示</label><br>
 			</div>
-			幅<input type="text" id="layer_width" value="" >
-			高さ<input type="text" id="layer_height" value="">
+			位置<input type="text" id="layer_x" value="" class="size">
+			<input type="text" id="layer_y" value="" class="size">
+			サイズ<input type="text" id="layer_width" value="" class="size">
+			<input type="text" id="layer_height" value="" class="size"><br>
 			合成func<select type="text" id="layer_blendfunc">
 				<option value="normal">normal</option>
 				<option value="add">add</option>
@@ -524,7 +538,7 @@ var createNewLayer=function(e){
 		<div  style="">
 			<input id="new_layer_width" value="512" type="text">
 			<input id="new_layer_height" value="512" type="text">
-			<input type="button" id="new" onclick="createNewLayer(event);" value="新規レイヤ"><br>
+			<input type="button" id="new" onclick="createNewLayer(event);" value="新規レイヤ" class="size"><br>
 			<input type="file" id="f" accept="image/*,.hdr,.exr" onchange="
 				var file=this.files[0];
 				Command.loadImageFile_(file,layers.indexOf(selected_layer)+1);

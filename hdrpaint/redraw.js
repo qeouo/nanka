@@ -438,11 +438,20 @@ var refreshActiveLayerParam = function(){
 	layer_inputs = layer_inputs.concat(Array.prototype.slice.call(document.getElementById("layer_param").getElementsByTagName("select")));
 	for(var i=0;i<layer_inputs.length;i++){
 		var input = layer_inputs[i];
-		if(input.id ==="layer_width"){
+		switch(input.id){
+			case "layer_x":
+			input.value = layer.position[0];
+			break;
+		case "layer_y":
+			input.value = layer.position[1];
+			break;
+		case "layer_width":
 			input.value = layer.img.width;
-		}else if(input.id ==="layer_height"){
+			break;
+		case "layer_height":
 			input.value = layer.img.height;
-		}else{
+			break;
+		default:
 			var member = input.id.replace("layer_","");
 			if(member in layer){
 				if(input.getAttribute("type")==="checkbox"){
@@ -568,8 +577,8 @@ var refreshPreviewStatus = function(e){
 	//カーソル下情報表示
 	var data = joined_img.data;
 
-	var x=e.offsetX;
-	var y=e.offsetY;
+	var x = e.pageX - (preview.offsetLeft + preview.clientLeft);
+	var y = e.pageY - (preview.offsetTop + preview.clientTop);
 	var width=joined_img.width;
 	var height=joined_img.height;
 	var output = document.getElementById("status");
@@ -583,8 +592,8 @@ var refreshPreviewStatus = function(e){
 	var a= data[idx+3];
 
 	var str="X:[x],Y:[y]  R:[r], G:[g], B:[b], A:[a] ";
-	str=str.replace(/\[x\]/,x);
-	str=str.replace(/\[y\]/,y);
+	str=str.replace(/\[x\]/,x.toFixed(4));
+	str=str.replace(/\[y\]/,y.toFixed(4));
 	str=str.replace(/\[r\]/,r.toFixed(4));
 	str=str.replace(/\[g\]/,g.toFixed(4));
 	str=str.replace(/\[b\]/,b.toFixed(4));

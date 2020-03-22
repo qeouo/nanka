@@ -26,8 +26,8 @@ var Command = (function(){
 	var  Command = function(){};
 	var ret = Command;
 
-	ret.executeCommand = function(command,param,undo_data){
-		var log = Log.createLog(command,param,undo_data);
+	ret.executeCommand = function(command,param){
+		var log = Log.createLog(command,param);
 		Log.appendOption();
 		Command[log.command](log);
 		return log;
@@ -254,8 +254,8 @@ var createDif=function(layer,left,top,width,height){
 		var old_p = point0.pos;
 
 
-		var point0_weight = weight;
-		var point1_weight = weight;
+		var point0_weight = weight*0.5;
+		var point1_weight = weight*0.5;
 		if(pressure_effect_flgs &1){
 			point0_weight*=point0.pressure;
 			point1_weight*=point1.pressure;
@@ -276,7 +276,7 @@ var createDif=function(layer,left,top,width,height){
 		if(pen_log){
 			//差分ログ作成
 			var log = pen_log;
-			if(log.undo_data){
+			if(!log.undo_data){
 				log.undo_data={"difs":[]};
 			}
 			var dif=createDif(layer,left-layer.position[0],top-layer.position[1],right-left,bottom-top);
@@ -404,16 +404,19 @@ var createDif=function(layer,left,top,width,height){
 			x*=-1;
 			y*=-1;
 		}
+		if(!log.undo_data){
+			log.undo_data={};
+		}
 
 		if(!layer){
 			//レイヤ指定無しの場合は全レイヤ移動
-			//for(var li=0;li<layers.length;li++){
-			//	var l = layers[li];
-			//	l.position[0]+=x;
-			//	l.position[1]+=y;
-			//	refreshLayer(l);
+			for(var li=0;li<layers.length;li++){
+				var l = layers[li];
+				l.position[0]+=x;
+				l.position[1]+=y;
+				refreshLayer(l);
 
-			//}
+			}
 		}else{
 			layer.position[0]+=x;
 			layer.position[1]+=y;
@@ -515,7 +518,7 @@ var createDif=function(layer,left,top,width,height){
 			return;
 		}
 
-		if(log.undo_data){
+		if(!log.undo_data){
 			log.undo_data ={"layer":layer,"position":idx};
 		}
 
@@ -551,6 +554,7 @@ var createDif=function(layer,left,top,width,height){
 	var side = new Vec2();
 	var dist = new Vec2();
 	var drawPen=function(img,point0,point1,color,mask,weight,pressure_mask,alpha_direct){
+		weight*=0.5;
 		var mask_alpha = 1-mask;
 		var weight_pressure_effect = pressure_mask&1;
 		var alpha_pressure_effect = (pressure_mask&2)>>1;
@@ -606,7 +610,6 @@ var createDif=function(layer,left,top,width,height){
 			img_data[idx+0]=img_data[idx+0] * rev_a + local_r * local_alpha;
 			img_data[idx+1]=img_data[idx+1] * rev_a + g * local_alpha;
 			img_data[idx+2]=img_data[idx+2] * rev_a + b * local_alpha;
-			//img_data[idx+3]=;
 			
 			//var local_alpha = a;//local_pressure;
 			img_data[idx+3] = img_data[idx+3] * rev_a + local_alpha;

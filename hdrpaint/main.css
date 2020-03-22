@@ -4,6 +4,10 @@ body{
 input[type="text"]{
 	width:64px;
 }
+input[type="text"].size{
+	width:32px;
+	text-align:right;
+}
 
 div.area{
 background-color:gray;
@@ -74,7 +78,7 @@ width:128;
    background-image:url(back.png);
 }
 #preview{
-	border:1px solid black;
+	border:solid 1px;
 		   background-image:url(back.png);
 
 	touch-action:none;

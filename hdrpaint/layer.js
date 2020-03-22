@@ -15,6 +15,7 @@ var Layer=(function(){
 	var ret = Layer;
 	return ret;
 })();
+
 var thumbnail_ctx,thumbnail_canvas;
 var layers=[];
 var selected_layer = null;
@@ -28,36 +29,20 @@ var getLayerNum=function(div){
 
 
 var selectLayer=function(target_layer){
+	//アクティブレイヤ変更
 	
-	selected_layer=-1;
+	selected_layer=target_layer;
 	for(var li=0;li<layers.length;li++){
-	  var layer=layers[li];
-	  if(target_layer === layer){
-		//パラメータ変更による再描画を一時的に無効にする
-		refreshoff=true;
-
-	  	selected_layer=layer;
-	var layer_inputs = Array.prototype.slice.call(document.getElementById("layer_param").getElementsByTagName("input"));
-	layer_inputs = layer_inputs.concat(Array.prototype.slice.call(document.getElementById("layer_param").getElementsByTagName("select")));
-		for(var i=0;i<layer_inputs.length;i++){
-			var input = layer_inputs[i];
-			var member = input.id.replace("layer_","");
-			if(member in layer){
-	  			if(input.getAttribute("type")==="checkbox"){
-	  				input.checked=layer[member];
-				}else{
-					input.value=layer[member];
-				}
-				Util.fireEvent(input,"input");
-	   		}
+		var layer=layers[li];
+		if(target_layer !== layer){
+			//アクティブレイヤ以外の表示を非アクティブにする
+			layer.div.classList.remove("active_layer");
+		}else{
+			layer.div.classList.add("active_layer");
 		}
-
-		layer.div.classList.add("active_layer");
-		refreshoff=false;
-	  }else{
-		layer.div.classList.remove("active_layer");
-	  }
 	}
+
+	refreshActiveLayerParam();
 
 }
 var layerSelect= function(e){
@@ -166,9 +151,6 @@ var createLayer=function(img,idx){
 	layer.img=img;
 
 
-	if(!selected_layer){
-		Util.fireEvent(layer_div,"click");
-	}
 
 	layers.splice(idx,0,layer);
 
@@ -189,6 +171,7 @@ var createLayer=function(img,idx){
 	refreshLayer(layer);
 
 	selectLayer(layer);
+
 	return layer;
 
 }
