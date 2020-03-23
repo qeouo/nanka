@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="Content-Language" content="ja" />
+<meta http-equiv="Content-Style-Type" content="text/css" />
+<meta http-equiv="Content-Script-Type" content="text/javascript" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Cache-Control" content="no-cache" />
+<title>mapgen</title>
+<style>
+</style>
+<script type="text/javascript" src="../lib/inherits.js"></script>
+<script type="text/javascript" src="../lib/util.js"></script>
+<script type="text/javascript" src="../lib/vector.js"></script>
+<script type="text/javascript" src="../lib/openexr.js"></script>
+<script type="text/javascript" src="../lib/zip.js"></script>
+<script type="text/javascript" src="../lib/slider.js"></script>
+<script type="text/javascript" src="../lib/colorpicker.js"></script>
+<script type="text/javascript" src="../lib/geono.js"></script>
+<script type="text/javascript" src="../lib/img.js"></script>
+<style>
+canvas{
+	background-color:red;
+}
+</style>
+
+<script type="text/javascript">
+"use strict"
+
+var SIZE=2;
+var setPixel = function(x,y,img0,px,py,img1){
+	if(x<0 || y<0 || x>=img0.width || y>=img0.height){
+		return;
+	}
+	if(img0.rgba[y*img0.width+x]&0xff000000){
+		return;
+	}
+	img0.rgba[ (y) * img0.width + (x)] = img1.rgba[ (py) * img1.width + (px)];
+	return;
+}
+var checkPixel = function(x,y,img0,px,py,img1){
+	if(x<0 || y<0 || x>=img0.width || y>=img0.height){
+		return 1;
+	}
+	var pixel0= img0.rgba[ (y) * img0.width + (x)];
+	if(!(pixel0 & 0xff000000)){
+		return 1;
+	}
+
+	var pixel1= img1.rgba[ (py) * img1.width + (px)];
+	if(pixel0 === pixel1){
+		return 1;
+	}
+	return 0;
+}
+var getPixel = function(x,y,main_img,pat){
+	var count=0;
+	var kouho=[];
+	for(var py=0;py<pat.height;py++){
+		for(var px=0;px<pat.width;px++){
+			var flg=true;
+			for(var yi=-SIZE;yi<SIZE*2;yi++){
+				for(var xi=-SIZE;xi<SIZE*2;xi++){
+					if(xi===0 && yi===0){
+						continue;
+					}
+					if(!checkPixel(x+xi,y+yi,main_img,px+xi,py+yi,pat)){
+						flg=false;
+						break;
+					}
+				}
+			}
+			if(flg){
+				kouho.push([px,py]);
+			}
+		}
+	}
+	if(kouho.length===0){
+		console.log("HOGE");
+		return;
+	}
+	var idx = Math.random() * kouho.length|0;
+
+	var px=kouho[idx][0];
+	var py=kouho[idx][1];
+
+	for(var yi=-SIZE;yi<SIZE*2;yi++){
+		for(var xi=-SIZE;xi<SIZE*2;xi++){
+			setPixel(x+xi,y+yi,main_img,px+xi,py+yi,pat);
+			
+		}
+	}
+	
+}
+var onloadfunc=function(e){
+	var img = Img.loadImg("pat.png",1,function(img){
+		var pat_img = img;
+		var pat  =document.getElementById("pat");
+		pat.src = img.toDataUrl();
+		var patmax = pat.width*pat.height;
+
+		var canvas = document.getElementById("c");
+		var main_img= new Img(canvas.width,canvas.height,1);
+
+		for(var yi=0;yi<main_img.height;yi++){
+			for(var xi=0;xi<main_img.width;xi++){
+				var idx = yi * main_img.width + xi;
+				main_img.rgba[idx]=0;
+			}
+		}
+		var x=Math.random()*main_img.width|0;
+		var y=Math.random()*main_img.height|0;
+		var vx=1;
+		var vy=1;
+		var poses=[];
+		for(var i=0;i<256*256;i++){
+			getPixel(x,y,main_img,pat_img);
+			if((i&3)===0){
+				vx=(Math.random()*3|0)-1;
+				vy=(Math.random()*3|0)-1;
+		}
+			x+=vx;
+			y+=vy;
+			x&=(main_img.width-1);
+			y&=(main_img.height-1);
+		
+		}
+		for(var yi=0;yi<main_img.height;yi++){
+			for(var xi=0;xi<main_img.width;xi++){
+				x=xi;
+				y=yi;
+				if(main_img.rgba[y*main_img.width+x]&0xff000000){
+					continue;
+				}
+		//for(var i=0;i<main_img.rgba.length;i++){
+		//	var x=Math.random()*main_img.width|0;
+		//	var y=Math.random()*main_img.height|0;
+
+				getPixel(x,y,main_img,pat_img);
+			}
+			
+		}
+
+		main_img.setCanvas(c);
+	});
+}
+
+</script>
+</head>
+
+<body onLoad="onloadfunc(event)">
+
+	<canvas id="c" width="256" height="256"></canvas>
+	<img id="pat" >
+</body>
+</html>
+
+
