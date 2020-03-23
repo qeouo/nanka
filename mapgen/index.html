@@ -173,7 +173,9 @@ var onloadfunc=function(e){
 //			
 //		}
 
-		main_img.setCanvas(c);
+		
+		var ctx =  c.getContext('2d')
+		ctx.putImageData(main_img.toImageData(),0,0);
 	});
 }
 
