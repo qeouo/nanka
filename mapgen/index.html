@@ -29,15 +29,22 @@ canvas{
 <script type="text/javascript">
 "use strict"
 
-var SIZE=2;
+var endFlg=[];
+var SIZE=1;
 var setPixel = function(x,y,img0,px,py,img1){
 	if(x<0 || y<0 || x>=img0.width || y>=img0.height){
 		return;
 	}
-	if(((img0.rgba[y*img0.width+x] >> 24)&0xff) ===0xff){
+	var idx = y*img0.width+x<<2;
+	if(img0.data[(y*img0.width+x<<2)+3]==0xff ){
 		return;
 	}
-	img0.rgba[ (y) * img0.width + (x)] = img1.rgba[ (py) * img1.width + (px)];
+	//img0.rgba[ (y) * img0.width + (x)] = img1.rgba[ (py) * img1.width + (px)];
+	var idx2 = py*img1.width+px<<2;
+	img0.data[idx] = img1.data[idx2];
+	img0.data[idx+1] = img1.data[idx2+1];
+	img0.data[idx+2] = img1.data[idx2+2];
+	img0.data[idx+3] = 0xff;
 	return;
 }
 var checkPixel = function(x,y,img0,px,py,img1){
@@ -45,12 +52,12 @@ var checkPixel = function(x,y,img0,px,py,img1){
 		return 1;
 	}
 	var pixel0= img0.rgba[ (y) * img0.width + (x)];
-	if(((pixel0>>24) & 0xff) !== 0xff){
+	if(img0.data[(y*img0.width+x<<2)+3] !==0xff){
 		return 1;
 	}
 
 	var pixel1= img1.rgba[ (py) * img1.width + (px)];
-	if(pixel0 === pixel1){
+	if((pixel0&0xffffff) === (pixel1&0xffffff)){
 		return 1;
 	}
 	return 0;
@@ -63,9 +70,9 @@ var getPixel = function(x,y,main_img,pat){
 			var flg=true;
 			for(var yi=-SIZE;yi<SIZE+1;yi++){
 				for(var xi=-SIZE;xi<SIZE+1;xi++){
-					if(xi===0 && yi===0){
-						continue;
-					}
+					//if(xi===0 && yi===0){
+					//	continue;
+					//}
 					if(!checkPixel(x+xi,y+yi,main_img,px+xi,py+yi,pat)){
 						flg=false;
 						break;
@@ -85,25 +92,47 @@ var getPixel = function(x,y,main_img,pat){
 
 	var px=kouho[idx][0];
 	var py=kouho[idx][1];
+	console.log(px,py);
 
-	for(var yi=-SIZE-1;yi<SIZE;yi++){
-		for(var xi=-SIZE-1;xi<SIZE;xi++){
+	for(var yi=-SIZE;yi<SIZE+1;yi++){
+		for(var xi=-SIZE;xi<SIZE+1;xi++){
 			setPixel(x+xi,y+yi,main_img,px+xi,py+yi,pat);
 			
 		}
 	}
-	//main_img.rgba[ (y) * main_img.width + (x)] = pat.rgba[ (py) * pat.width + (px)];
+//	setPixel(x,y,main_img,px,py,pat);
+	main_img.data[ ((y) * main_img.width + (x)<<2)+3] = 0xff;
 	
 }
 var onloadfunc=function(e){
-	var img = Img.loadImg("pat0.png",1,function(img){
+	var imgs=[];
+	imgs.push(Img.loadImg("pat.png",1));
+	imgs.push(Img.loadImg("pat0.png",1));
+	imgs.push(Img.loadImg("pat1.png",1));
+	imgs.push(Img.loadImg("pat2.png",1));
+	imgs.push(Img.loadImg("pat3.png",1));
+
+	var s = document.getElementById("pat");
+	for(var i=0;i<imgs.length;i++){
+		var option =document.createElement("option");
+		option.text=i;
+		s.appendChild(option);
+	}
+
+	var act=function(img){
+
 		var pat_img = img;
-		var pat  =document.getElementById("pat");
+		var pat  =document.getElementById("img_pat");
 		pat.src = img.toDataUrl();
 		var patmax = pat.width*pat.height;
 
 		var canvas = document.getElementById("c");
 		var main_img= new Img(canvas.width,canvas.height,1);
+
+	endFlg=new Array(main_img.width*main_img.height);
+	for(var i=0;i<endFlg.length;i++){
+		endFlg[i]=0;
+	}
 
 		for(var yi=0;yi<main_img.height;yi++){
 			for(var xi=0;xi<main_img.width;xi++){
@@ -123,28 +152,37 @@ var onloadfunc=function(e){
 			if(x<0 || x>=main_img.width || y<0 || y>=main_img.height){
 				return;
 			}
-			if(main_img.rgba[y * main_img.width + x]&0xff000000){
+			if(endFlg[y * main_img.width + x]){
 				return;
 			}
-			main_img.rgba[ y* main_img.width + x] = 0x010000ff;
+			endFlg[y * main_img.width + x]=1;
 			poses.push([x,y]);
 			
 		}
 		var count=0;
-		while(poses.length){
-		//	if(count++>2)break;
-			var pos = poses.pop();
-			getPixel(pos[0],pos[1],main_img,pat_img);
-			for(var k=-(SIZE);k<(SIZE)+1;k++){
-				append(pos[0]+k,pos[1]-(SIZE+1));
-				append(pos[0]+k,pos[1]+(SIZE+1));
+		//while(poses.length){
+		var f=function(){
+			var pos;
+			while(poses.length){
+				var pos = poses.shift();
+				break;
 			}
 			for(var k=-(SIZE);k<(SIZE)+1;k++){
+				append(pos[0]+k,pos[1]-(SIZE));
+				append(pos[0]+k,pos[1]+(SIZE));
+			}
+			for(var k=-(SIZE-1);k<(SIZE);k++){
 				append(pos[0]-(SIZE),pos[1]+k);
 				append(pos[0]+(SIZE),pos[1]+k);
 			}
+			getPixel(pos[0],pos[1],main_img,pat_img);
 		
 		}
+		document.addEventListener("keydown",function(e){
+			f();
+			var ctx =  c.getContext('2d')
+			ctx.putImageData(main_img.toImageData(),0,0);
+		});
 //		for(var i=0;i<256*256;i++){
 //			getPixel(x,y,main_img,pat_img);
 //			if((i&3)===0){
@@ -176,6 +214,12 @@ var onloadfunc=function(e){
 		
 		var ctx =  c.getContext('2d')
 		ctx.putImageData(main_img.toImageData(),0,0);
+	}
+
+	var pat = document.getElementById("pat");
+	pat.addEventListener("change",function(e){
+		act(imgs[this.selectedIndex]);
+
 	});
 }
 
@@ -184,8 +228,10 @@ var onloadfunc=function(e){
 
 <body onLoad="onloadfunc(event)">
 
-	<canvas id="c" width="256" height="256"></canvas>
-	<img id="pat" >
+	<canvas id="c" width="64" height="64" style="width:256px;height:256px;"></canvas>
+	<select id="pat">
+	</select><br>
+	<img id="img_pat" style="width:128px;height:128px;">
 </body>
 </html>
 
