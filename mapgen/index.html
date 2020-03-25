@@ -22,7 +22,7 @@
 <script type="text/javascript" src="../lib/img.js"></script>
 <style>
 canvas{
-	background-color:red;
+	background-color:gray;
 }
 </style>
 
@@ -30,65 +30,34 @@ canvas{
 "use strict"
 
 var endFlg=[];
+var wave=[];
 var SIZE=1;
-var setPixel = function(x,y,img0,px,py,img1){
-	if(x<0 || y<0 || x>=img0.width || y>=img0.height){
-		return;
+var buf_img;
+var N=3;
+var HALF_N = N>>1;
+var copy=function(img0,x0,y0,img1,x,y,w,h){
+	for(var yi=0;yi<h;yi++){
+		for(var xi=0;xi<w;xi++){
+			var idx0 = img0.getIndex(x0+xi,y0+yi);
+			var idx1 = img1.getIndex(x+xi,y+yi);
+			img0.rgba[idx0] = img1.rgba[idx1];
+		}
 	}
-	var idx = y*img0.width+x<<2;
-	if(img0.data[(y*img0.width+x<<2)+3]==0xff ){
-		return;
-	}
-	//img0.rgba[ (y) * img0.width + (x)] = img1.rgba[ (py) * img1.width + (px)];
-	var idx2 = py*img1.width+px<<2;
-	img0.data[idx] = img1.data[idx2];
-	img0.data[idx+1] = img1.data[idx2+1];
-	img0.data[idx+2] = img1.data[idx2+2];
-	img0.data[idx+3] = 0xff;
-	return;
 }
 
-var buf=new Uint32Array(9);
 var checkPixel = function(x,y,img0,px,py,img1){
-	if(!checkPixel_1(x,y,img0,px,py,img1)){
-		return false;
-	}
+	for(var yi=0;yi<N;yi++){
+		for(var xi=0;xi<N;xi++){
+			var idx = img0.getIndex(x+xi-HALF_N,y+yi-HALF_N);
+			var idx1 = img1.getIndex(px+xi-HALF_N,py+yi-HALF_N);
 
-	for(var yi=-SIZE;yi<SIZE+1;yi++){
-		for(var xi=-SIZE;xi<SIZE+1;xi++){
-			buf[(yi+SIZE)*3+(xi+SIZE)]=img0.rgba[(y+yi)*img0.width+(x+xi)];
-			setPixel(x+xi,y+yi,img0,px+xi,py+yi,img1);
-			
-		}
-	}
-
-	var flg = true;
-	for(var yi=-SIZE;yi<SIZE+1;yi++){
-		for(var xi=-SIZE;xi<SIZE+1;xi++){
-			if(!searchPat(img0,x+xi,y+yi,img1)){
-				flg=false;
+			var col = img1.rgba[idx1];
+			var wav = wave[idx];
+			if(wav.length===0){
+				//‘S‰Â”\«
+				continue;
 			}
-			if(!flg){
-				break;
-			}
-		}
-		if(!flg){
-			break;
-		}
-	}
-	for(var yi=-SIZE;yi<SIZE+1;yi++){
-		for(var xi=-SIZE;xi<SIZE+1;xi++){
-			img0.rgba[(y+yi)*img0.width+(x+xi)] = buf[(yi+SIZE)*3+(xi+SIZE)];
-			
-		}
-	}
-	return flg;
-
-}
-var checkPixel_1 = function(x,y,img0,px,py,img1){
-	for(var yi=-SIZE;yi<SIZE+1;yi++){
-		for(var xi=-SIZE;xi<SIZE+1;xi++){
-			if(!checkPixel_2(x+xi,y+yi,img0,px+xi,py+yi,img1)){
+			if(wav.indexOf(col)<0){
 				return false;
 			}
 		}
@@ -96,42 +65,19 @@ var checkPixel_1 = function(x,y,img0,px,py,img1){
 	return true;
 
 }
-var checkPixel_2 = function(x,y,img0,px,py,img1){
-	if(x<0 || y<0 || x>=img0.width || y>=img0.height){
-		return 1;
-	}
-	if(img0.data[(y*img0.width+x<<2)+3] !==0xff){
-		return 1;
-	}
-
-	var pixel0= img0.rgba[ (y) * img0.width + (x)];
-	var pixel1= img1.rgba[ (py) * img1.width + (px)];
-	if((pixel0&0xffffff) === (pixel1&0xffffff)){
-		return 1;
-	}
-	return 0;
-}
-var searchPat=function(img,x,y,pat){
-	for(var py=SIZE;py<pat.height-SIZE;py++){
-		for(var px=SIZE;px<pat.width-SIZE;px++){
-			if(checkPixel_1(x,y,img,px,py,pat)){
-				return true;
-			}
-		}
-	}
-	return false;
-}
 var getPixel = function(x,y,main_img,pat){
 	var count=0;
 	var kouho=[];
-	for(var py=SIZE;py<pat.height-SIZE;py++){
-		for(var px=SIZE;px<pat.width-SIZE;px++){
+	for(var py=0;py<pat.height;py++){
+		for(var px=0;px<pat.width;px++){
 			if(checkPixel(x,y,main_img,px,py,pat)){
 				kouho.push([px,py]);
 			}
 		}
 	}
+	var idx0 = main_img.getIndex(x,y);
 	if(kouho.length===0){
+		main_img.rgba[idx0] = 0xffffff00;
 		return;
 	}
 	var idx = Math.random() * kouho.length|0;
@@ -139,14 +85,34 @@ var getPixel = function(x,y,main_img,pat){
 	var px=kouho[idx][0];
 	var py=kouho[idx][1];
 
-	for(var yi=-SIZE;yi<SIZE+1;yi++){
-		for(var xi=-SIZE;xi<SIZE+1;xi++){
-			setPixel(x+xi,y+yi,main_img,px+xi,py+yi,pat);
-			
+	//copy(main_img,x-HALF_N,y-HALF_N,pat,px-HALF_N,py-HALF_N,N,N);
+	var idx1 = pat.getIndex(px,py);
+	main_img.rgba[idx0] = pat.rgba[idx1];
+	var col =  pat.rgba[idx1];
+	for(var yi=0;yi<N;yi++){
+		for(var xi=0;xi<N;xi++){
+			var idx0 = main_img.getIndex(x+xi-HALF_N,y+yi-HALF_N);
+			wave[idx0]=[];
+			for(var ki=0;ki<kouho.length;ki++){
+				var px=kouho[ki][0];
+				var py=kouho[ki][1];
+				var idx = pat.getIndex(px,py);
+				if(col!==pat.rgba[idx]){
+					continue;
+				}
+				px+=xi-HALF_N;
+				py+=yi-HALF_N;
+				idx = pat.getIndex(px,py);
+				if(wave.indexOf(pat.rgba[idx])<0){
+					wave[idx0].push(pat.rgba[idx]);
+				}
+	
+			}
 		}
 	}
+		
 //	setPixel(x,y,main_img,px,py,pat);
-	main_img.data[ ((y) * main_img.width + (x)<<2)+3] = 0xff;
+//	main_img.data[ ((y) * main_img.width + (x)<<2)+3] = 0xff;
 	
 }
 var onloadfunc=function(e){
@@ -169,11 +135,16 @@ var onloadfunc=function(e){
 		var pat_img = img;
 		var pat  =document.getElementById("img_pat");
 		pat.src = img.toDataUrl();
-		var patmax = pat.width*pat.height;
 
 		var canvas = document.getElementById("c");
 		var main_img= new Img(canvas.width,canvas.height,1);
 
+		buf_img= new Img(N,N,1);
+
+	wave=new Array(main_img.width*main_img.height);
+	for(var i=0;i<wave.length;i++){
+		wave[i]=[];
+	}
 	endFlg=new Array(main_img.width*main_img.height);
 	for(var i=0;i<endFlg.length;i++){
 		endFlg[i]=0;
@@ -194,14 +165,14 @@ var onloadfunc=function(e){
 		poses.push([x,y]);
 
 		var append=function(x,y){
-			if(x<0 || x>=main_img.width || y<0 || y>=main_img.height){
+			var xx = (x+main_img.width) % main_img.width;
+			var yy = (y+main_img.height) % main_img.height;
+			var idx =yy*main_img.width + xx;
+			if(endFlg[idx]){
 				return;
 			}
-			if(endFlg[y * main_img.width + x]){
-				return;
-			}
-			endFlg[y * main_img.width + x]=1;
-			poses.push([x,y]);
+			endFlg[idx]=1;
+			poses.push([xx,yy]);
 			
 		}
 		var count=0;
@@ -212,13 +183,13 @@ var onloadfunc=function(e){
 				var pos = poses.shift();
 				break;
 			}
-			for(var k=-(SIZE);k<(SIZE)+1;k++){
-				append(pos[0]+k,pos[1]-(SIZE));
-				append(pos[0]+k,pos[1]+(SIZE));
+			for(var k=0;k<N;k++){
+				append(pos[0]+k-HALF_N,pos[1]-HALF_N);
+				append(pos[0]+k-HALF_N,pos[1]+(N-HALF_N-1));
 			}
-			for(var k=-(SIZE-1);k<(SIZE);k++){
-				append(pos[0]-(SIZE),pos[1]+k);
-				append(pos[0]+(SIZE),pos[1]+k);
+			for(var k=1;k<N-1;k++){
+				append(pos[0]-HALF_N,pos[1]+(k-HALF_N));
+				append(pos[0]+(N-HALF_N-1),pos[1]+(k-HALF_N));
 			}
 			getPixel(pos[0],pos[1],main_img,pat_img);
 		
