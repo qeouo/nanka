@@ -35,29 +35,30 @@ var SIZE=1;
 var buf_img;
 var N=3;
 var HALF_N = N>>1;
+var main_img;
 var copy=function(img0,x0,y0,img1,x,y,w,h){
 	for(var yi=0;yi<h;yi++){
 		for(var xi=0;xi<w;xi++){
+			if(outcheck(x0+xi,y0+yi))continue;
 			var idx0 = img0.getIndex(x0+xi,y0+yi);
 			var idx1 = img1.getIndex(x+xi,y+yi);
 			img0.rgba[idx0] = img1.rgba[idx1];
 		}
 	}
 }
-
-var checkPixel = function(x,y,img0,px,py,img1){
+var checkPattern = function(pat,x,y,offsetx,offsety,px,py){
+	//オフセットありパターン同士の一致チェック
 	for(var yi=0;yi<N;yi++){
 		for(var xi=0;xi<N;xi++){
-			var idx = img0.getIndex(x+xi-HALF_N,y+yi-HALF_N);
-			var idx1 = img1.getIndex(px+xi-HALF_N,py+yi-HALF_N);
-
-			var col = img1.rgba[idx1];
-			var wav = wave[idx];
-			if(wav.length===0){
-				//全可能性
+			var idx = pat.getIndex(x+xi-HALF_N,y+yi-HALF_N);
+			var ox = (xi-HALF_N)-offsetx;
+			var oy = (yi-HALF_N)-offsety;
+			if(ox<-HALF_N || ox>=N-HALF_N
+				|| oy<-HALF_N || oy>=N-HALF_N){
 				continue;
 			}
-			if(wav.indexOf(col)<0){
+			var idx1 = pat.getIndex(px+ox,py+oy);
+			if(pat.rgba[idx] !== pat.rgba[idx1]){
 				return false;
 			}
 		}
@@ -65,54 +66,135 @@ var checkPixel = function(x,y,img0,px,py,img1){
 	return true;
 
 }
-var getPixel = function(x,y,main_img,pat){
-	var count=0;
-	var kouho=[];
-	for(var py=0;py<pat.height;py++){
-		for(var px=0;px<pat.width;px++){
-			if(checkPixel(x,y,main_img,px,py,pat)){
-				kouho.push([px,py]);
+
+var outcheck=function(x,y){
+	if(x<0 || x>=main_img.width
+		|| y<0 || y>=main_img.height){
+		return true;
+	}
+	return false;
+}
+var checkPatterns=function(pat,x,y,px,py){
+	//ある座標のあるパターンが成立するかチェック
+	for(var yi=-2;yi<=2;yi++){
+		for(var xi=-2;xi<=2;xi++){
+			if(outcheck(x+xi,y+yi))continue;
+
+			var idx = main_img.getIndex(x+xi,y+yi);
+			var wav = wave[idx];
+			if(!wav){
+				continue;
+			}
+			var flg=true;
+			for(var i=0;i<wav.length;i++){
+				if(checkPattern(pat,px,py,xi,yi,wav[i][0],wav[i][1])){
+					flg=false;
+					break;
+				}
+			}
+			if(flg){
+				return false;
 			}
 		}
 	}
+	return true;
+
+}
+var updateWaveList=[];
+var updateWave=function(x,y,pat){
 	var idx0 = main_img.getIndex(x,y);
-	if(kouho.length===0){
-		main_img.rgba[idx0] = 0xffffff00;
-		return;
+	var wav = wave[idx0];
+	
+	var old_num =pat.width*pat.height;
+
+	var flg=false;
+	if(!wav){
+	flg=true;
+		wav=[];
+		for(var py=0;py<pat.height;py++){
+			for(var px=0;px<pat.width;px++){
+				if(checkPatterns(pat,x,y,px,py)){
+					wav.push([px,py]);
+				}
+			}
+		}
+	}else{
+		old_num = wav.length;
+		for(var i=wav.length;i--;){
+			if(!checkPatterns(pat,x,y,wav[i][0],wav[i][1])){
+				wav.splice(i,1);
+			}
+		}
 	}
-	var idx = Math.random() * kouho.length|0;
-
-	var px=kouho[idx][0];
-	var py=kouho[idx][1];
-
-	//copy(main_img,x-HALF_N,y-HALF_N,pat,px-HALF_N,py-HALF_N,N,N);
-	var idx1 = pat.getIndex(px,py);
-	main_img.rgba[idx0] = pat.rgba[idx1];
-	var col =  pat.rgba[idx1];
-	for(var yi=0;yi<N;yi++){
-		for(var xi=0;xi<N;xi++){
-			var idx0 = main_img.getIndex(x+xi-HALF_N,y+yi-HALF_N);
-			wave[idx0]=[];
-			for(var ki=0;ki<kouho.length;ki++){
-				var px=kouho[ki][0];
-				var py=kouho[ki][1];
-				var idx = pat.getIndex(px,py);
-				if(col!==pat.rgba[idx]){
+	if(wav.length===0){
+		for(var py=0;py<pat.height;py++){
+			for(var px=0;px<pat.width;px++){
+				if(checkPatterns(pat,x,y,px,py)){
+					wav.push([px,py]);
+				}
+			}
+		}
+		console.log("A");
+	}	
+	wave[idx0]=wav;
+	if(wav.length !== old_num){
+		for(var yi=-1;yi<=1;yi++){
+			for(var xi=-1;xi<=1;xi++){
+				if(xi===0 && yi===0){
 					continue;
 				}
-				px+=xi-HALF_N;
-				py+=yi-HALF_N;
-				idx = pat.getIndex(px,py);
-				if(wave.indexOf(pat.rgba[idx])<0){
-					wave[idx0].push(pat.rgba[idx]);
-				}
-	
+				if(outcheck(x+xi,y+yi))continue;
+				
+				updateWaveList.push([x+xi,y+yi]);
 			}
 		}
 	}
+
+}
+var getPixel = function(x,y,main_img,pat){
+	var idx0 = main_img.getIndex(x,y);
+
+	var wav = wave[idx0];
+
+	var px,py;
+	if(wav){
+		if(wav.length===0){
+			main_img.rgba[idx0] = 0xffffff00;
+			return;
+		}
+		var idx = Math.random() * wav.length|0;
+
+		px=wav[idx][0];
+		py=wav[idx][1];
+	}else{
+		px=Math.random()*pat.width|0;
+		py=Math.random()*pat.height|0;
+	}
+
+	var idx1 = pat.getIndex(px,py);
+	main_img.rgba[idx0] = pat.rgba[idx1];
+	copy(main_img,x-HALF_N,y-HALF_N,pat,px-HALF_N,py-HALF_N,N,N);
+
+	wave[idx0]=[[px,py]];
 		
-//	setPixel(x,y,main_img,px,py,pat);
-//	main_img.data[ ((y) * main_img.width + (x)<<2)+3] = 0xff;
+
+	for(var yi=-1;yi<=1;yi++){
+		for(var xi=-1;xi<=1;xi++){
+			if(xi===0 && yi===0){
+				continue;
+			}
+			if(outcheck(x+xi,y+yi))continue;
+			if(x+xi<0 || x+xi>=main_img.width
+				|| y+yi<0 || y+yi>=main_img.height){
+				continue;
+			}
+			updateWaveList.push([x+xi,y+yi]);
+		}
+	}
+	while(updateWaveList.length){
+		var p = updateWaveList.pop();
+		updateWave(p[0],p[1],pat);
+	}
 	
 }
 var onloadfunc=function(e){
@@ -137,13 +219,13 @@ var onloadfunc=function(e){
 		pat.src = img.toDataUrl();
 
 		var canvas = document.getElementById("c");
-		var main_img= new Img(canvas.width,canvas.height,1);
+		main_img= new Img(canvas.width,canvas.height,1);
 
 		buf_img= new Img(N,N,1);
 
 	wave=new Array(main_img.width*main_img.height);
 	for(var i=0;i<wave.length;i++){
-		wave[i]=[];
+		wave[i]=null;
 	}
 	endFlg=new Array(main_img.width*main_img.height);
 	for(var i=0;i<endFlg.length;i++){
@@ -244,7 +326,7 @@ var onloadfunc=function(e){
 
 <body onLoad="onloadfunc(event)">
 
-	<canvas id="c" width="64" height="64" style="width:256px;height:256px;"></canvas>
+	<canvas id="c" width="20" height="20" style="width:256px;height:256px;"></canvas>
 	<select id="pat">
 	</select><br>
 	<img id="img_pat" style="width:128px;height:128px;">
