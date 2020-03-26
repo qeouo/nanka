@@ -24,6 +24,12 @@
 canvas{
 	background-color:gray;
 }
+img.hoge{
+width:32px;
+height:32px;
+	border:1px solid black;
+	margin:2px;
+}
 </style>
 
 <script type="text/javascript">
@@ -31,11 +37,18 @@ canvas{
 
 var endFlg=[];
 var wave=[];
-var SIZE=1;
-var buf_img;
 var N=3;
 var HALF_N = N>>1;
 var main_img;
+var pattern_list=[];
+var pattern_img;
+var pattern_img2= new Img(N,N,1);
+var Pattern= function(){
+	this.x=0;
+	this.y=0;
+	this.num=0;
+	this.joint=[(N+2)*(N+2)];
+}
 var copy=function(img0,x0,y0,img1,x,y,w,h){
 	for(var yi=0;yi<h;yi++){
 		for(var xi=0;xi<w;xi++){
@@ -47,7 +60,7 @@ var copy=function(img0,x0,y0,img1,x,y,w,h){
 	}
 }
 var checkPattern = function(pat,x,y,offsetx,offsety,px,py){
-	//�I�t�Z�b�g����p�^�[�����m�̈�v�`�F�b�N
+	//オフセットありパターン同士の一致チェック
 	for(var yi=0;yi<N;yi++){
 		for(var xi=0;xi<N;xi++){
 			var idx = pat.getIndex(x+xi-HALF_N,y+yi-HALF_N);
@@ -74,11 +87,12 @@ var outcheck=function(x,y){
 	}
 	return false;
 }
-var checkPatterns=function(pat,x,y,px,py){
-	//������W�̂���p�^�[�����������邩�`�F�b�N
+var checkPatterns=function(pat,x,y,pat_idx){
+	//ある座標のあるパターンが成立するかチェック
 	for(var yi=-2;yi<=2;yi++){
 		for(var xi=-2;xi<=2;xi++){
 			if(outcheck(x+xi,y+yi))continue;
+			var list_index = (-yi+2)*5+(-xi+2);
 
 			var idx = main_img.getIndex(x+xi,y+yi);
 			var wav = wave[idx];
@@ -87,7 +101,8 @@ var checkPatterns=function(pat,x,y,px,py){
 			}
 			var flg=true;
 			for(var i=0;i<wav.length;i++){
-				if(checkPattern(pat,px,py,xi,yi,wav[i][0],wav[i][1])){
+				var pat =pattern_list[wav[i]];
+				if(pat.joint[list_index].indexOf(pat_idx)>=0){
 					flg=false;
 					break;
 				}
@@ -111,29 +126,20 @@ var updateWave=function(x,y,pat){
 	if(!wav){
 	flg=true;
 		wav=[];
-		for(var py=0;py<pat.height;py++){
-			for(var px=0;px<pat.width;px++){
-				if(checkPatterns(pat,x,y,px,py)){
-					wav.push([px,py]);
-				}
+		for(var wi=0;wi<pattern_list.length;wi++){
+			if(checkPatterns(pat,x,y,wi)){
+				wav.push(wi);
 			}
 		}
 	}else{
 		old_num = wav.length;
 		for(var i=wav.length;i--;){
-			if(!checkPatterns(pat,x,y,wav[i][0],wav[i][1])){
+			if(!checkPatterns(pat,x,y,wav[i])){
 				wav.splice(i,1);
 			}
 		}
 	}
 	if(wav.length===0){
-		for(var py=0;py<pat.height;py++){
-			for(var px=0;px<pat.width;px++){
-				if(checkPatterns(pat,x,y,px,py)){
-					wav.push([px,py]);
-				}
-			}
-		}
 		console.log("A");
 	}	
 	wave[idx0]=wav;
@@ -156,26 +162,22 @@ var getPixel = function(x,y,main_img,pat){
 
 	var wav = wave[idx0];
 
-	var px,py;
+	var pat;
+	var idx;
 	if(wav){
 		if(wav.length===0){
 			main_img.rgba[idx0] = 0xffffff00;
 			return;
 		}
-		var idx = Math.random() * wav.length|0;
-
-		px=wav[idx][0];
-		py=wav[idx][1];
+		idx=wav[Math.random()*wav.length|0];
 	}else{
-		px=Math.random()*pat.width|0;
-		py=Math.random()*pat.height|0;
+		idx=Math.random()*pattern_list.length|0;
 	}
 
-	var idx1 = pat.getIndex(px,py);
-	main_img.rgba[idx0] = pat.rgba[idx1];
-	copy(main_img,x-HALF_N,y-HALF_N,pat,px-HALF_N,py-HALF_N,N,N);
+	var pat = pattern_list[idx];
+	copy(main_img,x-HALF_N,y-HALF_N,pattern_img,pat.x-HALF_N,pat.y-HALF_N,N,N);
 
-	wave[idx0]=[[px,py]];
+	wave[idx0]=[idx];
 		
 
 	for(var yi=-1;yi<=1;yi++){
@@ -215,22 +217,79 @@ var onloadfunc=function(e){
 	var act=function(img){
 
 		var pat_img = img;
+		pattern_img= img;
 		var pat  =document.getElementById("img_pat");
 		pat.src = img.toDataUrl();
 
 		var canvas = document.getElementById("c");
 		main_img= new Img(canvas.width,canvas.height,1);
 
-		buf_img= new Img(N,N,1);
 
-	wave=new Array(main_img.width*main_img.height);
-	for(var i=0;i<wave.length;i++){
-		wave[i]=null;
-	}
-	endFlg=new Array(main_img.width*main_img.height);
-	for(var i=0;i<endFlg.length;i++){
-		endFlg[i]=0;
-	}
+		pattern_list=[];
+		//パターン収集
+		for(var yi=0;yi<pat_img.height;yi++){
+			for(var xi=0;xi<pat_img.width;xi++){
+				var flg=true;
+				for(var pi=0;pi<pattern_list.length;pi++){
+					var pat = pattern_list[pi];
+
+					if(checkPattern(pattern_img,xi,yi,0,0,pat.x,pat.y)){
+						pat.num++;
+						flg=false;
+						break;
+					}
+				}
+				if(flg){
+					var pat = new Pattern();
+					pat.x = xi;
+					pat.y = yi;
+					pat.num=1;
+					pattern_list.push(pat);
+				}
+			}
+		}
+
+		//隣接パターン検索
+		for(var pi=0;pi<pattern_list.length;pi++){
+			var pat = pattern_list[pi];
+			for(var yi=0;yi<5;yi++){
+				for(var xi=0;xi<5;xi++){
+					var list = [];
+					pat.joint[yi*5+xi]=list;
+					for(var pi2=0;pi2<pattern_list.length;pi2++){
+						var pat2=pattern_list[pi2];
+						if(checkPattern(pattern_img,pat.x,pat.y,xi-2,yi-2,pat2.x,pat2.y)){
+							list.push(pi2);
+						}
+					}
+				}
+			}
+		}
+
+		var template_div = document.getElementById("pattern_template");
+		for(var pi=0;pi<pattern_list.length;pi++){
+			var pat=pattern_list[pi];
+			var pattern_div = template_div.cloneNode(true);
+			copy(pattern_img2,0,0,pattern_img,pat.x-HALF_N,pat.y-HALF_N,N,N);
+			pattern_div.getElementsByClassName("hoge")[0].src = pattern_img2.toDataUrl();
+			var txt="x"+pat.num +" pos("+pat.x+","+pat.y+")";
+			txt+= " 隣接情報" + JSON.stringify(pat.joint);
+			var txtnode=document.createTextNode(txt);
+			pattern_div.getElementsByClassName("status")[0].appendChild(txtnode);
+
+			document.body.appendChild(pattern_div);
+
+		}
+
+
+		wave=new Array(main_img.width*main_img.height);
+		for(var i=0;i<wave.length;i++){
+			wave[i]=null;
+		}
+		endFlg=new Array(main_img.width*main_img.height);
+		for(var i=0;i<endFlg.length;i++){
+			endFlg[i]=0;
+		}
 
 		for(var yi=0;yi<main_img.height;yi++){
 			for(var xi=0;xi<main_img.width;xi++){
@@ -330,6 +389,12 @@ var onloadfunc=function(e){
 	<select id="pat">
 	</select><br>
 	<img id="img_pat" style="width:128px;height:128px;">
+	<div style="display:none;">
+		<div id="pattern_template">
+			<img name="img" class="hoge">
+			<span class="status"></span>
+		</div>
+	</div>
 </body>
 </html>
 
