@@ -129,6 +129,9 @@ var updateWave=function(x,y){
 				wav.push(wi);
 			}
 		}
+		if(wav.length === pattern_list.length){
+			wav=null;
+		}
 		wave[idx0]=wav;
 	}else{
 		old_num = wav.length;
@@ -138,24 +141,26 @@ var updateWave=function(x,y){
 			}
 		}
 	}
-	if(wav.length===0){
-		console.log("A");
-	}	
-	if(wav.length===1){
-		//確定した場合は描画
-		var pat = pattern_list[wav[0]];
-		copy(main_img,x-HALF_N,y-HALF_N,pattern_img,pat.x-HALF_N,pat.y-HALF_N,N,N);
-	}	
-	if(wav.length !== old_num){
-		for(var yi=-2;yi<=2;yi++){
-			for(var xi=-2;xi<=2;xi++){
-				if(xi===0 && yi===0){
-					continue;
-				}
-				if(outcheck(x+xi,y+yi))continue;
-				
-				if(!updateWaveList.find(function(a){return (a[0]==x+xi && a[1]== y+yi);})){
-					updateWaveList.push([x+xi,y+yi]);
+	if(wav){
+		if(wav.length===0){
+			console.log("A");
+		}	
+		if(wav.length===1){
+			//確定した場合は描画
+			var pat = pattern_list[wav[0]];
+			copy(main_img,x-HALF_N,y-HALF_N,pattern_img,pat.x-HALF_N,pat.y-HALF_N,N,N);
+		}	
+		if(wav.length !== old_num){
+			for(var yi=-2;yi<=2;yi++){
+				for(var xi=-2;xi<=2;xi++){
+					if(xi===0 && yi===0){
+						continue;
+					}
+					if(outcheck(x+xi,y+yi))continue;
+					
+					if(!updateWaveList.find(function(a){return (a[0]==x+xi && a[1]== y+yi);})){
+						updateWaveList.push([x+xi,y+yi]);
+					}
 				}
 			}
 		}
@@ -363,13 +368,16 @@ var onloadfunc=function(e){
 		   }
 			var pos = poses.shift();
 			
-			for(var k=0;k<N;k++){
-				append(pos[0]+k-HALF_N,pos[1]-HALF_N);
-				append(pos[0]+k-HALF_N,pos[1]+(N-HALF_N-1));
-			}
-			for(var k=1;k<N-1;k++){
-				append(pos[0]-HALF_N,pos[1]+(k-HALF_N));
-				append(pos[0]+(N-HALF_N-1),pos[1]+(k-HALF_N));
+			var x=pos[0];
+			var y=pos[1];
+			for(var yi=-1;yi<=1;yi++){
+				for(var xi=-1;xi<=1;xi++){
+					if(xi===0 && yi===0){
+						continue;
+					}
+					if(outcheck(x+xi,y+yi))continue;
+					append(x+xi,y+yi);
+				}
 			}
 			if(getPixel(pos[0],pos[1],main_img))break;
 		}
