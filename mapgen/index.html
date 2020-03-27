@@ -87,7 +87,7 @@ var outcheck=function(x,y){
 	}
 	return false;
 }
-var checkPatterns=function(pat,x,y,pat_idx){
+var checkPatterns=function(x,y,pat_idx){
 	//ある座標のあるパターンが成立するかチェック
 	for(var yi=-2;yi<=2;yi++){
 		for(var xi=-2;xi<=2;xi++){
@@ -116,25 +116,24 @@ var checkPatterns=function(pat,x,y,pat_idx){
 
 }
 var updateWaveList=[];
-var updateWave=function(x,y,pat){
+var updateWave=function(x,y){
 	var idx0 = main_img.getIndex(x,y);
 	var wav = wave[idx0];
 	
-	var old_num =pat.width*pat.height;
+	var old_num =pattern_img.width*pattern_img.height;
 
-	var flg=false;
 	if(!wav){
-	flg=true;
 		wav=[];
 		for(var wi=0;wi<pattern_list.length;wi++){
-			if(checkPatterns(pat,x,y,wi)){
+			if(checkPatterns(x,y,wi)){
 				wav.push(wi);
 			}
 		}
+		wave[idx0]=wav;
 	}else{
 		old_num = wav.length;
 		for(var i=wav.length;i--;){
-			if(!checkPatterns(pat,x,y,wav[i])){
+			if(!checkPatterns(x,y,wav[i])){
 				wav.splice(i,1);
 			}
 		}
@@ -142,66 +141,94 @@ var updateWave=function(x,y,pat){
 	if(wav.length===0){
 		console.log("A");
 	}	
-	wave[idx0]=wav;
+	if(wav.length===1){
+		//確定した場合は描画
+		var pat = pattern_list[wav[0]];
+		copy(main_img,x-HALF_N,y-HALF_N,pattern_img,pat.x-HALF_N,pat.y-HALF_N,N,N);
+	}	
 	if(wav.length !== old_num){
-		for(var yi=-1;yi<=1;yi++){
-			for(var xi=-1;xi<=1;xi++){
+		for(var yi=-2;yi<=2;yi++){
+			for(var xi=-2;xi<=2;xi++){
 				if(xi===0 && yi===0){
 					continue;
 				}
 				if(outcheck(x+xi,y+yi))continue;
 				
-				updateWaveList.push([x+xi,y+yi]);
+				if(!updateWaveList.find(function(a){return (a[0]==x+xi && a[1]== y+yi);})){
+					updateWaveList.push([x+xi,y+yi]);
+				}
 			}
 		}
 	}
 
 }
-var getPixel = function(x,y,main_img,pat){
+var getPixel = function(x,y,main_img){
 	var idx0 = main_img.getIndex(x,y);
 
 	var wav = wave[idx0];
 
-	var pat;
 	var idx;
 	if(wav){
+		if(wav.length===1){
+			return false;
+		}
 		if(wav.length===0){
 			main_img.rgba[idx0] = 0xffffff00;
-			return;
+			return true;
 		}
-		idx=wav[Math.random()*wav.length|0];
+
+		var sum=0;
+		for(var i=0;i<wav.length;i++){
+			sum+=pattern_list[wav[i]].num;
+		}
+		var r=Math.random()*sum|0;
+		for(var i=0;i<wav.length;i++){
+			r-=pattern_list[wav[i]].num;
+			if(r<0){
+				idx=wav[i];
+				break;
+			}
+		}
+		//idx = wav[Math.random()*wav.length|0];
 	}else{
-		idx=Math.random()*pattern_list.length|0;
+		var r=Math.random()*(pattern_img.width*pattern_img.height)|0;
+		for(var i=0;i<pattern_list.length;i++){
+			r-=pattern_list[i].num;
+			if(r<0){
+				idx=i;
+				break;
+			}
+		}
 	}
 
-	var pat = pattern_list[idx];
-	copy(main_img,x-HALF_N,y-HALF_N,pattern_img,pat.x-HALF_N,pat.y-HALF_N,N,N);
+	wav = [idx];
+	wave[idx0]=wav;
+	var pat = pattern_list[wav[0]];
+	copy(main_img,x-HALF_N,y-HALF_N,pattern_img,pat.x-HALF_N,pat.y-HALF_N,N,N);	
 
-	wave[idx0]=[idx];
-		
-
-	for(var yi=-1;yi<=1;yi++){
-		for(var xi=-1;xi<=1;xi++){
+	for(var yi=-2;yi<=2;yi++){
+		for(var xi=-2;xi<=2;xi++){
 			if(xi===0 && yi===0){
 				continue;
 			}
 			if(outcheck(x+xi,y+yi))continue;
-			if(x+xi<0 || x+xi>=main_img.width
-				|| y+yi<0 || y+yi>=main_img.height){
-				continue;
-			}
 			updateWaveList.push([x+xi,y+yi]);
 		}
 	}
+
 	while(updateWaveList.length){
-		var p = updateWaveList.pop();
-		updateWave(p[0],p[1],pat);
+		var p = updateWaveList.shift();
+		updateWave(p[0],p[1]);
 	}
 	
+	return true;
 }
 var onloadfunc=function(e){
 	var imgs=[];
-	imgs.push(Img.loadImg("pat.png",1));
+		imgs.push(Img.loadImg("pat.png",1,function(img){
+
+			act(img);
+		}));
 	imgs.push(Img.loadImg("pat0.png",1));
 	imgs.push(Img.loadImg("pat1.png",1));
 	imgs.push(Img.loadImg("pat2.png",1));
@@ -214,9 +241,9 @@ var onloadfunc=function(e){
 		s.appendChild(option);
 	}
 
+	var poses;
 	var act=function(img){
 
-		var pat_img = img;
 		pattern_img= img;
 		var pat  =document.getElementById("img_pat");
 		pat.src = img.toDataUrl();
@@ -227,8 +254,8 @@ var onloadfunc=function(e){
 
 		pattern_list=[];
 		//パターン収集
-		for(var yi=0;yi<pat_img.height;yi++){
-			for(var xi=0;xi<pat_img.width;xi++){
+		for(var yi=0;yi<pattern_img.height;yi++){
+			for(var xi=0;xi<pattern_img.width;xi++){
 				var flg=true;
 				for(var pi=0;pi<pattern_list.length;pi++){
 					var pat = pattern_list[pi];
@@ -267,6 +294,8 @@ var onloadfunc=function(e){
 		}
 
 		var template_div = document.getElementById("pattern_template");
+		var pattern_area = document.getElementById("pattern_area");
+		while(pattern_area.firstChild)pattern_area.removeChild(pattern_area.firstChild);
 		for(var pi=0;pi<pattern_list.length;pi++){
 			var pat=pattern_list[pi];
 			var pattern_div = template_div.cloneNode(true);
@@ -277,7 +306,7 @@ var onloadfunc=function(e){
 			var txtnode=document.createTextNode(txt);
 			pattern_div.getElementsByClassName("status")[0].appendChild(txtnode);
 
-			document.body.appendChild(pattern_div);
+			pattern_area.appendChild(pattern_div);
 
 		}
 
@@ -301,72 +330,9 @@ var onloadfunc=function(e){
 		var y=Math.random()*main_img.height|0;
 		var vx=1;
 		var vy=1;
-		var poses=[];
+		poses=[];
 
 		poses.push([x,y]);
-
-		var append=function(x,y){
-			var xx = (x+main_img.width) % main_img.width;
-			var yy = (y+main_img.height) % main_img.height;
-			var idx =yy*main_img.width + xx;
-			if(endFlg[idx]){
-				return;
-			}
-			endFlg[idx]=1;
-			poses.push([xx,yy]);
-			
-		}
-		var count=0;
-		//while(poses.length){
-		var f=function(){
-			var pos;
-			while(poses.length){
-				var pos = poses.shift();
-				break;
-			}
-			for(var k=0;k<N;k++){
-				append(pos[0]+k-HALF_N,pos[1]-HALF_N);
-				append(pos[0]+k-HALF_N,pos[1]+(N-HALF_N-1));
-			}
-			for(var k=1;k<N-1;k++){
-				append(pos[0]-HALF_N,pos[1]+(k-HALF_N));
-				append(pos[0]+(N-HALF_N-1),pos[1]+(k-HALF_N));
-			}
-			getPixel(pos[0],pos[1],main_img,pat_img);
-		
-		}
-		document.addEventListener("keydown",function(e){
-			f();
-			var ctx =  c.getContext('2d')
-			ctx.putImageData(main_img.toImageData(),0,0);
-		});
-//		for(var i=0;i<256*256;i++){
-//			getPixel(x,y,main_img,pat_img);
-//			if((i&3)===0){
-//				vx=(Math.random()*3|0)-1;
-//				vy=(Math.random()*3|0)-1;
-//		}
-//			x+=vx;
-//			y+=vy;
-//			x&=(main_img.width-1);
-//			y&=(main_img.height-1);
-//		
-//		}
-//		for(var yi=0;yi<main_img.height;yi++){
-//			for(var xi=0;xi<main_img.width;xi++){
-//				x=xi;
-//				y=yi;
-//				if(main_img.rgba[y*main_img.width+x]&0xff000000){
-//					continue;
-//				}
-//		//for(var i=0;i<main_img.rgba.length;i++){
-//		//	var x=Math.random()*main_img.width|0;
-//		//	var y=Math.random()*main_img.height|0;
-//
-//				getPixel(x,y,main_img,pat_img);
-//			}
-//			
-//		}
 
 		
 		var ctx =  c.getContext('2d')
@@ -378,6 +344,42 @@ var onloadfunc=function(e){
 		act(imgs[this.selectedIndex]);
 
 	});
+	   
+		var append=function(x,y){
+			var xx = (x+main_img.width) % main_img.width;
+			var yy = (y+main_img.height) % main_img.height;
+			var idx =yy*main_img.width + xx;
+			if(endFlg[idx]){
+				return;
+			}
+			endFlg[idx]=1;
+			poses.push([xx,yy]);
+			
+		}
+	var f=function(){
+		while(1){
+		   if(poses.length===0){
+			return;
+		   }
+			var pos = poses.shift();
+			
+			for(var k=0;k<N;k++){
+				append(pos[0]+k-HALF_N,pos[1]-HALF_N);
+				append(pos[0]+k-HALF_N,pos[1]+(N-HALF_N-1));
+			}
+			for(var k=1;k<N-1;k++){
+				append(pos[0]-HALF_N,pos[1]+(k-HALF_N));
+				append(pos[0]+(N-HALF_N-1),pos[1]+(k-HALF_N));
+			}
+			if(getPixel(pos[0],pos[1],main_img))break;
+		}
+	}
+	document.addEventListener("keydown",function(e){
+		f();
+		var ctx =  c.getContext('2d')
+		ctx.putImageData(main_img.toImageData(),0,0);
+	});
+
 }
 
 </script>
@@ -385,7 +387,7 @@ var onloadfunc=function(e){
 
 <body onLoad="onloadfunc(event)">
 
-	<canvas id="c" width="20" height="20" style="width:256px;height:256px;"></canvas>
+	<canvas id="c" width="40" height="40" style="width:256px;height:256px;"></canvas>
 	<select id="pat">
 	</select><br>
 	<img id="img_pat" style="width:128px;height:128px;">
@@ -394,6 +396,8 @@ var onloadfunc=function(e){
 			<img name="img" class="hoge">
 			<span class="status"></span>
 		</div>
+	</div>
+	<div id="pattern_area">
 	</div>
 </body>
 </html>
