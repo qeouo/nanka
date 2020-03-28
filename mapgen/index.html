@@ -23,12 +23,20 @@
 <style>
 canvas{
 	background-color:gray;
+	zoom:400%;
+	image-rendering:pixelated;
+	border:0.25px solid black;
+}
+img{
+	zoom:400%;
+	border:0.25px solid black;
+	margin:2px;
+	image-rendering:pixelated;
+
+}
+img#img_pat{
 }
 img.hoge{
-width:32px;
-height:32px;
-	border:1px solid black;
-	margin:2px;
 }
 </style>
 
@@ -232,7 +240,7 @@ var onloadfunc=function(e){
 	var imgs=[];
 		imgs.push(Img.loadImg("pat.png",1,function(img){
 
-			act(img);
+			createPattern(img);
 		}));
 	imgs.push(Img.loadImg("pat0.png",1));
 	imgs.push(Img.loadImg("pat1.png",1));
@@ -247,7 +255,7 @@ var onloadfunc=function(e){
 	}
 
 	var poses;
-	var act=function(img){
+	var createPattern=function(img){
 
 		pattern_img= img;
 		var pat  =document.getElementById("img_pat");
@@ -315,6 +323,9 @@ var onloadfunc=function(e){
 
 		}
 
+	   reset();
+	}
+	var reset=function(){
 
 		wave=new Array(main_img.width*main_img.height);
 		for(var i=0;i<wave.length;i++){
@@ -346,7 +357,7 @@ var onloadfunc=function(e){
 
 	var pat = document.getElementById("pat");
 	pat.addEventListener("change",function(e){
-		act(imgs[this.selectedIndex]);
+		createPattern(imgs[this.selectedIndex]);
 
 	});
 	   
@@ -361,10 +372,17 @@ var onloadfunc=function(e){
 			poses.push([xx,yy]);
 			
 		}
+
+	var do_flg=0;
 	var f=function(){
+		if(!do_flg){
+			return;
+		}
 		while(1){
 		   if(poses.length===0){
-			return;
+			   do_flg=0;
+	   		start.value="開始"
+				break;
 		   }
 			var pos = poses.shift();
 			
@@ -381,11 +399,26 @@ var onloadfunc=function(e){
 			}
 			if(getPixel(pos[0],pos[1],main_img))break;
 		}
-	}
-	document.addEventListener("keydown",function(e){
-		f();
 		var ctx =  c.getContext('2d')
 		ctx.putImageData(main_img.toImageData(),0,0);
+	   window.setTimeout(f,16);
+	}
+	var start = document.getElementById("start");
+	start.addEventListener("click",function(e){
+	   if(!do_flg){
+			do_flg=1;
+	   		start.value="一時停止"
+			f();
+	   }else{
+	   		start.value="開始"
+	   		do_flg=0;
+	   }
+	});
+
+	document.getElementById("reset").addEventListener("click",function(e){
+	   if(!do_flg){
+			reset();
+	   }
 	});
 
 }
@@ -395,10 +428,13 @@ var onloadfunc=function(e){
 
 <body onLoad="onloadfunc(event)">
 
-	<canvas id="c" width="40" height="40" style="width:256px;height:256px;"></canvas>
+	<canvas id="c" width="40" height="40" ></canvas>
+	<img id="img_pat" >
 	<select id="pat">
-	</select><br>
-	<img id="img_pat" style="width:128px;height:128px;">
+	</select>
+	<input type="button" id="start" value="開始">
+	<input type="button" id="reset" value="リセット">
+	<br>
 	<div style="display:none;">
 		<div id="pattern_template">
 			<img name="img" class="hoge">
