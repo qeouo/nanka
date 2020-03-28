@@ -27,25 +27,26 @@ canvas{
 	image-rendering:pixelated;
 	border:0.25px solid black;
 }
+div#pattern_template{
+	margin-top:20px;
+}
 img{
 	zoom:400%;
 	border:0.25px solid black;
-	margin:2px;
 	image-rendering:pixelated;
 
-}
-img#img_pat{
-}
-img.hoge{
 }
 </style>
 
 <script type="text/javascript">
 "use strict"
 
-var wave=[];
+var waves=[];
 var N=3;
 var HALF_N = N>>1;
+var M=N-1;
+var SIZE=64;
+var SIZE_1=SIZE-1;
 var main_img;
 var pattern_list=[];
 var pattern_img;
@@ -56,16 +57,15 @@ var Pattern= function(){
 	this.num=0;
 	this.joint=[(N+2)*(N+2)];
 }
-var copy=function(img0,x0,y0,img1,x,y,w,h){
-	for(var yi=0;yi<h;yi++){
-		for(var xi=0;xi<w;xi++){
-			if(outcheck(x0+xi,y0+yi))continue;
-			var idx0 = img0.getIndex(x0+xi,y0+yi);
-			var idx1 = img1.getIndex(x+xi,y+yi);
-			img0.rgba[idx0] = img1.rgba[idx1];
-		}
+var Wave= function(){
+	this.num=pattern_list.length;
+	this.update_flg=1;
+	this.flgs=new Array(pattern_list.length);
+	for(var fi=0;fi<this.flgs.length;fi++){
+		this.flgs[fi]=1;
 	}
 }
+
 var checkPattern = function(pat,x,y,offsetx,offsety,px,py){
 	//オフセットありパターン同士の一致チェック
 	for(var yi=0;yi<N;yi++){
@@ -94,26 +94,23 @@ var outcheck=function(x,y){
 	}
 	return false;
 }
-var SIZE_1=64-1;
-var mainGetIndex=function(x,y){
+
+var calcIndex=function(x,y){
 	return ((y&SIZE_1)<<6)+(x&SIZE_1);
 }
 var checkPatterns=function(x,y,pat_idx){
 	//ある座標のあるパターンが成立するかチェック
-	for(var yi=-2;yi<=2;yi++){
-		for(var xi=-2;xi<=2;xi++){
+		var pat = pattern_list[pat_idx];
+	for(var yi=-M;yi<=M;yi++){
+		for(var xi=-M;xi<=M;xi++){
 			if(outcheck(x+xi,y+yi))continue;
-			var list_index = (-yi+2)*5+(-xi+2);
+			var list = pat.joint[(yi+M)*5+(xi+M)];
 
-			var idx = mainGetIndex(x+xi,y+yi);
-			var wav = wave[idx];
-			if(!wav){
-				continue;
-			}
+			var idx = calcIndex(x+xi,y+yi);
+			var flgs= waves[idx].flgs;
 			var flg=true;
-			for(var i=0;i<wav.length;i++){
-				var pat =pattern_list[wav[i]];
-				if(pat.joint[list_index].indexOf(pat_idx)>=0){
+			for(var li=0;li<list.length;li++){
+				if(flgs[list[li]]){
 					flg=false;
 					break;
 				}
@@ -126,58 +123,41 @@ var checkPatterns=function(x,y,pat_idx){
 	return true;
 
 }
-var updateWaveList=[];
-var updateWave=function(x,y){
-	var idx0 = mainGetIndex(x,y);
-	var wav = wave[idx0];
+var err_flg=false;
+var updateList=[];
+var updatewave=function(x,y){
+	var wave = waves[calcIndex(x,y)];
 	
-	var old_num =pattern_img.width*pattern_img.height;
+	var old_num =wave.num;
 
-	if(!wav){
-		wav=[];
-		for(var wi=0;wi<pattern_list.length;wi++){
-			if(checkPatterns(x,y,wi)){
-				wav.push(wi);
-			}
-		}
-		if(wav.length === pattern_list.length){
-			wav=null;
-		}
-		wave[idx0]=wav;
-	}else{
-		old_num = wav.length;
-		for(var i=wav.length;i--;){
-			if(!checkPatterns(x,y,wav[i])){
-				wav.splice(i,1);
+	for(var i=0;i<wave.flgs.length;i++){
+		if(wave.flgs[i]){
+			if(!checkPatterns(x,y,i)){
+				wave.flgs[i]=0;
+				wave.num--;
 			}
 		}
 	}
-	if(wav){
-		if(wav.length===0){
-			console.log("A");
-		}	
-		if(wav.length===1){
-			//確定した場合は描画
-			var pat = pattern_list[wav[0]];
-			copy(main_img,x-HALF_N,y-HALF_N,pattern_img,pat.x-HALF_N,pat.y-HALF_N,N,N);
-		}	
-		if(wav.length !== old_num){
-			for(var yi=-2;yi<=2;yi++){
-				for(var xi=-2;xi<=2;xi++){
-					if(xi===0 && yi===0){
-						continue;
-					}
-					if(outcheck(x+xi,y+yi))continue;
-					
-					var idx = mainGetIndex(x+xi,y+yi);
-					if(wave[idx]){
-						if(wave[idx].length===1){
-							continue;
-						}
-					}
-					if(updateWaveList.indexOf(idx)<0){
-						updateWaveList.push(idx);
-					}
+	if(wave.num===0){
+		err_flg=true;
+		return;
+	}	
+	if(wave.num !== old_num){
+		//変化あり
+		wave.update_flg=1;
+		for(var yi=-2;yi<=2;yi++){
+			for(var xi=-2;xi<=2;xi++){
+				if(xi===0 && yi===0){
+					continue;
+				}
+				if(outcheck(x+xi,y+yi))continue;
+				
+				var idx = calcIndex(x+xi,y+yi);
+				if(waves[idx].num===1){
+					continue;
+				}
+				if(updateList.indexOf(idx)<0){
+					updateList.push(idx);
 				}
 			}
 		}
@@ -185,36 +165,19 @@ var updateWave=function(x,y){
 
 }
 var getPixel = function(x,y){
-	var idx0 = mainGetIndex(x,y);
+	var wave=waves[calcIndex(x,y)];
 
-	var wav = wave[idx0];
-
+	//1パターンに収束
 	var idx;
-	if(wav){
-		if(wav.length===1){
-			return false;
-		}
-		if(wav.length===0){
-			main_img.rgba[idx0] = 0xffffff00;
-			return true;
-		}
-
-		var sum=0;
-		for(var i=0;i<wav.length;i++){
-			sum+=pattern_list[wav[i]].num;
-		}
-		var r=Math.random()*sum|0;
-		for(var i=0;i<wav.length;i++){
-			r-=pattern_list[wav[i]].num;
-			if(r<0){
-				idx=wav[i];
-				break;
-			}
-		}
-		//idx = wav[Math.random()*wav.length|0];
-	}else{
-		var r=Math.random()*(pattern_img.width*pattern_img.height)|0;
-		for(var i=0;i<pattern_list.length;i++){
+	var sum=0;
+	for(var i=0;i<pattern_list.length;i++){
+		if(wave.flgs[i]){
+			sum+=pattern_list[i].num;
+		}	
+	}
+	var r=Math.random()*sum|0;
+	for(var i=0;i<pattern_list.length;i++){
+		if(wave.flgs[i]){
 			r-=pattern_list[i].num;
 			if(r<0){
 				idx=i;
@@ -222,33 +185,31 @@ var getPixel = function(x,y){
 			}
 		}
 	}
+	for(var i=0;i<wave.flgs.length;i++){
+		wave.flgs[i]=0;
+	}
+	wave.flgs[idx]=1;
+	wave.num=1;
+	wave.update_flg=1;
 
-	wav = [idx];
-	wave[idx0]=wav;
-	var pat = pattern_list[wav[0]];
-	copy(main_img,x-HALF_N,y-HALF_N,pattern_img,pat.x-HALF_N,pat.y-HALF_N,N,N);	
-
-	for(var yi=-2;yi<=2;yi++){
-		for(var xi=-2;xi<=2;xi++){
+	//伝搬
+	for(var yi=-M;yi<=M;yi++){
+		for(var xi=-M;xi<=M;xi++){
 			if(xi===0 && yi===0){
 				continue;
 			}
 			if(outcheck(x+xi,y+yi))continue;
-			var idx = mainGetIndex(x+xi,y+yi);
-			if(wave[idx]){
-				if(wave[idx].length===1){
-					continue;
-				}
-			}
-			if(updateWaveList.indexOf(idx)<0){
-				updateWaveList.push(idx);
+			var idx = calcIndex(x+xi,y+yi);
+			if(waves[idx].num===1)continue;
+			if(updateList.indexOf(idx)<0){
+				updateList.push(idx);
 			}
 		}
 	}
 
-	while(updateWaveList.length){
-		var p = updateWaveList.shift();
-		updateWave(p&SIZE_1,p>>6);
+	while(updateList.length){
+		var p = updateList.shift();
+		updatewave(p&SIZE_1,p>>6);
 	}
 	
 	return true;
@@ -328,25 +289,27 @@ var onloadfunc=function(e){
 		for(var pi=0;pi<pattern_list.length;pi++){
 			var pat=pattern_list[pi];
 			var pattern_div = template_div.cloneNode(true);
-			copy(pattern_img2,0,0,pattern_img,pat.x-HALF_N,pat.y-HALF_N,N,N);
+			Img.copy(pattern_img2,0,0,pattern_img,pat.x-HALF_N,pat.y-HALF_N,N,N);
 			pattern_div.getElementsByClassName("hoge")[0].src = pattern_img2.toDataUrl();
-			var txt="x"+pat.num +" pos("+pat.x+","+pat.y+")";
+			var txt = "x" + pat.num + " pos(" +pat.x + "," + pat.y + ")";
 			txt+= " 隣接情報" + JSON.stringify(pat.joint);
 			var txtnode=document.createTextNode(txt);
 			pattern_div.getElementsByClassName("status")[0].appendChild(txtnode);
 
-			pattern_area.appendChild(pattern_div);
+			txtnode=document.createTextNode("["+pi+"]");
+			pattern_div.getElementsByClassName("no")[0].appendChild(txtnode);
 
+			pattern_area.appendChild(pattern_div);
 		}
 
-	   reset();
+		reset();
 	}
 	var reset=function(){
 
-		wave=new Array(main_img.width*main_img.height);
-		for(var i=0;i<wave.length;i++){
-			wave[i]=null;
-		}
+	waves=new Array(main_img.width*main_img.height);
+	for(var i=0;i<waves.length;i++){
+		waves[i]=new Wave();
+	}
 
 		for(var yi=0;yi<main_img.height;yi++){
 			for(var xi=0;xi<main_img.width;xi++){
@@ -358,7 +321,7 @@ var onloadfunc=function(e){
 		var y=Math.random()*main_img.height|0;
 		
 		var ctx =  c.getContext('2d')
-		ctx.putImageData(main_img.toImageData(),0,0);
+		ctx.clearRect(0,0,64,64);
 	}
 
 	var pat = document.getElementById("pat");
@@ -366,7 +329,6 @@ var onloadfunc=function(e){
 		createPattern(imgs[this.selectedIndex]);
 
 	});
-	   
 
 	var do_flg=0;
 	var f=function(){
@@ -374,14 +336,15 @@ var onloadfunc=function(e){
 			return;
 		}
 		var max=pattern_list.length+1;
-		for(var wi=0;wi<wave.length;wi++){
-			var s=pattern_list.length;
-		   if(wave[wi]){
-				s = wave[wi].length;
+		for(var wi=0;wi<waves.length;wi++){
+			var wave =waves[wi];
+			if(wave.num===1){
+				continue;
 			}
-			   if(s<max && s>1){
-					max=s;
-				}
+			var s=waves[wi].num;
+			if(wave.num<max){
+				max=wave.num;
+			}
 			
 		}
 		if(max===pattern_list.length+1){
@@ -390,45 +353,65 @@ var onloadfunc=function(e){
 			return;
 		}
 		var kouho=[];
-		if(max  === pattern_list.length){
-			for(var wi=0;wi<wave.length;wi++){
-				if(!wave[wi]){
-					kouho.push(wi);
-				}
-			}
-		}else{
-			for(var wi=0;wi<wave.length;wi++){
-				if(!wave[wi])continue;
-				if(wave[wi].length===max){
-					kouho.push(wi);
-				}
+		for(var wi=0;wi<waves.length;wi++){
+			if(waves[wi].num===max){
+				kouho.push(wi);
 			}
 		}
-		var idx = kouho[Math.random()*kouho.length|0];
-		var x=idx&SIZE_1;
-		var y=idx>>6;
-		getPixel(x,y);
 		
+		var idx = kouho[Math.random()*kouho.length|0];
+		getPixel(idx&SIZE_1,idx>>6);
+
 		var ctx =  c.getContext('2d')
+		for(var i=0;i<waves.length;i++){
+			var wave=waves[i];
+			if(wave.update_flg){
+				var r=0;
+				var g=0;
+				var b=0;
+				var sum=0;
+				for(var fi=0;fi<pattern_list.length;fi++){
+					if(!wave.flgs[fi])continue;
+					var pat  =pattern_list[fi];
+					sum+=pat.num;
+					var idx  = pat.y* pattern_img.width + pat.x<<2;
+					r+= pattern_img.data[idx+0]*pat.num;
+					g+= pattern_img.data[idx+1]*pat.num;
+					b+= pattern_img.data[idx+2]*pat.num;
+				}
+
+				var _sum=1/sum;
+				main_img.data[(i<<2)+0]=r*_sum;
+				main_img.data[(i<<2)+1]=g*_sum;
+				main_img.data[(i<<2)+2]=b*_sum;
+				main_img.data[(i<<2)+3]=0xff;
+				wave.update_flg=0;
+			}
+			
+		}
 		ctx.putImageData(main_img.toImageData(),0,0);
-	   window.setTimeout(f,16);
+		if(err_flg){
+			alert("詰み");
+			return;
+		}
+		window.setTimeout(f,16);
 	}
 	var start = document.getElementById("start");
 	start.addEventListener("click",function(e){
-	   if(!do_flg){
+		if(!do_flg){
 			do_flg=1;
-	   		start.value="一時停止"
+			start.value="一時停止"
 			f();
-	   }else{
-	   		start.value="開始"
-	   		do_flg=0;
-	   }
+		}else{
+			start.value="開始"
+			do_flg=0;
+		}
 	});
 
 	document.getElementById("reset").addEventListener("click",function(e){
-	   if(!do_flg){
+		if(!do_flg){
 			reset();
-	   }
+		}
 	});
 
 }
@@ -447,6 +430,7 @@ var onloadfunc=function(e){
 	<br>
 	<div style="display:none;">
 		<div id="pattern_template">
+			<span class="no"></span>
 			<img name="img" class="hoge">
 			<span class="status"></span>
 		</div>
