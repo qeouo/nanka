@@ -66,11 +66,11 @@ var Log = (function(){
 
 	}
 
-	ret.createLog=function(command,param){
+	ret.createLog=function(command,param,flg){
 		//ログオブジェクトを作成する
 		var log = null;
 
-		if(command_log_cursor>=0){
+		if(command_log_cursor>=0 && !flg){
 			var current_log=command_logs[command_log_cursor];
 			if(command === current_log.command){
 				if(command === "changeLayerAttribute"){

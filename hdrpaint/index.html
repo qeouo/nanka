@@ -281,7 +281,19 @@ var onloadfunc=function(e){
 		Command.executeCommand("resizeCanvas",{"width":width,"height":height});
 	});
 	inputs["btn_resize_layers"].addEventListener("click",function(e){
-		Command.resizeLayerAtCanvas();
+		var width = parseInt(preview.width);
+		var height= parseInt(preview.height);
+
+		var logs =[];
+		for(var li=0;li<layers.length;li++){
+			var layer = layers[li];
+			var log = new Log.CommandLog();
+			log.command="resizeLayer";
+			log.param={"layer_id":layer.id,"width":width,"height":height};
+			logs.push(log);
+		}
+		Command.executeCommand("multiCommand",{"logs":logs});
+
 	});
 	inputs["open_hpd"].addEventListener("change",function(e){
 

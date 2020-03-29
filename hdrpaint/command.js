@@ -26,8 +26,8 @@ var Command = (function(){
 	var  Command = function(){};
 	var ret = Command;
 
-	ret.executeCommand = function(command,param){
-		var log = Log.createLog(command,param);
+	ret.executeCommand = function(command,param,flg){
+		var log = Log.createLog(command,param,flg);
 		Log.appendOption();
 		Command[log.command](log);
 		return log;
@@ -492,6 +492,7 @@ var createDif=function(layer,left,top,width,height){
 		layer.img=new Img(width,height);
 		copyImg(layer.img,0,0,old_img,0,0,old_img.width,old_img.height);
 		refreshLayer(layer);
+		refreshLayerThumbnail(layer);
 		refreshMain(0,0,0,layer.img.width,layer.img.height);
 
 
@@ -499,6 +500,39 @@ var createDif=function(layer,left,top,width,height){
 		refreshMain(0);
 	}
 
+	Command.multiCommand=function(_log,undo_flg){
+		var logs = _log.param.logs
+		if(undo_flg){
+			for(var li=logs.length;li--;){
+				var log = logs[li];
+				Command[log.command](log,true);
+
+				var difs = log.undo_data.difs;
+				if(difs){
+					//画像戻す
+					var param = log.param;
+					var layer_id= param.layer_id;
+					var layer = layers.find(function(a){return a.id===layer_id;});
+
+					for(var di=difs.length;di--;){
+						var dif = difs[di];
+						copyImg(layer.img,dif.x,dif.y,dif.img,0,0,dif.img.width,dif.img.height);
+					}
+					refreshMain();
+					refreshLayerThumbnail(layer);
+				}
+			}
+		}else{
+			if(!_log.undo_data){
+				_log.undo_data={};
+			}
+			for(var li=0;li<logs.length;li++){
+				var log = logs[li];
+				Command[log.command](log);
+			}
+		}
+
+	}
 	Command.deleteLayer=function(log,undo_flg){
 		var layer_id = log.param.layer_id;
 

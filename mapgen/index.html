@@ -43,7 +43,6 @@ img{
 
 var waves=[];
 var N=3;
-var HALF_N = N>>1;
 var M=N-1;
 var SIZE=64;
 var SIZE_1=SIZE-1;
@@ -70,11 +69,11 @@ var checkPattern = function(pat,x,y,offsetx,offsety,px,py){
 	//オフセットありパターン同士の一致チェック
 	for(var yi=0;yi<N;yi++){
 		for(var xi=0;xi<N;xi++){
-			var idx = pat.getIndex(x+xi-HALF_N,y+yi-HALF_N);
-			var ox = (xi-HALF_N)-offsetx;
-			var oy = (yi-HALF_N)-offsety;
-			if(ox<-HALF_N || ox>=N-HALF_N
-				|| oy<-HALF_N || oy>=N-HALF_N){
+			var idx = pat.getIndex(x+xi,y+yi);
+			var ox = (xi)-offsetx;
+			var oy = (yi)-offsety;
+			if(ox< 0|| ox>=N
+				|| oy<0|| oy>=N){
 				continue;
 			}
 			var idx1 = pat.getIndex(px+ox,py+oy);
@@ -130,41 +129,48 @@ var updatewave=function(x,y){
 	
 	var old_num =wave.num;
 
+	//可能性の残っているパターンの再チェック
 	for(var i=0;i<wave.flgs.length;i++){
 		if(wave.flgs[i]){
 			if(!checkPatterns(x,y,i)){
+				//可能性なし
 				wave.flgs[i]=0;
 				wave.num--;
 			}
 		}
 	}
+
 	if(wave.num===0){
+		//詰み
 		err_flg=true;
 		return;
 	}	
+
 	if(wave.num !== old_num){
 		//変化あり
 		wave.update_flg=1;
-		for(var yi=-2;yi<=2;yi++){
-			for(var xi=-2;xi<=2;xi++){
-				if(xi===0 && yi===0){
-					continue;
-				}
-				if(outcheck(x+xi,y+yi))continue;
-				
-				var idx = calcIndex(x+xi,y+yi);
-				if(waves[idx].num===1){
-					continue;
-				}
-				if(updateList.indexOf(idx)<0){
-					updateList.push(idx);
-				}
-			}
-		}
+		propagation(x,y);
 	}
 
 }
-var getPixel = function(x,y){
+var propagation=function(x,y){
+	//伝搬
+	for(var yi=-M;yi<=M;yi++){
+		for(var xi=-M;xi<=M;xi++){
+			if(xi===0 && yi===0){
+				continue;
+			}
+			if(outcheck(x+xi,y+yi))continue;
+			var idx = calcIndex(x+xi,y+yi);
+			if(waves[idx].num===1)continue;
+			if(updateList.indexOf(idx)<0){
+				updateList.push(idx);
+			}
+		}
+	}
+}
+
+var converge = function(x,y){
 	var wave=waves[calcIndex(x,y)];
 
 	//1パターンに収束
@@ -192,35 +198,13 @@ var getPixel = function(x,y){
 	wave.num=1;
 	wave.update_flg=1;
 
-	//伝搬
-	for(var yi=-M;yi<=M;yi++){
-		for(var xi=-M;xi<=M;xi++){
-			if(xi===0 && yi===0){
-				continue;
-			}
-			if(outcheck(x+xi,y+yi))continue;
-			var idx = calcIndex(x+xi,y+yi);
-			if(waves[idx].num===1)continue;
-			if(updateList.indexOf(idx)<0){
-				updateList.push(idx);
-			}
-		}
-	}
-
-	while(updateList.length){
-		var p = updateList.shift();
-		updatewave(p&SIZE_1,p>>6);
-	}
-	
-	return true;
+	propagation(x,y);
 }
 var onloadfunc=function(e){
 	var imgs=[];
-		imgs.push(Img.loadImg("pat.png",1,function(img){
-
-			createPattern(img);
-		}));
-	imgs.push(Img.loadImg("pat0.png",1));
+	imgs.push(Img.loadImg("pat0.png",1,function(img){
+		createPattern(img);
+	}));
 	imgs.push(Img.loadImg("pat1.png",1));
 	imgs.push(Img.loadImg("pat2.png",1));
 	imgs.push(Img.loadImg("pat3.png",1));
@@ -228,7 +212,7 @@ var onloadfunc=function(e){
 	var s = document.getElementById("pat");
 	for(var i=0;i<imgs.length;i++){
 		var option =document.createElement("option");
-		option.text=i;
+		option.text=imgs[i].name;
 		s.appendChild(option);
 	}
 
@@ -283,13 +267,14 @@ var onloadfunc=function(e){
 			}
 		}
 
+		//パターン表示
 		var template_div = document.getElementById("pattern_template");
 		var pattern_area = document.getElementById("pattern_area");
 		while(pattern_area.firstChild)pattern_area.removeChild(pattern_area.firstChild);
 		for(var pi=0;pi<pattern_list.length;pi++){
 			var pat=pattern_list[pi];
 			var pattern_div = template_div.cloneNode(true);
-			Img.copy(pattern_img2,0,0,pattern_img,pat.x-HALF_N,pat.y-HALF_N,N,N);
+			Img.copy(pattern_img2,0,0,pattern_img,pat.x,pat.y,N,N);
 			pattern_div.getElementsByClassName("hoge")[0].src = pattern_img2.toDataUrl();
 			var txt = "x" + pat.num + " pos(" +pat.x + "," + pat.y + ")";
 			txt+= " 隣接情報" + JSON.stringify(pat.joint);
@@ -304,12 +289,14 @@ var onloadfunc=function(e){
 
 		reset();
 	}
-	var reset=function(){
 
-	waves=new Array(main_img.width*main_img.height);
-	for(var i=0;i<waves.length;i++){
-		waves[i]=new Wave();
-	}
+	var reset=function(){
+		err_flg=false;
+
+		waves=new Array(main_img.width*main_img.height);
+		for(var i=0;i<waves.length;i++){
+			waves[i]=new Wave();
+		}
 
 		for(var yi=0;yi<main_img.height;yi++){
 			for(var xi=0;xi<main_img.width;xi++){
@@ -360,7 +347,12 @@ var onloadfunc=function(e){
 		}
 		
 		var idx = kouho[Math.random()*kouho.length|0];
-		getPixel(idx&SIZE_1,idx>>6);
+		converge(idx&SIZE_1,idx>>6);
+
+		while(updateList.length){
+			var p = updateList.shift();
+			updatewave(p&SIZE_1,p>>6);
+		}
 
 		var ctx =  c.getContext('2d')
 		for(var i=0;i<waves.length;i++){
