@@ -455,6 +455,21 @@ var createDif=function(layer,left,top,width,height){
 	Command.resizeLayer=function(log,undo_flg){
 
 		var param = log.param;
+		if(param.layer_id===-1){
+			var logs =[];
+			for(var li=0;li<layers.length;li++){
+				var layer = layers[li];
+				var _log = new Log.CommandLog();
+				_log.command="resizeLayer";
+				_log.param={"layer_id":layer.id,"width":param.width,"height":param.height};
+				logs.push(_log);
+			}
+			log.command="multiCommand";
+			log.param={"logs":logs};
+
+			Command[log.command](log);
+			return;
+		}
 		var layer = layers.find(function(a){return a.id===param.layer_id;});
 		var img = layer.img;
 		if(!img){

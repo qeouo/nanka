@@ -224,7 +224,6 @@ var onloadfunc=function(e){
 				x-=layer.position[0];
 				y-=layer.position[1];
 				Command.executeCommand("translateLayer",{"layer_id":layer.id,"x":x,"y":y});
-				//Command.resizeLayer(layer,width,height);
 			}
 		}
 
@@ -280,19 +279,16 @@ var onloadfunc=function(e){
 		var height= parseInt(inputs["resize_height"].value);
 		Command.executeCommand("resizeCanvas",{"width":width,"height":height});
 	});
+	inputs["btn_resize_layer"].addEventListener("click",function(e){
+		var width = parseInt(preview.width);
+		var height= parseInt(preview.height);
+		Command.executeCommand("resizeLayer",{"layer_id":selected_layer.id,"width":width,"height":height});
+
+	});
 	inputs["btn_resize_layers"].addEventListener("click",function(e){
 		var width = parseInt(preview.width);
 		var height= parseInt(preview.height);
-
-		var logs =[];
-		for(var li=0;li<layers.length;li++){
-			var layer = layers[li];
-			var log = new Log.CommandLog();
-			log.command="resizeLayer";
-			log.param={"layer_id":layer.id,"width":width,"height":height};
-			logs.push(log);
-		}
-		Command.executeCommand("multiCommand",{"logs":logs});
+		Command.executeCommand("resizeLayer",{"layer_id":-1,"width":width,"height":height});
 
 	});
 	inputs["open_hpd"].addEventListener("change",function(e){
@@ -389,13 +385,9 @@ var undo=function(){
 }
 var createNewLayer=function(e){
 	//新規レイヤーを作成
-	var width= parseInt(inputs["new_layer_width"].value);
-	var height= parseInt(inputs["new_layer_height"].value);
+	var width= preview.width;
+	var height= preview.height;
 	
-	if(!(width*height)){
-		width=preview.width;
-		height=preview.height;
-	}
 	var idx= layers.indexOf(selected_layer)+1;
 	
 	Command.executeCommand("createNewLayer",{"position":idx,"width":width,"height":height});
@@ -452,7 +444,9 @@ var createNewLayer=function(e){
 				サイズ<input id="resize_width" value="512" type="text" class="size">
 				<input id="resize_height" value="512" type="text" class="size">
 				<input type="button" id="btn_resize_canvas" value="キャンバスをリサイズ"><br>
-				<input type="button" id="btn_resize_layers" value="レイヤーをキャンバスに合わせる" ><br>
+				<br>
+				<input type="button" id="btn_resize_layer" value="アクティブレイヤーをキャンバスに合わせる" ><br>
+				<input type="button" id="btn_resize_layers" value="全レイヤーをキャンバスに合わせる" ><br>
 			</div>
 			<div id="status_file">
 				<input style="display:none;" type="file" value="画像ファイル読み込み" id="open_hpd" accept="application/octet-stream/,.hpd"
@@ -548,10 +542,8 @@ var createNewLayer=function(e){
 		</div>
 
 		<div  style="">
-			<input id="new_layer_width" value="512" type="text">
-			<input id="new_layer_height" value="512" type="text">
 			<input type="button" id="new" onclick="createNewLayer(event);" value="新規レイヤ" class="size"><br>
-			<input type="file" id="f" accept="image/*,.hdr,.exr" onchange="
+			画像ファイル読み込み<br><input type="file" id="f" accept="image/*,.hdr,.exr" onchange="
 				var file=this.files[0];
 				Command.loadImageFile_(file,layers.indexOf(selected_layer)+1);
 				this.value=null;">
