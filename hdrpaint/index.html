@@ -400,21 +400,26 @@ var createNewLayer=function(e){
 </head>
 
 <body onLoad="onloadfunc(event)">
+<div class="all">
 
-<div  style="float:left;">
+
+<div class="left">
 
 	<div class="area">
 		<div id="tools">
 			ツール
-			<label><input type="radio" id="pen" name="tool" checked>ペン </label>
-			<label><input type="radio" id="fill" name="tool">塗りつぶし</label>
-			<label><input type="radio" id="translate" name="tool">移動</label>
-			<label><input type="radio" id="resize" name="tool">リサイズ</label>
-			<label><input type="radio" id="file" name="tool">ファイル</label>
+			<ul>
+			<li><label><input type="radio" id="pen" name="tool" checked>ペン </label>
+				<li><label><input type="radio" id="fill" name="tool">塗りつぶし</label></li>
+				<li><label><input type="radio" id="translate" name="tool">移動</label></li>
+				<li><label><input type="radio" id="resize" name="tool">リサイズ</label></li>
+				<li><label><input type="radio" id="file" name="tool">ファイル</label></li>
+			</ul>
 		</div>
-		<div id="tool_status" style="height:128px;">
+		<div id="tool_status">
 			<div id="status_pen">
 				<div style="float:left;">
+					<canvas width="256" height="64" id="pen_preview"  style=""></canvas><br>
 					<div>直径<input class="slider" id="weight" max="100"  value="3" onchange="refreshPen();"/></div>
 					<div>
 						筆圧影響
@@ -426,7 +431,6 @@ var createNewLayer=function(e){
 					<li> <label><input type="radio" id="pen_alpha_blend" name="pen_alpha" disabled="disabled" />アルファ値でブレンドする</label></li>
 					</ul>
 				</div>
-					<canvas width="256" height="64" id="pen_preview"  style=""></canvas>
 			</div>
 			<div id="status_fill">
 				<ul>
@@ -463,34 +467,10 @@ var createNewLayer=function(e){
 			</div>
 		</div>
 	</div>
-	<div class="area canvas_area">
-	
-	<div style="float:left;text-align:left;">
-	ビュー
-	</div>
-	<div id="status" style="text-align:right;">
-		positionvalue
-	</div>
-		<canvas width="256" height="256" id="preview" ></canvas><br />
-	</div>
 
-	<div id="post_effect" class="area">
-		<div>ポストエフェクト</div>
-		<input type="checkbox" id="ch_gamma">ガンマ<input class="slider" id="gamma" max="4" value="2.2"/><br>
-		露光<input class="slider" id="ev" min="-10" max="10" value="0"/><br>
-		<label><input type="checkbox" id="ch_bloom">拡散</label>
-		拡散率<input class="slider" id="bloom_power" max="1" value="0.1"/>
-		拡散範囲<input class="slider" id="bloom_size" max="100" value="10"/><br>
-	</div>
-</div>
-
-
-
-
-<div style="float:left;">
 	<div id="color_selecter" class="area">
 		<div>カラーセレクタ</div>
-		ベース色<input class="colorpicker" id="color_base" value="ff0000"/>
+		ベース色<input class="colorpicker" id="color_base" value="ff0000"/><br>
 		明るさ<input class="slider" id="color_lumi" min="-10" max="10" value="0"><br>
 		<ul id="color_sample">
 			<li>R<input class="slider" id="color_R" max="100"/></li>
@@ -499,6 +479,30 @@ var createNewLayer=function(e){
 			<li>A<input class="slider" id="color_A" max="1" value="1"/></li>
 		</ul>
 	</div>
+	<div id="post_effect" class="area">
+		<div>ポストエフェクト</div>
+		<input type="checkbox" id="ch_gamma">ガンマ<input class="slider" id="gamma" max="4" value="2.2"/><br>
+		露光<input class="slider" id="ev" min="-10" max="10" value="0"/><br>
+		<label><input type="checkbox" id="ch_bloom">拡散</label><br>
+		拡散率<input class="slider" id="bloom_power" max="1" value="0.1"/><br>
+		拡散範囲<input class="slider" id="bloom_size" max="100" value="10"/><br>
+	</div>
+</div>
+
+<div class="center">
+	<div class="area canvas_area">
+		<div style="float:left;text-align:left;">
+		ビュー
+		</div>
+		<div id="status" style="text-align:right;">
+			positionvalue
+		</div>
+		<canvas width="256" height="256" id="preview" ></canvas><br />
+	</div>
+
+</div>
+
+<div class="right">
 	<div class="area">
 		レイヤ<br>
 		<div id="layer_param" >
@@ -551,13 +555,10 @@ var createNewLayer=function(e){
 		</div>
 	</div>
 
-</div>
-
-
-<div style="float:left;" class="area">
+<div class="area">
 	操作履歴<br>
 	<div>
-	<select size=20 id="history">
+	<select size=10 id="history">
 	</select>
 	</div>
 	<ul>
@@ -566,6 +567,10 @@ var createNewLayer=function(e){
 	</ul>
 	リストを直接選択でそこまで戻る<br>
 	最大10こ前まで
+</div>
+</div>
+
+
 </div>
 </body>
 </html>

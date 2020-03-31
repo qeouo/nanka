@@ -1,5 +1,31 @@
+html{
+	height:100%;
+	width:100%;
+}
 body{
+	height:100%;
+	width:100%;
+	margin:0px;
+	font-size:smaller;
 	background-color:lightgray;
+}
+div.all{
+	width:100%;
+	height:100%;
+	display:flex;
+	padding:0px;
+	margin:0px;
+}
+div.left{
+	float:left;
+}
+div.right{
+	float:left;
+}
+div.center{
+	flex:1;
+	float:left;
+	height:100%;
 }
 input[type="text"]{
 	width:64px;
@@ -19,6 +45,7 @@ padding:4px;
 }
 div.canvas_area{
 	overflow:scroll;
+	height:calc(100% - 30px);;
 }
 
 .layers{
@@ -29,9 +56,10 @@ div.canvas_area{
 .layer{
 border:solid 1px;
 height:64px;
-font-size:small;
+font-size:smaller;
 line-height:1;
 background-color:transparent;
+padding:2px;
 }
 
 .colorpicker{
@@ -49,8 +77,8 @@ background-color:transparent;
 }
 .layer .thumbnail{
    background-image:url(back.png);
-	max-width:64px;
-	max-height:64px;
+	width:auto;
+	height:100%;
 }
 
 .active_layer{
