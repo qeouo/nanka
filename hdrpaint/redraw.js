@@ -577,24 +577,32 @@ var refreshPreviewStatus = function(e){
 	//カーソル下情報表示
 	var data = joined_img.data;
 
-	var x = e.pageX - (preview.offsetLeft + preview.clientLeft);
-	var y = e.pageY - (preview.offsetTop + preview.clientTop);
+	getPos(e);
+	var x = pos[0];
+	var y = pos[1];
 	var width=joined_img.width;
 	var height=joined_img.height;
 	var output = document.getElementById("status");
 
-	if(x<0 || y<0 || x>=width || y>=height){return;}
+	var r=0; 
+	var g=0; 
+	var b= 0;
+	var a= 0;
+	if(x<0 || y<0 || x>=width || y>=height){}else{
 
-	var idx=((y|0)*preview.width+(x|0))*4;
-	var r= data[idx];
-	var g= data[idx+1];
-	var b= data[idx+2];
-	var a= data[idx+3];
 
-	var str="X:[x],Y:[y]  R:[r], G:[g], B:[b], A:[a] ";
-	str=str.replace(/\[x\]/,x.toFixed(4));
-	str=str.replace(/\[y\]/,y.toFixed(4));
-	str=str.replace(/\[r\]/,r.toFixed(4));
+		var idx=((y|0)*preview.width+(x|0))*4;
+		r= data[idx];
+		g= data[idx+1];
+		b= data[idx+2];
+		a= data[idx+3];
+	}
+
+	var str="キャンバス倍率[scale]% X:[x],Y:[y]  R:[r], G:[g], B:[b], A:[a] ";
+	str=str.replace(/\[scale\]/,scale);
+	str=str.replace(/\[x\]/,x.toFixed(2));
+	str=str.replace(/\[y\]/,y.toFixed(2));
+	str=str.replace(/\[r\]/,r.toFixed(2));
 	str=str.replace(/\[g\]/,g.toFixed(4));
 	str=str.replace(/\[b\]/,b.toFixed(4));
 	str=str.replace(/\[a\]/,a.toFixed(4));

@@ -26,6 +26,7 @@ div.center{
 	flex:1;
 	float:left;
 	height:100%;
+	max-width:calc(100% - 600px);
 }
 input[type="text"]{
 	width:64px;
@@ -46,6 +47,8 @@ padding:4px;
 div.canvas_area{
 	overflow:scroll;
 	height:calc(100% - 30px);;
+	image-rendering:pixelated;
+	
 }
 
 .layers{
