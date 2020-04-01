@@ -19,14 +19,17 @@ div.all{
 div.left{
 	float:left;
 }
+div.center{
+	float:left;
+	flex:1;
+	height:100%;
+//	max-width:calc(100% - 600px);
+}
 div.right{
 	float:left;
 }
-div.center{
-	flex:1;
-	float:left;
-	height:100%;
-	max-width:calc(100% - 600px);
+input{
+	font-size:smaller;
 }
 input[type="text"]{
 	width:64px;
@@ -37,19 +40,37 @@ input[type="text"].size{
 }
 
 div.area{
-background-color:gray;
+	background-color:gray;
 
-border:1px solid black;
-margin:4px 4px 0px 0px;
-padding:4px;
+	border:1px solid black;
+	margin:2px;
+	padding:2px;
 	overflow:auto;
 }
 div.canvas_area{
-	overflow:scroll;
-	height:calc(100% - 30px);;
-	image-rendering:pixelated;
+	height:calc(100% - 30px);
+	position:relative;
 	
 }
+div.canvas_field{
+	overflow:scroll;
+	position:absolute;
+	top:24px;
+	bottom:0px;
+	left:0px;
+	right:0px;
+	
+}
+div.spacer{
+}
+#preview{
+	border:solid 1px;
+	background-image:url(back.png);
+
+
+	touch-action:none;
+}
+
 
 .layers{
 	border:solid 1px;
@@ -57,12 +78,12 @@ div.canvas_area{
 	height:300px;
 }
 .layer{
-border:solid 1px;
-height:64px;
-font-size:smaller;
-line-height:1;
-background-color:transparent;
-padding:2px;
+	border:solid 1px;
+	height:64px;
+	font-size:smaller;
+	line-height:1;
+	background-color:transparent;
+	padding:2px;
 }
 
 .colorpicker{
@@ -108,10 +129,3 @@ width:128;
 #pen_preview{
    background-image:url(back.png);
 }
-#preview{
-	border:solid 1px;
-		   background-image:url(back.png);
-
-	touch-action:none;
-}
-

@@ -33,14 +33,15 @@
 var doc ={};
 doc.draw_col=new Vec4();
 var inputs=[];
-var scale=100;
+doc.scale=100;
+var canvas_field;
 
 
 	var pos=new Vec2();
 	var getPos=function(e){
-		var a=document.getElementById("canvas_area");
-		pos[0] =( e.pageX -(preview.offsetLeft + preview.clientLeft)+a.scrollLeft)/(scale/100.0) ;
-		pos[1] = (e.pageY - (preview.offsetTop + preview.clientTop)+a.scrollTop)/(scale/100);
+		var a=document.getElementById("canvas_field");
+		pos[0] =( e.pageX -(preview.offsetLeft + preview.clientLeft)+a.scrollLeft)/(doc.scale/100.0) ;
+		pos[1] = (e.pageY - (preview.offsetTop + preview.clientTop)+a.scrollTop)/(doc.scale/100);
 		return point;
 		
 	}
@@ -119,15 +120,6 @@ var onloadfunc=function(e){
 				
 			}
 		}
-		if(e.buttons&4){
-			var c=document.getElementById("canvas_area");
-			c.scrollLeft-=e.pageX-drag_start[0];
-			c.scrollTop-=e.pageY-drag_start[1];
-			drag_start[0]=e.pageX;
-			drag_start[1]=e.pageY;
-			
-			
-		}
 	};
 	
 	preview.addEventListener("pointermove",function(e){drawfunc(e);refreshPreviewStatus(e);e.preventDefault();});
@@ -188,10 +180,6 @@ var onloadfunc=function(e){
 
 		}
 
-		if(e.buttons&4){
-			drag_start[0]=e.pageX;
-			drag_start[1]=e.pageY;
-		}
 		drawfunc(e)
 
 	},false);
@@ -337,30 +325,60 @@ var onloadfunc=function(e){
 		Command.executeCommand("deleteLayer",{"layer_id":selected_layer.id});
 	});
 
+	var oldpos=new Vec2();
+	canvas_field = document.getElementById("canvas_field");
+	canvas_field.addEventListener( "pointerdown", function(e){
+		if(e.buttons&4){
+			oldpos[0]=e.pageX;
+			oldpos[1]=e.pageY;
+			e.preventDefault();
+		}
+	});
+	document.getElementById("canvas_field").addEventListener( "pointermove", function(e){
+		if(e.buttons&4){
+			var c=document.getElementById("canvas_field");
+			c.scrollLeft-=e.pageX-oldpos[0];
+			c.scrollTop-=e.pageY-oldpos[1];
+			oldpos[0]=e.pageX;
+			oldpos[1]=e.pageY;
+		}
+	});
 	document.getElementById("canvas_area").addEventListener( "wheel", function(e){
 			var add=0;
-		if(event.deltaY<0){
-			if(scale<=100){
-				scale/=2;
+		e.preventDefault();
+		if(e.buttons&4){
+			return;
+		}
+		if(event.deltaY>0){
+			if(doc.scale<=100){
+				doc.scale/=2;
 			}else{
-				scale-=100;
+				doc.scale-=100;
 			}
 			
 		}else{
-			if(scale<=100){
-				scale*=2;
+			if(doc.scale<=100){
+				doc.scale*=2;
 			}else{
-				scale+=100;
+				doc.scale+=100;
 			}
 			
 		}
-		if(scale>100){
+		if(doc.scale<25){
+			doc.scale=25;
+		}
+		if(doc.scale>2000){
+			doc.scale=2000;
+		}
+		if(doc.scale>100){
 			preview.style.imageRendering="pixelated";
 		}else{
 			preview.style.imageRendering="auto";
 		}
-		preview.style.width = (preview.width* scale/100 ) + "px";
-		preview.style.height= (preview.height*scale/100) + "px";
+		var cx = canvas_field.scrollX+canvas_field.clientWidth/2;
+		var cy = canvas_field.scrollY+canvas_field.clientHeight/2;
+		preview.style.width = (preview.width* doc.scale/100 ) + "px";
+		preview.style.height= (preview.height*doc.scale/100) + "px";
 
 		refreshPreviewStatus(e);
 
@@ -550,7 +568,11 @@ var createNewLayer=function(e){
 		<div id="status" style="text-align:right;">
 			positionvalue
 		</div>
-		<canvas width="256" height="256" id="preview" ></canvas><br />
+		<div id="canvas_field" style="clear:both;" class="canvas_field">
+			<div id="spacer" class="spacer">
+				<canvas width="256" height="256" id="preview" ></canvas><br />
+			</div >
+		</div>
 	</div>
 
 </div>

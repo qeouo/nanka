@@ -599,7 +599,7 @@ var refreshPreviewStatus = function(e){
 	}
 
 	var str="キャンバス倍率[scale]% X:[x],Y:[y]  R:[r], G:[g], B:[b], A:[a] ";
-	str=str.replace(/\[scale\]/,scale);
+	str=str.replace(/\[scale\]/,doc.scale);
 	str=str.replace(/\[x\]/,x.toFixed(2));
 	str=str.replace(/\[y\]/,y.toFixed(2));
 	str=str.replace(/\[r\]/,r.toFixed(2));
