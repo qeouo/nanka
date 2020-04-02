@@ -62,11 +62,14 @@ div.canvas_field{
 	
 }
 div.spacer{
+	min-width:300%;
+	min-height:300%;
 }
 #preview{
 	border:solid 1px;
 	background-image:url(back.png);
 
+	position:absolute;
 
 	touch-action:none;
 }

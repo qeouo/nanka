@@ -34,12 +34,15 @@ var doc ={};
 doc.draw_col=new Vec4();
 var inputs=[];
 doc.scale=100;
+doc.canvas_pos=new Vec2();
+
 var canvas_field;
 
 
 	var pos=new Vec2();
 	var getPos=function(e){
 		var a=document.getElementById("canvas_field");
+		var rectCollection = a.getClientRects();
 		pos[0] =( e.pageX -(preview.offsetLeft + preview.clientLeft)+a.scrollLeft)/(doc.scale/100.0) ;
 		pos[1] = (e.pageY - (preview.offsetTop + preview.clientTop)+a.scrollTop)/(doc.scale/100);
 		return point;
@@ -336,15 +339,34 @@ var onloadfunc=function(e){
 	});
 	document.getElementById("canvas_field").addEventListener( "pointermove", function(e){
 		if(e.buttons&4){
+			//中ボタンドラッグでキャンバス移動
+			//c.scrollLeft-=e.pageX-oldpos[0];
+			//c.scrollTop-=e.pageY-oldpos[1];
+
+			doc.canvas_pos[0]+=(e.pageX-oldpos[0]);
+			doc.canvas_pos[1]+=(e.pageY-oldpos[1]);
+
 			var c=document.getElementById("canvas_field");
-			c.scrollLeft-=e.pageX-oldpos[0];
-			c.scrollTop-=e.pageY-oldpos[1];
+			if(doc.canvas_pos[0]<0){
+				doc.canvas_pos[0]=0;
+			}
+			if(doc.canvas_pos[1]<0){
+				doc.canvas_pos[1]=0;
+			}
+
+			preview.style.left = doc.canvas_pos[0] + "px";
+			preview.style.top = doc.canvas_pos[1] + "px";
+
 			oldpos[0]=e.pageX;
 			oldpos[1]=e.pageY;
+			
 		}
 	});
 	document.getElementById("canvas_area").addEventListener( "wheel", function(e){
-			var add=0;
+		if(!e.ctrlKey){
+			return;
+		}
+		var add=0;
 		e.preventDefault();
 		if(e.buttons&4){
 			return;
@@ -570,8 +592,8 @@ var createNewLayer=function(e){
 		</div>
 		<div id="canvas_field" style="clear:both;" class="canvas_field">
 			<div id="spacer" class="spacer">
-				<canvas width="256" height="256" id="preview" ></canvas><br />
-			</div >
+				<canvas width="256" height="256" id="preview" ></canvas>
+			</div>
 		</div>
 	</div>
 
@@ -579,7 +601,7 @@ var createNewLayer=function(e){
 
 <div class="right">
 	<div class="area">
-		レイヤ<br>
+		<div>レイヤ</div>
 		<div id="layer_param" >
 			<div style="width:100%;">
 				名前<input type="text" id="layer_name" style="width:100px;" >
