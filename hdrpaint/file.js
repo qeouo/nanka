@@ -15,16 +15,15 @@ var loadHpd=function(buffer){
 		return;
 	}
 
-	History.disableLog();
 	disableRefresh();
 	for(var li=layers.length;li--;){
-		Command.deleteLayer(layers[li]);
+		Command.deleteLayer({param:{"layer_id":layers[li].id}});
 	}
 
 	var doc_data = JSON.parse(Util.utf8ToString(doc_file.data));
 
 	//情報セット
-	resizeCanvas(doc_data.width,doc_data.height);
+	Command.onlyExecute("resizeCanvas",{"width":doc_data.canvas_width,"height":doc_data.canvas_height});
 	var keys=Object.keys(doc_data);
 	for(var ki=0;ki<keys.length;ki++){
 		var id = keys[ki];
@@ -103,13 +102,13 @@ var saveHpd= function(e){
 		doc_data.layers.push(layer2);
 	}
 	//レイヤ以外の情報をセット
-	doc.canvas_width = preview.width;
-	doc.canvas_height= preview.height;
+	doc_data.canvas_width = preview.width;
+	doc_data.canvas_height= preview.height;
 	var keys=Object.keys(inputs);
-	for(var i=0;i<keys;i++){
+	for(var i=0;i<keys.length;i++){
 		var id = keys[i]
 		var input = inputs[id];
-		doc[id] = input.value;
+		doc_data[id] = input.value;
 	}
 
 	//ドキュメント情報をdoc.txtとして書き込む

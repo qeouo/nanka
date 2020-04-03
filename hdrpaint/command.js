@@ -26,6 +26,10 @@ var Command = (function(){
 	var  Command = function(){};
 	var ret = Command;
 
+	ret.onlyExecute= function(command,param){
+		var log ={"param":param};
+		Command[command](log);
+	}
 	ret.executeCommand = function(command,param,flg){
 		var log = Log.createLog(command,param,flg);
 		Log.appendOption();
@@ -302,15 +306,12 @@ var createDif=function(layer,left,top,width,height){
 	Command.loadImageFile_=function(file,n){
 		var position = n;
 		var fu =function(img){
-			Command.executeCommand("loadImageFile",{"file":file.name,"position":position},{"img":img});
+			var log =Command.executeCommand("loadImageFile",{"file":file.name,"position":position,"img":img});
 		}
 	 	if(/.*exr$/.test(file.name)){
-			Util.loadBinary(file,function(buffer){
-				var img=Img.loadExr(buffer);
-				fu(img);
-			});
+			Img.loadExr(file,0,fu);
 	 	}else if(/^image\//.test(file.type)){
-			Util.loadFile(file,Img.loadImg,fu);
+			Img.loadImg(file,0,fu);
 	 	}
 	}
 
@@ -376,17 +377,22 @@ var createDif=function(layer,left,top,width,height){
 	Command.loadImageFile=function(log,undo_flg){
 		var param = log.param;
 		var n  = param.position;
-		var img = log.undo_data.img;
+		var img = log.param.img;
+		var file  = param.file;
 
 		if(undo_flg){
 			removeNewLayer(n);
 			return;
 		}
-		var layer=createLayer(null,n);
+		if(!log.undo_data){
+			log.undo_data={"img":img};
+			log.param.img=null;
+		}
+		var layer=createLayer(img,n);
 
 
-		layer.img=img;
-		layer.name = file.name;
+		//layer.img=img;
+		layer.name = file;
 
 		refreshLayerThumbnail(layer);
 		refreshLayer(layer);
@@ -452,10 +458,93 @@ var createDif=function(layer,left,top,width,height){
 
 		refreshMain(0);
 	}
+
+	Command.joinLayer=function(log,undo_flg){
+
+		var param = log.param;
+
+		if(param.layer_id===-1){
+		}
+		if(undo_flg){
+			var undo_data=log.undo_data;
+			//width=log.undo_data.width;
+			//height=log.undo_data.height;
+			removeLayer(undo_data.position);
+			appendLayer(undo_data.position,undo_data.layer);
+			appendLayer(undo_data.position2,undo_data.layer2);
+			return;
+		}
+
+		var layerA = layers.find(function(a){return a.id===param.layer_id;});
+		var layerB = layers.find(function(a){return a.id===param.layer_id2;});
+		var ls=[layerA,layerB];
+
+		var x=Math.min(layerA.position[0] ,layerB.position[0]);
+		var y=Math.min(layerA.position[1] ,layerB.position[1]);
+		var right = Math.max(layerA.position[0]+layerA.img.width,layerB.position[0]+layerB.img.width);
+		var bottom = Math.max(layerA.position[1]+layerA.img.height,layerB.position[1]+layerB.img.height);
+		var width  = right-x;
+		var height= bottom-y;
+		
+		//差分ログ作成
+		if(!log.undo_data){
+			var position = layers.indexOf(layerA);
+			var position2 = layers.indexOf(layerB);
+			log.undo_data={"layer":layerA,"position":position,"layer2":layerB,"position2":position2};
+		}
+
+		var img = new Img(width,height);
+
+		//レイヤ合成
+		for(var li=0;li<ls.length;li++){
+			var layer = ls[li];
+
+			var layer_img_data = layer.img.data;
+			var layer_alpha=layer.alpha;
+			var layer_power=Math.pow(2,layer.power);
+			var layer_img_width = layer.img.width;
+			var func = funcs["normal"];
+			var layer_position_x= layer.position[0] -x;
+			var layer_position_y= layer.position[1] -y;
+
+			//レイヤごとのクランプ
+			var left2 = Math.max(0,layer.position[0]);
+			var top2 = Math.max(0,layer.position[1]);
+			var right2 = Math.min(layer.img.width + layer_position_x ,width);
+			var bottom2 = Math.min(layer.img.height + layer_position_y ,height);
+
+			for(var yi=top2;yi<bottom2;yi++){
+				var idx = yi * width + left2 << 2;
+				var max = yi * width + right2 << 2;
+				var idx2 = (yi-layer_position_y) * layer_img_width + left2 - layer_position_x << 2;
+				for(;idx<max;idx+=4){
+					func(img.data,idx,layer_img_data,idx2,layer_alpha,layer_power);
+					idx2+=4;
+				}
+			}
+			
+			var n=layers.indexOf(layer);
+			removeLayer(n);
+		}
+
+
+		var layer =createLayer(img,n);
+		layer.name=layerA.name + "+" + layerB.name;
+		layer.img=img;
+
+		layer.position[0]=x;
+		layer.position[1]=y;
+		refreshLayer(layer);
+		refreshLayerThumbnail(layer);
+		refreshMain(0,layer.position[0],layer.position[1],layer.img.width,layer.img.height);
+
+	}
 	Command.resizeLayer=function(log,undo_flg){
 
 		var param = log.param;
+
 		if(param.layer_id===-1){
+			//全レイヤ一括の場合バッチ化
 			var logs =[];
 			for(var li=0;li<layers.length;li++){
 				var layer = layers[li];
@@ -470,6 +559,7 @@ var createDif=function(layer,left,top,width,height){
 			Command[log.command](log);
 			return;
 		}
+
 		var layer = layers.find(function(a){return a.id===param.layer_id;});
 		var img = layer.img;
 		if(!img){
@@ -548,6 +638,19 @@ var createDif=function(layer,left,top,width,height){
 		}
 
 	}
+	var removeLayer=function(idx){
+		layers[idx].div.parentNode.removeChild(layers[idx].div);
+		layers.splice(idx,1);
+	}
+	var appendLayer=function(idx,layer){
+		layers.splice(idx,0,layer);
+
+		var layers_container = document.getElementById("layers_container");
+		for(var li=layers.length;li--;){
+			layers_container.appendChild(layers[li].div);
+		}
+		refreshMain();
+	}
 	Command.deleteLayer=function(log,undo_flg){
 		var layer_id = log.param.layer_id;
 
@@ -557,12 +660,7 @@ var createDif=function(layer,left,top,width,height){
 			var layer = log.undo_data.layer;
 			var idx = log.undo_data.position;
 
-			layers.splice(idx,0,layer);
-
-			var layers_container = document.getElementById("layers_container");
-			for(var li=layers.length;li--;){
-				layers_container.appendChild(layers[li].div);
-			}
+			appendLayer(idx,layer);
 			refreshMain();
 			return;
 		}

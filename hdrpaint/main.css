@@ -9,24 +9,33 @@ body{
 	font-size:smaller;
 	background-color:lightgray;
 }
+ul{
+	list-style-type: none;
+	padding-left:10px;
+	margin:4px;
+}
 div.all{
 	width:100%;
 	height:100%;
 	display:flex;
+	flex-wrap:wrap;
 	padding:0px;
 	margin:0px;
 }
 div.left{
 	float:left;
+	min-width:256px;
 }
 div.center{
 	float:left;
 	flex:1;
 	height:100%;
 //	max-width:calc(100% - 600px);
+	min-width:540px;
 }
 div.right{
 	float:left;
+	min-width:280px;
 }
 input{
 	font-size:smaller;
@@ -62,8 +71,8 @@ div.canvas_field{
 	
 }
 div.spacer{
-	min-width:300%;
-	min-height:300%;
+	min-width:0%;
+	min-height:0%;
 }
 #preview{
 	border:solid 1px;
@@ -87,6 +96,7 @@ div.spacer{
 	line-height:1;
 	background-color:transparent;
 	padding:2px;
+white-space: nowrap;
 }
 
 .colorpicker{
@@ -113,6 +123,10 @@ background-color:#FFBF00;
 }
 .disable_layer{
 	border-style:dotted;
+}
+#history{
+	overflow:auto;
+	width:200px;
 }
 .js-output{
 	text-align:right;

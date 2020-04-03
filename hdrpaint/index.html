@@ -35,17 +35,27 @@ doc.draw_col=new Vec4();
 var inputs=[];
 doc.scale=100;
 doc.canvas_pos=new Vec2();
+doc.cursor_pos=new Vec2();
 
 var canvas_field;
 
 
-	var pos=new Vec2();
 	var getPos=function(e){
-		var a=document.getElementById("canvas_field");
-		var rectCollection = a.getClientRects();
-		pos[0] =( e.pageX -(preview.offsetLeft + preview.clientLeft)+a.scrollLeft)/(doc.scale/100.0) ;
-		pos[1] = (e.pageY - (preview.offsetTop + preview.clientTop)+a.scrollTop)/(doc.scale/100);
-		return point;
+		//var a=document.getElementById("canvas_field");
+		//var rect= a.getBoundingClientRect();
+		//doc.cursor_pos[0] =(e.pageX - rect.left- preview.offsetLeft +a.scrollLeft -window.scrollX)/(doc.scale/100.0) ;
+		//doc.cursor_pos[1] = (e.pageY- rect.top- preview.offsetTop +a.scrollTop -window.scrollY)/(doc.scale/100);
+		//doc.cursor_pos[0] =(e.clientX- rect.left)/(doc.scale/100.0) ;
+		//doc.cursor_pos[1] = (e.clientY- rect.top)/(doc.scale/100);
+		if(e.target===preview){
+			doc.cursor_pos[0] =(e.offsetX );
+			doc.cursor_pos[1] = (e.offsetY  );
+		}else{
+			doc.cursor_pos[0] =(e.offsetX- preview.offsetLeft );
+			doc.cursor_pos[1] = (e.offsetY- preview.offsetTop  );
+		}
+		doc.cursor_pos[0]*=100/doc.scale;
+		doc.cursor_pos[1]*=100/doc.scale;
 		
 	}
 var onloadfunc=function(e){
@@ -53,8 +63,7 @@ var onloadfunc=function(e){
 	preview_ctx =  preview.getContext('2d')
 	preview_ctx_imagedata=preview_ctx.createImageData(preview.width,preview.height);
 
-	pen_preview=  document.getElementById('pen_preview');
-	pen_preview_ctx =  pen_preview.getContext('2d')
+	initPenPreview();
 
 	//レイヤサムネイル作成用キャンバス
 	thumbnail_canvas =  document.createElement('canvas');
@@ -76,9 +85,8 @@ var onloadfunc=function(e){
 
 	var drawfunc =function(e){
 		//描画関数
-		getPos(e);
-		var x =pos[0];
-		var y = pos[1];
+		var x =doc.cursor_pos[0];
+		var y = doc.cursor_pos[1];
 		if(inputs["pen"].checked && (e.buttons&1)){
 			//ペンのとき
 			if(!pen_log)return;
@@ -142,11 +150,10 @@ var onloadfunc=function(e){
 	var drag_flg = false;
 
 	preview.addEventListener("pointerdown",function(e){
-		getPos(e);
-		var x =pos[0];
-		var y = pos[1];
-		drag_start[0]= pos[0];
-		drag_start[1]= pos[1];
+		var x =doc.cursor_pos[0];
+		var y = doc.cursor_pos[1];
+		drag_start[0]= x;
+		drag_start[1]= y;
 		if(inputs["fill"].checked && (e.buttons &1)){
 			var fill_layer=0;
 			if(inputs["fill_layer"].checked){
@@ -218,7 +225,7 @@ var onloadfunc=function(e){
 			var layer = selected_layer;
 			var member = e.target.id.replace("layer_","");
 			if(e.target.getAttribute("type")==="checkbox"){
-				Command.executeCommand("changeLayerAttribute",{"layer_id":layer.id,"name":member,"value":e.target.checed});
+				Command.executeCommand("changeLayerAttribute",{"layer_id":layer.id,"name":member,"value":e.target.checked});
 			  }else{
 				Command.executeCommand("changeLayerAttribute",{"layer_id":layer.id,"name":member,"value":e.target.value});
 			}
@@ -306,14 +313,23 @@ var onloadfunc=function(e){
 		Command.executeCommand("resizeLayer",{"layer_id":-1,"width":width,"height":height});
 
 	});
+	inputs["open_layer"].addEventListener("change",function(e){
+		var file=this.files[0];
+		//Command.executeCommand("loadImageFile",{"position":layers.indexOf(selected_layer)+1,"file":file});
+		Command.loadImageFile_(file,layers.indexOf(selected_layer)+1);
+		this.value=null;
+
+	});
+
 	inputs["open_hpd"].addEventListener("change",function(e){
 
 		var file=this.files[0];
-		Util.loadFile(file,Util.loadBinary,function(buffer){
+		Util.loadBinary(file,function(buffer){
 			loadHpd(buffer);
 			Log.createLog("loadDocumentFile",{"file":file.name});
 		});
-		e.value="";
+
+		this.value=null;
 	});
 
 	inputs["down_layer"].addEventListener("click",function(e){
@@ -323,6 +339,14 @@ var onloadfunc=function(e){
 	inputs["up_layer"].addEventListener("click",function(e){
 		var position = layers.indexOf(selected_layer);
 		Command.executeCommand("moveLayer",{"layer_id":selected_layer.id,"position":position+1});
+	});
+	inputs["join_under_layer"].addEventListener("click",function(e){
+		var position = layers.indexOf(selected_layer);
+		if(position===0){
+			return;
+		}
+		var id2= layers[position-1].id;
+		Command.executeCommand("joinLayer",{"layer_id":id2,"layer_id2":selected_layer.id});
 	});
 	inputs["delete_layer"].addEventListener("click",function(e){
 		Command.executeCommand("deleteLayer",{"layer_id":selected_layer.id});
@@ -338,6 +362,7 @@ var onloadfunc=function(e){
 		}
 	});
 	document.getElementById("canvas_field").addEventListener( "pointermove", function(e){
+		getPos(e);
 		if(e.buttons&4){
 			//中ボタンドラッグでキャンバス移動
 			//c.scrollLeft-=e.pageX-oldpos[0];
@@ -347,7 +372,9 @@ var onloadfunc=function(e){
 			doc.canvas_pos[1]+=(e.pageY-oldpos[1]);
 
 			var c=document.getElementById("canvas_field");
+			var spacer=document.getElementById("spcaer");
 			if(doc.canvas_pos[0]<0){
+				c.scrollLeft-=doc.canvas_pos[0];
 				doc.canvas_pos[0]=0;
 			}
 			if(doc.canvas_pos[1]<0){
@@ -497,6 +524,18 @@ var createNewLayer=function(e){
 
 
 <div class="left">
+	<div class="area">
+		ファイル
+			<input style="display:none;" type="file" value="画像ファイル読み込み" id="open_hpd" accept="application/octet-stream/,.hpd">
+			<ul>
+			<li><a id="opne_hpd" href="#" onclick="inputs['open_hpd'].click();return false;">ドキュメントファイルを開く(*.hpd)</a></li>
+			</ul>
+			<ul>
+			<li><a id="save_hpd" href="#">ドキュメントファイルを保存(*.hpd)</a></li>
+			<li><a id="save_hdr" href="#">結合データをHDRで保存(*.exr)</a></li>
+			<li><a id="save_ldr" href="#">プレビュー画像をLDRで保存(*.png)</a></li>
+			</ul>
+	</div>
 
 	<div class="area">
 		<div id="tools">
@@ -506,13 +545,12 @@ var createNewLayer=function(e){
 				<li><label><input type="radio" id="fill" name="tool">塗りつぶし</label></li>
 				<li><label><input type="radio" id="translate" name="tool">移動</label></li>
 				<li><label><input type="radio" id="resize" name="tool">リサイズ</label></li>
-				<li><label><input type="radio" id="file" name="tool">ファイル</label></li>
 			</ul>
 		</div>
 		<div id="tool_status">
 			<div id="status_pen">
 				<div style="float:left;">
-					<canvas width="256" height="64" id="pen_preview"  style=""></canvas><br>
+					<canvas width="160" height="48" id="pen_preview"  style=""></canvas><br>
 					<div>直径<input class="slider" id="weight" max="100"  value="3" onchange="refreshPen();"/></div>
 					<div>
 						筆圧影響
@@ -544,19 +582,6 @@ var createNewLayer=function(e){
 				<br>
 				<input type="button" id="btn_resize_layer" value="アクティブレイヤーをキャンバスに合わせる" ><br>
 				<input type="button" id="btn_resize_layers" value="全レイヤーをキャンバスに合わせる" ><br>
-			</div>
-			<div id="status_file">
-				<input style="display:none;" type="file" value="画像ファイル読み込み" id="open_hpd" accept="application/octet-stream/,.hpd"
-				onchange="
-				">
-				<ul>
-				<li><a id="opne_hpd" href="#" onclick="inputs['open_hpd'].click();return false;">ドキュメントファイルを開く</a></li>
-				</ul>
-				<ul>
-				<li><a id="save_hpd" href="#">ドキュメントファイルを保存(hpd))</a></li>
-				<li><a id="save_hdr" href="#">結合データをHDRで保存(exr)</a></li>
-				<li><a id="save_ldr" href="#">プレビュー画像をLDRで保存(png)</a></li>
-				</ul>
 			</div>
 		</div>
 	</div>
@@ -626,6 +651,7 @@ var createNewLayer=function(e){
 			<div style="float:left;text-align:left;">
 				<input type="button" id="down_layer" value="↓">
 				<input type="button" id="up_layer" value="↑" >
+				<input type="button" id="join_under_layer" value="一個下のレイヤと結合" >
 			</div>
 			<div style="text-align:right;">
 				<input type="button" id="delete_layer" value="レイヤ削除" ><br>
@@ -644,26 +670,24 @@ var createNewLayer=function(e){
 
 		<div  style="">
 			<input type="button" id="new" onclick="createNewLayer(event);" value="新規レイヤ" class="size"><br>
-			画像ファイル読み込み<br><input type="file" id="f" accept="image/*,.hdr,.exr" onchange="
-				var file=this.files[0];
-				Command.loadImageFile_(file,layers.indexOf(selected_layer)+1);
-				this.value=null;">
-			<br>
+			<ul>
+			<li><a id="" href="#" onclick="inputs['open_layer'].click();return false;">画像ファイルを新規レイヤで開く</a></li>
+			</ul>
+			<input style="display:none;"type="file" id="open_layer" accept="image/*,.hdr,.exr" >
 		</div>
 	</div>
 
 <div class="area">
 	操作履歴<br>
 	<div>
-	<select size=10 id="history">
+	<select size=10 id="history" >
 	</select>
 	</div>
 	<ul>
 	<li><input type="button" id="button_undo" value="アンドゥ(ctrl+z)" onclick="undo()"></li>
 	<li><input type="button" id="button_redo" value="リドゥ(ctrl+shift+z)" onclick="redo()"></li>
 	</ul>
-	リストを直接選択でそこまで戻る<br>
-	最大10こ前まで
+	リストを直接選択でそこまで戻る。最大10こ前まで
 </div>
 </div>
 

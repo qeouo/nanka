@@ -398,8 +398,8 @@ var refreshLayer = function(layer){
 	var txt="";
 	txt += "blendfunc: "+layer.blendfunc +"<br>";
 	if(layer.img){
-		txt += "position: ("+layer.position[0]+","+layer.position[1] +")"
-			+ "size: (" + layer.img.width + "," + layer.img.height +")<br>";
+		txt += "offset:("+layer.position[0]+","+layer.position[1] +")"
+			+ "size:(" + layer.img.width + "," + layer.img.height +")<br>";
 	}
 	layer.power=parseFloat(layer.power);
 	txt += "power: "+layer.power.toFixed(4)+"<br>";
@@ -466,23 +466,29 @@ var refreshActiveLayerParam = function(){
 	
 }
 
-var pen_preview,pen_preview_ctx;
-var pen_log=null;
-var pen_preview_img= new Img(256,64);
-	var pen_preview_log = new Log.CommandLog();
+	var pen_preview,pen_preview_ctx;
+	var pen_log=null;
+	var pen_preview_img;
+		var pen_preview_log;
+var initPenPreview=function(){
+	pen_preview=  document.getElementById('pen_preview');
+	pen_preview_ctx =  pen_preview.getContext('2d')
+	pen_preview_img= new Img(pen_preview.width,pen_preview.height);
+	pen_preview_log = new Log.CommandLog();
 	var points=[];
 	pen_preview_log.param.points=points;
 	var MAX = 17;
 	for(var i=0;i<MAX;i++){
 		var x = 2*i/(MAX-1)-1;
 		var point={"pos":new Vec2(),"pressure":0};
-		point.pos[0]=x*100+128;
-		point.pos[1]=Math.sin(x*Math.PI)*20+32;
+		point.pos[0]=(x*0.8+1)*(pen_preview.width>>>1);
+		point.pos[1]=(Math.sin(x*Math.PI)*0.5+1)*(pen_preview.height>>>1);
 		//point.pressure= (1-Math.abs(x));
 		point.pressure= 1-(i/(MAX-1));//(1-Math.abs(x));
 		
 		points.push(point);
 	}
+}
 
 
 	var createRGBA=function(){
@@ -577,9 +583,8 @@ var refreshPreviewStatus = function(e){
 	//カーソル下情報表示
 	var data = joined_img.data;
 
-	getPos(e);
-	var x = pos[0];
-	var y = pos[1];
+	var x = doc.cursor_pos[0];
+	var y = doc.cursor_pos[1];
 	var width=joined_img.width;
 	var height=joined_img.height;
 	var output = document.getElementById("status");
