@@ -135,7 +135,24 @@ Command.moveLayer=function(log,undo_flg){
 }
 
 
-var createLayer=function(img,idx){
+var removeLayer=function(idx){
+	var layer=layers[idx];
+	layer.div.classList.remove("active_layer");
+	layers[idx].div.parentNode.removeChild(layer.div);
+	layers.splice(idx,1);
+}
+var appendLayer=function(idx,layer){
+	layers.splice(idx,0,layer);
+
+	var layers_container = document.getElementById("layers_container");
+	for(var li=layers.length;li--;){
+		layers_container.appendChild(layers[li].div);
+	}
+	refreshLayer(layer);
+	refreshLayerThumbnail(layer);
+	refreshMain();
+}
+var createLayer=function(img){
 	if( typeof idx=== 'undefined'){
 		idx=layers.length;
 	}
@@ -150,17 +167,6 @@ var createLayer=function(img,idx){
 
 	layer.img=img;
 
-
-
-	layers.splice(idx,0,layer);
-
-	var layers_container = document.getElementById("layers_container");
-	for(var li=layers.length;li--;){
-		layers_container.appendChild(layers[li].div);
-	}
-
-
-
 	layer.id=layer_id_count;
 	layer_id_count++;
 	layer.name ="layer"+("0000"+layer.id).slice(-4);
@@ -169,8 +175,6 @@ var createLayer=function(img,idx){
 		refreshLayerThumbnail(layer);
 	}
 	refreshLayer(layer);
-
-	selectLayer(layer);
 
 	return layer;
 

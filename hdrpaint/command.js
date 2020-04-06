@@ -133,8 +133,8 @@ var createDif=function(layer,left,top,width,height){
 
 		var param = log.param;
 		var layer = layers.find(function(a){return a.id===param.layer_id;});
-		point_x = param.point_x;
-		point_y = param.point_y;
+		point_x = param.x;
+		point_y = param.y;
 		is_layer = param.is_layer;
 		col = param.color;
 
@@ -321,7 +321,7 @@ var createDif=function(layer,left,top,width,height){
 		layer.div.remove();
 		layer.div.classList.remove("active_layer");
 		
-		layer_id_count--;
+		//layer_id_count--;
 		if(selected_layer===layer){
 			if(idx>0)idx-=1;
 			if(layers.length>0){
@@ -339,19 +339,22 @@ var createDif=function(layer,left,top,width,height){
 		var height= param.height;
 		var n= param.position;
 
+		var layer;
 		if(undo_flg){
 			removeNewLayer(n);
 			return;
 		}
 		if(!log.undo_data){
-			log.undo_data={};
+			var img = new Img(width,height);
+			layer =createLayer(img,n);
+			log.undo_data={"layer":layer};
+		}else{
+			layer = log.undo_data.layer;
 		}
-		var img = new Img(width,height);
-		
 
+		appendLayer(n,layer);
+		selectLayer(layer);
 
-		var layer =createLayer(img,n);
-		refreshMain(0);
 		return layer;
 
 	}
@@ -380,23 +383,26 @@ var createDif=function(layer,left,top,width,height){
 		var img = log.param.img;
 		var file  = param.file;
 
+		var layer;
 		if(undo_flg){
 			removeNewLayer(n);
 			return;
 		}
 		if(!log.undo_data){
-			log.undo_data={"img":img};
 			log.param.img=null;
+			layer=createLayer(img);
+			log.undo_data={"layer":layer};
+		}else{
+			layer=log.undo_data.layer;
 		}
-		var layer=createLayer(img,n);
-
+		appendLayer(n,layer);
 
 		//layer.img=img;
 		layer.name = file;
 
 		refreshLayerThumbnail(layer);
 		refreshLayer(layer);
-		refreshMain(0);
+		selectLayer(layer);
 
 		return layer;
 	}
@@ -469,74 +475,81 @@ var createDif=function(layer,left,top,width,height){
 			var undo_data=log.undo_data;
 			//width=log.undo_data.width;
 			//height=log.undo_data.height;
-			removeLayer(undo_data.position);
-			appendLayer(undo_data.position,undo_data.layer);
-			appendLayer(undo_data.position2,undo_data.layer2);
+			removeNewLayer(undo_data.position);
+			appendLayer(undo_data.position,undo_data.layerA);
+			appendLayer(undo_data.positionB,undo_data.layerB);
 			return;
 		}
 
+		
+		var layer;
 		var layerA = layers.find(function(a){return a.id===param.layer_id;});
 		var layerB = layers.find(function(a){return a.id===param.layer_id2;});
 		var ls=[layerA,layerB];
-
-		var x=Math.min(layerA.position[0] ,layerB.position[0]);
-		var y=Math.min(layerA.position[1] ,layerB.position[1]);
-		var right = Math.max(layerA.position[0]+layerA.img.width,layerB.position[0]+layerB.img.width);
-		var bottom = Math.max(layerA.position[1]+layerA.img.height,layerB.position[1]+layerB.img.height);
-		var width  = right-x;
-		var height= bottom-y;
-		
 		//差分ログ作成
 		if(!log.undo_data){
+
+
+			var x=Math.min(layerA.position[0] ,layerB.position[0]);
+			var y=Math.min(layerA.position[1] ,layerB.position[1]);
+			var right = Math.max(layerA.position[0]+layerA.img.width,layerB.position[0]+layerB.img.width);
+			var bottom = Math.max(layerA.position[1]+layerA.img.height,layerB.position[1]+layerB.img.height);
+			var width  = right-x;
+			var height= bottom-y;
 			var position = layers.indexOf(layerA);
 			var position2 = layers.indexOf(layerB);
-			log.undo_data={"layer":layerA,"position":position,"layer2":layerB,"position2":position2};
-		}
+			log.undo_data={"layerA":layerA,"position":position,"layerB":layerB,"positionB":position2};
 
-		var img = new Img(width,height);
+			var img = new Img(width,height);
 
-		//レイヤ合成
-		for(var li=0;li<ls.length;li++){
-			var layer = ls[li];
+			//レイヤ合成
+			for(var li=0;li<ls.length;li++){
+				var layer = ls[li];
 
-			var layer_img_data = layer.img.data;
-			var layer_alpha=layer.alpha;
-			var layer_power=Math.pow(2,layer.power);
-			var layer_img_width = layer.img.width;
-			var func = funcs["normal"];
-			var layer_position_x= layer.position[0] -x;
-			var layer_position_y= layer.position[1] -y;
+				var layer_img_data = layer.img.data;
+				var layer_alpha=layer.alpha;
+				var layer_power=Math.pow(2,layer.power);
+				var layer_img_width = layer.img.width;
+				var func = funcs["normal"];
+				var layer_position_x= layer.position[0] -x;
+				var layer_position_y= layer.position[1] -y;
 
-			//レイヤごとのクランプ
-			var left2 = Math.max(0,layer.position[0]);
-			var top2 = Math.max(0,layer.position[1]);
-			var right2 = Math.min(layer.img.width + layer_position_x ,width);
-			var bottom2 = Math.min(layer.img.height + layer_position_y ,height);
+				//レイヤごとのクランプ
+				var left2 = Math.max(0,layer.position[0]);
+				var top2 = Math.max(0,layer.position[1]);
+				var right2 = Math.min(layer.img.width + layer_position_x ,width);
+				var bottom2 = Math.min(layer.img.height + layer_position_y ,height);
 
-			for(var yi=top2;yi<bottom2;yi++){
-				var idx = yi * width + left2 << 2;
-				var max = yi * width + right2 << 2;
-				var idx2 = (yi-layer_position_y) * layer_img_width + left2 - layer_position_x << 2;
-				for(;idx<max;idx+=4){
-					func(img.data,idx,layer_img_data,idx2,layer_alpha,layer_power);
-					idx2+=4;
+				for(var yi=top2;yi<bottom2;yi++){
+					var idx = yi * width + left2 << 2;
+					var max = yi * width + right2 << 2;
+					var idx2 = (yi-layer_position_y) * layer_img_width + left2 - layer_position_x << 2;
+					for(;idx<max;idx+=4){
+						func(img.data,idx,layer_img_data,idx2,layer_alpha,layer_power);
+						idx2+=4;
+					}
 				}
+				
 			}
-			
-			var n=layers.indexOf(layer);
+			layer =createLayer(img);
+			layer.name=layerA.name + "+" + layerB.name;
+			layer.position[0]=x;
+			layer.position[1]=y;
+
+			log.undo_data.layer=layer;
+		}else{
+			layer = log.undo_data.layer;
+		}
+		for(var li=0;li<ls.length;li++){
+			var n=layers.indexOf(ls[li]);
 			removeLayer(n);
 		}
 
+		appendLayer(n,layer);
 
-		var layer =createLayer(img,n);
-		layer.name=layerA.name + "+" + layerB.name;
-		layer.img=img;
-
-		layer.position[0]=x;
-		layer.position[1]=y;
-		refreshLayer(layer);
-		refreshLayerThumbnail(layer);
 		refreshMain(0,layer.position[0],layer.position[1],layer.img.width,layer.img.height);
+
+		selectLayer(layer);
 
 	}
 	Command.resizeLayer=function(log,undo_flg){
@@ -637,19 +650,6 @@ var createDif=function(layer,left,top,width,height){
 			}
 		}
 
-	}
-	var removeLayer=function(idx){
-		layers[idx].div.parentNode.removeChild(layers[idx].div);
-		layers.splice(idx,1);
-	}
-	var appendLayer=function(idx,layer){
-		layers.splice(idx,0,layer);
-
-		var layers_container = document.getElementById("layers_container");
-		for(var li=layers.length;li--;){
-			layers_container.appendChild(layers[li].div);
-		}
-		refreshMain();
 	}
 	Command.deleteLayer=function(log,undo_flg){
 		var layer_id = log.param.layer_id;

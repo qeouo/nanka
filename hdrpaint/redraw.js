@@ -434,6 +434,9 @@ var refreshLayerThumbnail = function(layer){
 var refreshActiveLayerParam = function(){
 	//アクティブレイヤパラメータ更新
 	var layer = selected_layer;
+	if(!layer){
+		return;
+	}
 	var layer_inputs = Array.prototype.slice.call(document.getElementById("layer_param").getElementsByTagName("input"));
 	layer_inputs = layer_inputs.concat(Array.prototype.slice.call(document.getElementById("layer_param").getElementsByTagName("select")));
 	for(var i=0;i<layer_inputs.length;i++){

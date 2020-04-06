@@ -82,6 +82,7 @@ var onloadfunc=function(e){
 	}
 
 
+	Util.fireEvent(inputs["color_base"],"change");
 
 	var drawfunc =function(e){
 		//描画関数
@@ -150,6 +151,7 @@ var onloadfunc=function(e){
 	var drag_flg = false;
 
 	preview.addEventListener("pointerdown",function(e){
+		getPos(e);
 		var x =doc.cursor_pos[0];
 		var y = doc.cursor_pos[1];
 		drag_start[0]= x;
@@ -159,7 +161,7 @@ var onloadfunc=function(e){
 			if(inputs["fill_layer"].checked){
 				fill_layer=1;
 			}
-			Command.executeCommand("fill",{"layer_id":layer.id,"x":x,"y":y,"color":new Float32Array(doc.draw_col),"is_layer":fill_layer});
+			Command.executeCommand("fill",{"layer_id":selected_layer.id,"x":x,"y":y,"color":new Float32Array(doc.draw_col),"is_layer":fill_layer});
 		}else if(inputs["translate"].checked && (e.buttons &1) && selected_layer){
 			//レイヤ位置移動
 			drag_start[0]= x | 0;
@@ -326,7 +328,8 @@ var onloadfunc=function(e){
 		var file=this.files[0];
 		Util.loadBinary(file,function(buffer){
 			loadHpd(buffer);
-			Log.createLog("loadDocumentFile",{"file":file.name});
+			var log =Log.createLog("loadDocumentFile",{"file":file.name});
+			Log.appendOption(log);
 		});
 
 		this.value=null;

@@ -44,6 +44,7 @@ var loadHpd=function(buffer){
 		var img = Img.loadExr(img_file.data);
 
 		var layer =createLayer(img);
+		appendLayer(li,layer);
 
 		//レイヤパラメータ設定
 		var keys=Object.keys(doc_layer);
@@ -58,6 +59,7 @@ var loadHpd=function(buffer){
 			}
 		}
 		refreshLayer(layer);
+		selectLayer(layer);
 	}
 
 	enableRefresh();
@@ -69,9 +71,8 @@ var loadHpd=function(buffer){
 	createRGBA();
 	
 
-	History.enableLog();
+	Log.reset();
 
-	History.reset();
 }
 var saveHpd= function(e){
 	//ドキュメントファイル保存

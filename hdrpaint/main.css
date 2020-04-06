@@ -6,7 +6,6 @@ body{
 	height:100%;
 	width:100%;
 	margin:0px;
-	font-size:smaller;
 	background-color:lightgray;
 }
 ul{
@@ -126,7 +125,7 @@ background-color:#FFBF00;
 }
 #history{
 	overflow:auto;
-	width:200px;
+	width:256px;
 }
 .js-output{
 	text-align:right;
