@@ -287,7 +287,15 @@ var onloadfunc=function(e){
 	for(var i=0;i<tool_radios.length;i++){
 		var input = tool_radios[i]
 		input.addEventListener("change",function(e){
-			refreshToolTab();
+			refreshTab("tools");
+		});
+	}
+
+	tool_radios = document.getElementById("color_selector_tab").getElementsByTagName("input");
+	for(var i=0;i<tool_radios.length;i++){
+		var input = tool_radios[i]
+		input.addEventListener("change",function(e){
+			refreshTab("color_selector_tab");
 		});
 	}
 	
@@ -465,7 +473,8 @@ var onloadfunc=function(e){
 
 	refreshMain();
 	refreshLayer(layer);
-	refreshToolTab();
+	refreshTab("tools");
+	refreshTab("color_selector_tab");
 	createRGBA();
 	
 
@@ -591,14 +600,26 @@ var createNewLayer=function(e){
 
 	<div id="color_selecter" class="area">
 		<div>カラーセレクタ</div>
+		<ul id="color_selector_tab">
+			<li><label><input type="radio" id="rgb_h" name="color_selector" checked>通常</label>
+			<li><label><input type="radio" id="rgb" name="color_selector">RGB</label></li>
+			<li><label><input type="radio" id="hsv" name="color_selector">HSV</label></li>
+		</ul>
+		<div id="status_rgb_h">
 		ベース色<input class="colorpicker" id="color_base" value="ff0000"/><br>
 		明るさ<input class="slider" id="color_lumi" min="-10" max="10" value="0"><br>
-		<ul id="color_sample">
-			<li>R<input class="slider" id="color_R" max="100"/></li>
-			<li>G<input class="slider" id="color_G" max="100"/></li>
-			<li>B<input class="slider" id="color_B" max="100"/></li>
-			<li>A<input class="slider" id="color_A" max="1" value="1"/></li>
-		</ul>
+		</div>
+		<div id="status_rgb">
+			<ul id="color_sample">
+				<li>R<input class="slider" id="color_R" max="100"/></li>
+				<li>G<input class="slider" id="color_G" max="100"/></li>
+				<li>B<input class="slider" id="color_B" max="100"/></li>
+			</ul>
+		</div>
+		<div>A<input class="slider" id="color_A" max="1" value="1"/></div>
+		<div id="status">
+			positionvalue
+		</div>
 	</div>
 	<div id="post_effect" class="area">
 		<div>ポストエフェクト</div>
@@ -615,13 +636,13 @@ var createNewLayer=function(e){
 		<div style="float:left;text-align:left;">
 		ビュー
 		</div>
-		<div id="status" style="text-align:right;">
-			positionvalue
-		</div>
 		<div id="canvas_field" style="clear:both;" class="canvas_field">
 			<div id="spacer" class="spacer">
 				<canvas width="256" height="256" id="preview" ></canvas>
 			</div>
+		</div>
+		<div id="status2">
+			teststet
 		</div>
 	</div>
 

@@ -1,6 +1,8 @@
 html{
 	height:100%;
 	width:100%;
+	font-size:10pt;
+	font-family:monospace;
 }
 body{
 	height:100%;
@@ -60,11 +62,18 @@ div.canvas_area{
 	position:relative;
 	
 }
+ul#color_selector_tab li{
+	display:inline-block;
+}
+div#status2{
+	position:absolute;
+	bottom:0px;
+}
 div.canvas_field{
 	overflow:scroll;
 	position:absolute;
 	top:24px;
-	bottom:0px;
+	bottom:24px;
 	left:0px;
 	right:0px;
 	

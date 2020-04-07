@@ -127,6 +127,7 @@ var createDif=function(layer,left,top,width,height){
 	}
 
 	ret.fill=function(log,undo_flg){
+		//塗りつぶし
 		if(undo_flg){
 			return;
 		}
@@ -138,27 +139,28 @@ var createDif=function(layer,left,top,width,height){
 		is_layer = param.is_layer;
 		col = param.color;
 
+		//アルファマスク保護設定
 		var mask_alpha= layer.mask_alpha;
 		var one_minus_mask_alpha= 1-mask_alpha;
-		var fillCheck=fillCheck_all;
-		if(is_layer){
-			fillCheck=fillCheck_layer;
-		}
+
 		fillStack=[];
 		var x = point_x|0;
 		var y = point_y|0;
+		//塗りつぶし範囲
 		refresh_top=y;
 		refresh_bottom=y;
 		refresh_left=x;
 		refresh_right=x;
 
 
+		//塗りつぶし対象色
 		var target= layer.img;
-		var idx = y*joined_img.width+x<<2;
+		var idx = joined_img.getIndex(x,y)<<2;
 		joined_r=joined_img.data[idx];
 		joined_g=joined_img.data[idx+1];
 		joined_b=joined_img.data[idx+2];
 		joined_a=joined_img.data[idx+3];
+		idx = target.getIndex(x,y)<<2;
 		target_r=target.data[idx];
 		target_g=target.data[idx+1];
 		target_b=target.data[idx+2];
@@ -168,18 +170,19 @@ var createDif=function(layer,left,top,width,height){
 		var draw_b =col[2];
 		var draw_a =col[3];
 
-		var ref_data = joined_img.data;
 		var target_data = target.data;
 		if(    target_r === draw_r
 			&& target_g === draw_g
 			&& target_b === draw_b
 			&& target_a === draw_a){
+			//同色の場合終了
 			return;
 		}
 
 		var old_img = new Img(target.width,target.height);
 		copyImg(old_img,0,0,target,0,0,target.width,target.height);
 
+		//開始座標を登録
 		fillStack.push(y);
 		fillStack.push(x);
 		fillStack.push(x);
@@ -191,7 +194,6 @@ var createDif=function(layer,left,top,width,height){
 			right = fillStack.pop();
 			left = fillStack.pop();
 			var yi = fillStack.pop();
-			//fillFunc(img,x,y);
 
 			//塗りつぶし
 			var yidx = target.width*yi<<2;

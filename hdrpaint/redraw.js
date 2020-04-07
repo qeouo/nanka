@@ -568,8 +568,8 @@ var initPenPreview=function(){
 
 	}
 
-var refreshToolTab = function(){
-	var tool_radios = document.getElementById("tools").getElementsByTagName("input");
+var refreshTab = function(target_id){
+	var tool_radios = document.getElementById(target_id).getElementsByTagName("input");
 	for(var i=0;i<tool_radios.length;i++){
 		var input = tool_radios[i];
 		var div=document.getElementById("status_"+input.id);
@@ -581,7 +581,6 @@ var refreshToolTab = function(){
 		}
 	}
 }
-
 var refreshPreviewStatus = function(e){
 	//カーソル下情報表示
 	var data = joined_img.data;
@@ -590,7 +589,8 @@ var refreshPreviewStatus = function(e){
 	var y = doc.cursor_pos[1];
 	var width=joined_img.width;
 	var height=joined_img.height;
-	var output = document.getElementById("status");
+	var status2= document.getElementById("status2");
+	var status= document.getElementById("status");
 
 	var r=0; 
 	var g=0; 
@@ -606,14 +606,19 @@ var refreshPreviewStatus = function(e){
 		a= data[idx+3];
 	}
 
-	var str="キャンバス倍率[scale]% X:[x],Y:[y]  R:[r], G:[g], B:[b], A:[a] ";
+	var str="キャンバス倍率[scale]% X:[x],Y:[y]";
 	str=str.replace(/\[scale\]/,doc.scale);
 	str=str.replace(/\[x\]/,x.toFixed(2));
 	str=str.replace(/\[y\]/,y.toFixed(2));
-	str=str.replace(/\[r\]/,r.toFixed(2));
-	str=str.replace(/\[g\]/,g.toFixed(4));
-	str=str.replace(/\[b\]/,b.toFixed(4));
-	str=str.replace(/\[a\]/,a.toFixed(4));
+	Util.setText(status2,str);
+
+
+	var str="R:[r], G:[g], B:[b], A:[a] ";
+	str=str.replace(/\[r\]/,r.toFixed(3));
+	str=str.replace(/\[g\]/,g.toFixed(3));
+	str=str.replace(/\[b\]/,b.toFixed(3));
+	str=str.replace(/\[a\]/,a.toFixed(3));
+	Util.setText(status,str);
 
 	if(e.buttons & 2){
 		inputs["color_R"].value=r;
@@ -626,5 +631,4 @@ var refreshPreviewStatus = function(e){
 		Util.fireEvent(inputs["color_B"],"change");
 		Util.fireEvent(inputs["color_A"],"change");
 	}
-	Util.setText(output,str);
 }
