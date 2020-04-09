@@ -369,6 +369,13 @@ var createDif=function(layer,left,top,width,height){
 		}
 		if(!log.undo_data){
 			var img = new Img(width,height);
+			var data = img.data;
+			for(var i=0;i<data.length;i+=4){
+				data[i+0]= 1;
+				data[i+1]= 1;
+				data[i+2]= 1;
+				data[i+3]= 0;
+			}
 			layer =createLayer(img,n);
 			log.undo_data={"layer":layer};
 		}else{
