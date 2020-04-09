@@ -469,13 +469,13 @@ var refreshActiveLayerParam = function(){
 	
 }
 
-	var pen_preview,pen_preview_ctx;
+	var pen_preview;
 	var pen_log=null;
 	var pen_preview_img;
 		var pen_preview_log;
 var initPenPreview=function(){
 	pen_preview=  document.getElementById('pen_preview');
-	pen_preview_ctx =  pen_preview.getContext('2d')
+	//pen_preview_ctx =  pen_preview.getContext('2d')
 	pen_preview_img= new Img(pen_preview.width,pen_preview.height);
 	pen_preview_log = new Log.CommandLog();
 	var points=[];
@@ -486,8 +486,7 @@ var initPenPreview=function(){
 		var point={"pos":new Vec2(),"pressure":0};
 		point.pos[0]=(x*0.8+1)*(pen_preview.width>>>1);
 		point.pos[1]=(Math.sin(x*Math.PI)*0.5+1)*(pen_preview.height>>>1);
-		//point.pressure= (1-Math.abs(x));
-		point.pressure= 1-(i/(MAX-1));//(1-Math.abs(x));
+		point.pressure= 1-(i/(MAX-1));
 		
 		points.push(point);
 	}
@@ -549,22 +548,23 @@ var initPenPreview=function(){
 			drawPen(pen_preview_img,points[li],points[li+1],doc.draw_col,0,weight,pressure_effect_flg,alpha_direct);
 		}
 
+		document.getElementById("pen_preview").src=pen_preview_img.toDataUrl();
 		//結果をキャンバスに表示
-	  	var dst_data  = preview_ctx_imagedata.data;
-	  	var src_data = pen_preview_img.data;
-	  var r=255;
-		for(var yi=0;yi<pen_preview.height;yi++){
-			for(var xi=0;xi<pen_preview.width;xi++){
-			  var dst_idx = preview_ctx_imagedata.width * yi + xi <<2;
-			  var src_idx = pen_preview_img.width * yi + xi <<2;
-	  			dst_data[dst_idx+0] = src_data[src_idx +0]*r;
-	  			dst_data[dst_idx+1] = src_data[src_idx +1]*r;
-	  			dst_data[dst_idx+2] = src_data[src_idx +2]*r;
-	  			dst_data[dst_idx+3] = src_data[src_idx +3]*r;
-			}
-		}
-		pen_preview_ctx.putImageData(preview_ctx_imagedata,0,0
-	  		,0,0,pen_preview_img.width,pen_preview_img.height);
+	 // 	var dst_data  = preview_ctx_imagedata.data;
+	 // 	var src_data = pen_preview_img.data;
+	 // var r=255;
+	 //   for(var yi=0;yi<pen_preview.height;yi++){
+	 //   	for(var xi=0;xi<pen_preview.width;xi++){
+	 //   	  var dst_idx = preview_ctx_imagedata.width * yi + xi <<2;
+	 //   	  var src_idx = pen_preview_img.width * yi + xi <<2;
+	 // 			dst_data[dst_idx+0] = src_data[src_idx +0]*r;
+	 // 			dst_data[dst_idx+1] = src_data[src_idx +1]*r;
+	 // 			dst_data[dst_idx+2] = src_data[src_idx +2]*r;
+	 // 			dst_data[dst_idx+3] = src_data[src_idx +3]*r;
+	 //   	}
+	 //   }
+	 //   pen_preview_ctx.putImageData(preview_ctx_imagedata,0,0
+	 // 		,0,0,pen_preview_img.width,pen_preview_img.height);
 
 	}
 

@@ -51,27 +51,40 @@ var createDif=function(layer,left,top,width,height){
 	var fillStack=[];
 	var joined_r,joined_g,joined_b,joined_a;
 	var target_r,target_g,target_b,target_a;
-	var refresh_left,refresh_top,refresh_bottom,refresh_right;
-	var fillCheck_all = function(target_data,joined_data,idx){
-		return (joined_r===joined_data[idx]
-		&& joined_g===joined_data[idx+1]
-		&& joined_b===joined_data[idx+2]
-		&& joined_a===joined_data[idx+3]
+	var fillCheckAll = function(layer,joined,x,y){
+		var x2 = x+layer.position[0];
+		var y2 = y+layer.position[1];
+		if(joined.width<=x2 || x2<0 || y2<0 || joined.height<=y2){
+			return false;
+		}
+		var target = layer.img;
+		var idx  = target.getIndex(x,y) <<2;
+		var idx2 = joined.getIndex(x2,y2) <<2;
+		var joined_data = joined.data;
+		var target_data = target.data;
+		return (joined_r===joined_data[idx2]
+		&& joined_g===joined_data[idx2+1]
+		&& joined_b===joined_data[idx2+2]
+		&& joined_a===joined_data[idx2+3]
 		&& target_r===target_data[idx]
 		&& target_g===target_data[idx+1]
 		&& target_b===target_data[idx+2]
 		&& target_a===target_data[idx+3]);
 	}
-	var fillCheck_layer = function(target_data,joined_data,idx){
+	var fillCheckLayer = function(layer,joined,x,y){
+		var target = layer.img;
+		var idx  = target.getIndex(x,y) <<2;
+		var target_data = target.data;
 		return ( target_r===target_data[idx]
 		&& target_g===target_data[idx+1]
 		&& target_b===target_data[idx+2]
 		&& target_a===target_data[idx+3]);
 	}
-	var fillSub=function(target,y,left,right,is_layer){
-		var fillCheck=fillCheck_all;
+	var fillSub=function(layer,y,left,right,is_layer){
+		var target = layer.img;
+		var fillCheck=fillCheckAll;
 		if(is_layer){
-			fillCheck=fillCheck_layer;
+			fillCheck=fillCheckLayer;
 		}
 		var ref_data = joined_img.data;
 
@@ -80,10 +93,10 @@ var createDif=function(layer,left,top,width,height){
 
 		//左の端を探す
 		var xi = left;
-		var yidx = target.width*y<<2;
+		var yidx = target.getIndex(0,y) <<2;
 		for(;xi>=0;xi--){
 			var idx2 = yidx + (xi<<2);
-			if(fillCheck(target_data,ref_data,idx2)){
+			if(fillCheck(layer,joined_img,xi,y)){
 				if(mode===0){
 					mode=1;
 				}
@@ -91,6 +104,8 @@ var createDif=function(layer,left,top,width,height){
 				break;
 			}
 		}
+
+		//塗りつぶし領域を求める
 		if(mode===1){
 			fillStack.push(y);
 			fillStack.push(xi+1);
@@ -98,14 +113,16 @@ var createDif=function(layer,left,top,width,height){
 
 		for(var xi=left;xi<right;xi++){
 			var idx2 = yidx + (xi<<2);
-			if(fillCheck(target_data,ref_data,idx2)){
+			if(fillCheck(layer,joined_img,xi,y)){
 				if(mode===0){
+					//塗りつぶし領域開始
 					fillStack.push(y);
 					fillStack.push(xi);
 					mode=1;
 				}
 			}else{
 				if(mode===1){
+					//塗りつぶし領域外なので終了
 					fillStack.push(xi);
 					mode=0;
 				}
@@ -117,8 +134,7 @@ var createDif=function(layer,left,top,width,height){
 			var xi = right-1;
 			for(;xi<target.width;xi++){
 				var idx2 = yidx + (xi<<2);
-				if(fillCheck(target_data,ref_data,idx2)){
-				}else{
+				if(!fillCheck(layer,joined_img,xi,y)){
 					break;
 				}
 			}
@@ -132,6 +148,7 @@ var createDif=function(layer,left,top,width,height){
 			return;
 		}
 
+		var refresh_left,refresh_top,refresh_bottom,refresh_right;
 		var param = log.param;
 		var layer = layers.find(function(a){return a.id===param.layer_id;});
 		point_x = param.x;
@@ -155,7 +172,7 @@ var createDif=function(layer,left,top,width,height){
 
 		//塗りつぶし対象色
 		var target= layer.img;
-		var idx = joined_img.getIndex(x,y)<<2;
+		var idx = joined_img.getIndex(x+layer.position[0],y+layer.position[1])<<2;
 		joined_r=joined_img.data[idx];
 		joined_g=joined_img.data[idx+1];
 		joined_b=joined_img.data[idx+2];
@@ -187,34 +204,36 @@ var createDif=function(layer,left,top,width,height){
 		fillStack.push(x);
 		fillStack.push(x);
 		
-		while(1){
-			if(fillStack.length===0){
-				break;
-			}
-			right = fillStack.pop();
-			left = fillStack.pop();
-			var yi = fillStack.pop();
+		while(fillStack.length){
+
+			right = fillStack.pop(); //右端
+			left = fillStack.pop(); //左端
+			var yi = fillStack.pop(); //y座標
 
 			//塗りつぶし
-			var yidx = target.width*yi<<2;
+			var yidx = target.getIndex(0,yi)<<2;
 			for(var xi=left;xi<right;xi++){
 				idx = yidx + (xi<<2);
-				target_data[idx]=draw_r;
-				target_data[idx+1]=draw_g;
-				target_data[idx+2]=draw_b;
-				target_data[idx+3]=target_data[idx+3]*mask_alpha+draw_a*one_minus_mask_alpha;
+				target_data[idx+0] = draw_r;
+				target_data[idx+1] = draw_g;
+				target_data[idx+2] = draw_b;
+				target_data[idx+3] = target_data[idx+3]*mask_alpha + draw_a*one_minus_mask_alpha;
 			}
 
 			if(yi>0){
-				fillSub(target,yi-1,left,right,is_layer);
+				//上端に到達していない場合、ひとつ上の行を探索
+				fillSub(layer,yi-1,left,right,is_layer);
 			}
 			if(yi<target.height-1){
-				fillSub(target,yi+1,left,right,is_layer);
+				//下端に到達していない場合、ひとつ下の行を探索
+				fillSub(layer,yi+1,left,right,is_layer);
 			}
+
+			//
 			refresh_left=Math.min(refresh_left,left);
+			refresh_right=Math.max(refresh_right,right);
 			refresh_top=Math.min(refresh_top,yi);
 			refresh_bottom=Math.max(refresh_bottom,yi+1);
-			refresh_right=Math.max(refresh_right,right);
 		}
 
 		var width = refresh_right-refresh_left;
@@ -230,7 +249,9 @@ var createDif=function(layer,left,top,width,height){
 			log.undo_data.difs.push(dif);
 		}
 
-		refreshMain(0,refresh_left,refresh_top,refresh_right-refresh_left,refresh_bottom-refresh_top);
+		refreshMain(0,refresh_left + layer.position[0]
+			,refresh_top + layer.position[1]
+			,refresh_right-refresh_left,refresh_bottom-refresh_top);
 		refreshLayerThumbnail(layer);
 	}
 

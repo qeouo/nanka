@@ -157,9 +157,23 @@ var onloadfunc=function(e){
 		drag_start[0]= x;
 		drag_start[1]= y;
 		if(inputs["fill"].checked && (e.buttons &1)){
+			//塗りつぶし
 			var fill_layer=0;
 			if(inputs["fill_layer"].checked){
 				fill_layer=1;
+			}
+			if(!fill_layer){
+				if(x<0 || x>=joined_img.width || y<0 || y>=joined_img.height){
+					//範囲外は無視
+					return;
+				}
+			}
+			var layer = selected_layer;
+			x -= layer.position[0];
+			y -= layer.position[1];
+			if(x<0 || x>=layer.img.width || y<0 || y>=layer.img.height){
+				//範囲外は無視
+				return;
 			}
 			Command.executeCommand("fill",{"layer_id":selected_layer.id,"x":x,"y":y,"color":new Float32Array(doc.draw_col),"is_layer":fill_layer});
 		}else if(inputs["translate"].checked && (e.buttons &1) && selected_layer){
@@ -553,7 +567,8 @@ var createNewLayer=function(e){
 		<div id="tools">
 			ツール
 			<ul>
-			<li><label><input type="radio" id="pen" name="tool" checked>ペン </label>
+			<li><label><input type="radio" id="pen" name="tool" checked>ペン</label>
+			<li><label><input type="radio" id="eracer" name="tool" >消しゴム</label>
 				<li><label><input type="radio" id="fill" name="tool">塗りつぶし</label></li>
 				<li><label><input type="radio" id="translate" name="tool">移動</label></li>
 				<li><label><input type="radio" id="resize" name="tool">リサイズ</label></li>
@@ -562,7 +577,8 @@ var createNewLayer=function(e){
 		<div id="tool_status">
 			<div id="status_pen">
 				<div style="float:left;">
-					<canvas width="160" height="48" id="pen_preview"  style=""></canvas><br>
+					<!-- canvas width="160" height="48" id="pen_preview"  style=""></canvas><br -->
+					<img width="160" height="48" id="pen_preview"><br>
 					<div>直径<input class="slider" id="weight" max="100"  value="3" onchange="refreshPen();"/></div>
 					<div>
 						筆圧影響
@@ -577,14 +593,14 @@ var createNewLayer=function(e){
 			</div>
 			<div id="status_fill">
 				<ul>
-					<li><label><input id="fill_layer" type="radio" name="fill_type" />レイヤ単体</label></li>
-					<li><label><input id="fill_joined" type="radio" name="fill_type" />結合画像</label></li>
+					<li><label><input id="fill_joined" type="radio" name="fill_type" checked/>結合画像</label></li>
+					<li><label><input id="fill_layer" type="radio" name="fill_type" />アクティブレイヤ</label></li>
 				</ul>
 			</div>
 			<div id="status_translate">
 				<ul>
-					<li><label><input id="translate_layer" type="radio" name="translate_type" checked/>レイヤ単体</label></li>
-					<li><label><input id="translate_joined" type="radio" name="translate_type" />結合画像</label></li>
+					<li><label><input id="translate_layer" type="radio" name="translate_type" checked/>アクティブレイヤのみ</label></li>
+					<li><label><input id="translate_joined" type="radio" name="translate_type" />全レイヤ</label></li>
 				</ul>
 			</div>
 			<div id="status_resize">
