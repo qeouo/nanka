@@ -100,14 +100,14 @@ var checkPattern = function(pat,x,y,offsetx,offsety,px,py){
 	//オフセットありパターン同士の一致チェック
 	for(var yi=0;yi<N;yi++){
 		for(var xi=0;xi<N;xi++){
-			var idx = pat.getIndex(x+xi,y+yi);
+			var idx = pat.getIndexLoop(x+xi,y+yi);
 			var ox = (xi)-offsetx;
 			var oy = (yi)-offsety;
 			if(ox< 0|| ox>=N
 				|| oy<0|| oy>=N){
 				continue;
 			}
-			var idx1 = pat.getIndex(px+ox,py+oy);
+			var idx1 = pat.getIndexLoop(px+ox,py+oy);
 			if(pat.rgba[idx] !== pat.rgba[idx1]){
 				return false;
 			}
