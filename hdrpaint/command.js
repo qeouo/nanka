@@ -469,6 +469,7 @@ var createDif=function(layer,left,top,width,height){
 //		refreshMain(0,layer.position[0]-Math.abs(x),layer.position[1]-Math.abs(y)
 //			,layer.img.width+Math.abs(x)*2,layer.img.height+Math.abs(y)*2);
 	}
+	var flgdata=[];
 	Command.resizeCanvas=function(log,undo_flg){
 		var width = log.param.width;
 		var height = log.param.height;

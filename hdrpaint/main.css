@@ -65,7 +65,7 @@ div.canvas_area{
 ul#color_selector_tab li{
 	display:inline-block;
 }
-div#status2{
+div.canvas_status{
 	position:absolute;
 	bottom:0px;
 }

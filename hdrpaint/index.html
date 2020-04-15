@@ -325,6 +325,13 @@ var onloadfunc=function(e){
 		var height= parseInt(inputs["resize_height"].value);
 		Command.executeCommand("resizeCanvas",{"width":width,"height":height});
 	});
+	var resizeCanvas=function(){
+		var width = parseInt(inputs["canvas_width"].value);
+		var height= parseInt(inputs["canvas_height"].value);
+		Command.executeCommand("resizeCanvas",{"width":width,"height":height});
+	}
+	inputs["canvas_width"].addEventListener("change",resizeCanvas);
+	inputs["canvas_height"].addEventListener("change",resizeCanvas);
 	inputs["btn_resize_layer"].addEventListener("click",function(e){
 		var width = parseInt(preview.width);
 		var height= parseInt(preview.height);
@@ -657,8 +664,12 @@ var createNewLayer=function(e){
 				<canvas width="256" height="256" id="preview" ></canvas>
 			</div>
 		</div>
-		<div id="status2">
+		<div class="canvas_status">
+			サイズ<input type="text" id="canvas_width" value="256" class="size">x
+			<input type="text" id="canvas_height" value="256" class="size">
+			<span id="status2">
 			teststet
+			<span>
 		</div>
 	</div>
 
