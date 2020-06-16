@@ -41,12 +41,6 @@ var canvas_field;
 
 
 	var getPos=function(e){
-		//var a=document.getElementById("canvas_field");
-		//var rect= a.getBoundingClientRect();
-		//doc.cursor_pos[0] =(e.pageX - rect.left- preview.offsetLeft +a.scrollLeft -window.scrollX)/(doc.scale/100.0) ;
-		//doc.cursor_pos[1] = (e.pageY- rect.top- preview.offsetTop +a.scrollTop -window.scrollY)/(doc.scale/100);
-		//doc.cursor_pos[0] =(e.clientX- rect.left)/(doc.scale/100.0) ;
-		//doc.cursor_pos[1] = (e.clientY- rect.top)/(doc.scale/100);
 		if(e.target===preview){
 			doc.cursor_pos[0] =(e.offsetX );
 			doc.cursor_pos[1] = (e.offsetY  );

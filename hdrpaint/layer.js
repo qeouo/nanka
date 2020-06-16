@@ -11,13 +11,116 @@ var Layer=(function(){
 		this.img=null;
 		this.mask_alpha=0;
 		this.position =new Vec2();
+
+		this.type=0; //1なら階層レイヤ
+		this.layers=null;
 	};
 	var ret = Layer;
 	return ret;
 })();
 
+var funcs=[];
+funcs["normal"] = function(dst,dst_idx,src,src_idx,alpha,power){
+	var src_alpha=src[src_idx+3]*alpha;
+	var dst_r = (1 - src_alpha);
+	var src_r = power*src_alpha;
+
+	dst[dst_idx+0]=dst[dst_idx+0] * dst_r +  src[src_idx+0]*src_r;
+	dst[dst_idx+1]=dst[dst_idx+1] * dst_r +  src[src_idx+1]*src_r;
+	dst[dst_idx+2]=dst[dst_idx+2] * dst_r +  src[src_idx+2]*src_r;
+	dst[dst_idx+3]=dst[dst_idx+3] * dst_r +  src_alpha;
+}
+funcs["mul"] = function(dst,dst_idx,src,src_idx,alpha,power){
+	var src_alpha=src[src_idx+3]*alpha;
+	var dst_r = (1-src_alpha);
+	var src_r = power*src_alpha;
+
+	dst[dst_idx+0]=dst[dst_idx+0] * (dst_r +  src[src_idx+0]*src_r);
+	dst[dst_idx+1]=dst[dst_idx+1] * (dst_r +  src[src_idx+1]*src_r);
+	dst[dst_idx+2]=dst[dst_idx+2] * (dst_r +  src[src_idx+2]*src_r);
+}
+funcs["transmit"] = function(dst,dst_idx,src,src_idx,alpha,power){
+	var src_alpha=src[src_idx+3]*alpha;
+	var dst_r = (1-src_alpha);
+	var src_r = power*src_alpha;
+
+	dst[dst_idx+0]=dst[dst_idx+0] * dst_r * src[src_idx+0]+  src[src_idx+0]*src_r;
+	dst[dst_idx+1]=dst[dst_idx+1] * dst_r * src[src_idx+1]+  src[src_idx+1]*src_r;
+	dst[dst_idx+2]=dst[dst_idx+2] * dst_r * src[src_idx+2]+  src[src_idx+2]*src_r;
+	dst[dst_idx+3]=dst[dst_idx+3] * dst_r +  src_alpha;
+}
+funcs["add"] = function(dst,dst_idx,src,src_idx,alpha,power){
+	var src_alpha=src[src_idx+3]*alpha;
+	var dst_r = (1-src_alpha);
+	var src_r = power*src_alpha;
+
+	dst[dst_idx+0]=dst[dst_idx+0]  + src[src_idx+0]*src_r;
+	dst[dst_idx+1]=dst[dst_idx+1]  + src[src_idx+1]*src_r;
+	dst[dst_idx+2]=dst[dst_idx+2]  + src[src_idx+2]*src_r;
+}
+
+funcs["sub"] = function(dst,dst_idx,src,src_idx,alpha,power){
+	var src_alpha=src[src_idx+3]*alpha;
+	var dst_r = (1-src_alpha);
+	var src_r = power*alpha;
+
+	dst[dst_idx+0]=dst[dst_idx+0]  - src[src_idx+0]*src_r;
+	dst[dst_idx+1]=dst[dst_idx+1]  - src[src_idx+1]*src_r;
+	dst[dst_idx+2]=dst[dst_idx+2]  - src[src_idx+2]*src_r;
+}
+Layer.prototype.composite=function(left,top,right,bottom,joined_img){
+	var layers=this.layers;
+	if(!layers){
+		return;
+	}
+	var joined_img_data = joined_img.data;
+	var joined_img_width = joined_img.width;
+
+	for(var li=0;li<layers.length;li++){
+		var layer = layers[li];
+
+		if(!layer.display){
+			//非表示の場合スルー
+			continue;
+		}
+		if(!layer.img){
+			continue;
+		}
+		var layer_img_data = layer.img.data;
+		var layer_alpha=layer.alpha;
+		var layer_power=Math.pow(2,layer.power);
+		var layer_img_width = layer.img.width;
+		var func = funcs[layer.blendfunc];
+		var layer_position_x= layer.position[0];
+		var layer_position_y= layer.position[1];
+
+		//レイヤごとのクランプ
+		var left2 = Math.max(left,layer.position[0]);
+		var top2 = Math.max(top,layer.position[1]);
+		var right2 = Math.min(layer.img.width + layer_position_x ,right);
+		var bottom2 = Math.min(layer.img.height + layer_position_y ,bottom);
+
+		for(var yi=top2;yi<bottom2;yi++){
+			var idx = yi * joined_img_width + left2 << 2;
+			var max = yi * joined_img_width + right2 << 2;
+			var idx2 = (yi-layer_position_y) * layer_img_width + left2 - layer_position_x << 2;
+			for(;idx<max;idx+=4){
+				func(joined_img_data,idx,layer_img_data,idx2,layer_alpha,layer_power);
+				idx2+=4;
+			}
+		}
+		
+	}
+	
+
+}
+
+
 var thumbnail_ctx,thumbnail_canvas;
+var rootLayer = new Layer();
+rootLayer.type=1;
 var layers=[];
+rootLayer.layers=layers;
 var selected_layer = null;
 var layers_container;
 var layer_id_count=0;
