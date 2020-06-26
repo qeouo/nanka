@@ -13,7 +13,7 @@ var Layer=(function(){
 		this.position =new Vec2();
 
 		this.type=0; //1なら階層レイヤ
-		this.layers=null;
+		this.layers=null; //子供レイヤ
 	};
 	var ret = Layer;
 	return ret;
@@ -119,8 +119,9 @@ Layer.prototype.composite=function(left,top,right,bottom,joined_img){
 var thumbnail_ctx,thumbnail_canvas;
 var rootLayer = new Layer();
 rootLayer.type=1;
-var layers=[];
-rootLayer.layers=layers;
+var _layers=[];
+var layers=_layers;
+rootLayer.layers=[];
 var selected_layer = null;
 var layers_container;
 var layer_id_count=0;
@@ -157,13 +158,15 @@ var layerSelect= function(e){
 
 }
 
+//ドラッグ＆ドロップによるレイヤ順編集
 var drag_div=null;
+var dragTarget=null;
 function DragStart(event) {
+	//ドラッグ開始
 	var num = getLayerNum(event.currentTarget);
 	if(num<0)return;
      event.dataTransfer.setData("text", num);
-	//var layers_container = document.getElementById("layers_container");
-	//layers_container.removeChild(event.currentTarget);
+	dragTarget=layers[num];
 	 drag_div=event.currentTarget;
 	 selectLayer(layers[num]);
 }
@@ -171,26 +174,23 @@ function dragover_handler(event) {
  event.preventDefault();
  event.dataTransfer.dropEffect = "move";
 }	
-function Drop(event) {
+//function Drop(event) {
+function DragEnter(event) {
+	//ドロップ時
     var drag = parseInt(event.dataTransfer.getData("text"));
-	var drag_div = layers[drag].div;
-	//if(drag_div === event.currentTarget){
-	//	return;
-	//}
-	var layer=layers[drag];
-	//layers.splice(drag,1);
+	drag = dragTarget;
+	var layer=dragTarget;//layers[drag];
+	var drag_div = layer.div;
 	var drop = getLayerNum(event.currentTarget);
-	//var drop_div = layers[drop].div;
 
 	var layers_container = document.getElementById("layers_container");
 
-	var drop;
-	if(event.offsetY<32){
-		drop++;
-	}
-	if(drop>drag){
-		drop--;
-	}
+//	if(event.offsetY<32){
+//		drop++;
+//	}
+//	if(drop>drag){
+//		drop--;
+//	}
 
 
 	Command.executeCommand("moveLayer",{"layer_id":layer.id,"position":drop});
@@ -244,7 +244,9 @@ var removeLayer=function(idx){
 	layers[idx].div.parentNode.removeChild(layer.div);
 	layers.splice(idx,1);
 }
-var appendLayer=function(idx,layer){
+var appendLayer=function(root,idx,layer){
+	_layers.push(layer);
+	var layers = root.layers;
 	layers.splice(idx,0,layer);
 
 	var layers_container = document.getElementById("layers_container");
@@ -255,7 +257,7 @@ var appendLayer=function(idx,layer){
 	refreshLayerThumbnail(layer);
 	refreshMain();
 }
-var createLayer=function(img){
+var createLayer=function(img,composite_flg){
 	if( typeof idx=== 'undefined'){
 		idx=layers.length;
 	}
@@ -264,7 +266,18 @@ var createLayer=function(img){
 	}
 	var layer_template= document.getElementById("layer_template");
 	var layer = new Layer();
+
+	if(composite_flg){
+		//グループレイヤの場合
+		layer.type=1;
+		layer.layers=[];
+	}
+
 	var layer_div = layer_template.children[0].cloneNode(true);
+	if(layer.type == 1){
+		layer_div.classList.add("group");
+	}
+
 	layer_div.addEventListener("click",layerSelect);
 	layer.div=layer_div;
 

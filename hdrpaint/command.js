@@ -356,6 +356,9 @@ var createDif=function(layer,left,top,width,height){
 		}
 		refreshMain();
 	}
+	Command.createNewCompositeLayer=function(log,undo_flg){
+		Command.createNewLayer(log,undo_flg);
+	}
 	Command.createNewLayer=function(log,undo_flg){
 		var param = log.param;
 		var width = param.width;
@@ -376,13 +379,14 @@ var createDif=function(layer,left,top,width,height){
 				data[i+2]= 1;
 				data[i+3]= 0;
 			}
-			layer =createLayer(img,n);
+
+			layer =createLayer(img,param.composite_flg);
 			log.undo_data={"layer":layer};
 		}else{
 			layer = log.undo_data.layer;
 		}
 
-		appendLayer(n,layer);
+		appendLayer(rootLayer,n,layer);
 		selectLayer(layer);
 
 		return layer;
@@ -425,7 +429,7 @@ var createDif=function(layer,left,top,width,height){
 		}else{
 			layer=log.undo_data.layer;
 		}
-		appendLayer(n,layer);
+		appendLayer(rootLayer,n,layer);
 
 		//layer.img=img;
 		layer.name = file;
@@ -507,8 +511,8 @@ var createDif=function(layer,left,top,width,height){
 			//width=log.undo_data.width;
 			//height=log.undo_data.height;
 			removeNewLayer(undo_data.position);
-			appendLayer(undo_data.position,undo_data.layerA);
-			appendLayer(undo_data.positionB,undo_data.layerB);
+			appendLayer(rootLayer,undo_data.position,undo_data.layerA);
+			appendLayer(rootLayer,undo_data.positionB,undo_data.layerB);
 			return;
 		}
 
@@ -576,7 +580,7 @@ var createDif=function(layer,left,top,width,height){
 			removeLayer(n);
 		}
 
-		appendLayer(n,layer);
+		appendLayer(rootLayer,n,layer);
 
 		refreshMain(0,layer.position[0],layer.position[1],layer.img.width,layer.img.height);
 
@@ -691,7 +695,7 @@ var createDif=function(layer,left,top,width,height){
 			var layer = log.undo_data.layer;
 			var idx = log.undo_data.position;
 
-			appendLayer(idx,layer);
+			appendLayer(rootLayer,idx,layer);
 			refreshMain();
 			return;
 		}

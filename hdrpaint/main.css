@@ -106,6 +106,17 @@ div.spacer{
 	padding:2px;
 white-space: nowrap;
 }
+.layer.group{
+	border:inset 2px;
+}
+.layer div.children{
+	display:none;
+}
+.layer.group div.children{
+	display:block;
+	border:solid 1px;
+}
+
 
 .colorpicker{
 	width:48px;

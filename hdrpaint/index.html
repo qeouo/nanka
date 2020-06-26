@@ -539,6 +539,16 @@ var createNewLayer=function(e){
 	
 	Command.executeCommand("createNewLayer",{"position":idx,"width":width,"height":height});
 	//var layer=Command.createNewLayer(width,height,idx);
+}
+var createNewCompositeLayer=function(e){
+	//新規コンポジットレイヤーを作成
+	var width= preview.width;
+	var height= preview.height;
+	
+	var idx= layers.indexOf(selected_layer)+1;
+	
+	Command.executeCommand("createNewCompositeLayer",{"position":idx,"width":width,"height":height,"composite_flg":1});
+	//var layer=Command.createNewLayer(width,height,idx);
 
 
 }
@@ -707,15 +717,17 @@ var createNewLayer=function(e){
 		</div>
 
 		<div style="display:none;" id="layer_template">
-			<div class="layer" draggable="true" ondragstart="DragStart(event)" ondragover="dragover_handler(event)" ondrop="Drop(event)"  ondragend="dragend(event);">
+			<div class="layer" draggable="true" ondragstart="DragStart(event)" ondragover="dragover_handler(event)" ondragenter="DragEnter(event)"  ondragend="dragend(event);">
 				<img class="thumbnail" style="border:solid 1px;float:left;">
 				<div class="name"></div>
 				<div class="layer_attributes"></div>
+				<div class="children"></div>
 			</div>
 		</div>
 
 		<div  style="">
-			<input type="button" id="new" onclick="createNewLayer(event);" value="新規レイヤ" class="size"><br>
+			<input type="button" id="new" onclick="createNewLayer(event);" value="新規レイヤ">
+			<input type="button" id="new_composite_layer" onclick="createNewCompositeLayer(event);" value="新規グループレイヤ"><br>
 			<ul>
 			<li><a id="" href="#" onclick="inputs['open_layer'].click();return false;">画像ファイルを新規レイヤで開く</a></li>
 			</ul>
