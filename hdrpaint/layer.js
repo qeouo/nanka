@@ -250,6 +250,9 @@ var appendLayer=function(root,idx,layer){
 	layers.splice(idx,0,layer);
 
 	var layers_container = document.getElementById("layers_container");
+	if(root !== rootLayer){
+		layers_container = root.div;
+	}
 	for(var li=layers.length;li--;){
 		layers_container.appendChild(layers[li].div);
 	}

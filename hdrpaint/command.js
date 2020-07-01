@@ -385,12 +385,43 @@ var createDif=function(layer,left,top,width,height){
 		}else{
 			layer = log.undo_data.layer;
 		}
+		var parentLayer = selected_layer;
+		if(!parentLayer){
+			parentLayer = rootLayer;
+		}
+		if(parentLayer.type == 0){
+			//グループレイヤ以外の場合は親を指定
+			parentLayer = getParentLayer(parentLayer);
+		}
 
-		appendLayer(rootLayer,n,layer);
+
+		appendLayer(parentLayer,n,layer);
 		selectLayer(layer);
 
 		return layer;
 
+	}
+	var getParentLayer = function(target_layer){
+		var cb = function(parent_layer,target_layer){
+			var layers = parent_layer.layers;
+			for(var i=0;i<layers.length;i++){
+				if(layers[i] == target_layer){
+					return parent_layer;
+				}
+				if(layers[i].type === 1){
+					var res = cb(layers[i].layers);
+					if(res){
+						return res;
+					}
+				}
+			}
+			return null;
+		}
+		var res = cb(rootLayer,target_layer);
+		if(!res){
+			res = rootLayer;
+		}
+		return res;
 	}
 
 
