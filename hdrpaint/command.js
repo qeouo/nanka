@@ -402,14 +402,14 @@ var createDif=function(layer,left,top,width,height){
 
 	}
 	var getParentLayer = function(target_layer){
-		var cb = function(parent_layer,target_layer){
+		var cb = function(parent_layer){
 			var layers = parent_layer.layers;
 			for(var i=0;i<layers.length;i++){
 				if(layers[i] == target_layer){
 					return parent_layer;
 				}
 				if(layers[i].type === 1){
-					var res = cb(layers[i].layers);
+					var res = cb(layers[i]);
 					if(res){
 						return res;
 					}

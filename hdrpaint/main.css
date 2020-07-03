@@ -100,21 +100,24 @@ div.spacer{
 .layer{
 	border:solid 1px;
 	height:64px;
+	min-height:64px;
 	font-size:smaller;
 	line-height:1;
 	background-color:transparent;
 	padding:2px;
 white-space: nowrap;
+clear:both;
 }
 .layer.group{
 	border:inset 2px;
+	height:auto;
 }
 .layer div.children{
 	display:none;
 }
 .layer.group div.children{
 	display:block;
-	border:solid 1px;
+	margin-left:20px;
 }
 
 

@@ -251,7 +251,7 @@ var appendLayer=function(root,idx,layer){
 
 	var layers_container = document.getElementById("layers_container");
 	if(root !== rootLayer){
-		layers_container = root.div;
+		layers_container = root.div.getElementsByClassName("children")[0];
 	}
 	for(var li=layers.length;li--;){
 		layers_container.appendChild(layers[li].div);
