@@ -198,44 +198,47 @@ function DragEnter(event) {
 function dragend(event) {
 }
 
-Command.moveLayer=function(log,undo_flg){
 
-	var param = log.param;
-	var layer = layers.find(function(a){return a.id===param.layer_id;});
-	var position = param.position;
-	var layer_num = layers.indexOf(layer);
-
-	if(undo_flg){
-		position = log.undo_data.before;
+	Layer.findLayer=function(layer_id){
+		var cb = function(parent_layer,id){
+			var layers = parent_layer.layers;
+			for(var i=0;i<layers.length;i++){
+				if(layers[i].id == id){
+					return layers[i];
+				}
+				if(layers[i].type === 1){
+					var res = cb(layers[i]);
+					if(res){
+						return res;
+					}
+				}
+			}
+			return null;
+		}
+		return cb(rootLayer,layer_id);
 	}
-	
-	if(position<0|| layers.length <= position){
-		return;
-	}	
-	if(layer_num === position){
-		return;
-	}	
-
-	layers.splice(layer_num,1);
-	layers.splice(position,0,layer);
-
-	var layers_container = document.getElementById("layers_container");
-
-	layers_container.removeChild(layer.div);
-	if(position===0){
-		layers_container.insertBefore(layer.div,null);
-	}else{
-		layers_container.insertBefore(layer.div,layers_container.children[layers.length-1-position]);
+	Layer.getParentLayer = function(target_layer){
+		var cb = function(parent_layer){
+			var layers = parent_layer.layers;
+			for(var i=0;i<layers.length;i++){
+				if(layers[i] == target_layer){
+					return parent_layer;
+				}
+				if(layers[i].type === 1){
+					var res = cb(layers[i]);
+					if(res){
+						return res;
+					}
+				}
+			}
+			return null;
+		}
+		var res = cb(rootLayer,target_layer);
+		if(!res){
+			res = rootLayer;
+		}
+		return res;
 	}
-	
-
-
-	refreshMain(0);
-
-	if(!log.undo_data){
-		log.undo_data = {"before":layer_num};
-	}
-}
 
 
 var removeLayer=function(idx){

@@ -359,10 +359,12 @@ var onloadfunc=function(e){
 	});
 
 	inputs["down_layer"].addEventListener("click",function(e){
+		var layers = Layer.getParentLayer(selected_layer).layers;
 		var position = layers.indexOf(selected_layer);
 		Command.executeCommand("moveLayer",{"layer_id":selected_layer.id,"position":position-1});
 	});
 	inputs["up_layer"].addEventListener("click",function(e){
+		var layers = Layer.getParentLayer(selected_layer).layers;
 		var position = layers.indexOf(selected_layer);
 		Command.executeCommand("moveLayer",{"layer_id":selected_layer.id,"position":position+1});
 	});

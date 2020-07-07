@@ -391,7 +391,7 @@ var createDif=function(layer,left,top,width,height){
 		}
 		if(parentLayer.type == 0){
 			//グループレイヤ以外の場合は親を指定
-			parentLayer = getParentLayer(parentLayer);
+			parentLayer = Layer.getParentLayer(parentLayer);
 		}
 
 
@@ -401,29 +401,48 @@ var createDif=function(layer,left,top,width,height){
 		return layer;
 
 	}
-	var getParentLayer = function(target_layer){
-		var cb = function(parent_layer){
-			var layers = parent_layer.layers;
-			for(var i=0;i<layers.length;i++){
-				if(layers[i] == target_layer){
-					return parent_layer;
-				}
-				if(layers[i].type === 1){
-					var res = cb(layers[i]);
-					if(res){
-						return res;
-					}
-				}
-			}
-			return null;
-		}
-		var res = cb(rootLayer,target_layer);
-		if(!res){
-			res = rootLayer;
-		}
-		return res;
-	}
 
+
+Command.moveLayer=function(log,undo_flg){
+
+	var param = log.param;
+	var layer = Layer.findLayer(param.layer_id);
+	var parentLayer = Layer.getParentLayer(layer);
+	var layers =parentLayer.layers;
+	var position = param.position;
+	var layer_num = layers.indexOf(layer);
+
+	if(undo_flg){
+		position = log.undo_data.before;
+	}
+	
+	if(position<0|| layers.length <= position){
+		return;
+	}	
+	if(layer_num === position){
+		return;
+	}	
+
+	layers.splice(layer_num,1);
+	layers.splice(position,0,layer);
+
+	var layers_container = document.getElementById("layers_container");
+
+	layers_container.removeChild(layer.div);
+	if(position===0){
+		layers_container.insertBefore(layer.div,null);
+	}else{
+		layers_container.insertBefore(layer.div,layers_container.children[layers.length-1-position]);
+	}
+	
+
+
+	refreshMain(0);
+
+	if(!log.undo_data){
+		log.undo_data = {"before":layer_num};
+	}
+}
 
 	Command.changeLayerAttribute=function(log,undo_flg){
 		var param = log.param;
