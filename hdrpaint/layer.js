@@ -68,13 +68,14 @@ funcs["sub"] = function(dst,dst_idx,src,src_idx,alpha,power){
 	dst[dst_idx+1]=dst[dst_idx+1]  - src[src_idx+1]*src_r;
 	dst[dst_idx+2]=dst[dst_idx+2]  - src[src_idx+2]*src_r;
 }
-Layer.prototype.composite=function(left,top,right,bottom,joined_img){
+Layer.prototype.composite=function(left,top,right,bottom){
 	var layers=this.layers;
 	if(!layers){
 		return;
 	}
-	var joined_img_data = joined_img.data;
-	var joined_img_width = joined_img.width;
+	var img = this.img;
+	var img_data = img.data;
+	var img_width = img.width;
 
 	for(var li=0;li<layers.length;li++){
 		var layer = layers[li];
@@ -101,11 +102,11 @@ Layer.prototype.composite=function(left,top,right,bottom,joined_img){
 		var bottom2 = Math.min(layer.img.height + layer_position_y ,bottom);
 
 		for(var yi=top2;yi<bottom2;yi++){
-			var idx = yi * joined_img_width + left2 << 2;
-			var max = yi * joined_img_width + right2 << 2;
+			var idx = yi * img_width + left2 << 2;
+			var max = yi * img_width + right2 << 2;
 			var idx2 = (yi-layer_position_y) * layer_img_width + left2 - layer_position_x << 2;
 			for(;idx<max;idx+=4){
-				func(joined_img_data,idx,layer_img_data,idx2,layer_alpha,layer_power);
+				func(img_data,idx,layer_img_data,idx2,layer_alpha,layer_power);
 				idx2+=4;
 			}
 		}
@@ -117,11 +118,9 @@ Layer.prototype.composite=function(left,top,right,bottom,joined_img){
 
 
 var thumbnail_ctx,thumbnail_canvas;
-var rootLayer = new Layer();
-rootLayer.type=1;
 var _layers=[];
 var layers=_layers;
-rootLayer.layers=[];
+var rootLayer=null;
 var selected_layer = null;
 var layers_container;
 var layer_id_count=0;
@@ -214,6 +213,9 @@ function dragend(event) {
 				}
 			}
 			return null;
+		}
+		if(rootLayer.id == layer_id){
+			return rootLayer;
 		}
 		return cb(rootLayer,layer_id);
 	}

@@ -359,14 +359,16 @@ var onloadfunc=function(e){
 	});
 
 	inputs["down_layer"].addEventListener("click",function(e){
-		var layers = Layer.getParentLayer(selected_layer).layers;
+		var parent_layer =  Layer.getParentLayer(selected_layer);
+		var layers = parent_layer.layers;
 		var position = layers.indexOf(selected_layer);
-		Command.executeCommand("moveLayer",{"layer_id":selected_layer.id,"position":position-1});
+		Command.executeCommand("moveLayer",{"layer_id":selected_layer.id,"parent_layer_id":parent_layer.id,"position":position-1});
 	});
 	inputs["up_layer"].addEventListener("click",function(e){
-		var layers = Layer.getParentLayer(selected_layer).layers;
+		var parent_layer =  Layer.getParentLayer(selected_layer);
+		var layers = parent_layer.layers;
 		var position = layers.indexOf(selected_layer);
-		Command.executeCommand("moveLayer",{"layer_id":selected_layer.id,"position":position+1});
+		Command.executeCommand("moveLayer",{"layer_id":selected_layer.id,"parent_layer_id":parent_layer.id,"position":position+1});
 	});
 	inputs["join_under_layer"].addEventListener("click",function(e){
 		var position = layers.indexOf(selected_layer);
@@ -475,6 +477,9 @@ var onloadfunc=function(e){
 	a.addEventListener("click",saveHdr);
 
 //初期化
+	rootLayer = createLayer(new Img(1,1),1);
+	Command.executeCommand("resizeLayer",{"layer_id":rootLayer.id,"width":512,"height":512});
+
 	Command.executeCommand("resizeCanvas",{"width":512,"height":512});
 	Log.reset();
 	//var layer=Command.createNewLayer(preview.width,preview.height,0);
@@ -485,6 +490,7 @@ var onloadfunc=function(e){
 		img_data[i]=1;
 	}
 	layer.name="default layer"
+
 
 	refreshLayerThumbnail(layer);
 

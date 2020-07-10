@@ -409,6 +409,7 @@ Command.moveLayer=function(log,undo_flg){
 	var layer = Layer.findLayer(param.layer_id);
 	var parentLayer = Layer.getParentLayer(layer);
 	var layers =parentLayer.layers;
+	var parent_layer = Layer.findLayer(param.parent_layer_id);
 	var position = param.position;
 	var layer_num = layers.indexOf(layer);
 
@@ -423,10 +424,11 @@ Command.moveLayer=function(log,undo_flg){
 		return;
 	}	
 
-	layers.splice(layer_num,1);
-	layers.splice(position,0,layer);
+	parentLayer.layers.splice(layer_num,1);
+	parent_layer.layers.splice(position,0,layer);
+	
 
-	var layers_container = document.getElementById("layers_container");
+	var layers_container = layer.div.parentNode;
 
 	layers_container.removeChild(layer.div);
 	if(position===0){
@@ -435,7 +437,6 @@ Command.moveLayer=function(log,undo_flg){
 		layers_container.insertBefore(layer.div,layers_container.children[layers.length-1-position]);
 	}
 	
-
 
 	refreshMain(0);
 
@@ -542,10 +543,11 @@ Command.moveLayer=function(log,undo_flg){
 		preview.height=height
 
 		preview_ctx_imagedata=preview_ctx.createImageData(width,height);
-		joined_img = new Img(width,height);
 		horizon_img = new Img(width,height);
 		bloomed_img = new Img(width,height);
 		bloom_img = new Img(width,height);
+
+		rootLayer.img=new Img(width,height);
 
 		refreshMain(0);
 	}
@@ -658,7 +660,7 @@ Command.moveLayer=function(log,undo_flg){
 			return;
 		}
 
-		var layer = layers.find(function(a){return a.id===param.layer_id;});
+		var layer = Layer.findLayer(param.layer_id);
 		var img = layer.img;
 		if(!img){
 			return;

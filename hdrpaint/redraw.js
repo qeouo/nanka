@@ -1,5 +1,4 @@
 
-var joined_img=null;
 var horizon_img=null;
 var bloomed_img=null;
 var bloom_img=null;
@@ -59,6 +58,7 @@ var refreshMain_sub=function(step,x,y,w,h){
 		step=0;
 	}
 	var bloom_size = parseFloat(inputs["bloom_size"].value);
+	var joined_img = rootLayer.img;
 
 	//引数無しの場合、デフォルトで更新領域は全域
 	var left = 0;
@@ -105,7 +105,7 @@ var refreshMain_sub=function(step,x,y,w,h){
 		}
 
 		//レイヤ合成
-		rootLayer.composite(left,top,right,bottom,joined_img);
+		rootLayer.composite(left,top,right,bottom);
 		if(inputs["ch_bloom"].checked ){
 		gauss(bloom_size,bloom_size,left,right,top,bottom);
 		}
