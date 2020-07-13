@@ -58,7 +58,7 @@ var refreshMain_sub=function(step,x,y,w,h){
 		step=0;
 	}
 	var bloom_size = parseFloat(inputs["bloom_size"].value);
-	var joined_img = rootLayer.img;
+	var joined_img = root_layer.img;
 
 	//引数無しの場合、デフォルトで更新領域は全域
 	var left = 0;
@@ -93,19 +93,9 @@ var refreshMain_sub=function(step,x,y,w,h){
 	var joined_img_width = joined_img.width;
 
 	if(step<=0){
-		for(var yi=top;yi<bottom;yi++){
-			var idx = yi * joined_img_width + left << 2;
-			var max = yi * joined_img_width + right << 2;
-			for(;idx<max;idx+=4){
-				joined_img_data[idx+0]=0;
-				joined_img_data[idx+1]=0;
-				joined_img_data[idx+2]=0;
-				joined_img_data[idx+3]=0;
-			}
-		}
 
 		//レイヤ合成
-		rootLayer.composite(left,top,right,bottom);
+		root_layer.composite(left,top,right,bottom);
 		if(inputs["ch_bloom"].checked ){
 		gauss(bloom_size,bloom_size,left,right,top,bottom);
 		}
@@ -186,9 +176,9 @@ var refreshMain_sub=function(step,x,y,w,h){
 
 var gauss=function(d,size,left,right,top,bottom){
 	var MAX = size|0;
-	var src= joined_img;
+	var src= root_layer.img;
 	var dst= horizon_img;
-	var joined_img_data=joined_img.data;
+	var joined_img_data=src.data;
 	
 
 	//係数作成
@@ -205,8 +195,8 @@ var gauss=function(d,size,left,right,top,bottom){
 		weight[i] /= t;
 	}
 
-	var height = joined_img.height;
-	var width = joined_img.width;
+	var height = src.height;
+	var width = src.width;
 	var data = src.data;
 	var dstdata = dst.data;
 	//横ぼかし
@@ -509,12 +499,13 @@ var refreshTab = function(target_id){
 }
 var refreshPreviewStatus = function(e){
 	//カーソル下情報表示
-	var data = joined_img.data;
+	var img = root_layer.img;
+	var data = img.data;
 
 	var x = doc.cursor_pos[0];
 	var y = doc.cursor_pos[1];
-	var width=joined_img.width;
-	var height=joined_img.height;
+	var width=img.width;
+	var height=img.height;
 	var status2= document.getElementById("status2");
 	var status= document.getElementById("status");
 

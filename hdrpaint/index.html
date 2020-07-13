@@ -477,8 +477,8 @@ var onloadfunc=function(e){
 	a.addEventListener("click",saveHdr);
 
 //初期化
-	rootLayer = createLayer(new Img(1,1),1);
-	Command.executeCommand("resizeLayer",{"layer_id":rootLayer.id,"width":512,"height":512});
+	root_layer = createLayer(new Img(1,1),1);
+	//Command.executeCommand("resizeLayer",{"layer_id":root_layer.id,"width":512,"height":512});
 
 	Command.executeCommand("resizeCanvas",{"width":512,"height":512});
 	Log.reset();

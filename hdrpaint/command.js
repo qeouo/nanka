@@ -387,7 +387,7 @@ var createDif=function(layer,left,top,width,height){
 		}
 		var parentLayer = selected_layer;
 		if(!parentLayer){
-			parentLayer = rootLayer;
+			parentLayer = root_layer;
 		}
 		if(parentLayer.type == 0){
 			//グループレイヤ以外の場合は親を指定
@@ -480,7 +480,7 @@ Command.moveLayer=function(log,undo_flg){
 		}else{
 			layer=log.undo_data.layer;
 		}
-		appendLayer(rootLayer,n,layer);
+		appendLayer(root_layer,n,layer);
 
 		//layer.img=img;
 		layer.name = file;
@@ -547,7 +547,7 @@ Command.moveLayer=function(log,undo_flg){
 		bloomed_img = new Img(width,height);
 		bloom_img = new Img(width,height);
 
-		rootLayer.img=new Img(width,height);
+		root_layer.img=new Img(width,height);
 
 		refreshMain(0);
 	}
@@ -563,8 +563,8 @@ Command.moveLayer=function(log,undo_flg){
 			//width=log.undo_data.width;
 			//height=log.undo_data.height;
 			removeNewLayer(undo_data.position);
-			appendLayer(rootLayer,undo_data.position,undo_data.layerA);
-			appendLayer(rootLayer,undo_data.positionB,undo_data.layerB);
+			appendLayer(root_layer,undo_data.position,undo_data.layerA);
+			appendLayer(root_layer,undo_data.positionB,undo_data.layerB);
 			return;
 		}
 
@@ -632,7 +632,7 @@ Command.moveLayer=function(log,undo_flg){
 			removeLayer(n);
 		}
 
-		appendLayer(rootLayer,n,layer);
+		appendLayer(root_layer,n,layer);
 
 		refreshMain(0,layer.position[0],layer.position[1],layer.img.width,layer.img.height);
 
@@ -747,7 +747,7 @@ Command.moveLayer=function(log,undo_flg){
 			var layer = log.undo_data.layer;
 			var idx = log.undo_data.position;
 
-			appendLayer(rootLayer,idx,layer);
+			appendLayer(root_layer,idx,layer);
 			refreshMain();
 			return;
 		}

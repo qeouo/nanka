@@ -69,6 +69,7 @@ funcs["sub"] = function(dst,dst_idx,src,src_idx,alpha,power){
 	dst[dst_idx+2]=dst[dst_idx+2]  - src[src_idx+2]*src_r;
 }
 Layer.prototype.composite=function(left,top,right,bottom){
+
 	var layers=this.layers;
 	if(!layers){
 		return;
@@ -76,17 +77,37 @@ Layer.prototype.composite=function(left,top,right,bottom){
 	var img = this.img;
 	var img_data = img.data;
 	var img_width = img.width;
+	
+		for(var yi=top;yi<bottom;yi++){
+			var idx = yi * img_width + left << 2;
+			var max = yi * img_width + right << 2;
+			for(;idx<max;idx+=4){
+				img_data[idx+0]=0;
+				img_data[idx+1]=0;
+				img_data[idx+2]=0;
+				img_data[idx+3]=0;
+			}
+		}
 
 	for(var li=0;li<layers.length;li++){
 		var layer = layers[li];
+
+		if(!layer.img){
+			continue;
+		}
+
+		//子グループレイヤを更新
+		layer.update_flg=1;
+		if(layer.type==1 && layer.update_flg){
+			layer.composite(left,top,right,bottom);
+			layer.update_flg=0;
+		}
 
 		if(!layer.display){
 			//非表示の場合スルー
 			continue;
 		}
-		if(!layer.img){
-			continue;
-		}
+
 		var layer_img_data = layer.img.data;
 		var layer_alpha=layer.alpha;
 		var layer_power=Math.pow(2,layer.power);
@@ -120,7 +141,7 @@ Layer.prototype.composite=function(left,top,right,bottom){
 var thumbnail_ctx,thumbnail_canvas;
 var _layers=[];
 var layers=_layers;
-var rootLayer=null;
+var root_layer=null;
 var selected_layer = null;
 var layers_container;
 var layer_id_count=0;
@@ -154,6 +175,8 @@ var layerSelect= function(e){
 	var num=getLayerNum(e.currentTarget);
 
 	selectLayer(layers[num]);
+
+	e.stopPropagation();
 
 }
 
@@ -214,10 +237,10 @@ function dragend(event) {
 			}
 			return null;
 		}
-		if(rootLayer.id == layer_id){
-			return rootLayer;
+		if(root_layer.id == layer_id){
+			return root_layer;
 		}
-		return cb(rootLayer,layer_id);
+		return cb(root_layer,layer_id);
 	}
 	Layer.getParentLayer = function(target_layer){
 		var cb = function(parent_layer){
@@ -235,9 +258,9 @@ function dragend(event) {
 			}
 			return null;
 		}
-		var res = cb(rootLayer,target_layer);
+		var res = cb(root_layer,target_layer);
 		if(!res){
-			res = rootLayer;
+			res = root_layer;
 		}
 		return res;
 	}
@@ -255,7 +278,7 @@ var appendLayer=function(root,idx,layer){
 	layers.splice(idx,0,layer);
 
 	var layers_container = document.getElementById("layers_container");
-	if(root !== rootLayer){
+	if(root !== root_layer){
 		layers_container = root.div.getElementsByClassName("children")[0];
 	}
 	for(var li=layers.length;li--;){
