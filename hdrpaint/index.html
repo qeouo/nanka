@@ -80,6 +80,7 @@ var onloadfunc=function(e){
 
 	var drawfunc =function(e){
 		//描画関数
+		
 		var x =doc.cursor_pos[0];
 		var y = doc.cursor_pos[1];
 		if(inputs["pen"].checked && (e.buttons&1)){
@@ -150,7 +151,15 @@ var onloadfunc=function(e){
 		var y = doc.cursor_pos[1];
 		drag_start[0]= x;
 		drag_start[1]= y;
+
+		if(selected_layer===null){
+			return;
+		}
+
 		if(inputs["fill"].checked && (e.buttons &1)){
+			if(selected_layer.type === 1){
+				return;
+			}
 			//塗りつぶし
 			var fill_layer=0;
 			if(inputs["fill_layer"].checked){
@@ -170,7 +179,7 @@ var onloadfunc=function(e){
 				return;
 			}
 			Command.executeCommand("fill",{"layer_id":selected_layer.id,"x":x,"y":y,"color":new Float32Array(doc.draw_col),"is_layer":fill_layer});
-		}else if(inputs["translate"].checked && (e.buttons &1) && selected_layer){
+		}else if(inputs["translate"].checked && (e.buttons &1) ){
 			//レイヤ位置移動
 			drag_start[0]= x | 0;
 			drag_start[1]= y | 0;
@@ -180,7 +189,11 @@ var onloadfunc=function(e){
 				layer_id=-1;
 			}
 			pen_log = Command.executeCommand("translateLayer",{"layer_id":layer_id,"x":0,"y":0} ,{"x":selected_layer.position[0],"y":selected_layer.position[1]},1);
-		}else if(inputs["pen"].checked && (e.buttons &1) && selected_layer){
+		}else if(inputs["pen"].checked && (e.buttons &1) ){
+
+			if(selected_layer.type === 1){
+				return;
+			}
 			var weight=parseFloat(inputs["weight"].value);
 			var pressure_effect_flgs= 0;
 			if(inputs["weight_pressure_effect"].checked){
@@ -729,7 +742,7 @@ var createNewCompositeLayer=function(e){
 				<img class="thumbnail" style="border:solid 1px;float:left;">
 				<div class="name"></div>
 				<div class="layer_attributes"></div>
-				<div class="children"></div>
+				<div class="children" ondragenter="DragEnterChild(event)"></div>
 			</div>
 		</div>
 

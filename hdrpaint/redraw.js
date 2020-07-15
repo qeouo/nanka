@@ -15,7 +15,7 @@ var enableRefresh=function(){
 
 
 var refresh_stack=[] ;
-var refreshMain=function(_step,_x,_y,_w,_h){
+var refreshMain=function(_step,_x,_y,_w,_h,_layer){
 	if(refreshoff){
 		//更新禁止フラグが立っている場合は処理しない
 		return;
@@ -42,6 +42,7 @@ var refreshMain=function(_step,_x,_y,_w,_h){
 	refresh_data.y=_y;
 	refresh_data.w=_w;
 	refresh_data.h=_h;
+	refresh_data.layer=_layer;
 	refresh_stack.push(refresh_data);
 }
 var refreshMain_=function(){
@@ -93,11 +94,23 @@ var refreshMain_sub=function(step,x,y,w,h){
 	var joined_img_width = joined_img.width;
 
 	if(step<=0){
+		var f = function(layer,left,top,right,bottom){
+			var lower_layers = layer.layers;
+			for(var li=0;li<lower_layers.length;li++){
+				lower_layer = lower_layers[li];
+				if(lower_layer.type){
+					f(lower_layer,left,top,right,bottom);
+				}
+			}
+			layer.composite(left,top,right,bottom);
 
-		//レイヤ合成
-		root_layer.composite(left,top,right,bottom);
+			refreshLayerThumbnail(layer);
+		}
+
+		f(root_layer,left,top,right,bottom);
+
 		if(inputs["ch_bloom"].checked ){
-		gauss(bloom_size,bloom_size,left,right,top,bottom);
+			gauss(bloom_size,bloom_size,left,right,top,bottom);
 		}
 	}
 

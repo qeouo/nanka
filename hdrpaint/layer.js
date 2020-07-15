@@ -96,13 +96,6 @@ Layer.prototype.composite=function(left,top,right,bottom){
 			continue;
 		}
 
-		//子グループレイヤを更新
-		layer.update_flg=1;
-		if(layer.type==1 && layer.update_flg){
-			layer.composite(left,top,right,bottom);
-			layer.update_flg=0;
-		}
-
 		if(!layer.display){
 			//非表示の場合スルー
 			continue;
@@ -150,6 +143,11 @@ var getLayerNum=function(div){
 	//divからレイヤー番号取得
 	return layers.findIndex(function(l){return l.div===div;});
 }
+var getLayerFromDiv=function(div){
+	//divからレイヤー取得
+	return layers.find(function(l){return l.div===div;});
+}
+
 
 
 var selectLayer=function(target_layer){
@@ -191,6 +189,7 @@ function DragStart(event) {
 	dragTarget=layers[num];
 	 drag_div=event.currentTarget;
 	 selectLayer(layers[num]);
+	event.stopPropagation();
 }
 function dragover_handler(event) {
  event.preventDefault();
@@ -203,19 +202,35 @@ function DragEnter(event) {
 	drag = dragTarget;
 	var layer=dragTarget;//layers[drag];
 	var drag_div = layer.div;
-	var drop = getLayerNum(event.currentTarget);
+	var drop_layer = getLayerFromDiv(event.currentTarget);
 
-	var layers_container = document.getElementById("layers_container");
+	var now_parent_layer = Layer.getParentLayer(layer);
+	var parent_layer = Layer.getParentLayer(drop_layer);
 
-//	if(event.offsetY<32){
-//		drop++;
-//	}
-//	if(drop>drag){
-//		drop--;
-//	}
+	var position= parent_layer.layers.indexOf(drop_layer);
+	if(drop_layer === now_parent_layer){
+		return;
+	}
 
+	//Command.executeCommand("moveLayer",{"layer_id":layer.id,"position":drop});
+	Command.executeCommand("moveLayer",{"layer_id":layer.id
+		,"parent_layer_id":parent_layer.id,"position":position});
+}
 
-	Command.executeCommand("moveLayer",{"layer_id":layer.id,"position":drop});
+function DragEnterChild(event) {
+	//ドロップ時
+    var drag = parseInt(event.dataTransfer.getData("text"));
+	drag = dragTarget;
+	var layer=dragTarget;//layers[drag];
+	var drag_div = layer.div;
+	var parent_layer= getLayerFromDiv(event.currentTarget.parentNode);
+
+	var position= 0;
+
+	event.stopPropagation();
+
+	Command.executeCommand("moveLayer",{"layer_id":layer.id
+		,"parent_layer_id":parent_layer.id,"position":position});
 }
 function dragend(event) {
 }
@@ -229,7 +244,7 @@ function dragend(event) {
 					return layers[i];
 				}
 				if(layers[i].type === 1){
-					var res = cb(layers[i]);
+					var res = cb(layers[i],id);
 					if(res){
 						return res;
 					}

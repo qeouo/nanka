@@ -115,9 +115,14 @@ clear:both;
 .layer div.children{
 	display:none;
 }
+.layer.group>div.children{
+    min-height: 20px;
+    /* min-width: 100px; */
+    border: 1px solid black
+}
 .layer.group div.children{
 	display:block;
-	margin-left:20px;
+	margin-left:20px;
 }
 
 

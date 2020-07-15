@@ -407,9 +407,9 @@ Command.moveLayer=function(log,undo_flg){
 
 	var param = log.param;
 	var layer = Layer.findLayer(param.layer_id);
-	var parentLayer = Layer.getParentLayer(layer);
-	var layers =parentLayer.layers;
-	var parent_layer = Layer.findLayer(param.parent_layer_id);
+	var now_parent_layer= Layer.getParentLayer(layer);
+	var layers =now_parent_layer.layers;
+	var next_parent_layer = Layer.findLayer(param.parent_layer_id);
 	var position = param.position;
 	var layer_num = layers.indexOf(layer);
 
@@ -424,24 +424,26 @@ Command.moveLayer=function(log,undo_flg){
 		return;
 	}	
 
-	parentLayer.layers.splice(layer_num,1);
-	parent_layer.layers.splice(position,0,layer);
+	now_parent_layer.layers.splice(layer_num,1);
+	//next_parent_layer.layers.splice(position,0,layer);
+
 	
 
 	var layers_container = layer.div.parentNode;
 
-	layers_container.removeChild(layer.div);
-	if(position===0){
-		layers_container.insertBefore(layer.div,null);
-	}else{
-		layers_container.insertBefore(layer.div,layers_container.children[layers.length-1-position]);
-	}
-	
+	appendLayer(next_parent_layer,position,layer);
+	//layers_container.removeChild(layer.div);
+	//if(position===0){
+	//	layers_container.insertBefore(layer.div,null);
+	//}else{
+	//	layers_container.insertBefore(layer.div,layers_container.children[layers.length-1-position]);
+	//}
+	//
 
-	refreshMain(0);
+	//refreshMain(0);
 
 	if(!log.undo_data){
-		log.undo_data = {"before":layer_num};
+		log.undo_data = {"before":layer_num,"bofore_parent":now_parent_layer.id};
 	}
 }
 
