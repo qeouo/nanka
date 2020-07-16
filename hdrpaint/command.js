@@ -261,7 +261,7 @@ var createDif=function(layer,left,top,width,height){
 			return;
 		}
 		var param = log.param;
-		var layer = layers.find(function(a){return a.id===param.layer_id;});
+		var layer = Layer.findLayer(param.layer_id);
 		var points = param.points;
 		var weight= param.weight;
 		var color= param.color;
@@ -385,14 +385,14 @@ var createDif=function(layer,left,top,width,height){
 		}else{
 			layer = log.undo_data.layer;
 		}
-		var parentLayer = selected_layer;
-		if(!parentLayer){
-			parentLayer = root_layer;
-		}
-		if(parentLayer.type == 0){
-			//グループレイヤ以外の場合は親を指定
-			parentLayer = Layer.getParentLayer(parentLayer);
-		}
+		var parentLayer = Layer.findLayer(param.parent);
+		//if(!parentLayer){
+		//	parentLayer = root_layer;
+		//}
+		//if(parentLayer.type == 0){
+		//	//グループレイヤ以外の場合は親を指定
+		//	parentLayer = Layer.getParentLayer(parentLayer);
+		//}
 
 
 		appendLayer(parentLayer,n,layer);

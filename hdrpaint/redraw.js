@@ -104,7 +104,6 @@ var refreshMain_sub=function(step,x,y,w,h){
 			}
 			layer.composite(left,top,right,bottom);
 
-			refreshLayerThumbnail(layer);
 		}
 
 		f(root_layer,left,top,right,bottom);
@@ -347,12 +346,17 @@ var refreshLayer = function(layer){
 		refreshActiveLayerParam();
 	}
 
+	refreshLayerThumbnail(layer);
+
 
 }
 
 var refreshLayerThumbnail = function(layer){
 	//レイヤサムネイル更新
 	if(!layer){
+		return;
+	}
+	if(!layer.img){
 		return;
 	}
 	layer.img.createThumbnail(thumbnail_ctx);
