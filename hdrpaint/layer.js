@@ -13,7 +13,7 @@ var Layer=(function(){
 		this.position =new Vec2();
 
 		this.type=0; //1なら階層レイヤ
-		this.layers=null; //子供レイヤ
+		this.layers=[]; //子供レイヤ
 	};
 	var ret = Layer;
 	return ret;
@@ -198,14 +198,14 @@ Layer.findLayer=function(layer_id){
 	return cb(root_layer,layer_id);
 }
 	Layer.getParentLayer = function(target_layer){
-		var cb = function(parent_layer){
+		var cb = function(parent_layer,target_layer){
 			var layers = parent_layer.layers;
 			for(var i=0;i<layers.length;i++){
 				if(layers[i] == target_layer){
 					return parent_layer;
 				}
 				if(layers[i].type === 1){
-					var res = cb(layers[i]);
+					var res = cb(layers[i],target_layer);
 					if(res){
 						return res;
 					}
@@ -213,6 +213,10 @@ Layer.findLayer=function(layer_id){
 			}
 			return null;
 		}
+		if(!root_layer){
+			return null;
+		}
+
 		return  cb(root_layer,target_layer);
 	}
 
@@ -253,6 +257,7 @@ function DragStart(event) {
 	var drag_layer= getLayerFromDiv(event.currentTarget);
      event.dataTransfer.setData("text", drag_layer.id);
 	 selectLayer(drag_layer);
+	dragTarget = drag_layer;
 
 	event.stopPropagation();
 }
@@ -268,14 +273,17 @@ function DragEnter(event) {
 	var layer=dragTarget;//layers[drag];
 	var drag_div = layer.div;
 	var drop_layer = getLayerFromDiv(event.currentTarget);
+	if(layer === drop_layer){
+		return;
+	}
 
 	var now_parent_layer = Layer.getParentLayer(layer);
 	var parent_layer = Layer.getParentLayer(drop_layer);
 
 	var position= parent_layer.layers.indexOf(drop_layer);
-	if(drop_layer === now_parent_layer){
-		return;
-	}
+	//if(drop_layer === now_parent_layer){
+	//	return;
+	//}
 
 	//Command.executeCommand("moveLayer",{"layer_id":layer.id,"position":drop});
 	Command.executeCommand("moveLayer",{"layer_id":layer.id
@@ -284,43 +292,33 @@ function DragEnter(event) {
 
 function DragEnterChild(event) {
 	//ドロップ時
+	
+	event.stopPropagation();
+
     var drag = parseInt(event.dataTransfer.getData("text"));
 	drag = dragTarget;
 	var layer=dragTarget;//layers[drag];
 	var drag_div = layer.div;
 	var parent_layer= getLayerFromDiv(event.currentTarget.parentNode);
 
+
+	if(parent_layer === layer ){
+		return;
+	}
+
 	var position= 0;
 
-	event.stopPropagation();
 
 	Command.executeCommand("moveLayer",{"layer_id":layer.id
 		,"parent_layer_id":parent_layer.id,"position":position});
 }
 function dragend(event) {
 }
-
-
-
-
-var removeLayer=function(idx){
-	var layer=layers[idx];
-	layer.div.classList.remove("active_layer");
-	layers[idx].div.parentNode.removeChild(layer.div);
-	layers.splice(idx,1);
-}
 var appendLayer=function(root,idx,layer){
 	var layers = root.layers;
 	layers.splice(idx,0,layer);
 
-	var layers_container = document.getElementById("layers_container");
-	if(root !== root_layer){
-		layers_container = root.div.getElementsByClassName("children")[0];
-	}
-	for(var li=layers.length;li--;){
-		layers_container.appendChild(layers[li].div);
-	}
-	refreshLayer(layer);
+	refreshLayer(root);
 	refreshMain();
 }
 var createLayer=function(img,composite_flg){
@@ -347,6 +345,11 @@ var createLayer=function(img,composite_flg){
 	layer_id_count++;
 	layer.name ="layer"+("0000"+layer.id).slice(-4);
 
+	Layer.bubble_func(layer,
+		function(layer){
+			refreshLayerThumbnail(layer);
+		}
+	);
 	refreshLayer(layer);
 
 	return layer;

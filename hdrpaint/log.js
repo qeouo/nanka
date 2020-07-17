@@ -50,7 +50,7 @@ var Log = (function(){
 				//画像戻す
 				var param = log.param;
 				var layer_id= param.layer_id;
-				var layer = layers.find(function(a){return a.id===layer_id;});
+				var layer = Layer.findLayer(layer_id);
 
 				for(var di=difs.length;di--;){
 					var dif = difs[di];

@@ -496,6 +496,7 @@ var onloadfunc=function(e){
 
 //初期化
 	root_layer = createLayer(new Img(1,1),1);
+	refreshLayerThumbnail(root_layer);
 	//Command.executeCommand("resizeLayer",{"layer_id":root_layer.id,"width":512,"height":512});
 
 	Command.executeCommand("resizeCanvas",{"width":512,"height":512});
@@ -511,6 +512,7 @@ var onloadfunc=function(e){
 
 
 	refreshMain();
+	refreshLayer(root_layer);
 	refreshLayer(layer);
 	refreshTab("tools");
 	refreshTab("color_selector_tab");

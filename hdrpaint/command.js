@@ -338,10 +338,11 @@ var createDif=function(layer,left,top,width,height){
 	 	}
 	}
 
-	var removeNewLayer = function(idx){
-		var layer = layers[idx];
+	var removeNewLayer = function(layer){
+		var parent_layer = Layer.getParentLayer(layer);
+		var layers = parent_layer.layers;
+		var idx = layers.indexOf(layer);
 		layers.splice(idx,1);
-		layer.div.remove();
 		layer.div.classList.remove("active_layer");
 		
 		//layer_id_count--;
@@ -354,6 +355,7 @@ var createDif=function(layer,left,top,width,height){
 			}
 				
 		}
+		refreshLayer(parent_layer);
 		refreshMain();
 	}
 	Command.createNewCompositeLayer=function(log,undo_flg){
@@ -367,7 +369,7 @@ var createDif=function(layer,left,top,width,height){
 
 		var layer;
 		if(undo_flg){
-			removeNewLayer(n);
+			removeNewLayer(log.undo_data.layer);
 			return;
 		}
 		if(!log.undo_data){
@@ -386,14 +388,6 @@ var createDif=function(layer,left,top,width,height){
 			layer = log.undo_data.layer;
 		}
 		var parentLayer = Layer.findLayer(param.parent);
-		//if(!parentLayer){
-		//	parentLayer = root_layer;
-		//}
-		//if(parentLayer.type == 0){
-		//	//グループレイヤ以外の場合は親を指定
-		//	parentLayer = Layer.getParentLayer(parentLayer);
-		//}
-
 
 		appendLayer(parentLayer,n,layer);
 		selectLayer(layer);
@@ -417,10 +411,10 @@ Command.moveLayer=function(log,undo_flg){
 		position = log.undo_data.before;
 	}
 	
-	if(position<0|| layers.length <= position){
+	if(position<0|| layers.length < position){
 		return;
 	}	
-	if(layer_num === position){
+	if(layer_num === position && now_parent_layer === next_parent_layer){
 		return;
 	}	
 
@@ -432,15 +426,6 @@ Command.moveLayer=function(log,undo_flg){
 	var layers_container = layer.div.parentNode;
 
 	appendLayer(next_parent_layer,position,layer);
-	//layers_container.removeChild(layer.div);
-	//if(position===0){
-	//	layers_container.insertBefore(layer.div,null);
-	//}else{
-	//	layers_container.insertBefore(layer.div,layers_container.children[layers.length-1-position]);
-	//}
-	//
-
-	//refreshMain(0);
 
 	if(!log.undo_data){
 		log.undo_data = {"before":layer_num,"bofore_parent":now_parent_layer.id};
@@ -472,7 +457,7 @@ Command.moveLayer=function(log,undo_flg){
 
 		var layer;
 		if(undo_flg){
-			removeNewLayer(n);
+			removeNewLayer(log.undo_data.layer);
 			return;
 		}
 		if(!log.undo_data){
@@ -564,7 +549,7 @@ Command.moveLayer=function(log,undo_flg){
 			var undo_data=log.undo_data;
 			//width=log.undo_data.width;
 			//height=log.undo_data.height;
-			removeNewLayer(undo_data.position);
+			removeNewLayer(undo_data.layer);
 			appendLayer(root_layer,undo_data.position,undo_data.layerA);
 			appendLayer(root_layer,undo_data.positionB,undo_data.layerB);
 			return;
@@ -572,8 +557,10 @@ Command.moveLayer=function(log,undo_flg){
 
 		
 		var layer;
-		var layerA = layers.find(function(a){return a.id===param.layer_id;});
-		var layerB = layers.find(function(a){return a.id===param.layer_id2;});
+		var layerA = Layer.findLayer(param.layer_id);
+		var layerB = Layer.findLayer(param.layer_id2);
+		var parent_layer = Layer.getParentLayer(layerA);
+		var layers = parent_layer.layers;
 		var ls=[layerA,layerB];
 		//差分ログ作成
 		if(!log.undo_data){
@@ -631,10 +618,11 @@ Command.moveLayer=function(log,undo_flg){
 		}
 		for(var li=0;li<ls.length;li++){
 			var n=layers.indexOf(ls[li]);
-			removeLayer(n);
+			layers.splice(n,1);
 		}
 
 		appendLayer(root_layer,n,layer);
+		refreshLayer(root_layer);
 
 		refreshMain(0,layer.position[0],layer.position[1],layer.img.width,layer.img.height);
 
@@ -741,39 +729,42 @@ Command.moveLayer=function(log,undo_flg){
 
 	}
 	Command.deleteLayer=function(log,undo_flg){
-		var layer_id = log.param.layer_id;
 
-		var idx= layers.findIndex(function(a){return a.id===layer_id;});
-		var layer = layers[idx];
 		if(undo_flg){
 			var layer = log.undo_data.layer;
 			var idx = log.undo_data.position;
+			var parent_layer = Layer.findLayer(log.undo_data.parent);
 
-			appendLayer(root_layer,idx,layer);
+			appendLayer(parent_layer,idx,layer);
 			refreshMain();
 			return;
 		}
+		var layer_id = log.param.layer_id;
+
+		var layer = Layer.findLayer(layer_id);
+		var parent_layer = Layer.getParentLayer(layer);
+		var layers = parent_layer.layers;
+		var idx=  layers.indexOf(layer);
 
 		if(!log.undo_data){
-			log.undo_data ={"layer":layer,"position":idx};
+			log.undo_data ={"layer":layer,"position":idx,"parent":parent_layer.id};
 		}
 
 	 	//レイヤ削除
-		var li=layers.indexOf(layer);
-		 if(li<0){
+		 if(idx<0){
 			 return;
 		 }
 		 
 
-		layers.splice(li,1);
-		layer.div.parentNode.removeChild(layer.div);
+		layers.splice(idx,1);
 		layer.div.classList.remove("active_layer");
+		refreshLayer(parent_layer);
 
 
 		if(layer === selected_layer){
-			li = Math.max(li-1,0);
+			idx = Math.max(idx-1,0);
 			if(layers.length){
-				selectLayer(layers[li]);
+				selectLayer(layers[idx]);
 			}
 		}else{
 			selected_layer = null;

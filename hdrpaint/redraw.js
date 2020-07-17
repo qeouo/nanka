@@ -14,7 +14,17 @@ var enableRefresh=function(){
 
 
 
+var refreshLayerThumbnail = function(layer){
+	if(!animation_frame_id){
+		animation_frame_id=window.requestAnimationFrame(function(e){
+			refreshMain_();
+		});
+	}
+	refresh_thumbnail.push(layer);
+}
+var refresh_thumbnail=[] ;
 var refresh_stack=[] ;
+var animation_frame_id=null; 
 var refreshMain=function(_step,_x,_y,_w,_h,_layer){
 	if(refreshoff){
 		//更新禁止フラグが立っている場合は処理しない
@@ -27,8 +37,8 @@ var refreshMain=function(_step,_x,_y,_w,_h,_layer){
 			return;
 		}
 	}
-	if(refresh_stack.length===0){
-		window.requestAnimationFrame(function(e){
+	if(!animation_frame_id){
+		animation_frame_id=window.requestAnimationFrame(function(e){
 			refreshMain_();
 		});
 	}
@@ -50,7 +60,14 @@ var refreshMain_=function(){
 		var r= refresh_stack[ri];
 		refreshMain_sub(r.step,r.x,r.y,r.w,r.h);
 	}
+
+	for(var ri=0;ri<refresh_thumbnail.length;ri++){
+		var r= refresh_thumbnail[ri];
+		refreshLayerThumbnail_(r);
+	}
 	refresh_stack=[];
+	refresh_thumbnail=[];
+	animation_frame_id=null;
 }
 var refreshMain_sub=function(step,x,y,w,h){
 	//プレビュー画面を更新
@@ -320,38 +337,53 @@ var gauss=function(d,size,left,right,top,bottom){
 
 }
 var refreshLayer = function(layer){
-	var div= layer.div.getElementsByTagName("div")[0];
-	div.innerHTML=layer.name;
-	var span = layer.div.getElementsByClassName("layer_attributes")[0];
-	var txt="";
-	txt += "blendfunc: "+layer.blendfunc +"<br>";
-	if(layer.img){
-		txt += "offset:("+layer.position[0]+","+layer.position[1] +")"
-			+ "size:(" + layer.img.width + "," + layer.img.height +")<br>";
-	}
-	layer.power=parseFloat(layer.power);
-	txt += "power: "+layer.power.toFixed(4)+"<br>";
-	layer.alpha=parseFloat(layer.alpha);
-	txt += "alpha: "+layer.alpha.toFixed(4)+"<br>";
-	
-	 if(!layer.display){
-		layer.div.classList.add("disable_layer");
-	 }else{
-		layer.div.classList.remove("disable_layer");
-	 }
+	var layers_container = null;
 
-	span.innerHTML = txt;
+	if(layer === root_layer){
+		layers_container = document.getElementById("layers_container");
+	}else{
+		var div= layer.div.getElementsByTagName("div")[0];
+		div.innerHTML=layer.name;
+		var span = layer.div.getElementsByClassName("layer_attributes")[0];
+		var txt="";
+		txt += "blendfunc: "+layer.blendfunc +"<br>";
+		if(layer.img){
+			txt += "offset:("+layer.position[0]+","+layer.position[1] +")"
+				+ "size:(" + layer.img.width + "," + layer.img.height +")<br>";
+		}
+		layer.power=parseFloat(layer.power);
+		txt += "power: "+layer.power.toFixed(4)+"<br>";
+		layer.alpha=parseFloat(layer.alpha);
+		txt += "alpha: "+layer.alpha.toFixed(4)+"<br>";
+		
+		 if(!layer.display){
+			layer.div.classList.add("disable_layer");
+		 }else{
+			layer.div.classList.remove("disable_layer");
+		 }
+
+		span.innerHTML = txt;
+
+		layers_container = layer.div.getElementsByClassName("children")[0];
+	}
+
+	//子レイヤ設定
+	while (layers_container.firstChild) layers_container.removeChild(layers_container.firstChild);
+	for(var li=layer.layers.length;li--;){
+		layers_container.appendChild(layer.layers[li].div);
+	}
+
 
 	if(layer === selected_layer){
 		refreshActiveLayerParam();
 	}
 
-	refreshLayerThumbnail(layer);
 
 
 }
 
-var refreshLayerThumbnail = function(layer){
+
+var refreshLayerThumbnail_ = function(layer){
 	//レイヤサムネイル更新
 	if(!layer){
 		return;
