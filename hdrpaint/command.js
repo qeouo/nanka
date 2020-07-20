@@ -259,6 +259,7 @@ var createDif=function(layer,left,top,width,height){
 
 
 	ret.pen=function(log,undo_flg){
+		//ペン描画
 		if(undo_flg){
 			return;
 		}
@@ -267,7 +268,8 @@ var createDif=function(layer,left,top,width,height){
 		var points = param.points;
 		var weight= param.weight;
 		var color= param.color;
-		var color_mask= layer.mask_alpha;
+		var color_mask= param.color_effect;
+		color_mask[3] *= (1-layer.mask_alpha);
 		var pressure_effect_flgs= param.pressure_effect_flgs;
 		var alpha_direct = param.alpha_direct;
 
@@ -275,7 +277,27 @@ var createDif=function(layer,left,top,width,height){
 			Command.drawLine(layer,points[li],points[li+1],weight,color,color_mask,pressure_effect_flgs,alpha_direct);
 		}
 		refreshThumbnails(layer);
+	}
 
+	ret.eraser=function(log,undo_flg){
+		//消しゴム描画
+		if(undo_flg){
+			return;
+		}
+		var param = log.param;
+		var layer = Layer.findById(param.layer_id);
+		var points = param.points;
+		var weight= param.weight;
+		var color= param.color;
+		var color_mask= param.color_effect;
+		color_mask[3] *= (1-layer.mask_alpha);
+		var pressure_effect_flgs= param.pressure_effect_flgs;
+		var alpha_direct = param.alpha_direct;
+
+		for(var li=0;li<points.length-1;li++){
+			Command.drawLine(layer,points[li],points[li+1],weight,color,color_mask,pressure_effect_flgs,alpha_direct);
+		}
+		refreshThumbnails(layer);
 	}
 	ret.drawLine=function(layer,point0,point1,weight,col,color_mask,pressure_effect_flgs,alpha_direct){
 		var img= layer.img;
@@ -787,8 +809,14 @@ Command.moveLayer=function(log,undo_flg){
 	var side = new Vec2();
 	var dist = new Vec2();
 	var drawPen=function(img,point0,point1,color,mask,weight,pressure_mask,alpha_direct){
+		//描画
 		weight*=0.5;
-		var mask_alpha = 1-mask;
+		var src_effect = new Array(4);
+		src_effect[0] = mask[0];
+		src_effect[1] = mask[1];
+		src_effect[2] = mask[2];
+		src_effect[3] = mask[3];
+
 		var weight_pressure_effect = pressure_mask&1;
 		var alpha_pressure_effect = (pressure_mask&2)>>1;
 		var img_data = img.data;
@@ -859,7 +887,7 @@ Command.moveLayer=function(log,undo_flg){
 				
 				//var local_alpha = a;//local_pressure;
 				var local_alpha = a *((local_pressure - 1)*alpha_pressure_effect + 1);
-				img_data[idx+3] += (local_alpha- img_data[idx+3]) * mask_alpha;
+				img_data[idx+3] += (local_alpha- img_data[idx+3]) * (src_effect[3]);
 			}
 		}
 		for(var dy=top;dy<bottom;dy++){

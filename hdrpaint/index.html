@@ -103,12 +103,12 @@ var onloadfunc=function(e){
 			var option = inputs["history"].options[inputs["history"].selectedIndex];
 			Util.setText(option,pen_log.label);
 
-			//今回と前回の座標で直線病が
+			//今回と前回の座標で直線描画
 			var index = pen_log.param.points.length-1;
 			var p0=points[index-1];
 			var p1=points[index];
 			var param = pen_log.param;
-	 		Command.drawLine(selected_layer,p0,p1,param.weight,param.color,selected_layer.mask_alpha,param.pressure_mask,param.alpha_direct);
+	 		Command.drawLine(selected_layer,p0,p1,param.weight,param.color,param.color_effect,param.pressure_mask,param.alpha_direct);
 			
 		}else if(inputs["translate"].checked) {
 			//移動のとき
@@ -209,12 +209,50 @@ var onloadfunc=function(e){
 				pressure_effect_flgs|=2;
 			}
 			var alpha_direct = inputs["pen_alpha_direct"].checked;
-			pen_log = Command.executeCommand("pen",{"layer_id":selected_layer.id,"points":[],"weight":weight,"color":new Float32Array(doc.draw_col),"pressure_effect_flgs":pressure_effect_flgs,"alpha_direct":alpha_direct});
+			pen_log = Command.executeCommand("pen",{
+				"layer_id":selected_layer.id
+				,"points":[]
+				,"weight":weight
+				,"color": new Float32Array(doc.draw_col)
+				,"color_effect":new Float32Array([1.0,1.0,1.0,1.0])
 
+				,"pressure_effect_flgs":pressure_effect_flgs
+				,"alpha_direct":alpha_direct
+			});
 			var point={"pos":new Vec2(),"pressure":e.pressure};
 			point.pos[0]=x;
 			point.pos[1]=y;
 			
+			pen_log.param.points.push(point);
+
+		}else if(inputs["eraser"].checked && (e.buttons &1) ){
+			//消しゴム
+			if(selected_layer.type === 1){
+				return;
+			}
+			var weight=parseFloat(inputs["weight"].value);
+			var pressure_effect_flgs= 0;
+			if(inputs["weight_pressure_effect"].checked){
+				pressure_effect_flgs|=1;
+			}
+			if(inputs["alpha_pressure_effect"].checked){
+				pressure_effect_flgs|=2;
+			}
+			var alpha_direct = inputs["pen_alpha_direct"].checked;
+			pen_log = Command.executeCommand("pen",{
+				"layer_id":selected_layer.id
+				,"points":[]
+				,"weight":weight
+				,"color":new Float32Array([1.0,1.0,1.0,0.0])
+				,"color_effect":new Float32Array([0.0,0.0,0.0,1.0])
+
+				,"pressure_effect_flgs":pressure_effect_flgs
+				,"alpha_direct":alpha_direct
+			});
+
+			var point={"pos":new Vec2(),"pressure":e.pressure};
+			point.pos[0]=x;
+			point.pos[1]=y;
 			pen_log.param.points.push(point);
 
 		}
@@ -612,7 +650,7 @@ var createNewCompositeLayer=function(e){
 			ツール
 			<ul>
 			<li><label><input type="radio" id="pen" name="tool" checked>ペン</label>
-			<li><label><input type="radio" id="eracer" name="tool" >消しゴム</label>
+			<li><label><input type="radio" id="eraser" name="tool" >消しゴム</label>
 				<li><label><input type="radio" id="fill" name="tool">塗りつぶし</label></li>
 				<li><label><input type="radio" id="translate" name="tool">移動</label></li>
 				<li><label><input type="radio" id="resize" name="tool">リサイズ</label></li>
