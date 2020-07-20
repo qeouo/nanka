@@ -112,7 +112,7 @@ var refreshMain_sub=function(step,x,y,w,h){
 
 	if(step<=0){
 		var f = function(layer,left,top,right,bottom){
-			var lower_layers = layer.layers;
+			var lower_layers = layer.children;
 			for(var li=0;li<lower_layers.length;li++){
 				lower_layer = lower_layers[li];
 				if(lower_layer.type){
@@ -369,8 +369,8 @@ var refreshLayer = function(layer){
 
 	//子レイヤ設定
 	while (layers_container.firstChild) layers_container.removeChild(layers_container.firstChild);
-	for(var li=layer.layers.length;li--;){
-		layers_container.appendChild(layer.layers[li].div);
+	for(var li=layer.children.length;li--;){
+		layers_container.appendChild(layer.children[li].div);
 	}
 
 
@@ -395,6 +395,14 @@ var refreshLayerThumbnail_ = function(layer){
 	var layer_img=layer.div.getElementsByTagName("img")[0];
 	layer_img.src=thumbnail_canvas.toDataURL("image/png");
 	
+}
+
+var refreshThumbnails=function(layer){
+	Layer.bubble_func(layer,
+		function(l){
+			refreshLayerThumbnail(l);
+		}
+	);
 }
 var refreshActiveLayerParam = function(){
 	//アクティブレイヤパラメータ更新

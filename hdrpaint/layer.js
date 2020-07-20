@@ -13,7 +13,7 @@ var Layer=(function(){
 		this.position =new Vec2();
 
 		this.type=0; //1なら階層レイヤ
-		this.layers=[]; //子供レイヤ
+		this.children=[]; //子供レイヤ
 	};
 	var ret = Layer;
 	return ret;
@@ -70,7 +70,7 @@ funcs["sub"] = function(dst,dst_idx,src,src_idx,alpha,power){
 }
 Layer.prototype.composite=function(left,top,right,bottom){
 
-	var layers=this.layers;
+	var layers=this.children;
 	if(!layers){
 		return;
 	}
@@ -140,7 +140,7 @@ var layer_id_count=0;
 
 Layer.bubble_func=function(layer,f){
 	f(layer);
-	var parent_layer= Layer.getParentLayer(layer);
+	var parent_layer= Layer.findParent(layer);
 	if(parent_layer){
 		Layer.bubble_func(parent_layer,f);
 	}
@@ -154,7 +154,7 @@ each_layers=function(f){
 		if(layer.type !== 1){
 			return false;
 		}
-		var layers = layer.layers;
+		var layers = layer.children;
 		for(var i=0;i<layers.length;i++){
 			if(cb(layers[i])){
 				return true;
@@ -176,9 +176,9 @@ getLayerFromDiv=function(div){
 	});
 	return result_layer;
 }
-Layer.findLayer=function(layer_id){
+Layer.findById=function(layer_id){
 	var cb = function(parent_layer,id){
-		var layers = parent_layer.layers;
+		var layers = parent_layer.children;
 		for(var i=0;i<layers.length;i++){
 			if(layers[i].id == id){
 				return layers[i];
@@ -197,9 +197,9 @@ Layer.findLayer=function(layer_id){
 	}
 	return cb(root_layer,layer_id);
 }
-	Layer.getParentLayer = function(target_layer){
+	Layer.findParent = function(target_layer){
 		var cb = function(parent_layer,target_layer){
-			var layers = parent_layer.layers;
+			var layers = parent_layer.children;
 			for(var i=0;i<layers.length;i++){
 				if(layers[i] == target_layer){
 					return parent_layer;
@@ -277,10 +277,10 @@ function DragEnter(event) {
 		return;
 	}
 
-	var now_parent_layer = Layer.getParentLayer(layer);
-	var parent_layer = Layer.getParentLayer(drop_layer);
+	var now_parent_layer = Layer.findParent(layer);
+	var parent_layer = Layer.findParent(drop_layer);
 
-	var position= parent_layer.layers.indexOf(drop_layer);
+	var position= parent_layer.children.indexOf(drop_layer);
 	//if(drop_layer === now_parent_layer){
 	//	return;
 	//}
@@ -315,7 +315,7 @@ function DragEnterChild(event) {
 function dragend(event) {
 }
 var appendLayer=function(root,idx,layer){
-	var layers = root.layers;
+	var layers = root.children;
 	layers.splice(idx,0,layer);
 
 	refreshLayer(root);
@@ -328,7 +328,7 @@ var createLayer=function(img,composite_flg){
 	if(composite_flg){
 		//グループレイヤの場合
 		layer.type=1;
-		layer.layers=[];
+		layer.children=[];
 	}
 
 	var layer_div = layer_template.children[0].cloneNode(true);

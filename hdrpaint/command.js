@@ -86,7 +86,7 @@ var createDif=function(layer,left,top,width,height){
 		if(is_layer){
 			fillCheck=fillCheckLayer;
 		}
-		var ref_data = joined_img.data;
+		var joined_img = root_layer.img;
 
 		var target_data=target.data;
 		var mode=0;
@@ -150,7 +150,7 @@ var createDif=function(layer,left,top,width,height){
 
 		var refresh_left,refresh_top,refresh_bottom,refresh_right;
 		var param = log.param;
-		var layer = layers.find(function(a){return a.id===param.layer_id;});
+		var layer = Layer.findById(param.layer_id);
 		point_x = param.x;
 		point_y = param.y;
 		is_layer = param.is_layer;
@@ -172,6 +172,7 @@ var createDif=function(layer,left,top,width,height){
 
 		//塗りつぶし対象色
 		var target= layer.img;
+		var joined_img = root_layer.img;
 		var idx = joined_img.getIndex(x+layer.position[0],y+layer.position[1])<<2;
 		joined_r=joined_img.data[idx];
 		joined_g=joined_img.data[idx+1];
@@ -252,7 +253,8 @@ var createDif=function(layer,left,top,width,height){
 		refreshMain(0,refresh_left + layer.position[0]
 			,refresh_top + layer.position[1]
 			,refresh_right-refresh_left,refresh_bottom-refresh_top);
-		refreshLayerThumbnail(layer);
+
+		refreshThumbnails(layer);
 	}
 
 
@@ -261,7 +263,7 @@ var createDif=function(layer,left,top,width,height){
 			return;
 		}
 		var param = log.param;
-		var layer = Layer.findLayer(param.layer_id);
+		var layer = Layer.findById(param.layer_id);
 		var points = param.points;
 		var weight= param.weight;
 		var color= param.color;
@@ -272,7 +274,7 @@ var createDif=function(layer,left,top,width,height){
 		for(var li=0;li<points.length-1;li++){
 			Command.drawLine(layer,points[li],points[li+1],weight,color,color_mask,pressure_effect_flgs,alpha_direct);
 		}
-		refreshLayerThumbnail(layer);
+		refreshThumbnails(layer);
 
 	}
 	ret.drawLine=function(layer,point0,point1,weight,col,color_mask,pressure_effect_flgs,alpha_direct){
@@ -339,8 +341,8 @@ var createDif=function(layer,left,top,width,height){
 	}
 
 	var removeNewLayer = function(layer){
-		var parent_layer = Layer.getParentLayer(layer);
-		var layers = parent_layer.layers;
+		var parent_layer = Layer.findParent(layer);
+		var layers = parent_layer.children;
 		var idx = layers.indexOf(layer);
 		layers.splice(idx,1);
 		layer.div.classList.remove("active_layer");
@@ -387,7 +389,7 @@ var createDif=function(layer,left,top,width,height){
 		}else{
 			layer = log.undo_data.layer;
 		}
-		var parentLayer = Layer.findLayer(param.parent);
+		var parentLayer = Layer.findById(param.parent);
 
 		appendLayer(parentLayer,n,layer);
 		selectLayer(layer);
@@ -400,16 +402,18 @@ var createDif=function(layer,left,top,width,height){
 Command.moveLayer=function(log,undo_flg){
 
 	var param = log.param;
-	var layer = Layer.findLayer(param.layer_id);
-	var now_parent_layer= Layer.getParentLayer(layer);
-	var layers =now_parent_layer.layers;
-	var next_parent_layer = Layer.findLayer(param.parent_layer_id);
+	var layer = Layer.findById(param.layer_id);
+	var now_parent_layer= Layer.findParent(layer);
+	var layers =now_parent_layer.children;
+	var next_parent_layer = param.parent_layer_id;
 	var position = param.position;
 	var layer_num = layers.indexOf(layer);
 
 	if(undo_flg){
 		position = log.undo_data.before;
+		next_parent_layer= log.undo_data.before_parent;
 	}
+	next_parent_layer = Layer.findById(next_parent_layer);
 	
 	if(position<0|| layers.length < position){
 		return;
@@ -418,8 +422,7 @@ Command.moveLayer=function(log,undo_flg){
 		return;
 	}	
 
-	now_parent_layer.layers.splice(layer_num,1);
-	//next_parent_layer.layers.splice(position,0,layer);
+	now_parent_layer.children.splice(layer_num,1);
 
 	
 
@@ -428,7 +431,7 @@ Command.moveLayer=function(log,undo_flg){
 	appendLayer(next_parent_layer,position,layer);
 
 	if(!log.undo_data){
-		log.undo_data = {"before":layer_num,"bofore_parent":now_parent_layer.id};
+		log.undo_data = {"before":layer_num,"before_parent":now_parent_layer.id};
 	}
 }
 
@@ -436,7 +439,8 @@ Command.moveLayer=function(log,undo_flg){
 		var param = log.param;
 		var name = param.name;
 		var value = param.value;
-		var layer = layers.find(function(a){return a.id===param.layer_id;});
+		var layer = Layer.findById(param.layer_id);
+
 		if(undo_flg){
 			value = log.undo_data.value;
 		}
@@ -472,7 +476,7 @@ Command.moveLayer=function(log,undo_flg){
 		//layer.img=img;
 		layer.name = file;
 
-		refreshLayerThumbnail(layer);
+		refreshThumbnails(layer);
 		refreshLayer(layer);
 		selectLayer(layer);
 
@@ -481,7 +485,8 @@ Command.moveLayer=function(log,undo_flg){
 
 	Command.translateLayer=function(log,undo_flg){
 		var param = log.param;
-		var layer = layers.find(function(a){return a.id===param.layer_id;});
+		var layer = Layer.findById(param.layer_id);
+
 		var x = param.x;
 		var y = param.y;
 		if(undo_flg){
@@ -493,7 +498,8 @@ Command.moveLayer=function(log,undo_flg){
 		}
 
 		if(!layer){
-			//レイヤ指定無しの場合は全レイヤ移動
+			//レイヤ指定無しの場合はルート直下のレイヤすべてを移動
+			var layers = root_layer.children;
 			for(var li=0;li<layers.length;li++){
 				var l = layers[li];
 				l.position[0]+=x;
@@ -557,10 +563,10 @@ Command.moveLayer=function(log,undo_flg){
 
 		
 		var layer;
-		var layerA = Layer.findLayer(param.layer_id);
-		var layerB = Layer.findLayer(param.layer_id2);
-		var parent_layer = Layer.getParentLayer(layerA);
-		var layers = parent_layer.layers;
+		var layerA = Layer.findById(param.layer_id);
+		var layerB = Layer.findById(param.layer_id2);
+		var parent_layer = Layer.findParent(layerA);
+		var layers = parent_layer.children;
 		var ls=[layerA,layerB];
 		//差分ログ作成
 		if(!log.undo_data){
@@ -650,7 +656,7 @@ Command.moveLayer=function(log,undo_flg){
 			return;
 		}
 
-		var layer = Layer.findLayer(param.layer_id);
+		var layer = Layer.findById(param.layer_id);
 		var img = layer.img;
 		if(!img){
 			return;
@@ -687,7 +693,7 @@ Command.moveLayer=function(log,undo_flg){
 		layer.img=new Img(width,height);
 		copyImg(layer.img,0,0,old_img,0,0,old_img.width,old_img.height);
 		refreshLayer(layer);
-		refreshLayerThumbnail(layer);
+		refreshThumbnails(layer);
 		refreshMain(0,0,0,layer.img.width,layer.img.height);
 
 
@@ -707,14 +713,14 @@ Command.moveLayer=function(log,undo_flg){
 					//画像戻す
 					var param = log.param;
 					var layer_id= param.layer_id;
-					var layer = layers.find(function(a){return a.id===layer_id;});
+					var layer = Layer.findById(param.layer_id);
 
 					for(var di=difs.length;di--;){
 						var dif = difs[di];
 						copyImg(layer.img,dif.x,dif.y,dif.img,0,0,dif.img.width,dif.img.height);
 					}
 					refreshMain();
-					refreshLayerThumbnail(layer);
+					refreshThumbnails(layer);
 				}
 			}
 		}else{
@@ -733,7 +739,7 @@ Command.moveLayer=function(log,undo_flg){
 		if(undo_flg){
 			var layer = log.undo_data.layer;
 			var idx = log.undo_data.position;
-			var parent_layer = Layer.findLayer(log.undo_data.parent);
+			var parent_layer = Layer.findById(log.undo_data.parent);
 
 			appendLayer(parent_layer,idx,layer);
 			refreshMain();
@@ -741,9 +747,9 @@ Command.moveLayer=function(log,undo_flg){
 		}
 		var layer_id = log.param.layer_id;
 
-		var layer = Layer.findLayer(layer_id);
-		var parent_layer = Layer.getParentLayer(layer);
-		var layers = parent_layer.layers;
+		var layer = Layer.findById(layer_id);
+		var parent_layer = Layer.findParent(layer);
+		var layers = parent_layer.children;
 		var idx=  layers.indexOf(layer);
 
 		if(!log.undo_data){

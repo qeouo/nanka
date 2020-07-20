@@ -50,14 +50,18 @@ var Log = (function(){
 				//画像戻す
 				var param = log.param;
 				var layer_id= param.layer_id;
-				var layer = Layer.findLayer(layer_id);
+				var layer = Layer.findById(layer_id);
 
 				for(var di=difs.length;di--;){
 					var dif = difs[di];
 					copyImg(layer.img,dif.x,dif.y,dif.img,0,0,dif.img.width,dif.img.height);
 				}
 				refreshMain();
-				refreshLayerThumbnail(layer);
+				Layer.bubble_func(layer,
+					function(layer){
+						refreshLayerThumbnail(layer);
+					}
+				);
 			}
 
 			command_log_cursor--;
