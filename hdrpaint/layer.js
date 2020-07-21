@@ -147,6 +147,9 @@ Layer.bubble_func=function(layer,f){
 
 }
 each_layers=function(f){
+	if(!root_layer){
+		return;
+	}
 	var cb = function(layer){
 		if(f(layer)){
 			return true;
@@ -177,47 +180,36 @@ getLayerFromDiv=function(div){
 	return result_layer;
 }
 Layer.findById=function(layer_id){
-	var cb = function(parent_layer,id){
-		var layers = parent_layer.children;
-		for(var i=0;i<layers.length;i++){
-			if(layers[i].id == id){
-				return layers[i];
-			}
-			if(layers[i].type === 1){
-				var res = cb(layers[i],id);
-				if(res){
-					return res;
-				}
-			}
-		}
-		return null;
-	}
-	if(root_layer.id == layer_id){
-		return root_layer;
-	}
-	return cb(root_layer,layer_id);
-}
-	Layer.findParent = function(target_layer){
-		var cb = function(parent_layer,target_layer){
-			var layers = parent_layer.children;
-			for(var i=0;i<layers.length;i++){
-				if(layers[i] == target_layer){
-					return parent_layer;
-				}
-				if(layers[i].type === 1){
-					var res = cb(layers[i],target_layer);
-					if(res){
-						return res;
-					}
-				}
-			}
-			return null;
-		}
-		if(!root_layer){
-			return null;
+	var result_layer = null;
+	each_layers(function(layer){
+		if(layer.id== layer_id){
+			result_layer = layer;
+
+			return true;
 		}
 
-		return  cb(root_layer,target_layer);
+	});
+	return result_layer;
+}
+Layer.layerArray=function(){
+	var layers=[];
+	each_layers(function(layer){
+		layers.push(layer);
+	});
+	return layers;
+
+}
+	Layer.findParent = function(target_layer){
+		var result_layer = null;
+		each_layers(function(layer){
+			for(var li=0;li<layer.children.length;li++){
+				if(target_layer === layer.children[li]){
+					result_layer = layer;
+					return true;
+				}
+			}
+		});
+		return result_layer;
 	}
 
 

@@ -771,31 +771,33 @@ Command.moveLayer=function(log,undo_flg){
 
 		var layer = Layer.findById(layer_id);
 		var parent_layer = Layer.findParent(layer);
-		var layers = parent_layer.children;
-		var idx=  layers.indexOf(layer);
+		if(parent_layer){
+			var layers = parent_layer.children;
+			var idx=  layers.indexOf(layer);
 
-		if(!log.undo_data){
-			log.undo_data ={"layer":layer,"position":idx,"parent":parent_layer.id};
-		}
-
-	 	//レイヤ削除
-		 if(idx<0){
-			 return;
-		 }
-		 
-
-		layers.splice(idx,1);
-		layer.div.classList.remove("active_layer");
-		refreshLayer(parent_layer);
-
-
-		if(layer === selected_layer){
-			idx = Math.max(idx-1,0);
-			if(layers.length){
-				selectLayer(layers[idx]);
+			if(!log.undo_data){
+				log.undo_data ={"layer":layer,"position":idx,"parent":parent_layer.id};
 			}
-		}else{
-			selected_layer = null;
+
+			//レイヤ削除
+			 if(idx<0){
+				 return;
+			 }
+			 
+
+			layers.splice(idx,1);
+			layer.div.classList.remove("active_layer");
+			refreshLayer(parent_layer);
+
+
+			if(layer === selected_layer){
+				idx = Math.max(idx-1,0);
+				if(layers.length){
+					selectLayer(layers[idx]);
+				}
+			}else{
+				selected_layer = null;
+			}
 		}
 		refreshMain();
 	}
@@ -808,14 +810,17 @@ Command.moveLayer=function(log,undo_flg){
 	var vec2 =new Vec2();
 	var side = new Vec2();
 	var dist = new Vec2();
-	var drawPen=function(img,point0,point1,color,mask,weight,pressure_mask,alpha_direct){
+	var drawPen=function(img,point0,point1,color,effect,weight,pressure_mask,alpha_direct){
 		//描画
 		weight*=0.5;
-		var src_effect = new Array(4);
-		src_effect[0] = mask[0];
-		src_effect[1] = mask[1];
-		src_effect[2] = mask[2];
-		src_effect[3] = mask[3];
+		var r=color[0];
+		var g=color[1];
+		var b=color[2];
+		var a=color[3];
+		var effect_r = effect[0];
+		var effect_g = effect[1];
+		var effect_b = effect[2];
+		var effect_a = effect[3];
 
 		var weight_pressure_effect = pressure_mask&1;
 		var alpha_pressure_effect = (pressure_mask&2)>>1;
@@ -859,35 +864,21 @@ Command.moveLayer=function(log,undo_flg){
 		Vec2.set(side,vec2[1],-vec2[0]);
 		Vec2.norm(side);
 
-		var r=color[0];
-		var g=color[1];
-		var b=color[2];
-		var a=color[3];
-		var drawfunc=function(idx,local_pressure,r,g,b,a){
-			var local_r=r;// point0.pressure * (1-l) + point1.pressure * l;
-			var local_alpha = a *((local_pressure - 1)*alpha_pressure_effect + 1);
-			var rev_a = 1-local_alpha;
+		var drawfunc=function(idx,r,g,b,a){
 
-			img_data[idx+0]=img_data[idx+0] * rev_a + local_r * local_alpha;
-			img_data[idx+1]=img_data[idx+1] * rev_a + g * local_alpha;
-			img_data[idx+2]=img_data[idx+2] * rev_a + b * local_alpha;
-			
-			//var local_alpha = a;//local_pressure;
-			img_data[idx+3] = img_data[idx+3] * rev_a + local_alpha;
+			img_data[idx+0] += (r - img_data[idx+0]) * a;
+			img_data[idx+1] += (g - img_data[idx+1]) * a;
+			img_data[idx+2] += (b - img_data[idx+2]) * a;
+			img_data[idx+3] += (1 - img_data[idx+3]) * a;
 
 		}
 		if(alpha_direct){
-			drawfunc=function(idx,local_pressure,r,g,b,a){
-				var local_r=r;// point0.pressure * (1-l) + point1.pressure * l;
+			drawfunc=function(idx,r,g,b,a){
 
-				img_data[idx+0]=local_r;
-				img_data[idx+1]=g;
-				img_data[idx+2]=b;
-				//img_data[idx+3]=;
-				
-				//var local_alpha = a;//local_pressure;
-				var local_alpha = a *((local_pressure - 1)*alpha_pressure_effect + 1);
-				img_data[idx+3] += (local_alpha- img_data[idx+3]) * (src_effect[3]);
+				img_data[idx+0] += (r - img_data[idx+0]) * effect_r;
+				img_data[idx+1] += (g - img_data[idx+1]) * effect_g;
+				img_data[idx+2] += (b - img_data[idx+2]) * effect_b;
+				img_data[idx+3] += (a - img_data[idx+3]) * effect_a;
 			}
 		}
 		for(var dy=top;dy<bottom;dy++){
@@ -924,7 +915,11 @@ Command.moveLayer=function(log,undo_flg){
 						continue;
 					}
 				}
-				drawfunc(idx,local_pressure,r,g,b,a);
+				var _r = r;// point0.pressure * (1-l) + point1.pressure * l;
+				var _g = g;// point0.pressure * (1-l) + point1.pressure * l;
+				var _b = b;// point0.pressure * (1-l) + point1.pressure * l;
+				var _a = a *((local_pressure - 1)*alpha_pressure_effect + 1);
+				drawfunc(idx,_r,_g,_b,_a);
 			}
 		}
 

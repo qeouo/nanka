@@ -16,14 +16,14 @@ var loadHpd=function(buffer){
 	}
 
 	disableRefresh();
-	for(var li=layers.length;li--;){
-		Command.deleteLayer({param:{"layer_id":layers[li].id}});
-	}
+//	for(var li=layers.length;li--;){
+//		Command.deleteLayer({param:{"layer_id":layers[li].id}});
+//	}
+	Command.deleteLayer({param:{"layer_id":root_layer.id}});
 
 	var doc_data = JSON.parse(Util.utf8ToString(doc_file.data));
 
 	//情報セット
-	Command.onlyExecute("resizeCanvas",{"width":doc_data.canvas_width,"height":doc_data.canvas_height});
 	var keys=Object.keys(doc_data);
 	for(var ki=0;ki<keys.length;ki++){
 		var id = keys[ki];
@@ -33,41 +33,64 @@ var loadHpd=function(buffer){
 		}
 		input.value = doc_data[id];
 	}
+	layer_id_count = doc_data.layer_id_count;
 
 	
 
+	var layers=[];
 	for(var li=0;li<doc_data.layers.length;li++){
 		//レイヤ画像読み込み
 		var doc_layer=doc_data.layers[li];
 		var img_file_name = doc_data.layers[li].id + ".exr";
 		var img_file = files.find(function(f){return f.name===img_file_name;});
-		var img = Img.loadExr(img_file.data);
+		var img ;
+		if(doc_layer.type){
+			img = new Img(doc_layer.width,doc_layer.height);
+		}else{
+			img = Img.loadExr(img_file.data);
+		}
 
-		var layer =createLayer(img);
-		appendLayer(li,layer);
+		var layer =createLayer(img,parseInt(doc_layer.type));
+		layers.push(layer);
+		//appendLayer(li,layer);
 
 		//レイヤパラメータ設定
 		var keys=Object.keys(doc_layer);
 		for(var ki=0;ki<keys.length;ki++){
-			if(keys[ki]==="id"){
-				continue;
-			}
 			if(typeof layer[keys[ki]] ==="number"){
 				layer[keys[ki]]=parseFloat(doc_layer[keys[ki]]);
 			}else{
 				layer[keys[ki]]=doc_layer[keys[ki]];
 			}
 		}
-		refreshLayer(layer);
-		selectLayer(layer);
+		
 	}
+	root_layer=layers[0];
+	Command.onlyExecute("resizeCanvas",{"width":root_layer.img.width,"height":root_layer.img.height});
+	for(var li=0;li<layers.length;li++){
+		//レイヤ親子復元
+		var layer = layers[li];
+		var doc_layer=doc_data.layers[li];
+		layer.children=[];
+		for(var ki=0;ki<doc_layer.children.length;ki++){
+			var child_id = doc_layer.children[ki];
+			var child = layers.find(
+				function(a){return a.id===child_id;});
+			appendLayer(layer,ki,child);
+			//layer.children[ki]=layers.find(
+		}
+
+		refreshLayer(layer);
+	}
+	//selectLayer(layer);
+
 
 	enableRefresh();
 
 
 	refreshMain();
-	refreshLayer(layer);
-	refreshToolTab();
+	refreshTab("tools");
+	refreshTab("color_selector_tab");
 	createRGBA();
 	
 
@@ -79,21 +102,34 @@ var saveHpd= function(e){
 	var files=[];
 	var doc_data={};
 
+	var layers = Layer.layerArray();
 	doc_data.layers=[];
 
 	for(var li=0;li<layers.length;li++){
-		//レイヤをopneExrファイル化
 		var layer = layers[li];
-		var file={};
-		files.push(file);
-		file.data= new Uint8Array(layer.img.createExr());
-		file.name = layer.id+".exr";
+		var layer2={};
+
+		//レイヤをopneExrファイル化
+		if(layer.type===0){
+			var file={};
+			files.push(file);
+			file.data= new Uint8Array(layer.img.createExr());
+			file.name = layer.id+".exr";
+		}else{
+			layer2.width=layer.img.width;
+			layer2.height=layer.img.height;
+
+		}
 
 		//レイヤ情報収集
-		var layer2={};
 		var keys=Object.keys(layer);
 		for(var ki=0;ki<keys.length;ki++){
 			layer2[keys[ki]]=layer[keys[ki]];
+		}
+		//親子関係をid化
+		layer2.children=[];
+		for(var ki=0;ki<layer2.children.length;ki++){
+			layer2.children.push(layer.children[ki].id);
 		}
 		//不要なデータを削除
 		delete layer2.img;
@@ -111,6 +147,7 @@ var saveHpd= function(e){
 		var input = inputs[id];
 		doc_data[id] = input.value;
 	}
+	doc_data.layer_id_count = layer_id_count;
 
 	//ドキュメント情報をdoc.txtとして書き込む
 	var file = {}
