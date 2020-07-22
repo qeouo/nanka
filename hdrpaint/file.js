@@ -128,7 +128,7 @@ var saveHpd= function(e){
 		}
 		//親子関係をid化
 		layer2.children=[];
-		for(var ki=0;ki<layer2.children.length;ki++){
+		for(var ki=0;ki<layer.children.length;ki++){
 			layer2.children.push(layer.children[ki].id);
 		}
 		//不要なデータを削除
