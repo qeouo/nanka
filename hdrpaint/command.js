@@ -481,6 +481,17 @@ Command.moveLayer=function(log,undo_flg){
 		var img = log.param.img;
 		var file  = param.file;
 
+		var pos_layer = Layer.findById(n);
+		var parent_layer = pos_layer;
+		if(pos_layer.type === 1){
+			parent_layer = pos_layer;
+			n = parent_layer.children.length;
+		}else{
+			parent_layer = Layer.findParent(pos_layer);
+			n = parent_layer.children.indexOf(pos_layer)+1;
+		}
+
+
 		var layer;
 		if(undo_flg){
 			removeNewLayer(log.undo_data.layer);
@@ -493,7 +504,7 @@ Command.moveLayer=function(log,undo_flg){
 		}else{
 			layer=log.undo_data.layer;
 		}
-		appendLayer(root_layer,n,layer);
+		appendLayer(parent_layer,n,layer);
 
 		//layer.img=img;
 		layer.name = file;

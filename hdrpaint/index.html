@@ -17,6 +17,7 @@
 <script type="text/javascript" src="../lib/vector.js"></script>
 <script type="text/javascript" src="../lib/openexr.js"></script>
 <script type="text/javascript" src="../lib/zip.js"></script>
+<script type="text/javascript" src="../lib/zlib.js"></script>
 <script type="text/javascript" src="../lib/slider.js"></script>
 <script type="text/javascript" src="../lib/colorpicker.js"></script>
 <script type="text/javascript" src="../lib/geono.js"></script>
@@ -398,7 +399,8 @@ var onloadfunc=function(e){
 	inputs["open_layer"].addEventListener("change",function(e){
 		var file=this.files[0];
 		//Command.executeCommand("loadImageFile",{"position":layers.indexOf(selected_layer)+1,"file":file});
-		Command.loadImageFile_(file,layers.indexOf(selected_layer)+1);
+		
+		Command.loadImageFile_(file,selected_layer.id);
 		this.value=null;
 
 	});

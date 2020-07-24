@@ -113,7 +113,7 @@ var saveHpd= function(e){
 		if(layer.type===0){
 			var file={};
 			files.push(file);
-			file.data= new Uint8Array(layer.img.createExr());
+			file.data= new Uint8Array(layer.img.createExr(3));
 			file.name = layer.id+".exr";
 		}else{
 			layer2.width=layer.img.width;
@@ -167,7 +167,7 @@ var saveHpd= function(e){
 
 var saveHdr= function(e){
 	var a = e.target;
-	var buffer = joined_img.createExr();
+	var buffer = root_layer.img.createExr(2);
     var blob = new Blob([buffer], {type: "application/octet-stream"});
 
     a.href =  window.URL.createObjectURL(blob);
