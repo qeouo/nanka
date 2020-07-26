@@ -79,17 +79,23 @@ var onloadfunc=function(e){
 
 	Util.fireEvent(inputs["color_base"],"change");
 
+	var nuki=0;
+	var NUKIMAX=4;
 	var drawfunc =function(e){
 		//描画関数
 		
 		var x =doc.cursor_pos[0];
 		var y = doc.cursor_pos[1];
-		if(inputs["pen"].checked && (e.buttons&1)){
+		//if((inputs["pen"].checked || inputs["eraser"].checked) && (e.buttons&1)){
+		if((inputs["pen"].checked || inputs["eraser"].checked)){
 			//ペンのとき
 			if(!pen_log)return;
 
 			var points = pen_log.param.points;
 			var point={"pos":new Vec2(),"pressure":e.pressure};
+			if(e.pointerType === "mouse"){
+				point.pressure=1;
+			}
 
 			//今回座標をパスに追加
 			point.pos[0]= x;
@@ -109,7 +115,7 @@ var onloadfunc=function(e){
 			var p0=points[index-1];
 			var p1=points[index];
 			var param = pen_log.param;
-	 		Command.drawLine(selected_layer,p0,p1,param.weight,param.color,param.color_effect,param.pressure_mask,param.alpha_direct);
+	 		Command.drawLine(selected_layer,p0,p1,param.weight,param.color,param.color_effect,param.pressure_effect_flgs,param.alpha_direct);
 			
 		}else if(inputs["translate"].checked) {
 			//移動のとき
@@ -137,15 +143,43 @@ var onloadfunc=function(e){
 		if(!pen_log){
 			return;
 		}
-		pen_log=null;
-		if(inputs["pen"].checked){
 
-			Layer.bubble_func(selected_layer,
-				function(layer){
-					refreshLayerThumbnail(layer);
-				}
-			);
-		}
+		//var difs = pen_log.undo_data.difs;
+		//if(e.pointerType === "mouse"){
+		//	//画像戻す
+		//	var points = pen_log.param.points;
+		//	var param = pen_log.param;
+		//	var layer_id= param.layer_id;
+		//	var layer = Layer.findById(layer_id);
+
+		//	var from=Math.min(points.length,NUKIMAX)
+		//	//for(var di=difs.length;di--;){
+		//	for(var di=0;di<from;di++){
+		//		var dif = difs[difs.length-1-di];
+		//		copyImg(layer.img,dif.x,dif.y,dif.img,0,0,dif.img.width,dif.img.height);
+		//	}
+
+		//	for(var di=points.length-from;di<points.length;di++){
+
+		//		//今回と前回の座標で直線描画
+		//		var index = di;
+		//		var p0=points[index-1];
+		//		var p1=points[index];
+		//		p1.pressure=(points.length-di-1)/NUKIMAX;
+		//		
+		//		var param = pen_log.param;
+		//		Command.drawLine(selected_layer,p0,p1,param.weight,param.color,param.color_effect,param.pressure_effect_flgs,param.alpha_direct);
+		//	}
+
+		//	refreshMain();
+		//	Layer.bubble_func(layer,
+		//		function(layer){
+		//			refreshLayerThumbnail(layer);
+		//		}
+		//	);
+		//}
+
+		pen_log=null;
 	},false);
 
 	var drag_start=new Vec2();
@@ -221,6 +255,9 @@ var onloadfunc=function(e){
 				,"alpha_direct":alpha_direct
 			});
 			var point={"pos":new Vec2(),"pressure":e.pressure};
+			if(e.pointerType === "mouse"){
+				point.pressure=1;
+			}
 			point.pos[0]=x;
 			point.pos[1]=y;
 			
@@ -245,7 +282,7 @@ var onloadfunc=function(e){
 				,"points":[]
 				,"weight":weight
 				,"color":new Float32Array([1.0,1.0,1.0,0.0])
-				,"color_effect":new Float32Array([0.0,0.0,0.0,1.0])
+				,"color_effect":new Float32Array([0.0,0.0,0.0,doc.draw_col[3]])
 
 				,"pressure_effect_flgs":pressure_effect_flgs
 				,"alpha_direct":alpha_direct
@@ -418,6 +455,9 @@ var onloadfunc=function(e){
 	});
 
 	inputs["down_layer"].addEventListener("click",function(e){
+		if(!selected_layer){
+			return;
+		}
 		var parent_layer =  Layer.findParent(selected_layer);
 		var layers = parent_layer.children;
 		var position = layers.indexOf(selected_layer);
@@ -429,14 +469,29 @@ var onloadfunc=function(e){
 		var position = layers.indexOf(selected_layer);
 		Command.executeCommand("moveLayer",{"layer_id":selected_layer.id,"parent_layer_id":parent_layer.id,"position":position+1});
 	});
-	inputs["join_under_layer"].addEventListener("click",function(e){
-		var position = layers.indexOf(selected_layer);
+
+	//レイヤ結合ボタン押下時
+	inputs["join_layer"].addEventListener("click",function(e){
+		if(selected_layer.type===1){
+			Command.executeCommand("composite"
+				,{"layer_id":selected_layer.id});
+			return;
+		}
+		var parent_layer = Layer.findParent(selected_layer);
+		var position = parent_layer.children.indexOf(selected_layer);
+
 		if(position===0){
 			return;
 		}
-		var id2= layers[position-1].id;
+
+		if(parent_layer.children[position-1].type===1){
+			return;
+		}
+
+		var id2= parent_layer.children[position-1].id;
 		Command.executeCommand("joinLayer",{"layer_id":id2,"layer_id2":selected_layer.id});
 	});
+
 	inputs["delete_layer"].addEventListener("click",function(e){
 		Command.executeCommand("deleteLayer",{"layer_id":selected_layer.id});
 	});
@@ -535,29 +590,58 @@ var onloadfunc=function(e){
 	a.addEventListener("contextmenu",saveHdr);
 	a.addEventListener("click",saveHdr);
 
-//初期化
-	root_layer = createLayer(new Img(1,1),1);
-	refreshLayerThumbnail(root_layer);
-	//Command.executeCommand("resizeLayer",{"layer_id":root_layer.id,"width":512,"height":512});
 
-	Command.executeCommand("resizeCanvas",{"width":512,"height":512});
-	Log.reset();
-	Command.executeCommand("createNewLayer",{"position":0,"parent":root_layer.id,"width":preview.width,"height":preview.height});
-	var layer = root_layer.children[0];
-	var img_data = layer.img.data;
-	for(var i=0;i<img_data.length;i++){
-		img_data[i]=1;
+	var url=location.search.substring(1,location.search.length)
+	var args=url.split("&")
+
+	for(i=args.length;i--;){
+		var arg=args[i].split("=")
+		if(arg.length >1){
+			if(!isNaN(arg[1]) && arg[1]!=""){
+				if(arg[1].length>1 && arg[1].indexOf(0) =="0"){
+					globalParam[arg[0]] = arg[1]
+				}else{
+					globalParam[arg[0]] = +arg[1]
+				}
+			}else{
+				globalParam[arg[0]] = arg[1]
+			}
+		}
 	}
-	layer.name="default layer"
+//初期化
+
+	if(globalParam.hasOwnProperty("load")){
+
+		//パラメタ渡されてる場合はそれ開く
+		Util.loadBinary(globalParam.load,function(buffer){
+			loadHpd(buffer);
+			var log =Log.createLog("loadDocumentFile",{"file":globalParam.load});
+			Log.appendOption(log);
+		});
+	}else{
+		root_layer = createLayer(new Img(1,1),1);
+		refreshLayerThumbnail(root_layer);
+		//Command.executeCommand("resizeLayer",{"layer_id":root_layer.id,"width":512,"height":512});
+
+		Command.executeCommand("resizeCanvas",{"width":512,"height":512});
+		Log.reset();
+		Command.executeCommand("createNewLayer",{"position":0,"parent":root_layer.id,"width":preview.width,"height":preview.height});
+		var layer = root_layer.children[0];
+		var img_data = layer.img.data;
+		for(var i=0;i<img_data.length;i++){
+			img_data[i]=1;
+		}
+		layer.name="default layer"
+		refreshLayer(layer);
+
+		refreshMain();
+		refreshLayer(root_layer);
+		refreshTab("tools");
+		refreshTab("color_selector_tab");
+		createRGBA();
+	}
 
 
-
-	refreshMain();
-	refreshLayer(root_layer);
-	refreshLayer(layer);
-	refreshTab("tools");
-	refreshTab("color_selector_tab");
-	createRGBA();
 	
 
 
@@ -599,16 +683,28 @@ var undo=function(){
 }
 var createNewLayer=function(e){
 	//新規レイヤーを作成
-	var width= preview.width;
-	var height= preview.height;
-	
-	var parent_layer = selected_layer;
-	if(parent_layer.type !== 1){
-		parent_layer = Layer.findParent (selected_layer);
+
+	var parent_layer = root_layer;
+	var pos = 0;
+
+	if(selected_layer===null){
+		parent_layer = root_layer;
+		pos = parent_layer.children.length;
+	}else{
+		if(selected_layer.type===1){
+			parent_layer = selected_layer;
+			pos = parent_layer.children.length;
+		}else{
+			parent_layer = Layer.findParent (selected_layer);
+			pos = parent_layer.children.indexOf(selected_layer)+1;
+		}
 	}
-	var idx= parent_layer.children.indexOf(selected_layer)+1;
+		
+
+	var width= parent_layer.img.width;
+	var height= parent_layer.img.height;
 	
-	Command.executeCommand("createNewLayer",{"position":idx,"parent":parent_layer.id,"width":width,"height":height});
+	Command.executeCommand("createNewLayer",{"position":pos,"parent":parent_layer.id,"width":width,"height":height});
 }
 var createNewCompositeLayer=function(e){
 	//新規コンポジットレイヤーを作成
@@ -688,7 +784,7 @@ var createNewCompositeLayer=function(e){
 				</ul>
 			</div>
 			<div id="status_resize">
-				サイズ<input id="resize_width" value="512" type="text" class="size">
+				キャンバスサイズ<input id="resize_width" value="512" type="text" class="size">
 				<input id="resize_height" value="512" type="text" class="size">
 				<input type="button" id="btn_resize_canvas" value="キャンバスをリサイズ"><br>
 				<br>
@@ -703,7 +799,7 @@ var createNewCompositeLayer=function(e){
 		<ul id="color_selector_tab">
 			<li><label><input type="radio" id="rgb_h" name="color_selector" checked>通常</label>
 			<li><label><input type="radio" id="rgb" name="color_selector">RGB</label></li>
-			<li><label><input type="radio" id="hsv" name="color_selector">HSV</label></li>
+			<li><label><input type="radio" id="hsv" disabled="disabled" name="color_selector">HSV</label></li>
 		</ul>
 		<div id="status_rgb_h">
 		ベース色<input class="colorpicker" id="color_base" value="ff0000"/><br>
@@ -780,7 +876,7 @@ var createNewCompositeLayer=function(e){
 			<div style="float:left;text-align:left;">
 				<input type="button" id="down_layer" value="↓">
 				<input type="button" id="up_layer" value="↑" >
-				<input type="button" id="join_under_layer" value="一個下のレイヤと結合" >
+				<input type="button" id="join_layer" value="一個下のレイヤと結合" >
 			</div>
 			<div style="text-align:right;">
 				<input type="button" id="delete_layer" value="レイヤ削除" ><br>

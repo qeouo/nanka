@@ -342,6 +342,10 @@ var refreshLayer = function(layer){
 	if(layer === root_layer){
 		layers_container = document.getElementById("layers_container");
 	}else{
+		layer.div.classList.remove("group");
+		if(layer.type===1){
+			layer.div.classList.add("group");
+		}
 		var div= layer.div.getElementsByTagName("div")[0];
 		div.innerHTML=layer.name;
 		var span = layer.div.getElementsByClassName("layer_attributes")[0];
@@ -518,26 +522,10 @@ var initPenPreview=function(){
 		var alpha_direct=inputs["pen_alpha_direct"].checked;
 		pen_preview_img.clear();
 		for(var li=0;li<points.length-1;li++){
-			drawPen(pen_preview_img,points[li],points[li+1],doc.draw_col,0,weight,pressure_effect_flg,alpha_direct);
+			drawPen(pen_preview_img,points[li],points[li+1],doc.draw_col,[1,1,1,1],weight,pressure_effect_flg,alpha_direct);
 		}
 
 		document.getElementById("pen_preview").src=pen_preview_img.toDataUrl();
-		//結果をキャンバスに表示
-	 // 	var dst_data  = preview_ctx_imagedata.data;
-	 // 	var src_data = pen_preview_img.data;
-	 // var r=255;
-	 //   for(var yi=0;yi<pen_preview.height;yi++){
-	 //   	for(var xi=0;xi<pen_preview.width;xi++){
-	 //   	  var dst_idx = preview_ctx_imagedata.width * yi + xi <<2;
-	 //   	  var src_idx = pen_preview_img.width * yi + xi <<2;
-	 // 			dst_data[dst_idx+0] = src_data[src_idx +0]*r;
-	 // 			dst_data[dst_idx+1] = src_data[src_idx +1]*r;
-	 // 			dst_data[dst_idx+2] = src_data[src_idx +2]*r;
-	 // 			dst_data[dst_idx+3] = src_data[src_idx +3]*r;
-	 //   	}
-	 //   }
-	 //   pen_preview_ctx.putImageData(preview_ctx_imagedata,0,0
-	 // 		,0,0,pen_preview_img.width,pen_preview_img.height);
 
 	}
 
@@ -580,7 +568,7 @@ var refreshPreviewStatus = function(e){
 		a= data[idx+3];
 	}
 
-	var str="キャンバス倍率[scale]% X:[x],Y:[y]";
+	var str="倍率[scale]% X:[x],Y:[y]";
 	str=str.replace(/\[scale\]/,doc.scale);
 	str=str.replace(/\[x\]/,x.toFixed(2));
 	str=str.replace(/\[y\]/,y.toFixed(2));
@@ -605,4 +593,5 @@ var refreshPreviewStatus = function(e){
 		Util.fireEvent(inputs["color_B"],"change");
 		Util.fireEvent(inputs["color_A"],"change");
 	}
+
 }

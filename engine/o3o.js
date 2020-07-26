@@ -2602,36 +2602,39 @@ var O3o=(function(){
 
 		if(lightProbeEnv){
 			bspTree = lightProbeEnv.bspTree;
-			shcoefs=lightProbeEnv.shcoefs;
-			//for(var i = bufMesh.vertexSize;i--;){
-			//	var vertex=vertices[i];
 
-			//	var hitTriangle = bspTree.getItem(vertex.pos);
-			//	vertex.hitTriangle=hitTriangle;
-			//	if(!hitTriangle){
-			//		continue;
-			//	}
-
-			//	var bsps=hitTriangle.bsps;
-			//	for(var k=0;k<4;k++){
-			//		bufMesh.ratios[i][k]=Vec3.dot(bsps[k].v,vertex.pos)-bsps[k].m;
-			//	}
-			//}
-
-			
-			for(var i=0;i<calcSHcoef.length;i++){
-				Vec3.set(calcSHcoef[i],0,0,0);
-			}
 			var vec3 = new Vec3();
 			Vec3.set(vec3,this.matrix[9],this.matrix[10],this.matrix[11]);
 			var hitTriangle = bspTree.getItem(vec3);
-			var bsps=hitTriangle.bsps;
-			var pIdx=hitTriangle.pIdx;
-			for(var k=0;k<4;k++){
-				var shcoef=shcoefs[pIdx[k]];
-				var r=Vec3.dot(bsps[k].v,vec3)-bsps[k].m;
+			if(hitTriangle){
+				shcoefs=lightProbeEnv.shcoefs;
+				//for(var i = bufMesh.vertexSize;i--;){
+				//	var vertex=vertices[i];
+
+				//	var hitTriangle = bspTree.getItem(vertex.pos);
+				//	vertex.hitTriangle=hitTriangle;
+				//	if(!hitTriangle){
+				//		continue;
+				//	}
+
+				//	var bsps=hitTriangle.bsps;
+				//	for(var k=0;k<4;k++){
+				//		bufMesh.ratios[i][k]=Vec3.dot(bsps[k].v,vertex.pos)-bsps[k].m;
+				//	}
+				//}
+
+				
 				for(var i=0;i<calcSHcoef.length;i++){
-					Vec3.madd(calcSHcoef[i],calcSHcoef[i],shcoef[i],r);
+					Vec3.set(calcSHcoef[i],0,0,0);
+				}
+				var bsps=hitTriangle.bsps;
+				var pIdx=hitTriangle.pIdx;
+				for(var k=0;k<4;k++){
+					var shcoef=shcoefs[pIdx[k]];
+					var r=Vec3.dot(bsps[k].v,vec3)-bsps[k].m;
+					for(var i=0;i<calcSHcoef.length;i++){
+						Vec3.madd(calcSHcoef[i],calcSHcoef[i],shcoef[i],r);
+					}
 				}
 			}
 		}

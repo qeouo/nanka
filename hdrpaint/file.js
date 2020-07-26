@@ -19,7 +19,9 @@ var loadHpd=function(buffer){
 //	for(var li=layers.length;li--;){
 //		Command.deleteLayer({param:{"layer_id":layers[li].id}});
 //	}
-	Command.deleteLayer({param:{"layer_id":root_layer.id}});
+	if(root_layer){
+		Command.deleteLayer({param:{"layer_id":root_layer.id}});
+	}
 
 	var doc_data = JSON.parse(Util.utf8ToString(doc_file.data));
 
@@ -32,6 +34,9 @@ var loadHpd=function(buffer){
 			continue;
 		}
 		input.value = doc_data[id];
+		if(input.type==="checkbox" && input.value==="1"){
+			input.checked = true;
+		}
 	}
 	layer_id_count = doc_data.layer_id_count;
 
@@ -146,6 +151,13 @@ var saveHpd= function(e){
 		var id = keys[i]
 		var input = inputs[id];
 		doc_data[id] = input.value;
+		if(input.type==="checkbox"){
+			if(input.checked){
+				doc_data[id] =1;
+			}else{
+				doc_data[id] =0;
+			}
+		}
 	}
 	doc_data.layer_id_count = layer_id_count;
 

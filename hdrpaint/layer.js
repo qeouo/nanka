@@ -217,8 +217,6 @@ var selectLayer=function(target_layer){
 	//アクティブレイヤ変更
 	
 	selected_layer=target_layer;
-	//for(var li=0;li<layers.length;li++){
-	//	var layer=layers[li];
 	each_layers(function(layer){
 		if(target_layer !== layer){
 			//アクティブレイヤ以外の表示を非アクティブにする
@@ -229,6 +227,12 @@ var selectLayer=function(target_layer){
 	});
 
 	refreshActiveLayerParam();
+
+	if(selected_layer.type ===1){
+		inputs["join_layer"].value="結合し通常レイヤにする";
+	}else{
+		inputs["join_layer"].value="下のレイヤと結合";
+	}
 
 }
 var layerSelect= function(e){
