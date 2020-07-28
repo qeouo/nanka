@@ -115,7 +115,7 @@ var onloadfunc=function(e){
 				var option = inputs["history"].options[inputs["history"].selectedIndex];
 				Util.setText(option,pen_log.label);
 
-				if(points.length>penindex+4){
+				if(points.length>NUKIMAX){
 					penindex++;
 				}
 				penflg=1;
@@ -140,31 +140,7 @@ var onloadfunc=function(e){
 
 				penindex++;
 			}
-
-
-			if(penindex>0){
-				var old = points[penindex-1];
-				var target = points[penindex];
-				var now = points[points.length-1];
-				var a = new Vec2();
-				Vec2.sub(a,now.pos,old.pos);
-				var sc=	Vec2.scalar(a);
-				if(sc>10){
-					Vec2.norm(a);
-					Vec2.mul(a,a,sc-10);
-				}
-				Vec2.add(target.pos,old.pos,a);
-				target.pressure = old.pressure + (now.pressure - old.pressure ) * ((4-(points.length-penindex-1))/4);
-				
-
-				//今回と前回の座標で直線描画
-				var p0=points[penindex-1];
-				var p1=points[penindex];
-				var param = pen_log.param;
-				Command.drawLine(selected_layer,p0,p1,param.weight,param.color,param.color_effect,param.pressure_effect_flgs,param.alpha_direct);
-			}
-			
-			if(points.length ===penindex+1){
+			if(points.length ===penindex){
 				refreshMain();
 				Layer.bubble_func(layer,
 					function(layer){
@@ -174,6 +150,33 @@ var onloadfunc=function(e){
 				pen_log=null;
 				return;
 			}
+
+
+			if(penindex>0){
+				var ratio = (penindex - (points.length-NUKIMAX))/(NUKIMAX-1);
+
+				var old = points[points.length-NUKIMAX];
+				var target = points[penindex];
+				var now = points[points.length-1];
+				var a = new Vec2();
+				Vec2.sub(a,now.pos,old.pos);
+				var sc=	Vec2.scalar(a);
+				if(sc>10){
+				//	Vec2.norm(a);
+				//	Vec2.mul(a,a,sc-10);
+				//	Vec2.add(target.pos,old.pos,a);
+				}
+				//Vec2.madd(target.pos,old.pos,a,ratio);
+				target.pressure = old.pressure + (now.pressure - old.pressure ) * ratio;
+				
+
+				//今回と前回の座標で直線描画
+				var p0=points[penindex-1];
+				var p1=points[penindex];
+				var param = pen_log.param;
+				Command.drawLine(selected_layer,p0,p1,param.weight,param.color,param.color_effect,param.pressure_effect_flgs,param.alpha_direct);
+			}
+			
 		}else if(inputs["translate"].checked) {
 			//移動のとき
 			if((e.buttons & 1) && pen_log){
