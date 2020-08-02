@@ -1,4 +1,8 @@
 
+var PenPoint=function(){
+	this.pos=new Vec2();
+	this.pressure=1;
+}
 var copyImg= function(dst,dst_x,dst_y,src,src_x,src_y,src_w,src_h){
 	var dst_data = dst.data;
 	var dst_width = dst.width;

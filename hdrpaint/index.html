@@ -78,10 +78,12 @@ var onloadfunc=function(e){
 
 
 	Util.fireEvent(inputs["color_base"],"change");
+	
+	var pen_points;
+	var rag=null;
+	var RAGTIME=100;
+	var aaa=0;
 
-	var NUKIMAX=4;
-		var penindex=0;
-		var penflg=0;
 	var drawfunc =function(e){
 		//描画関数
 		
@@ -105,77 +107,38 @@ var onloadfunc=function(e){
 				//今回座標をパスに追加
 				point.pos[0]= x;
 				point.pos[1]= y;
-				points.push(point);
+				pen_points.push(point);
 
-				//ログ文面変更
-				pen_log.label = ("0000" + pen_log.id).slice(-4) + "| pen" ;
-				pen_log.label += "(" + points[0].pos[0].toFixed(0)+ ","+ points[0].pos[1].toFixed(0)+")-";
-				pen_log.label += (points.length-2) +"-";
-				pen_log.label += "(" + points[points.length-1].pos[0].toFixed(0)+ ","+ points[points.length-1].pos[1].toFixed(0)+")";
-				var option = inputs["history"].options[inputs["history"].selectedIndex];
-				Util.setText(option,pen_log.label);
-
-				if(points.length>NUKIMAX){
-					penindex++;
-				}
-				penflg=1;
-			}else{
-				if(penflg){
-					var point={"pos":new Vec2(),"pressure":e.pressure};
-					point.pressure=0;
-					//今回座標をパスに追加
-					point.pos[0]= x;
-					point.pos[1]= y;
-					points.push(point);
-
-					//ログ文面変更
-					pen_log.label = ("0000" + pen_log.id).slice(-4) + "| pen" ;
-					pen_log.label += "(" + points[0].pos[0].toFixed(0)+ ","+ points[0].pos[1].toFixed(0)+")-";
-					pen_log.label += (points.length-2) +"-";
-					pen_log.label += "(" + points[points.length-1].pos[0].toFixed(0)+ ","+ points[points.length-1].pos[1].toFixed(0)+")";
-					var option = inputs["history"].options[inputs["history"].selectedIndex];
-					Util.setText(option,pen_log.label);
-					penflg=0;
-				}
-
-				penindex++;
-			}
-			if(points.length ===penindex){
-				refreshMain();
-				Layer.bubble_func(layer,
-					function(layer){
-						refreshLayerThumbnail(layer);
-					}
-				);
-				pen_log=null;
-				return;
+				aaa=1;
+			if(!rag){
+				rag = setTimeout(pen_aaa,RAGTIME);
 			}
 
-
-			if(penindex>0){
-				var ratio = (penindex - (points.length-NUKIMAX))/(NUKIMAX-1);
-
-				var old = points[points.length-NUKIMAX];
-				var target = points[penindex];
-				var now = points[points.length-1];
-				var a = new Vec2();
-				Vec2.sub(a,now.pos,old.pos);
-				var sc=	Vec2.scalar(a);
-				if(sc>10){
-				//	Vec2.norm(a);
-				//	Vec2.mul(a,a,sc-10);
-				//	Vec2.add(target.pos,old.pos,a);
-				}
-				//Vec2.madd(target.pos,old.pos,a,ratio);
-				target.pressure = old.pressure + (now.pressure - old.pressure ) * ratio;
+			}else if(aaa>0){
+				var point={"pos":new Vec2(),"pressure":e.pressure};
+				point.pressure=0;
 				
 
-				//今回と前回の座標で直線描画
-				var p0=points[penindex-1];
-				var p1=points[penindex];
-				var param = pen_log.param;
-				Command.drawLine(selected_layer,p0,p1,param.weight,param.color,param.color_effect,param.pressure_effect_flgs,param.alpha_direct);
+				//今回座標をパスに追加
+				point.pos[0]= x;
+				point.pos[1]= y;
+				pen_points.push(point);
+
+				//描画前ポイントを補正
+				var len = pen_points.length-points.length;
+				var a = pen_points[points.length].pressure;
+				var b = pen_points[pen_points.length-1].pressure;
+				for(var pi=points.length;pi<pen_points.length;pi++){
+					var r = ((pi-points.length)/len);
+					pen_points[pi].pressure = a + (b-a) * r;
+				}
+				aaa=0;
+			if(!rag){
+				rag = setTimeout(pen_aaa,RAGTIME);
 			}
+			}
+
+
 			
 		}else if(inputs["translate"].checked) {
 			//移動のとき
@@ -195,12 +158,57 @@ var onloadfunc=function(e){
 			}
 		}
 	};
+	var pen_aaa=function(){
+		rag = null;
+		if(!pen_log){
+			return;
+		}
+		var points = pen_log.param.points;
+		if(points.length >=pen_points.length){
+
+			refreshMain();
+			Layer.bubble_func(layer,
+				function(layer){
+					refreshLayerThumbnail(layer);
+				}
+			);
+			return;
+		}
+
+		var org = pen_points[points.length];
+		var point = new PenPoint();
+		point.pressure = org.pressure;
+		Vec2.mul(point.pos,org.pos,1);
+		points.push(point);
+		if(points.length>=2){
+
+			//ログ文面変更
+			pen_log.label = ("0000" + pen_log.id).slice(-4) + "| pen" ;
+			pen_log.label += "(" + points[0].pos[0].toFixed(0)+ ","+ points[0].pos[1].toFixed(0)+")-";
+			pen_log.label += (points.length-2) +"-";
+			pen_log.label += "(" + points[points.length-1].pos[0].toFixed(0)+ ","+ points[points.length-1].pos[1].toFixed(0)+")";
+			var option = inputs["history"].options[inputs["history"].selectedIndex];
+			Util.setText(option,pen_log.label);
+
+			var ratio = 1;
+			var penindex=points.length-1;
+
+			//今回と前回の座標で直線描画
+			var p0=points[penindex-1];
+			var p1=points[penindex];
+			var param = pen_log.param;
+			Command.drawLine(selected_layer,p0,p1,param.weight,param.color,param.color_effect,param.pressure_effect_flgs,param.alpha_direct);
+		}
+		
+		rag = setTimeout(pen_aaa,16);
+
+	}
 	
 	preview.addEventListener("pointermove",function(e){drawfunc(e);refreshPreviewStatus(e);e.preventDefault();});
+
 	preview.addEventListener("contextmenu",function(e){return false;});
 	
 	var drag_start=new Vec2();
-	var drag_flg = false;
 
 	preview.addEventListener("pointerdown",function(e){
 		getPos(e);
@@ -254,12 +262,10 @@ var onloadfunc=function(e){
 			}
 			var weight=parseFloat(inputs["weight"].value);
 			var pressure_effect_flgs= 0;
-			if(inputs["weight_pressure_effect"].checked){
-				pressure_effect_flgs|=1;
-			}
-			if(inputs["alpha_pressure_effect"].checked){
-				pressure_effect_flgs|=2;
-			}
+
+			pressure_effect_flgs|=1 * inputs["weight_pressure_effect"].checked;
+			pressure_effect_flgs|=2 * inputs["alpha_pressure_effect"].checked;
+
 			var alpha_direct = inputs["pen_alpha_direct"].checked;
 			if(inputs["eraser"].checked){
 				pen_log = Command.executeCommand("pen",{
@@ -284,19 +290,12 @@ var onloadfunc=function(e){
 				});
 			}
 
-			var point={"pos":new Vec2(),"pressure":e.pressure};
-			if(e.pointerType === "mouse"){
-				point.pressure=1;
-			}
-			point.pos[0]=x;
-			point.pos[1]=y;
-			
-			pen_log.param.points.push(point);
-			penindex=0;
+			pen_points=[];
 
+			drawfunc(e);
 		}
 
-		drawfunc(e)
+		drawfunc(e);
 
 	},false);
     inputs["history"].addEventListener('change', function(event){
