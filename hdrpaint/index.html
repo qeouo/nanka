@@ -179,6 +179,11 @@ var onloadfunc=function(e){
 		var point = new PenPoint();
 		point.pressure = org.pressure;
 		Vec2.mul(point.pos,org.pos,1);
+		if(points.length>=1){
+			var s=new Vec2();
+			Vec2.sub(s,pen_points[pen_points.length-1].pos,points[points.length-1].pos);
+			Vec2.madd(point.pos,points[points.length-1].pos,s,0.5);
+		}
 		points.push(point);
 		if(points.length>=2){
 
