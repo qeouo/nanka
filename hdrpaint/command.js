@@ -285,23 +285,7 @@ var createDif=function(layer,left,top,width,height){
 
 	ret.eraser=function(log,undo_flg){
 		//消しゴム描画
-		if(undo_flg){
-			return;
-		}
-		var param = log.param;
-		var layer = Layer.findById(param.layer_id);
-		var points = param.points;
-		var weight= param.weight;
-		var color= param.color;
-		var color_mask= param.color_effect;
-		color_mask[3] *= (1-layer.mask_alpha);
-		var pressure_effect_flgs= param.pressure_effect_flgs;
-		var alpha_direct = param.alpha_direct;
-
-		for(var li=0;li<points.length-1;li++){
-			Command.drawLine(layer,points[li],points[li+1],weight,color,color_mask,pressure_effect_flgs,alpha_direct);
-		}
-		refreshThumbnails(layer);
+		ret.pen(log,undo_flg);
 	}
 	ret.drawLine=function(layer,point0,point1,weight,col,color_mask,pressure_effect_flgs,alpha_direct){
 		var img= layer.img;

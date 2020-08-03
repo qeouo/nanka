@@ -583,6 +583,7 @@ var refreshPreviewStatus = function(e){
 	Util.setText(status,str);
 
 	if(e.buttons & 2){
+		//スポイト
 		inputs["color_R"].value=r;
 		inputs["color_G"].value=g;
 		inputs["color_B"].value=b;
