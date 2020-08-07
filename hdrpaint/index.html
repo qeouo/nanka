@@ -43,8 +43,8 @@ var canvas_field;
 
 	var getPos=function(e){
 		var rect = preview.getBoundingClientRect();
-		doc.cursor_pos[0] =(e.clientX- rect.left);
-		doc.cursor_pos[1] = (e.clientY- rect.top);
+		doc.cursor_pos[0] =(e.clientX- rect.left)-1;
+		doc.cursor_pos[1] = (e.clientY- rect.top)-1;
 		
 		doc.cursor_pos[0]*=100/doc.scale;
 		doc.cursor_pos[1]*=100/doc.scale;
@@ -110,8 +110,8 @@ var onloadfunc=function(e){
 				point.pressure=0;
 
 				//描画前ポイントを補正
-				if(pen_persistence==PERSISTENCE_TIME){
 					var points = pen_log.param.points;
+				if(pen_persistence==PERSISTENCE_TIME && points.length<locus.length){
 					var len = locus.length-points.length;
 					var a = locus[points.length].pressure;
 					var b = locus[locus.length-1].pressure;
@@ -128,9 +128,13 @@ var onloadfunc=function(e){
 			//今回座標をパスに追加
 			locus.push(point);
 
-			if(!rag){
-				//描画ループが動いていない場合は時間差で動かす
-				rag = setTimeout(actualDraw,RAGTIME);
+			if(RAGTIME){
+				if(!rag){
+					//描画ループが動いていない場合は時間差で動かす
+					rag = setTimeout(actualDraw,RAGTIME);
+				}
+			}else{
+				actualDraw();
 			}
 			
 		}else if(inputs["translate"].checked) {
@@ -274,6 +278,17 @@ var onloadfunc=function(e){
 				return;
 			}
 
+			if(inputs["locus_correction"].checked){
+				CALC_SAMPLE=5;
+				PERSISTENCE_TIME=2;
+				RAGTIME=CALC_SAMPLE*20;
+			}else{
+				CALC_SAMPLE=0;
+				PERSISTENCE_TIME=1;
+				RAGTIME=0;
+			}
+			locus=[];
+
 			//ペン状態取得
 			var weight=parseFloat(inputs["weight"].value);
 			var pressure_effect_flgs= 
@@ -304,7 +319,6 @@ var onloadfunc=function(e){
 				});
 			}
 
-			locus=[];
 			pen_persistence=PERSISTENCE_TIME;
 
 			drawfunc(e);
@@ -617,14 +631,22 @@ var onloadfunc=function(e){
 	for(i=args.length;i--;){
 		var arg=args[i].split("=")
 		if(arg.length >1){
+			var name = arg[0];
 			if(!isNaN(arg[1]) && arg[1]!=""){
 				if(arg[1].length>1 && arg[1].indexOf(0) =="0"){
-					globalParam[arg[0]] = arg[1]
+					globalParam[name] = arg[1]
 				}else{
-					globalParam[arg[0]] = +arg[1]
+					globalParam[name] = +arg[1]
 				}
 			}else{
-				globalParam[arg[0]] = arg[1]
+				globalParam[name] = arg[1]
+			}
+		}
+		if(inputs.hasOwnProperty(name)){
+			if(inputs[name].type=="checkbox" && globalParam[name]){
+				inputs[name].checked=true;
+			}else{
+				inputs[name].value = globalParam[name];
 			}
 		}
 	}
@@ -784,6 +806,9 @@ var createNewCompositeLayer=function(e){
 						筆圧影響
 						<label><input type="checkbox" id="weight_pressure_effect"/>半径</label>
 						<label><input type="checkbox" id="alpha_pressure_effect"/>アルファ</label>
+					</div>
+					<div>
+						<label><input type="checkbox" id="locus_correction"/>補正</label>
 					</div>
 					<ul>
 					<li><label><input type="radio" id="pen_alpha_direct" name="pen_alpha" checked />アルファ値を直接書き込む</label></li>
