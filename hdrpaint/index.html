@@ -262,7 +262,7 @@ refreshPreviewStatus(e);
 
 
 			calcHermitian(sub1.pos,A,B,C,D,0);
-			sub1.pressure=points[n].pressure;
+			sub1.pressure=points[n-1].pressure;
 			var dp = points[n].pressure - points[n-1].pressure;
 			for(var i=0;i<5;i++){
 				calcHermitian(sub2.pos,A,B,C,D,(i+1)/5);
