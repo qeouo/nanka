@@ -76,12 +76,9 @@ var onloadfunc=function(e){
 
 	Util.fireEvent(inputs["color_base"],"change");
 	
-	var locus;
 	var rag=null;
-	var CALC_SAMPLE=5;
-	var PERSISTENCE_TIME=2;
-	var RAGTIME=CALC_SAMPLE*20;
-	var pen_persistence=0;
+	var RAGTIME=50;
+	var penFunc=null;
 
 	var drawfunc =function(e){
 		//描画関数
@@ -96,59 +93,64 @@ var onloadfunc=function(e){
 		if(inputs["pen"].checked || inputs["eraser"].checked){
 			//ペンのとき
 			if(!pen_log)return;
-			if(pen_persistence<0){
-				return;
-			}
 
 			var point=new PenPoint();
 			point.pos[0]= x;
 			point.pos[1]= y;
-			if(e.pointerType === "mouse"){
-				point.pressure=1;
-			}else{
-				point.pressure=e.pressure;
-			}
-
-			locus.push(point);
-			if(locus.length>=2){
-				var buf=new Vec2();
-				Vec2.sub(buf,locus[locus.length-1].pos,locus[locus.length-2].pos);
-				if(Vec2.scalar(buf)>20){
-					var a=Vec2.scalar(buf);
-					Vec2.norm(buf);
-					Vec2.mul(buf,buf,a-20);
+			if(e.buttons&1){
+				if(e.pointerType === "mouse"){
+					point.pressure=1;
+				}else{
+					point.pressure=e.pressure;
 				}
-				Vec2.add(point.pos,locus[locus.length-2].pos,buf);
-			}
-
-			if(!(e.buttons&1)){
+				if(penFunc===null){
+					penFunc= new PenFunc();
+					penFunc.pen_log=pen_log;
+				}
+			}else{
 				point.pressure=0;
-
-				//描画前ポイントを補正
-					var points = pen_log.param.points;
-				if(points.length<locus.length){
-					var len = locus.length-points.length;
-					var a = locus[points.length-1].pressure;
-					var b = locus[locus.length-1].pressure;
-					for(var pi=points.length;pi<locus.length;pi++){
-						var r = ((pi-points.length+1)/len);
-						locus[pi].pressure = a + (b-a) * r;
-					}
-				}
-
-				
-				pen_persistence--;
-			}else{
-				pen_persistence=PERSISTENCE_TIME;
-			}
+			}	
+			var points= pen_log.param.points;
 
 			//今回座標をパスに追加
 			point.time=Date.now();
 
-			if(!rag){
-				//描画ループが動いていない場合は時間差で動かす
-				rag = window.requestAnimationFrame(actualDraw);
+			points.push(point);
+			if(points.length>=2){
+				var buf=new Vec2();
+				Vec2.sub(buf,points[points.length-1].pos,points[points.length-2].pos);
+				var a=Vec2.scalar(buf);
+				if(a>20){
+					Vec2.norm(buf);
+					Vec2.mul(buf,buf,a-20);
+				}
+				Vec2.add(point.pos,points[points.length-2].pos,buf);
 			}
+
+			if(!(e.buttons&1)){
+
+				//描画前ポイントを補正
+					var points = pen_log.param.points;
+				if(penFunc.idx +1<points.length){
+					var len = points.length - (penFunc.idx + 1) ;
+					var a = points[penFunc.idx].pressure;
+					var b = points[points.length-1].pressure;
+					for(var pi=penFunc.idx+1;pi<points.length;pi++){
+						var r = ((pi-penFunc.idx)/len);
+						points[pi].pressure = a + (b-a) * r;
+					}
+				}
+
+				
+			}
+
+			if(!(e.buttons&1)){
+				penFunc.end();
+				penFunc= null;
+				point.pressure=0;
+				pen_log=null;
+			}	
+
 			
 		}else if(inputs["translate"].checked) {
 			//移動のとき
@@ -167,113 +169,65 @@ var onloadfunc=function(e){
 				
 			}
 		}
-refreshPreviewStatus(e);
+		refreshPreviewStatus(e);
 	};
-	var actualDraw=function(){
-		rag = null;
-		if(!pen_log){
-			return;
+	var PenFunc = (function(){
+		var PenFunc=function(){
+			this.pen_log=null;
+			this.endFlg=0;
+			this.idx=0;
+			var aaa=this;
+			window.requestAnimationFrame(function(){aaa.actualDraw()});
 		}
-		var points = pen_log.param.points;
-		if(points.length >= locus.length){
-			if(!(e.buttons&1)){
-				pen_log=null;
+		PenFunc.prototype.end=function(){
+			this.endFlg=1;
+		}
+		PenFunc.prototype.actualDraw=function(){
+			var aaa=this;
+			var p_l = this.pen_log;
+			var points = p_l.param.points;
+			if(this.endFlg && points.length <= this.idx){
 				refreshMain();
 				Layer.bubble_func(layer,
 					function(layer){
 						refreshLayerThumbnail(layer);
 					}
 				);
-			}
-			return;
-		}
-
-		var org = locus[points.length];
-		rag = window.requestAnimationFrame(actualDraw);
-		if(org.time + 50 >Date.now()){
-			return;
-		}
-		var point = new PenPoint();
-		point.pressure = org.pressure;
-		Vec2.copy(point.pos,org.pos);
-		
-		points.push(point);
-		if(points.length>=3){
-
-			//ログ文面変更
-			pen_log.label = ("0000" + pen_log.id).slice(-4) + "| pen" ;
-			pen_log.label += "(" + points[0].pos[0].toFixed(0)+ ","+ points[0].pos[1].toFixed(0)+")-";
-			pen_log.label += (points.length-2) +"-";
-			pen_log.label += "(" + points[points.length-1].pos[0].toFixed(0)+ ","+ points[points.length-1].pos[1].toFixed(0)+")";
-			var option = inputs["history"].options[inputs["history"].selectedIndex];
-			Util.setText(option,pen_log.label);
-
-			var ratio = 1;
-			var penindex=points.length-1;
-
-			//今回と前回の座標で直線描画
-			drawHermitian(pen_log,points.length-2);
-		}
-	}
-
-	var drawHermitian = (function(){
-		var A = new Vec2(),B= new Vec2(),C= new Vec2(),D=new Vec2();
-		var sub1= new PenPoint();
-		var sub2= new PenPoint();
-		var q0=new Vec2();
-		var q1=new Vec2();
-		var calcHermitian=function(p,a,b,c,d,dt){
-				Vec2.mul (p,  a,dt*dt*dt);
-				Vec2.madd(p,p,b,dt*dt);
-				Vec2.madd(p,p,c,dt);
-				Vec2.add (p,p,d);
-		}
-		return function(pen_log,n){
-			var param=pen_log.param;
-			var points = param.points;
-
-			var p0=points[n-1].pos;
-			var p1=points[n].pos;
-			var param = pen_log.param;
-			if(n>=2 ){
-					Vec2.sub(q0,p1,points[n-2].pos);
-					Vec2.mul(q0,q0,0.5);
-			}else if(i==0){
-				Vec2.sub(q0,p1,p0);
-			}
-			if(n+1>=points.length){
-				Vec2.sub(q1,p1,p0);
 			}else{
-				Vec2.sub(q1,points[n+1].pos,p0);
-				Vec2.mul(q1,q1,0.5);
+				window.requestAnimationFrame(function(){
+					aaa.actualDraw()
+				});
 			}
 
-			Vec2.copy(D,p0);
-
-			Vec2.copy(C,q0);
-			
-			Vec2.madd(A,q1,p1,-2);
-			Vec2.add(A,A,q0);
-			Vec2.madd(A,A,p0,2);
-
-			Vec2.sub(B,p1,A);
-			Vec2.sub(B,B,q0);
-			Vec2.sub(B,B,p0);
-
-
-			calcHermitian(sub1.pos,A,B,C,D,0);
-			sub1.pressure=points[n-1].pressure;
-			var dp = points[n].pressure - points[n-1].pressure;
-			for(var i=0;i<5;i++){
-				calcHermitian(sub2.pos,A,B,C,D,(i+1)/5);
-				sub2.pressure=points[n-1].pressure + dp*(i+1)/5;
-				Command.drawLine(selected_layer,sub1,sub2,param.weight,param.color,param.color_effect,param.pressure_effect_flgs,param.alpha_direct);
-
-				Vec2.copy(sub1.pos,sub2.pos);
-				sub1.pressure=sub2.pressure;
+			if(points.length <= this.idx){
+				return;
 			}
+
+			var org = points[this.idx];
+
+
+			if(org.time + RAGTIME >Date.now()){
+				return;
+			}
+			if(this.idx>=1){
+
+				//ログ文面変更
+				p_l.label = ("0000" + p_l.id).slice(-4) + "| pen" ;
+				p_l.label += "(" + points[0].pos[0].toFixed(0)+ ","+ points[0].pos[1].toFixed(0)+")-";
+				p_l.label += (points.length-2) +"-";
+				p_l.label += "(" + points[points.length-1].pos[0].toFixed(0)+ ","+ points[points.length-1].pos[1].toFixed(0)+")";
+				var option = inputs["history"].options[inputs["history"].selectedIndex];
+				Util.setText(option,p_l.label);
+
+				//今回と前回の座標で直線描画
+				Command.drawHermitian(p_l,this.idx);
+			}
+			this.idx++;
 		}
+		return PenFunc;
 	})();
+
+
 	
 	window.addEventListener("pointerup",function(e){drawfunc(e);e.preventDefault();});
 	window.addEventListener("pointermove",function(e){drawfunc(e);e.preventDefault();});
@@ -340,15 +294,10 @@ refreshPreviewStatus(e);
 			}
 
 			if(inputs["locus_correction"].checked){
-				CALC_SAMPLE=5;
-				PERSISTENCE_TIME=2;
-				RAGTIME=CALC_SAMPLE*20;
+				RAGTIME=50;
 			}else{
-				CALC_SAMPLE=0;
-				PERSISTENCE_TIME=0;
 				RAGTIME=0;
 			}
-			locus=[];
 
 			//ペン状態取得
 			var weight=parseFloat(inputs["weight"].value);
@@ -380,9 +329,7 @@ refreshPreviewStatus(e);
 				});
 			}
 
-			pen_persistence=PERSISTENCE_TIME;
-
-		//	drawfunc(e);
+			drawfunc(e);
 		}
 
 		drawfunc(e);

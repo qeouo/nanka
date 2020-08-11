@@ -287,7 +287,123 @@ var createDif=function(layer,left,top,width,height){
 		//消しゴム描画
 		ret.pen(log,undo_flg);
 	}
-	ret.drawLine=function(layer,point0,point1,weight,col,color_mask,pressure_effect_flgs,alpha_direct){
+
+	ret.drawHermitian = (function(){
+		var A = new Vec2(),B= new Vec2(),C= new Vec2(),D=new Vec2();
+		var q0=new Vec2();
+		var q1=new Vec2();
+		var _p = [];
+		for(var i=0;i<10;i++){
+			_p.push(new PenPoint());
+		}
+		var clamp=function(value,min,max){
+			return Math.min(max,Math.max(min,value));
+		}
+		var calcHermitian=function(p,a,b,c,d,dt){
+				Vec2.mul (p,  a,dt*dt*dt);
+				Vec2.madd(p,p,b,dt*dt);
+				Vec2.madd(p,p,c,dt);
+				Vec2.add (p,p,d);
+		}
+		return function(pen_log,n){
+			var param=pen_log.param;
+			var points = param.points;
+			var layer = Layer.findById(param.layer_id);
+
+
+			var p0=points[n-1].pos;
+			var p1=points[n].pos;
+			var param = pen_log.param;
+			if(n>=2 ){
+					Vec2.sub(q0,p1,points[n-2].pos);
+					Vec2.mul(q0,q0,0.5);
+			}else if(i==0){
+				Vec2.sub(q0,p1,p0);
+			}
+			if(n+1>=points.length){
+				Vec2.sub(q1,p1,p0);
+			}else{
+				Vec2.sub(q1,points[n+1].pos,p0);
+				Vec2.mul(q1,q1,0.5);
+			}
+
+			Vec2.copy(D,p0);
+
+			Vec2.copy(C,q0);
+			
+			Vec2.madd(A,q1,p1,-2);
+			Vec2.add(A,A,q0);
+			Vec2.madd(A,A,p0,2);
+
+			Vec2.sub(B,p1,A);
+			Vec2.sub(B,B,q0);
+			Vec2.sub(B,B,p0);
+
+
+			calcHermitian(_p[0].pos,A,B,C,D,0);
+			_p[0].pressure=points[n-1].pressure;
+			var dp = points[n].pressure - points[n-1].pressure;
+			var len = Vec2.len(p1,p0);
+			var devide= clamp((len/8)|0,1,9);
+			var _devide=1/devide;
+			console.log(devide);
+
+		var wei = _p[0].pressure * param.weight;
+		var left = _p[0].pos[0]- wei;
+		var right= _p[0].pos[0] +wei+1;
+		var top= _p[0].pos[1] -wei;
+		var bottom= _p[0].pos[1] +wei+1;
+
+			for(var i=1;i<devide+1;i++){
+				calcHermitian(_p[i].pos,A,B,C,D,(i) * _devide);
+				_p[i].pressure=points[n-1].pressure + dp*(i) * _devide;
+				var wei = _p[i].pressure * param.weight;
+				left = Math.min(_p[i].pos[0]-wei,left);
+				right= Math.max(_p[i].pos[0]+wei+1,right);
+				top= Math.min(_p[i].pos[1]-wei,top);
+				bottom= Math.max(_p[i].pos[1]+wei+1,bottom);
+				
+			}
+
+		var img= layer.img;
+		left = Math.floor(clamp(left,0,img.width));
+		right= Math.ceil(clamp(right,0,img.width));
+		top= Math.floor(clamp(top,0,img.height));
+		bottom=Math.ceil(clamp(bottom,0,img.height));
+
+
+
+		if(pen_log){
+			//差分ログ作成
+			var log = pen_log;
+			if(!log.undo_data){
+				log.undo_data={"difs":[]};
+			}
+			var dif=createDif(layer,left-layer.position[0],top-layer.position[1],right-left,bottom-top);
+			log.undo_data.difs.push(dif);
+		}
+//		var org_pos0=point0.pos;
+//		var org_pos1=point1.pos;
+//		point0.pos=new Vec2();
+//		point1.pos=new Vec2();
+//		Vec2.sub(point0.pos,org_pos0,layer.position);
+//		Vec2.sub(point1.pos,org_pos1,layer.position);
+
+		for(var i=0;i<devide;i++){
+			var point0 = _p[i];
+			var point1 = _p[i+1];
+			drawPen(layer.img,point0,point1,param.color,param.color_effect,param.weight,param.pressure_effect_flgs,param.alpha_direct);
+		}
+//		point0.pos=org_pos0;
+//		point1.pos=org_pos1;
+
+		if(right-left>0 && bottom-top>0){
+			//再描画
+			refreshMain(0,left,top,right-left,bottom-top);
+		}
+		}
+	})();
+	ret.drawLine=function(layer,pen_log,point0,point1,weight,col,color_mask,pressure_effect_flgs,alpha_direct){
 		var img= layer.img;
 		var new_p = point1.pos;
 		var old_p = point0.pos;

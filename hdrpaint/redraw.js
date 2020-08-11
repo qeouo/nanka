@@ -12,8 +12,6 @@ var enableRefresh=function(){
 	refreshoff=false;
 }
 
-
-
 var refreshLayerThumbnail = function(layer){
 	if(!animation_frame_id){
 		animation_frame_id=window.requestAnimationFrame(function(e){
@@ -69,6 +67,7 @@ var refreshMain_=function(){
 	refresh_thumbnail=[];
 	animation_frame_id=null;
 }
+
 var refreshMain_sub=function(step,x,y,w,h){
 	//プレビュー画面を更新
 	
@@ -111,6 +110,7 @@ var refreshMain_sub=function(step,x,y,w,h){
 	var joined_img_width = joined_img.width;
 
 	if(step<=0){
+		//全レイヤ更新
 		var f = function(layer,left,top,right,bottom){
 			var lower_layers = layer.children;
 			for(var li=0;li<lower_layers.length;li++){
@@ -122,10 +122,10 @@ var refreshMain_sub=function(step,x,y,w,h){
 			layer.composite(left,top,right,bottom);
 
 		}
-
 		f(root_layer,left,top,right,bottom);
 
 		if(inputs["ch_bloom"].checked ){
+			//ブルーム処理ありの場合は前処理を行う
 			gauss(bloom_size,bloom_size,left,right,top,bottom);
 		}
 	}
