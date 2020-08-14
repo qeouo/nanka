@@ -38,11 +38,11 @@ doc.scale=100;
 doc.canvas_pos=new Vec2();
 doc.cursor_pos=new Vec2();
 
+		var rect = preview.getBoundingClientRect();
 var canvas_field;
 
 
 	var getPos=function(e){
-		var rect = preview.getBoundingClientRect();
 		doc.cursor_pos[0] =(e.clientX- rect.left)-1;
 		doc.cursor_pos[1] = (e.clientY- rect.top)-1;
 		
@@ -73,12 +73,20 @@ var onloadfunc=function(e){
 		inputs[id]= elements[i];
 	}
 
+	var keys=Object.keys(inputs);
+	for(var i=0;i<keys.length;i++){
+		var key = keys[i];
+		var input = inputs[key];
+		input.setAttribute("title",key);
+	}
+
+
+
 
 	Util.fireEvent(inputs["color_base"],"change");
 	
 	var rag=null;
 	var RAGTIME=50;
-	var penFunc=null;
 
 	var drawfunc =function(e){
 		//描画関数
@@ -103,10 +111,6 @@ var onloadfunc=function(e){
 				}else{
 					point.pressure=e.pressure;
 				}
-				if(penFunc===null){
-					penFunc= new PenFunc();
-					penFunc.pen_log=pen_log;
-				}
 			}else{
 				point.pressure=0;
 			}	
@@ -116,27 +120,29 @@ var onloadfunc=function(e){
 			point.time=Date.now();
 
 			points.push(point);
-			if(points.length>=2){
-				var buf=new Vec2();
-				Vec2.sub(buf,points[points.length-1].pos,points[points.length-2].pos);
-				var a=Vec2.scalar(buf);
-				if(a>20){
-					Vec2.norm(buf);
-					Vec2.mul(buf,buf,a-20);
+			if(inputs["stroke_correction"].checked){
+				if(points.length>=3 && pen_func.idx <points.length-2){
+					var buf=new Vec2();
+					Vec2.sub(buf,points[points.length-2].pos,points[points.length-3].pos);
+					var a=Vec2.scalar(buf);
+					if(a>20){
+						Vec2.norm(buf);
+						Vec2.mul(buf,buf,a-20);
+					}
+					Vec2.add(points[points.length-2].pos,points[points.length-3].pos,buf);
 				}
-				Vec2.add(point.pos,points[points.length-2].pos,buf);
 			}
 
 			if(!(e.buttons&1)){
 
 				//描画前ポイントを補正
 					var points = pen_log.param.points;
-				if(penFunc.idx +1<points.length){
-					var len = points.length - (penFunc.idx + 1) ;
-					var a = points[penFunc.idx].pressure;
+				if(pen_func.idx +1<points.length){
+					var len = points.length - (pen_func.idx + 1) ;
+					var a = points[pen_func.idx].pressure;
 					var b = points[points.length-1].pressure;
-					for(var pi=penFunc.idx+1;pi<points.length;pi++){
-						var r = ((pi-penFunc.idx)/len);
+					for(var pi=pen_func.idx+1;pi<points.length;pi++){
+						var r = ((pi-pen_func.idx)/len);
 						points[pi].pressure = a + (b-a) * r;
 					}
 				}
@@ -145,8 +151,7 @@ var onloadfunc=function(e){
 			}
 
 			if(!(e.buttons&1)){
-				penFunc.end();
-				penFunc= null;
+				pen_func.end();
 				point.pressure=0;
 				pen_log=null;
 			}	
@@ -168,8 +173,11 @@ var onloadfunc=function(e){
 				Log.appendOption();
 				
 			}
+
+			if(!(e.buttons&1)){
+				pen_log=null;
+			}
 		}
-		refreshPreviewStatus(e);
 	};
 	var PenFunc = (function(){
 		var PenFunc=function(){
@@ -177,7 +185,8 @@ var onloadfunc=function(e){
 			this.endFlg=0;
 			this.idx=0;
 			var aaa=this;
-			window.requestAnimationFrame(function(){aaa.actualDraw()});
+			//window.requestAnimationFrame(function(){aaa.actualDraw()});
+			setTimeout(function(){aaa.actualDraw();},1);
 		}
 		PenFunc.prototype.end=function(){
 			this.endFlg=1;
@@ -186,7 +195,9 @@ var onloadfunc=function(e){
 			var aaa=this;
 			var p_l = this.pen_log;
 			var points = p_l.param.points;
+			
 			if(this.endFlg && points.length <= this.idx){
+
 				refreshMain();
 				Layer.bubble_func(layer,
 					function(layer){
@@ -194,9 +205,10 @@ var onloadfunc=function(e){
 					}
 				);
 			}else{
-				window.requestAnimationFrame(function(){
-					aaa.actualDraw()
-				});
+				//window.requestAnimationFrame(function(){
+				//	aaa.actualDraw()
+				//});
+				setTimeout(function(){aaa.actualDraw();},1);
 			}
 
 			if(points.length <= this.idx){
@@ -212,12 +224,12 @@ var onloadfunc=function(e){
 			if(this.idx>=1){
 
 				//ログ文面変更
-				p_l.label = ("0000" + p_l.id).slice(-4) + "| pen" ;
-				p_l.label += "(" + points[0].pos[0].toFixed(0)+ ","+ points[0].pos[1].toFixed(0)+")-";
-				p_l.label += (points.length-2) +"-";
-				p_l.label += "(" + points[points.length-1].pos[0].toFixed(0)+ ","+ points[points.length-1].pos[1].toFixed(0)+")";
-				var option = inputs["history"].options[inputs["history"].selectedIndex];
-				Util.setText(option,p_l.label);
+//				p_l.label = ("0000" + p_l.id).slice(-4) + "| pen" ;
+//				p_l.label += "(" + points[0].pos[0].toFixed(0)+ ","+ points[0].pos[1].toFixed(0)+")-";
+//				p_l.label += (points.length-2) +"-";
+//				p_l.label += "(" + points[points.length-1].pos[0].toFixed(0)+ ","+ points[points.length-1].pos[1].toFixed(0)+")";
+//				var option = inputs["history"].options[inputs["history"].selectedIndex];
+//				Util.setText(option,p_l.label);
 
 				//今回と前回の座標で直線描画
 				Command.drawHermitian(p_l,this.idx);
@@ -229,8 +241,21 @@ var onloadfunc=function(e){
 
 
 	
-	window.addEventListener("pointerup",function(e){drawfunc(e);e.preventDefault();});
-	window.addEventListener("pointermove",function(e){drawfunc(e);e.preventDefault();});
+	window.addEventListener("pointerup",function(e){
+			getPos(e);
+			if(pen_log){
+				drawfunc(e);
+				e.preventDefault();
+			}
+	});
+	window.addEventListener("pointermove",function(e){
+		getPos(e);
+		refreshPreviewStatus(e);
+		if(pen_log){
+			drawfunc(e);
+			e.preventDefault();
+		}
+	});
 
 	preview.addEventListener("contextmenu",function(e){
 		event.preventDefault();
@@ -273,6 +298,7 @@ var onloadfunc=function(e){
 				return;
 			}
 			Command.executeCommand("fill",{"layer_id":selected_layer.id,"x":x,"y":y,"color":new Float32Array(doc.draw_col),"is_layer":fill_layer});
+
 		}else if(inputs["translate"].checked && (e.buttons &1) ){
 			//レイヤ位置移動
 			drag_start[0]= x | 0;
@@ -293,46 +319,57 @@ var onloadfunc=function(e){
 				return;
 			}
 
-			if(inputs["locus_correction"].checked){
-				RAGTIME=50;
+			if(inputs["stroke_correction"].checked){
+				RAGTIME=33;
 			}else{
 				RAGTIME=0;
 			}
 
 			//ペン状態取得
-			var weight=parseFloat(inputs["weight"].value);
-			var pressure_effect_flgs= 
+
+			var param={};
+			param.color = new Float32Array(doc.draw_col);
+			param.color_effect = new Float32Array([1.0,1.0,1.0,1.0]);
+			param.points=[];
+			param.layer_id = selected_layer.id;
+			param.weight=parseFloat(inputs["weight"].value);
+			param.alpha_direct = inputs["pen_alpha_direct"].checked;
+			param.pressure_effect_flgs= 
  				  (1 * inputs["weight_pressure_effect"].checked)
 				| (2 * inputs["alpha_pressure_effect"].checked);
-			var alpha_direct = inputs["pen_alpha_direct"].checked;
-
+			param.stroke_interpolation = inputs["stroke_interpolation"].checked;
 			if(inputs["eraser"].checked){
-				pen_log = Command.executeCommand("eraser",{
-					"layer_id":selected_layer.id
-					,"points":[]
-					,"weight":weight
-					,"color": new Float32Array([1.0,1.0,1.0,0.0])
-					,"color_effect":new Float32Array([0.0,0.0,0.0,doc.draw_col[3]])
-					,"pressure_effect_flgs":pressure_effect_flgs
-					,"alpha_direct":alpha_direct
-				});
+				param.color= new Float32Array([1.0,1.0,1.0,0.0])
+				param.color_effect = new Float32Array([0.0,0.0,0.0,doc.draw_col[3]])
+				pen_log = Command.executeCommand("eraser",param);
 				
 			}else{
-				pen_log = Command.executeCommand("pen",{
-					"layer_id":selected_layer.id
-					,"points":[]
-					,"weight":weight
-					,"color": new Float32Array(doc.draw_col)
-					,"color_effect":new Float32Array([1.0,1.0,1.0,1.0])
-					,"pressure_effect_flgs":pressure_effect_flgs
-					,"alpha_direct":alpha_direct
-				});
+				pen_log = Command.executeCommand("pen",param);
 			}
+			pen_func= new PenFunc();
+			pen_func.pen_log=pen_log;
 
 			drawfunc(e);
 		}
 
 		drawfunc(e);
+
+		if(e.buttons & 2){
+			//スポイト
+			var img= root_layer.img;
+			var data = img.data;
+			var idx=((y|0)*img.width+(x|0))*4;
+
+			inputs["color_R"].value=data[idx];
+			inputs["color_G"].value=data[idx+1];
+			inputs["color_B"].value=data[idx+2];
+			inputs["color_A"].value=data[idx+3];
+
+			Util.fireEvent(inputs["color_R"],"change");
+			Util.fireEvent(inputs["color_G"],"change");
+			Util.fireEvent(inputs["color_B"],"change");
+			Util.fireEvent(inputs["color_A"],"change");
+		}
 
 	},false);
 
@@ -441,7 +478,7 @@ var onloadfunc=function(e){
 		});
 	}
 	
-	var input_tags = document.getElementById("status_pen").getElementsByTagName("input");
+	var input_tags = document.getElementById("pen_info").getElementsByTagName("input");
 	for(var i=0;i<input_tags.length;i++){
 		var input = input_tags[i]
 		input.addEventListener("change",refreshPen );
@@ -545,10 +582,9 @@ var onloadfunc=function(e){
 		}
 	});
 	window.addEventListener( "pointermove", function(e){
-		getPos(e);
 	});
 	document.getElementById("canvas_field").addEventListener( "pointermove", function(e){
-		getPos(e);
+		//getPos(e);
 		if(e.buttons&4){
 			//中ボタンドラッグでキャンバス移動
 			//c.scrollLeft-=e.pageX-oldpos[0];
@@ -656,6 +692,7 @@ var onloadfunc=function(e){
 			}else{
 				inputs[name].value = globalParam[name];
 			}
+			Util.fireEvent(inputs[name],"input");
 		}
 	}
 //初期化
@@ -805,25 +842,6 @@ var createNewCompositeLayer=function(e){
 			</ul>
 		</div>
 		<div id="tool_status">
-			<div id="status_pen">
-				<div style="float:left;">
-					<!-- canvas width="160" height="48" id="pen_preview"  style=""></canvas><br -->
-					<img width="160" height="48" id="pen_preview"><br>
-					<div>直径<input class="slider" id="weight" max="100"  value="3" onchange="refreshPen();"/></div>
-					<div>
-						筆圧影響
-						<label><input type="checkbox" id="weight_pressure_effect"/>半径</label>
-						<label><input type="checkbox" id="alpha_pressure_effect"/>アルファ</label>
-					</div>
-					<div>
-						<label><input type="checkbox" id="locus_correction"/>補正</label>
-					</div>
-					<ul>
-					<li><label><input type="radio" id="pen_alpha_direct" name="pen_alpha" checked />アルファ値を直接書き込む</label></li>
-					<li> <label><input type="radio" id="pen_alpha_blend" name="pen_alpha" disabled="disabled" />アルファ値でブレンドする</label></li>
-					</ul>
-				</div>
-			</div>
 			<div id="status_fill">
 				<ul>
 					<li><label><input id="fill_joined" type="radio" name="fill_type" checked/>結合画像</label></li>
@@ -847,6 +865,26 @@ var createNewCompositeLayer=function(e){
 		</div>
 	</div>
 
+	<div class="area" id="pen_info">
+		<div>ペン情報</div>
+		<img width="160" height="48" id="pen_preview"><br>
+		<div>直径<input class="slider" id="weight" max="100"  value="3" onchange="refreshPen();"/></div>
+		<div>
+			筆圧影響
+			<label><input type="checkbox" id="weight_pressure_effect"/>半径</label>
+			<label><input type="checkbox" id="alpha_pressure_effect"/>アルファ</label>
+		</div>
+		<div>
+			<label><input type="checkbox" id="stroke_correction"/>補正</label>
+		</div>
+		<div>
+			<label><input type="checkbox" id="stroke_interpolation"/>補間</label>
+		</div>
+		<ul>
+		<li><label><input type="radio" id="pen_alpha_direct" name="pen_alpha" checked />アルファ値を直接書き込む</label></li>
+		<li> <label><input type="radio" id="pen_alpha_blend" name="pen_alpha" disabled="disabled" />アルファ値でブレンドする</label></li>
+		</ul>
+	</div>
 	<div id="color_selecter" class="area">
 		<div>カラーセレクタ</div>
 		<ul id="color_selector_tab">

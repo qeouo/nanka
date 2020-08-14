@@ -28,6 +28,14 @@ var Log = (function(){
 	}
 
 	ret.moveLog=function(n){
+		//現在の処理を強制終了
+		pen_log=null;
+		if(pen_func){
+			pen_func.pen_log.param.points.length=pen_func.idx;
+			pen_func=null;
+		}
+
+
 		//指定された番号のコマンドログが実行された状態にする
 		for(;command_log_cursor<n;){
 			//リドゥ

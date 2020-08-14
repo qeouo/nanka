@@ -448,6 +448,7 @@ var refreshActiveLayerParam = function(){
 
 	var pen_preview;
 	var pen_log=null;
+	var pen_func=null;
 	var pen_preview_img;
 		var pen_preview_log;
 var initPenPreview=function(){
@@ -558,41 +559,45 @@ var refreshPreviewStatus = function(e){
 	var g=0; 
 	var b= 0;
 	var a= 0;
-	if(x<0 || y<0 || x>=width || y>=height){}else{
+	if(x<0 || y<0 || x>=width || y>=height){
+		var str="倍率[scale]% X:[x],Y:[y]";
+		str=str.replace(/\[scale\]/,doc.scale);
+		str=str.replace(/\[x\]/,"-");
+		str=str.replace(/\[y\]/,"-");
+		Util.setText(status2,str);
 
 
+		var str="R:[r], G:[g], B:[b], A:[a] ";
+		str=str.replace(/\[r\]/,"-");
+		str=str.replace(/\[g\]/,"-");
+		str=str.replace(/\[b\]/,"-");
+		str=str.replace(/\[a\]/,"-");
+		Util.setText(status,str);
+	}else{
 		var idx=((y|0)*preview.width+(x|0))*4;
 		r= data[idx];
 		g= data[idx+1];
 		b= data[idx+2];
 		a= data[idx+3];
+
+		x.toFixed(2);
+		y.toFixed(2);
+
+		var str="倍率[scale]% X:[x],Y:[y]";
+		str=str.replace(/\[scale\]/,doc.scale);
+		str=str.replace(/\[x\]/,x);
+		str=str.replace(/\[y\]/,y);
+		Util.setText(status2,str);
+
+
+		var str="R:[r], G:[g], B:[b], A:[a] ";
+		str=str.replace(/\[r\]/,r.toFixed(3));
+		str=str.replace(/\[g\]/,g.toFixed(3));
+		str=str.replace(/\[b\]/,b.toFixed(3));
+		str=str.replace(/\[a\]/,a.toFixed(3));
+		Util.setText(status,str);
 	}
 
-	var str="倍率[scale]% X:[x],Y:[y]";
-	str=str.replace(/\[scale\]/,doc.scale);
-	str=str.replace(/\[x\]/,x.toFixed(2));
-	str=str.replace(/\[y\]/,y.toFixed(2));
-	Util.setText(status2,str);
 
-
-	var str="R:[r], G:[g], B:[b], A:[a] ";
-	str=str.replace(/\[r\]/,r.toFixed(3));
-	str=str.replace(/\[g\]/,g.toFixed(3));
-	str=str.replace(/\[b\]/,b.toFixed(3));
-	str=str.replace(/\[a\]/,a.toFixed(3));
-	Util.setText(status,str);
-
-	if(e.buttons & 2){
-		//スポイト
-		inputs["color_R"].value=r;
-		inputs["color_G"].value=g;
-		inputs["color_B"].value=b;
-		inputs["color_A"].value=a;
-
-		Util.fireEvent(inputs["color_R"],"change");
-		Util.fireEvent(inputs["color_G"],"change");
-		Util.fireEvent(inputs["color_B"],"change");
-		Util.fireEvent(inputs["color_A"],"change");
-	}
 
 }

@@ -95,7 +95,6 @@ div.spacer{
 	min-height:0%;
 }
 #preview{
-	border:solid 1px;
 	background-image:url(back.png);
 
 	position:absolute;
