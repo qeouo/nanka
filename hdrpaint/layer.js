@@ -22,8 +22,8 @@ var Layer=(function(){
 var funcs=[];
 funcs["normal"] = function(dst,dst_idx,src,src_idx,alpha,power){
 	var src_alpha=src[src_idx+3]*alpha;
-	var da = dst[dst_idx+3];
 	var sa = src[src_idx+3]*alpha;
+	var da = dst[dst_idx+3]*(1-sa);
 	var dst_r = (1 - sa);
 
 	var r = da+sa;
