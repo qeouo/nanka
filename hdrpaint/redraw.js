@@ -471,41 +471,6 @@ var initPenPreview=function(){
 }
 
 
-	var createRGBA=function(){
-		var base = new Vec3();
-		var lumi = Math.pow(2,parseFloat(inputs["color_lumi"].value));
-		Util.hex2rgb(base ,inputs["color_base"].value);
-
-		inputs["color_R"].value = base[0]*lumi;
-		inputs["color_G"].value = base[1]*lumi;
-		inputs["color_B"].value = base[2]*lumi;
-
-		Util.fireEvent(color_R,"change");
-		Util.fireEvent(color_G,"change");
-		Util.fireEvent(color_B,"change");
-		
-	}
-	var refreshColor=function(){
-		var col=new Vec4();
-		Vec4.set(col,color_R.value,color_G.value,color_B.value,color_A.value);
-		Vec4.copy(doc.draw_col,col);
-
-		var gamma = 1.0/parseFloat(inputs["gamma"].value);
-		var ev = parseFloat(inputs["ev"].value);
-		var r = Math.pow(2,-ev)*255;
-
-		if(inputs["ch_gamma"].checked){
-			col[0]=Math.pow(col[0],gamma)*r;
-			col[1]=Math.pow(col[1],gamma)*r;
-			col[2]=Math.pow(col[2],gamma)*r;
-		}else{
-			col[0]*=r;
-			col[1]*=r;
-			col[2]*=r;
-		}
-		col[3]=col[3]*255;
-		refreshPen();
-	}
 	var refreshPen=function(){
 //		refreshColor();
 		var weight=parseFloat(inputs["weight"].value);
@@ -530,19 +495,6 @@ var initPenPreview=function(){
 
 	}
 
-var refreshTab = function(target_id){
-	var tool_radios = document.getElementById(target_id).getElementsByTagName("input");
-	for(var i=0;i<tool_radios.length;i++){
-		var input = tool_radios[i];
-		var div=document.getElementById("status_"+input.id);
-		if(!div)continue;
-		if(input.checked){
-			div.style.display="inline-block";
-			}else{
-			div.style.display="none";
-		}
-	}
-}
 var refreshPreviewStatus = function(e){
 	//カーソル下情報表示
 	var img = root_layer.img;

@@ -31,6 +31,7 @@ var Log = (function(){
 		//現在の処理を強制終了
 		pen_log=null;
 		if(pen_func){
+			pen_func.end_flg=1;
 			pen_func.pen_log.param.points.length=pen_func.idx;
 			pen_func=null;
 		}
@@ -109,7 +110,6 @@ var Log = (function(){
 			log_id++;
 
 			command_log_cursor++;
-
 			command_logs.push(log);
 		}
 
@@ -178,6 +178,9 @@ var Log = (function(){
 			old_log.undo_data=null;
 		}
 
+		if(options.length>10){
+			inputs["history"].removeChild(options[0]);
+		}
 
 		return option;
 

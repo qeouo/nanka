@@ -22,13 +22,25 @@ var Layer=(function(){
 var funcs=[];
 funcs["normal"] = function(dst,dst_idx,src,src_idx,alpha,power){
 	var src_alpha=src[src_idx+3]*alpha;
-	var dst_r = (1 - src_alpha);
-	var src_r = power*src_alpha;
+	var da = dst[dst_idx+3];
+	var sa = src[src_idx+3]*alpha;
+	var dst_r = (1 - sa);
 
-	dst[dst_idx+0]=dst[dst_idx+0] * dst_r +  src[src_idx+0]*src_r;
-	dst[dst_idx+1]=dst[dst_idx+1] * dst_r +  src[src_idx+1]*src_r;
-	dst[dst_idx+2]=dst[dst_idx+2] * dst_r +  src[src_idx+2]*src_r;
+	var r = da+sa;
+	if(r==0){
+	   return;
+	}
+	r=1/r;
+	da*=r;
+	sa*=r;
+
+	sa = power*sa;
+
+	dst[dst_idx+0]=dst[dst_idx+0] * da  +  src[src_idx+0]*sa;
+	dst[dst_idx+1]=dst[dst_idx+1] * da  +  src[src_idx+1]*sa;
+	dst[dst_idx+2]=dst[dst_idx+2] * da  +  src[src_idx+2]*sa;
 	dst[dst_idx+3]=dst[dst_idx+3] * dst_r +  src_alpha;
+
 }
 funcs["mul"] = function(dst,dst_idx,src,src_idx,alpha,power){
 	var src_alpha=src[src_idx+3]*alpha;

@@ -50,6 +50,9 @@ div.right{
 	float:left;
 	min-width:280px;
 }
+input.js-text{
+	text-align:right;
+}
 span.js-slider2{
 background:#333;
 }
