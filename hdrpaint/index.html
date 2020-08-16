@@ -437,15 +437,11 @@ var onloadfunc=function(e){
 		input.addEventListener("change",f);
 	}
 
-
-
-
 	inputs["color_A"].addEventListener("change",function(){
 		doc.draw_col[3] = parseFloat(inputs["color_A"].value);
-		refreshPen();
+		changeColor(null);
 
 	});
-	
 
 	var input_tags = document.getElementById("post_effect").getElementsByTagName("input");
 	for(var i=0;i<input_tags.length;i++){
@@ -887,6 +883,9 @@ var createNewCompositeLayer=function(e){
 
 	<div id="color_selecter" class="area">
 		<div>カラーセレクタ</div>
+		<div id="color_status">
+			positionvalue
+		</div>
 		<ul id="color_selector_tab">
 			<li><label><input type="radio" id="cs_default" name="color_selector" checked>通常</label>
 			<li><label><input type="radio" id="cs_base" name="color_selector" >a</label>
@@ -911,9 +910,6 @@ var createNewCompositeLayer=function(e){
 			</ul>
 		</div>
 		<div>A<input class="slider" id="color_A" max="1" value="1"/></div>
-		<div id="status">
-			positionvalue
-		</div>
 	</div>
 	<div id="post_effect" class="area">
 		<div>ポストエフェクト</div>
@@ -1036,6 +1032,18 @@ var createNewCompositeLayer=function(e){
 			}
 			tabs[i].setRGB(doc.draw_col);
 		}
+
+		var str="R:[r], G:[g], B:[b], A:[a] ";
+
+		var draw_col=doc.draw_col;
+		str=str.replace(/\[r\]/,draw_col[0].toFixed(3));
+		str=str.replace(/\[g\]/,draw_col[1].toFixed(3));
+		str=str.replace(/\[b\]/,draw_col[2].toFixed(3));
+		str=str.replace(/\[a\]/,draw_col[3].toFixed(3));
+
+		var status= document.getElementById("color_status");
+		Util.setText(status,str);
+
 		refreshPen();
 	}
 </script>

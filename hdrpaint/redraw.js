@@ -505,7 +505,6 @@ var refreshPreviewStatus = function(e){
 	var width=img.width;
 	var height=img.height;
 	var status2= document.getElementById("status2");
-	var status= document.getElementById("status");
 
 	var r=0; 
 	var g=0; 
@@ -516,15 +515,15 @@ var refreshPreviewStatus = function(e){
 		str=str.replace(/\[scale\]/,doc.scale);
 		str=str.replace(/\[x\]/,"-");
 		str=str.replace(/\[y\]/,"-");
-		Util.setText(status2,str);
 
 
-		var str="R:[r], G:[g], B:[b], A:[a] ";
-		str=str.replace(/\[r\]/,"-");
-		str=str.replace(/\[g\]/,"-");
-		str=str.replace(/\[b\]/,"-");
-		str=str.replace(/\[a\]/,"-");
-		Util.setText(status,str);
+		var str2=", R:[r], G:[g], B:[b], A:[a] ";
+		str2=str2.replace(/\[r\]/,"-");
+		str2=str2.replace(/\[g\]/,"-");
+		str2=str2.replace(/\[b\]/,"-");
+		str2=str2.replace(/\[a\]/,"-");
+
+		Util.setText(status2,str+str2);
 	}else{
 		var idx=((y|0)*preview.width+(x|0))*4;
 		r= data[idx];
@@ -539,15 +538,15 @@ var refreshPreviewStatus = function(e){
 		str=str.replace(/\[scale\]/,doc.scale);
 		str=str.replace(/\[x\]/,x);
 		str=str.replace(/\[y\]/,y);
-		Util.setText(status2,str);
 
+		var str2=", R:[r], G:[g], B:[b], A:[a] ";
+		str2=str2.replace(/\[r\]/,r.toFixed(3));
+		str2=str2.replace(/\[g\]/,g.toFixed(3));
+		str2=str2.replace(/\[b\]/,b.toFixed(3));
+		str2=str2.replace(/\[a\]/,a.toFixed(3));
 
-		var str="R:[r], G:[g], B:[b], A:[a] ";
-		str=str.replace(/\[r\]/,r.toFixed(3));
-		str=str.replace(/\[g\]/,g.toFixed(3));
-		str=str.replace(/\[b\]/,b.toFixed(3));
-		str=str.replace(/\[a\]/,a.toFixed(3));
-		Util.setText(status,str);
+		Util.setText(status2,str + str2);
+
 	}
 
 
