@@ -484,11 +484,6 @@ var onloadfunc=function(e){
 	}
 	  
 
-	inputs["btn_resize_canvas"].addEventListener("click",function(e){
-		var width = parseInt(inputs["resize_width"].value);
-		var height= parseInt(inputs["resize_height"].value);
-		Command.executeCommand("resizeCanvas",{"width":width,"height":height});
-	});
 	var resizeCanvas=function(){
 		var width = parseInt(inputs["canvas_width"].value);
 		var height= parseInt(inputs["canvas_height"].value);
@@ -833,7 +828,6 @@ var createNewCompositeLayer=function(e){
 			<li><label><input type="radio" id="eraser" name="tool" >消しゴム</label>
 				<li><label><input type="radio" id="fill" name="tool">塗りつぶし</label></li>
 				<li><label><input type="radio" id="translate" name="tool">移動</label></li>
-				<li><label><input type="radio" id="resize" name="tool">リサイズ</label></li>
 			</ul>
 		</div>
 		<div id="tool_status">
@@ -848,14 +842,6 @@ var createNewCompositeLayer=function(e){
 					<li><label><input id="translate_layer" type="radio" name="translate_type" checked/>アクティブレイヤのみ</label></li>
 					<li><label><input id="translate_joined" type="radio" name="translate_type" />全レイヤ</label></li>
 				</ul>
-			</div>
-			<div id="tab_resize">
-				キャンバスサイズ<input id="resize_width" value="512" type="text" class="size">
-				<input id="resize_height" value="512" type="text" class="size">
-				<input type="button" id="btn_resize_canvas" value="キャンバスをリサイズ"><br>
-				<br>
-				<input type="button" id="btn_resize_layer" value="アクティブレイヤーをキャンバスに合わせる" ><br>
-				<input type="button" id="btn_resize_layers" value="全レイヤーをキャンバスに合わせる" ><br>
 			</div>
 		</div>
 	</div>
@@ -873,7 +859,7 @@ var createNewCompositeLayer=function(e){
 			<label><input type="checkbox" id="stroke_correction"/>補正</label>
 		</div>
 		<div>
-			<label><input type="checkbox" id="stroke_interpolation"/>補間</label>
+			<label><input type="checkbox" id="stroke_interpolation" checked/>補間</label>
 		</div>
 		<ul>
 		<li><label><input type="radio" id="pen_alpha_direct" name="pen_alpha" checked />アルファ値を直接書き込む</label></li>
@@ -934,6 +920,8 @@ var createNewCompositeLayer=function(e){
 		<div class="canvas_status">
 			サイズ<input type="text" id="canvas_width" value="256" class="size">x
 			<input type="text" id="canvas_height" value="256" class="size">
+			<input type="button" id="btn_resize_layer" value="アクティブレイヤーをキャンバスに合わせる" >
+			<input type="button" id="btn_resize_layers" value="全レイヤーをキャンバスに合わせる" ><br>
 			<span id="status2">
 			teststet
 			<span>
