@@ -28,6 +28,7 @@
 <script type="text/javascript" src="./file.js"></script>
 <script type="text/javascript" src="./redraw.js"></script>
 <script type="text/javascript" src="./tab.js"></script>
+<script type="text/javascript" src="./penfunc.js"></script>
 <script type="text/javascript">
 "use strict"
 
@@ -67,14 +68,6 @@ var onloadfunc=function(e){
 	thumbnail_ctx =  thumbnail_canvas.getContext('2d')
 
 
-	//最初に全コントロールを配列に入れる
-	var elements= Array.prototype.slice.call(document.getElementsByTagName("input"));
-	elements = elements.concat(Array.prototype.slice.call(document.getElementsByTagName("select")));
-	for(var i=0;i<elements.length;i++){
-		var input = elements[i];
-		var id= input.getAttribute("id");
-		inputs[id]= elements[i];
-	}
 
 	var keys=Object.keys(inputs);
 	for(var i=0;i<keys.length;i++){
@@ -83,13 +76,8 @@ var onloadfunc=function(e){
 		input.setAttribute("title",key);
 	}
 
-
-
-
-	Util.fireEvent(inputs["color_base"],"change");
 	
 	var rag=null;
-	var RAGTIME=50;
 
 	var drawfunc =function(e){
 		//描画関数
@@ -182,66 +170,6 @@ var onloadfunc=function(e){
 			}
 		}
 	};
-	var PenFunc = (function(){
-		var PenFunc=function(){
-			this.pen_log=null;
-			this.endFlg=0;
-			this.idx=0;
-			var aaa=this;
-			//window.requestAnimationFrame(function(){aaa.actualDraw()});
-			setTimeout(function(){aaa.actualDraw();},1);
-		}
-		PenFunc.prototype.end=function(){
-			this.endFlg=1;
-		}
-		PenFunc.prototype.actualDraw=function(){
-			var aaa=this;
-			var log = this.pen_log;
-			var points = log.param.points;
-			
-			if(this.endFlg && points.length <= this.idx){
-				var layer = Layer.findById(log.param.layer_id);
-
-				refreshMain();
-				Layer.bubble_func(layer,
-					function(layer){
-						refreshLayerThumbnail(layer);
-					}
-				);
-			}else{
-				//window.requestAnimationFrame(function(){
-				//	aaa.actualDraw()
-				//});
-				setTimeout(function(){aaa.actualDraw();},1);
-			}
-
-			if(points.length <= this.idx){
-				return;
-			}
-
-			var org = points[this.idx];
-
-
-			if(org.time + RAGTIME >Date.now()){
-				return;
-			}
-			if(this.idx>=1){
-
-				//ログ文面変更
-				log.label = ("0000" + log.id).slice(-4) + "| pen" ;
-				log.label += "(" + points[0].pos[0].toFixed(0)+ ","+ points[0].pos[1].toFixed(0)+")-";
-				log.label += (points.length-2) +"-";
-				log.label += "(" + points[points.length-1].pos[0].toFixed(0)+ ","+ points[points.length-1].pos[1].toFixed(0)+")";
-				var option = inputs["history"].options[inputs["history"].selectedIndex];
-				Util.setText(option,log.label);
-
-				//今回と前回の座標で直線描画
-				Command.drawHermitian(log,this.idx);
-			}
-			this.idx++;
-		}
-		return PenFunc;
-	})();
 
 
 	
@@ -323,11 +251,6 @@ var onloadfunc=function(e){
 				return;
 			}
 
-			if(inputs["stroke_correction"].checked){
-				RAGTIME=33;
-			}else{
-				RAGTIME=0;
-			}
 
 			//ペン状態取得
 
@@ -352,6 +275,9 @@ var onloadfunc=function(e){
 			}
 			pen_func= new PenFunc();
 			pen_func.pen_log=pen_log;
+			if(inputs["stroke_correction"].checked){
+				pen_func.ragtime=33;
+			}
 
 			drawfunc(e);
 		}
@@ -361,18 +287,21 @@ var onloadfunc=function(e){
 		if(e.buttons & 2){
 			//スポイト
 			var img= root_layer.img;
-			var data = img.data;
-			var idx=((y|0)*img.width+(x|0))*4;
+			if(event.ctrlKey){
+				img= selected_layer.img;
+			}
+			if(x<0 || x>=img.width || y<0 || y>img.height){
+			}else{
+				var data = img.data;
+				var idx=((y|0)*img.width+(x|0))*4;
 
-			inputs["color_R"].value=data[idx];
-			inputs["color_G"].value=data[idx+1];
-			inputs["color_B"].value=data[idx+2];
-			inputs["color_A"].value=data[idx+3];
+				doc.draw_col[0]=data[idx];
+				doc.draw_col[1]=data[idx+1];
+				doc.draw_col[2]=data[idx+2];
+				doc.draw_col[3]=data[idx+3];
 
-			Util.fireEvent(inputs["color_R"],"input");
-			Util.fireEvent(inputs["color_G"],"input");
-			Util.fireEvent(inputs["color_B"],"input");
-			Util.fireEvent(inputs["color_A"],"input");
+				changeColor(null);
+			}
 		}
 
 	},false);
@@ -469,13 +398,13 @@ var onloadfunc=function(e){
 		});
 	}
 
-	tool_radios = document.getElementById("color_selector_tab").getElementsByTagName("input");
-	for(var i=0;i<tool_radios.length;i++){
-		var input = tool_radios[i]
-		input.addEventListener("change",function(e){
-			refreshTab("color_selector_tab");
-		});
-	}
+	//tool_radios = document.getElementById("color_selector_tab").getElementsByTagName("input");
+	//for(var i=0;i<tool_radios.length;i++){
+	//	var input = tool_radios[i]
+	//	input.addEventListener("change",function(e){
+	//		refreshTab("color_selector_tab");
+	//	});
+	//}
 	
 	var input_tags = document.getElementById("pen_info").getElementsByTagName("input");
 	for(var i=0;i<input_tags.length;i++){
@@ -689,6 +618,8 @@ var onloadfunc=function(e){
 		}
 	}
 //初期化
+	Vec4.set(doc.draw_col,0.8,0.2,0.2,1);
+	changeColor(null);
 
 	if(globalParam.hasOwnProperty("load")){
 
@@ -711,13 +642,17 @@ var onloadfunc=function(e){
 		for(var i=0;i<img_data.length;i++){
 			img_data[i]=1;
 		}
-		layer.name="default layer"
+		layer.name="background"
 		refreshLayer(layer);
+
+		Command.executeCommand("createNewLayer",{"position":1,"parent":root_layer.id,"width":preview.width,"height":preview.height});
+		var layer = root_layer.children[0];
+		layer.name="default"
 
 		refreshMain();
 		refreshLayer(root_layer);
 		refreshTab("tools");
-		refreshTab("color_selector_tab");
+		//refreshTab("color_selector_tab");
 	}
 
 
@@ -869,14 +804,20 @@ var createNewCompositeLayer=function(e){
 
 	<div id="color_selecter" class="area">
 		<div>カラーセレクタ</div>
-		<div id="color_status">
-			positionvalue
+		<div class="color_status">
+			<ul>
+			<li class="red">R<input type="input" id="color_R" /></li>
+			<li class="green">G<input type="input" id="color_G"/></li>
+			<li class="blue">B<input type="input" id="color_B"/></li>
+			</ul>
 		</div>
+		<!--
 		<ul id="color_selector_tab">
 			<li><label><input type="radio" id="cs_default" name="color_selector" checked>通常</label>
 			<li><label><input type="radio" id="cs_base" name="color_selector" >a</label>
 			<li><label><input type="radio" id="cs_rgb" name="color_selector">RGB</label></li>
 		</ul>
+		-->
 		<div id="tab_cs_default">
 			<ul>
 				<img id="img_hsv" width="128" height="128" draggable="false">
@@ -884,6 +825,7 @@ var createNewCompositeLayer=function(e){
 			</ul>
 			明るさ<input class="slider" id="cs_default_lumi" min="-10" max="10" value="0"><br>
 		</div>
+		<!--
 		<div id="tab_cs_base">
 		ベース色<input class="colorpicker" id="color_base" value="ff0000"/><br>
 		明るさ<input class="slider" id="color_lumi" min="-10" max="10" value="0"><br>
@@ -895,6 +837,7 @@ var createNewCompositeLayer=function(e){
 				<li>B<input class="slider" id="color_B" max="100"/></li>
 			</ul>
 		</div>
+		-->
 		<div>A<input class="slider" id="color_A" max="1" value="1"/></div>
 	</div>
 	<div id="post_effect" class="area">
@@ -923,8 +866,13 @@ var createNewCompositeLayer=function(e){
 			<input type="button" id="btn_resize_layer" value="アクティブレイヤーをキャンバスに合わせる" >
 			<input type="button" id="btn_resize_layers" value="全レイヤーをキャンバスに合わせる" ><br>
 			<span id="status2">
-			teststet
-			<span>
+			</span>
+			<div class="color_status" style="display:inline-block;">
+					<li class="red">R:<span id="pos_R"></span></li>
+					<li class="green">G:<span id="pos_G"></span></li>
+					<li class="blue">B:<span id="pos_B"></span></li>
+					<li class="alpha">A:<span id="pos_A"></span></li>
+			</div>
 		</div>
 	</div>
 
@@ -1006,14 +954,32 @@ var createNewCompositeLayer=function(e){
 
 <!--カラーセレクタ-->
 <script type="text/javascript" src="./tab_cs_standard.js"></script>
+<!--
 <script type="text/javascript" src="./tab_cs_base.js"></script>
 <script type="text/javascript" src="./tab_cs_rgb.js"></script>
+-->
 <script type="text/javascript">
+	//最初に全コントロールを配列に入れる
+	var elements= Array.prototype.slice.call(document.getElementsByTagName("input"));
+	elements = elements.concat(Array.prototype.slice.call(document.getElementsByTagName("select")));
+	for(var i=0;i<elements.length;i++){
+		var input = elements[i];
+		var id= input.getAttribute("id");
+		inputs[id]= elements[i];
+	}
+
 	var changeColor=function(target){
-		var tabs=[tab_cs_standard
-			,tab_cs_base
-			,tab_cs_rgb
+		var tabs=[
+			tab_cs_standard
+		//	,tab_cs_base
+		//	,tab_cs_rgb
 		];
+		inputs["color_R"].value=doc.draw_col[0].toFixed(3);
+		inputs["color_G"].value=doc.draw_col[1].toFixed(3);
+		inputs["color_B"].value=doc.draw_col[2].toFixed(3);
+		inputs["color_A"].value=doc.draw_col[3].toFixed(3);
+		Util.fireEvent(inputs["color_A"],"input");
+
 		for(var i=0;i<tabs.length;i++){
 			if(target === tabs[i]){
 				continue;
@@ -1021,16 +987,16 @@ var createNewCompositeLayer=function(e){
 			tabs[i].setRGB(doc.draw_col);
 		}
 
-		var str="R:[r], G:[g], B:[b], A:[a] ";
+//		var str="R:[r], G:[g], B:[b], A:[a] ";
+//
+//		var draw_col=doc.draw_col;
+//		str=str.replace(/\[r\]/,draw_col[0].toFixed(3));
+//		str=str.replace(/\[g\]/,draw_col[1].toFixed(3));
+//		str=str.replace(/\[b\]/,draw_col[2].toFixed(3));
+//		str=str.replace(/\[a\]/,draw_col[3].toFixed(3));
 
-		var draw_col=doc.draw_col;
-		str=str.replace(/\[r\]/,draw_col[0].toFixed(3));
-		str=str.replace(/\[g\]/,draw_col[1].toFixed(3));
-		str=str.replace(/\[b\]/,draw_col[2].toFixed(3));
-		str=str.replace(/\[a\]/,draw_col[3].toFixed(3));
-
-		var status= document.getElementById("color_status");
-		Util.setText(status,str);
+		//var status= document.getElementById("color_status");
+		//Util.setText(status,str);
 
 		refreshPen();
 	}

@@ -33,9 +33,6 @@ var img_hsv =(function(){
 		col[1]=1-cursor[1];
 		col[2]=cursor[0];
 		Util.hsv2rgb(obj.color,col);
-		if(obj.func){
-			obj.func();
-		}
 
 		col[0]=h_cursor;
 		col[1]=1;
@@ -134,6 +131,9 @@ var img_hsv =(function(){
 
 			redraw();
 		}
+		if(obj.func){
+			obj.func();
+		}
 
 	}
 	img_hsv.addEventListener("pointerdown",function(e){
@@ -164,7 +164,6 @@ var tab_cs_standard=(function(){
 
 		img_hsv.setRGB(color);
 
-		img_hsv.func=change_default;
 		inputs["cs_default_lumi"].value=Math.log2(max);
 		Util.fireEvent(inputs["cs_default_lumi"],"input");
 

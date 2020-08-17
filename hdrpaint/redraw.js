@@ -515,15 +515,14 @@ var refreshPreviewStatus = function(e){
 		str=str.replace(/\[scale\]/,doc.scale);
 		str=str.replace(/\[x\]/,"-");
 		str=str.replace(/\[y\]/,"-");
+		Util.setText(status2,str);
 
 
-		var str2=", R:[r], G:[g], B:[b], A:[a] ";
-		str2=str2.replace(/\[r\]/,"-");
-		str2=str2.replace(/\[g\]/,"-");
-		str2=str2.replace(/\[b\]/,"-");
-		str2=str2.replace(/\[a\]/,"-");
+		Util.setText(document.getElementById("pos_R"),"-");
+		Util.setText(document.getElementById("pos_G"),"-");
+		Util.setText(document.getElementById("pos_B"),"-");
+		Util.setText(document.getElementById("pos_A"),"-");
 
-		Util.setText(status2,str+str2);
 	}else{
 		var idx=((y|0)*preview.width+(x|0))*4;
 		r= data[idx];
@@ -539,13 +538,13 @@ var refreshPreviewStatus = function(e){
 		str=str.replace(/\[x\]/,x);
 		str=str.replace(/\[y\]/,y);
 
-		var str2=", R:[r], G:[g], B:[b], A:[a] ";
-		str2=str2.replace(/\[r\]/,r.toFixed(3));
-		str2=str2.replace(/\[g\]/,g.toFixed(3));
-		str2=str2.replace(/\[b\]/,b.toFixed(3));
-		str2=str2.replace(/\[a\]/,a.toFixed(3));
+		Util.setText(status2,str );
 
-		Util.setText(status2,str + str2);
+		Util.setText(document.getElementById("pos_R"),r.toFixed(3));
+		Util.setText(document.getElementById("pos_G"),g.toFixed(3));
+		Util.setText(document.getElementById("pos_B"),b.toFixed(3));
+		Util.setText(document.getElementById("pos_A"),a.toFixed(3));
+
 
 	}
 

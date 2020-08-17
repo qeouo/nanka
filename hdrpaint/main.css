@@ -173,18 +173,24 @@ color:#000;
 .js-output{
 	text-align:right;
 }
-#color_R
-,#color_G
-,#color_B 
-,#color_A{
-width:64px;
-}
-#color_R + .js-slider
-,#color_G + .js-slider
-,#color_B + .js-slider{
-width:128;
-}
 
 #pen_preview{
    background-image:url(back.png);
+}
+.color_status li{
+	display:inline-block;
+	background-color:#000;
+}
+.color_status li.red{
+	color:#f66;
+}
+.color_status li.green{
+	color:#6f6;
+}
+.color_status li.blue{
+	color:#66f;
+}
+.color_status input{
+	width:48px;
+	text-align:right;
 }
