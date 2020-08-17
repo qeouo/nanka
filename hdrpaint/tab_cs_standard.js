@@ -75,7 +75,10 @@ var img_hsv =(function(){
 				idx+=4;
 			}
 		}
-		img_hsv.src = img.toDataUrl();
+		//img_hsv.src = img.toDataUrl();
+		img.toBlob(function(b){
+			img_hsv.src =URL.createObjectURL(b);
+		});
 
 		var data = img2.data;
 		idx=0;
@@ -102,7 +105,10 @@ var img_hsv =(function(){
 				idx++;
 			}
 		}
-		img_hsv2.src = img2.toDataUrl();
+		//img_hsv2.src = img2.toDataUrl();
+		img2.toBlob(function(b){
+			img_hsv2.src =URL.createObjectURL(b);
+		});
 	}
 
 	var flg2=0;
