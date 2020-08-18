@@ -105,6 +105,7 @@ div.spacer{
 	touch-action:none;
 }
 
+/* レイヤ ------------------------------------------------*/
 
 .layers{
 	border:solid 1px;
@@ -140,10 +141,6 @@ clear:both;
 }
 
 
-.colorpicker{
-	width:48px;
-
-}
 .layer .name{
 	text-align:left;
 	font-weight:bold;
@@ -153,10 +150,17 @@ clear:both;
 	text-align:right;
 
 }
+.layer .thumbnailouter{
+	float:left;
+	width:64px;
+	height:64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 .layer .thumbnail{
-   background-image:url(back.png);
-	width:auto;
-	height:100%;
+	border:solid 1px;
+	background-image:url(back.png);
 }
 
 .active_layer{
@@ -166,6 +170,8 @@ color:#000;
 .disable_layer{
 	border-style:dotted;
 }
+
+/*----------------------------------------------------------*/
 #history{
 	overflow:auto;
 	width:256px;
@@ -177,6 +183,8 @@ color:#000;
 #pen_preview{
    background-image:url(back.png);
 }
+
+/*カラーセレクタ-------------------------------------------*/
 .color_status li{
 	display:inline-block;
 	background-color:#000;
@@ -193,4 +201,24 @@ color:#000;
 .color_status input{
 	width:48px;
 	text-align:right;
+}
+
+#cursor2_img_hsv
+,#cursor_img_hsv
+, #cursor_img_hsv2{
+	position:absolute;
+	border:1px solid black;
+	width:1px;
+	height:1px;
+	left:0px;
+	top:0px;
+}
+#cursor_img_hsv{
+	height:128px;
+}
+#cursor2_img_hsv{
+	width:128px;
+}
+#cursor_img_hsv2{
+	width:8px;
 }

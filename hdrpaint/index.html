@@ -23,6 +23,7 @@
 <script type="text/javascript" src="../lib/colorpicker.js"></script>
 <script type="text/javascript" src="../lib/geono.js"></script>
 <script type="text/javascript" src="../lib/img.js"></script>
+
 <script type="text/javascript" src="./log.js"></script>
 <script type="text/javascript" src="./command.js"></script>
 <script type="text/javascript" src="./layer.js"></script>
@@ -410,7 +411,7 @@ var onloadfunc=function(e){
 	var input_tags = document.getElementById("pen_info").getElementsByTagName("input");
 	for(var i=0;i<input_tags.length;i++){
 		var input = input_tags[i]
-		input.addEventListener("change",refreshPen );
+		input.addEventListener("change",function(event){refreshpen_flg=true;});
 	}
 	  
 
@@ -656,6 +657,9 @@ var onloadfunc=function(e){
 		//refreshTab("color_selector_tab");
 	}
 
+	animation_frame_id=window.requestAnimationFrame(function(e){
+		refreshMain_();
+	});
 
 
 }
@@ -784,8 +788,13 @@ var createNewCompositeLayer=function(e){
 
 	<div class="area" id="pen_info">
 		<div>ペン情報</div>
+		<!--
 		<img width="160" height="48" id="pen_preview"><br>
-		<div>直径<input class="slider" id="weight" max="30"  value="3" onchange="refreshPen();"/></div>
+		-->
+		<canvas width="160" height="48" id="pen_preview"></canvas>
+		<br>
+
+		<div>直径<input class="slider" id="weight" max="30"  value="3"/></div>
 		<div>
 			筆圧影響
 			<label><input type="checkbox" id="weight_pressure_effect"/>半径</label>
@@ -820,10 +829,17 @@ var createNewCompositeLayer=function(e){
 		</ul>
 		-->
 		<div id="tab_cs_default">
-			<ul>
-				<img id="img_hsv" width="128" height="128" draggable="false">
-				<img id="img_hsv2" width="8" height="128" draggable="false">
-			</ul>
+			<div>
+				<div style="position:relative;display:inline-block;">
+					<img id="img_hsv" width="128" height="128" draggable="false">
+					<div id="cursor_img_hsv"></div>
+					<div id="cursor2_img_hsv"></div>
+				</div>
+				<div style="position:relative;;display:inline-block;">
+					<img id="img_hsv2" width="8" height="128" draggable="false">
+					<div id="cursor_img_hsv2" ></div>
+				</div>
+			</div>
 			明るさ<input class="slider" id="cs_default_lumi" min="-10" max="10" value="0"><br>
 		</div>
 		<!--
@@ -918,7 +934,9 @@ var createNewCompositeLayer=function(e){
 
 		<div style="display:none;" id="layer_template">
 			<div class="layer" draggable="true" ondragstart="DragStart(event)" ondragover="dragover_handler(event)" ondragenter="DragEnter(event)"  ondragend="dragend(event);">
-				<img class="thumbnail" style="border:solid 1px;float:left;">
+				<div class="thumbnailouter" >
+					<img class="thumbnail" >
+				</div>
 				<div class="name"></div>
 				<div class="layer_attributes"></div>
 				<div class="children" ondragenter="DragEnterChild(event)"></div>
@@ -999,7 +1017,7 @@ var createNewCompositeLayer=function(e){
 		//var status= document.getElementById("color_status");
 		//Util.setText(status,str);
 
-		refreshPen();
+		refreshpen_flg=true;
 	}
 </script>
 

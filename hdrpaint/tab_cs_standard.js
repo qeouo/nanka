@@ -7,12 +7,21 @@ var img_hsv =(function(){
 	var img2 = new Img(8,128,Img.FORMAT_UINT8);
 	var img_hsv= document.getElementById("img_hsv")
 	var img_hsv2= document.getElementById("img_hsv2")
+	var cursor_img_hsv= document.getElementById("cursor_img_hsv")
+	var cursor2_img_hsv= document.getElementById("cursor2_img_hsv")
+	var cursor_img_hsv2= document.getElementById("cursor_img_hsv2")
 	var obj = {};
 	obj.color=new Vec3();
 	obj.func=null;
 
 	var col=new Vec3();
 	var col_org=new Vec3();
+
+	var setCursor=function(){
+		cursor_img_hsv.style.left=cursor[0]*128-1+"px";
+		cursor2_img_hsv.style.top=cursor[1]*128-1+"px";
+		cursor_img_hsv2.style.top=h_cursor*128-1+"px";
+	}
 	obj.setRGB=function(rgb){
 		Vec3.copy(obj.color,rgb);
 
@@ -20,14 +29,13 @@ var img_hsv =(function(){
 		h_cursor=col[0];
 		cursor[0]=col[2];
 		cursor[1]=1-col[1];
+
+		setCursor();
+
 		redraw();
 	}
 	var redraw=obj.redraw=function(){
 		var idx=0;
-		var reverse=0;
-		var reverse2=0;
-		var chk_x=(cursor[0]*img.width)|0;
-		var chk_y=(cursor[1]*img.height)|0;
 
 		col[0]=h_cursor;
 		col[1]=1-cursor[1];
@@ -43,73 +51,49 @@ var img_hsv =(function(){
 			col[0]=(1-col_org[0])*yf+col_org[0];
 			col[1]=(1-col_org[1])*yf+col_org[1];
 			col[2]=(1-col_org[2])*yf+col_org[2];
-			if(Math.abs(chk_y-yi)==1){
-				reverse=1;
-			}else{
-				reverse=0;
-			}
 			var data=img.data;
 			for(var xi=0;xi<img.width;xi++){
 				var xf = xi/img.width;
-				reverse2=reverse;
-				if(Math.abs(chk_x-xi)==1){
-					reverse2=1;
-				}
-				if(yi==chk_y || xi==chk_x){
-					reverse2=0;
-				}
-				if(reverse2){
-					data[idx]=0;
-					data[idx+1]=0;
-					data[idx+2]=0;
-				}else{
-					//col[0]=h_cursor;
-					//col[1]=1-yf;
-					//col[2]=xf;
-					//Util.hsv2rgb(col,col);
-					data[idx]= col[0]*xf*255;
-					data[idx+1]=col[1]*xf*255;
-					data[idx+2]=col[2]*xf*255;
-					data[idx+3]=255;
-				}
+				//col[0]=h_cursor;
+				//col[1]=1-yf;
+				//col[2]=xf;
+				//Util.hsv2rgb(col,col);
+				data[idx]= col[0]*xf*255;
+				data[idx+1]=col[1]*xf*255;
+				data[idx+2]=col[2]*xf*255;
+				data[idx+3]=255;
+				
 				idx+=4;
 			}
 		}
 		//img_hsv.src = img.toDataUrl();
 		img.toBlob(function(b){
 			img_hsv.src =URL.createObjectURL(b);
-		});
-
-		var data = img2.data;
-		idx=0;
-		var chk = h_cursor*img2.height|0;
-		for(var yi=0;yi<img2.height;yi++){
-			col[0]=yi/img2.height;
-			col[1]=1;
-			col[2]=1;
-			//if(chk == yi){
-			//	col[2]=0;
-			//}
-			if(chk == yi+1 || chk==yi-1){
-				col[2]=0;
-			}
-			Util.hsv2rgb(col,col);
-			col[0]=(col[0]*255)|0;
-			col[1]=(col[1]*255)|0;
-			col[2]=(col[2]*255)|0;
-			for(var xi=0;xi<img2.width;xi++){
-				data[(idx<<2)]=col[0];
-				data[(idx<<2)+1]=col[1];
-				data[(idx<<2)+2]=col[2];
-				data[(idx<<2)+3]=255;
-				idx++;
-			}
-		}
-		//img_hsv2.src = img2.toDataUrl();
-		img2.toBlob(function(b){
-			img_hsv2.src =URL.createObjectURL(b);
-		});
+		},"image/png");
 	}
+
+	var data = img2.data;
+	idx=0;
+	for(var yi=0;yi<img2.height;yi++){
+		col[0]=yi/img2.height;
+		col[1]=1;
+		col[2]=1;
+		Util.hsv2rgb(col,col);
+		col[0]=(col[0]*255)|0;
+		col[1]=(col[1]*255)|0;
+		col[2]=(col[2]*255)|0;
+		for(var xi=0;xi<img2.width;xi++){
+			data[idx]=col[0];
+			data[idx+1]=col[1];
+			data[idx+2]=col[2];
+			data[idx+3]=255;
+			idx+=4;
+		}
+	}
+	//img_hsv2.src = img2.toDataUrl();
+	img2.toBlob(function(b){
+		img_hsv2.src =URL.createObjectURL(b);
+	},"image/png");
 
 	var flg2=0;
 	var flg=0;
@@ -128,7 +112,6 @@ var img_hsv =(function(){
 			cursor[0]=Math.min(Math.max(cursor[0],0),1);
 			cursor[1]=Math.min(Math.max(cursor[1],0),1);
 
-			redraw();
 		}else if( flg2){
 			var rect = img_hsv2.getBoundingClientRect();
 			h_cursor =e.clientY- rect.top;
@@ -137,6 +120,8 @@ var img_hsv =(function(){
 
 			redraw();
 		}
+		setCursor();
+
 		if(obj.func){
 			obj.func();
 		}
@@ -147,11 +132,11 @@ var img_hsv =(function(){
 		down(e)
 	});
 	
-	window.addEventListener("pointermove",down);
 	img_hsv2.addEventListener("pointerdown",function(e){
 			flg2=1;
 			down(e);
 	});
+	window.addEventListener("pointermove",down);
 
 	return obj;
 })();
