@@ -37,10 +37,6 @@ var img_hsv =(function(){
 	var redraw=obj.redraw=function(){
 		var idx=0;
 
-		col[0]=h_cursor;
-		col[1]=1-cursor[1];
-		col[2]=cursor[0];
-		Util.hsv2rgb(obj.color,col);
 
 		col[0]=h_cursor;
 		col[1]=1;
@@ -122,6 +118,11 @@ var img_hsv =(function(){
 		}
 		setCursor();
 
+		col[0]=h_cursor;
+		col[1]=1-cursor[1];
+		col[2]=cursor[0];
+		Util.hsv2rgb(obj.color,col);
+
 		if(obj.func){
 			obj.func();
 		}
@@ -150,7 +151,11 @@ var tab_cs_standard=(function(){
 		var color=new Vec3();
 		
 		var max = Math.max(col[0],Math.max(col[1],col[2]));
+		var min= Math.min(col[0],Math.min(col[1],col[2]));
 		if(max==0){max=1};
+		if(max<=1 && min>=0.01){
+			max=1;
+		}
 		Vec3.mul(color,col,1/max);
 
 		img_hsv.setRGB(color);
