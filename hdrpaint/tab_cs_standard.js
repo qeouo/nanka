@@ -1,4 +1,12 @@
 var img_hsv =(function(){
+	var newStyle = document.createElement('style');
+	newStyle.type = "text/css";
+	document.getElementsByTagName('head').item(0).appendChild(newStyle);
+	var stylesheet = document.styleSheets.item(document.styleSheets.length-1);
+	stylesheet.insertRule(" \
+		.css_hsv{ \
+		}", stylesheet.cssRules.length);
+
 	var cursor=new Vec2();
 	cursor[0]=0.5;
 	cursor[1]=0.5;
@@ -6,6 +14,7 @@ var img_hsv =(function(){
 	var img = new Img(128,128,Img.FORMAT_UINT8);
 	var img2 = new Img(8,128,Img.FORMAT_UINT8);
 	var img_hsv= document.getElementById("img_hsv")
+	img_hsv.className="css_hsv";
 	var img_hsv2= document.getElementById("img_hsv2")
 	var cursor_img_hsv= document.getElementById("cursor_img_hsv")
 	var cursor2_img_hsv= document.getElementById("cursor2_img_hsv")
@@ -62,10 +71,7 @@ var img_hsv =(function(){
 				idx+=4;
 			}
 		}
-		//img_hsv.src = img.toDataUrl();
-		img.toBlob(function(b){
-			img_hsv.src =URL.createObjectURL(b);
-		},"image/png");
+		img_hsv.src = img.toDataURL();
 	}
 
 	var data = img2.data;
@@ -86,10 +92,7 @@ var img_hsv =(function(){
 			idx+=4;
 		}
 	}
-	//img_hsv2.src = img2.toDataUrl();
-	img2.toBlob(function(b){
-		img_hsv2.src =URL.createObjectURL(b);
-	},"image/png");
+	img_hsv2.src = img2.toDataURL();
 
 	var flg2=0;
 	var flg=0;
@@ -128,7 +131,11 @@ var img_hsv =(function(){
 		}
 
 	}
-	img_hsv.addEventListener("pointerdown",function(e){
+	var img_hsv_area=document.getElementById("img_hsv_area");
+	//img_hsv_area.addEventListener("selectstart",function(e){
+	//	return false;
+	//});
+	img_hsv_area.addEventListener("pointerdown",function(e){
 		flg=1;
 		down(e)
 	});

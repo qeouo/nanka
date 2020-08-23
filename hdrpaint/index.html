@@ -63,12 +63,6 @@ var onloadfunc=function(e){
 
 	initPenPreview();
 
-	//レイヤサムネイル作成用キャンバス
-	thumbnail_canvas =  document.createElement('canvas');
-	thumbnail_canvas.width=64;
-	thumbnail_canvas.height=64;
-	thumbnail_ctx =  thumbnail_canvas.getContext('2d')
-
 
 
 	var keys=Object.keys(inputs);
@@ -788,10 +782,10 @@ var createNewCompositeLayer=function(e){
 
 	<div class="area" id="pen_info">
 		<div>ペン情報</div>
-		<!--
 		<img width="160" height="48" id="pen_preview"><br>
-		-->
+		<!--
 		<canvas width="160" height="48" id="pen_preview"></canvas>
+		-->
 		<br>
 
 		<div>直径<input class="slider" id="weight" max="30"  value="3"/></div>
@@ -828,9 +822,9 @@ var createNewCompositeLayer=function(e){
 			<li><label><input type="radio" id="cs_rgb" name="color_selector">RGB</label></li>
 		</ul>
 		-->
-		<div id="tab_cs_default">
+		<div id="tab_cs_default" onselectstart="return false;">
 			<div>
-				<div style="position:relative;display:inline-block;">
+				<div style="position:relative;display:inline-block;" id="img_hsv_area">
 					<img id="img_hsv" width="128" height="128" draggable="false">
 					<div id="cursor_img_hsv"></div>
 					<div id="cursor2_img_hsv"></div>

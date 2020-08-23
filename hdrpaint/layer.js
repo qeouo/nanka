@@ -1,4 +1,13 @@
 
+var thumbnail_ctx,thumbnail_canvas;
+
+//レイヤサムネイル作成用キャンバス
+thumbnail_canvas =  document.createElement('canvas');
+thumbnail_canvas.width=64;
+thumbnail_canvas.height=64;
+thumbnail_ctx =  thumbnail_canvas.getContext('2d')
+
+
 var Layer=(function(){
 //レイヤ
 	var Layer = function(){
@@ -16,6 +25,62 @@ var Layer=(function(){
 		this.children=[]; //子供レイヤ
 	};
 	var ret = Layer;
+
+	ret.prototype.refreshThumbnail=function(){
+		//レイヤサムネイル更新
+		var layer=this;
+		if(!layer){
+			return;
+		}
+		if(!layer.img){
+			return;
+		}
+		var img = layer.img;
+		var img_data=img.data;
+
+		var layer_img=layer.div.getElementsByTagName("img")[0];
+		thumbnail_ctx.globalCompositeOperation = "copy";
+
+		var can = img.toCanvas();
+		var ctx = Img.ctx;
+		var xr = img.width/64;
+		var yr = img.height/64;
+		var r=xr;
+		if(xr<yr){
+			r = yr;
+			layer_img.style.width="auto";
+			layer_img.style.height="100%";
+		}else{
+			layer_img.style.width="100%";
+			layer_img.style.height="auto";
+		}
+		if(r>1){
+			ctx.globalCompositeOperation = "copy";
+			var ii=Math.log2(r)|0;
+			var r = r/(1<<ii);
+			ctx.drawImage(can,0,0,img.width/r,img.height/r
+				,0,0,img.width,img.height);
+			for(var i=0;i<ii;i++){
+				ctx.drawImage(can,0,0,img.width/(r),img.height/(r)
+					,0,0,img.width/(r*2),img.height/(r*2));
+				r*=2;
+			}
+		}else if(r<1){
+			ctx.drawImage(can,0,0,img.width/r,img.height/r
+				,0,0,img.width,img.height);
+		}
+		thumbnail_canvas.width=(img.width/r)|0;
+		thumbnail_canvas.height=(img.height/r)|0;
+
+		thumbnail_ctx.drawImage(can
+			,0,0,thumbnail_canvas.width
+			,thumbnail_canvas.height
+			,0,0,thumbnail_canvas.width
+			,thumbnail_canvas.height);
+
+		layer_img.src=thumbnail_canvas.toDataURL();
+
+	}
 	return ret;
 })();
 
@@ -143,7 +208,6 @@ Layer.prototype.composite=function(left,top,right,bottom){
 }
 
 
-var thumbnail_ctx,thumbnail_canvas;
 var root_layer=null;
 var selected_layer = null;
 var layers_container;

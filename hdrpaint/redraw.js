@@ -15,13 +15,17 @@ var enableRefresh=function(){
 
 
 var refreshLayerThumbnail = function(layer){
-	//if(!animation_frame_id){
-	//	animation_frame_id=window.requestAnimationFrame(function(e){
-	//		refreshMain_();
-	//	});
-	//}
 	refresh_thumbnail.push(layer);
 }
+
+var refreshThumbnails=function(layer){
+	Layer.bubble_func(layer,
+		function(l){
+			refreshLayerThumbnail(l);
+		}
+	);
+}
+
 var refresh_thumbnail=[] ;
 var refresh_stack=[] ;
 var animation_frame_id=null; 
@@ -37,11 +41,6 @@ var refreshMain=function(_step,_x,_y,_w,_h,_layer){
 			return;
 		}
 	}
-//	if(!animation_frame_id){
-//		animation_frame_id=window.requestAnimationFrame(function(e){
-//			refreshMain_();
-//		});
-//	}
 	if(_step===0 && !_w){
 		//全更新の場合はコレまでのは無視する
 		refresh_stack=[];
@@ -63,7 +62,7 @@ var refreshMain_=function(){
 
 	for(var ri=0;ri<refresh_thumbnail.length;ri++){
 		var r= refresh_thumbnail[ri];
-		refreshLayerThumbnail_(r);
+		r.refreshThumbnail();
 	}
 	refresh_stack=[];
 	refresh_thumbnail=[];
@@ -397,51 +396,6 @@ var refreshLayer = function(layer){
 
 }
 
-
-var refreshLayerThumbnail_ = function(layer){
-	//レイヤサムネイル更新
-	if(!layer){
-		return;
-	}
-	if(!layer.img){
-		return;
-	}
-	var img = layer.img;
-	var img_data=img.data;
-
-	var layer_img=layer.div.getElementsByTagName("img")[0];
-	img.toBlob(function(b){
-		if(img .width>img.height){
-			layer_img.style.width="100%";
-			layer_img.style.height="auto";
-
-		}else{
-
-			layer_img.style.width="auto";
-			layer_img.style.height="100%";
-		}
-
-		layer_img.src =URL.createObjectURL(b);
-	},"image/png");
-//	ctx.putImageData(this.toImageData(),0,0);
-//
-//	thumbnail_ctx.clearRect(0,0,thumbnail_canvas.width,thumbnail_canvas.height);
-//	thumbnail_ctx.drawImage(canvas,0,0,img.width,img.height,0,0,thumbnail_canvas.width,thumbnail_canvas.height);
-//	//layer_img.src=thumbnail_canvas.toDataURL("image/png");
-//
-//	thumbnail_canvas.toBlob(function(b){
-//			layer_img.src =URL.createObjectURL(b);
-//	},"image/png");
-//	
-}
-
-var refreshThumbnails=function(layer){
-	Layer.bubble_func(layer,
-		function(l){
-			refreshLayerThumbnail(l);
-		}
-	);
-}
 var refreshActiveLayerParam = function(){
 	//アクティブレイヤパラメータ更新
 	var layer = selected_layer;
@@ -526,10 +480,11 @@ var oldblob=null;
 			drawPen(pen_preview_img,points[li],points[li+1],doc.draw_col,[1,1,1,1],weight,pressure_effect_flg,alpha_direct);
 		}
 
-		ctx = document.getElementById("pen_preview").getContext("2d");
-		ctx.putImageData(pen_preview_img.toImageData(),0,0);
+		//ctx = document.getElementById("pen_preview").getContext("2d");
+		//ctx.putImageData(pen_preview_img.toImageData(),0,0);
 		//pen_preview_img.toBlob(function(b){
-		//	var img = document.getElementById("pen_preview");
+		var img = document.getElementById("pen_preview");
+		img.src = pen_preview_img.toDataURL();
 
 		//	if(oldblob){
 		//		URL.revokeObjectURL(img.src);
