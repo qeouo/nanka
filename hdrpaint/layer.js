@@ -6,6 +6,7 @@ thumbnail_canvas =  document.createElement('canvas');
 thumbnail_canvas.width=64;
 thumbnail_canvas.height=64;
 thumbnail_ctx =  thumbnail_canvas.getContext('2d')
+thumbnail_img = new Img(64,64,1);
 
 
 var Layer=(function(){
@@ -72,37 +73,42 @@ var Layer=(function(){
 		var newx = img.width/r|0;
 		var newy = img.height/r|0;
 		var data = img.data;
+		var dst_data = thumbnail_img.data;
 		var sum=new Vec4();
 		var _255 = 1/255;
+		var ev = parseFloat(inputs["ev"].value);
+		var ev2  = Math.pow(2,-ev)*255;
+		var rr255 = 255/(r*r);
 		for(var yi=0;yi<newy;yi++){
 			for(var xi=0;xi<newx;xi++){
 				Vec4.set(sum,0,0,0,0);
 				for(var yii=0;yii<r;yii++){
 					for(var xii=0;xii<r;xii++){
 						var idx = img.getIndex(xi*r+xii|0,yi*r+yii|0)<<2;
-						var alpha = data[idx+3]*_255;
+						var alpha = data[idx+3];
 						sum[0]+=data[idx+0]*alpha;
 						sum[1]+=data[idx+1]*alpha;
 						sum[2]+=data[idx+2]*alpha;
 						sum[3]+=alpha;
 					}
 				}
-				var idx = img.getIndex(xi,yi)<<2;
-				var _r = 1/sum[3];
-				data[idx]=sum[0]*_r;
-				data[idx+1]=sum[1]*_r;
-				data[idx+2]=sum[2]*_r;
-				data[idx+3]=sum[3]/(r*r)*255;
+				var idx = thumbnail_img.getIndex(xi,yi)<<2;
+				var _r = ev2/sum[3];
+				dst_data[idx]=sum[0]*_r;
+				dst_data[idx+1]=sum[1]*_r;
+				dst_data[idx+2]=sum[2]*_r;
+				dst_data[idx+3]=sum[3]*rr255;
 			}
 		}
 		thumbnail_canvas.width=(img.width/r)|0;
 		thumbnail_canvas.height=(img.height/r)|0;
 
-		thumbnail_ctx.drawImage(img.toCanvas()
-			,0,0,thumbnail_canvas.width
-			,thumbnail_canvas.height
-			,0,0,thumbnail_canvas.width
-			,thumbnail_canvas.height);
+		thumbnail_ctx.putImageData(thumbnail_img.toImageData(),0,0);
+		//thumbnail_ctx.drawImage(img.toCanvas()
+		//	,0,0,thumbnail_canvas.width
+		//	,thumbnail_canvas.height
+		//	,0,0,thumbnail_canvas.width
+		//	,thumbnail_canvas.height);
 
 		layer_img.src=thumbnail_canvas.toDataURL();
 
@@ -171,6 +177,48 @@ funcs["sub"] = function(dst,dst_idx,src,src_idx,alpha,power){
 	dst[dst_idx+1]=dst[dst_idx+1]  - src[src_idx+1]*src_r;
 	dst[dst_idx+2]=dst[dst_idx+2]  - src[src_idx+2]*src_r;
 }
+Layer.prototype.compositeLayer=function(layer,left,top,right,bottom){
+	var img = this.img;
+	var img_data = img.data;
+	var img_width = img.width;
+	
+	for(var yi=top;yi<bottom;yi++){
+		var idx = yi * img_width + left << 2;
+		var max = yi * img_width + right << 2;
+		for(;idx<max;idx+=4){
+			img_data[idx+0]=0;
+			img_data[idx+1]=0;
+			img_data[idx+2]=0;
+			img_data[idx+3]=0;
+		}
+	}
+
+	var layer_img_data = layer.img.data;
+	var layer_alpha=layer.alpha;
+	var layer_power=Math.pow(2,layer.power);
+	var layer_img_width = layer.img.width;
+	var func = funcs[layer.blendfunc];
+	var layer_position_x= layer.position[0];
+	var layer_position_y= layer.position[1];
+
+	//レイヤごとのクランプ
+	var left2 = Math.max(left,layer.position[0]);
+	var top2 = Math.max(top,layer.position[1]);
+	var right2 = Math.min(layer.img.width + layer_position_x ,right);
+	var bottom2 = Math.min(layer.img.height + layer_position_y ,bottom);
+
+	for(var yi=top2;yi<bottom2;yi++){
+		var idx = yi * img_width + left2 << 2;
+		var max = yi * img_width + right2 << 2;
+		var idx2 = (yi-layer_position_y) * layer_img_width + left2 - layer_position_x << 2;
+		for(;idx<max;idx+=4){
+			func(img_data,idx,layer_img_data,idx2,layer_alpha,layer_power);
+			idx2+=4;
+		}
+	}
+	
+	
+}
 Layer.prototype.composite=function(left,top,right,bottom){
 
 	var layers=this.children;
@@ -195,11 +243,8 @@ Layer.prototype.composite=function(left,top,right,bottom){
 	for(var li=0;li<layers.length;li++){
 		var layer = layers[li];
 
-		if(!layer.img){
-			continue;
-		}
-
-		if(!layer.display){
+		if(!layer.img
+		|| !layer.display ){
 			//非表示の場合スルー
 			continue;
 		}
@@ -269,6 +314,7 @@ each_layers=function(f){
 	}
 	return cb(root_layer);
 }
+Layer.eachLayers=each_layers;
 getLayerFromDiv=function(div){
 	var result_layer = null;
 	each_layers(function(layer){

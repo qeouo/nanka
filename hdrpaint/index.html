@@ -308,18 +308,65 @@ var onloadfunc=function(e){
 		Log.moveLog(parseInt(option.value));
 	});
 
-    document.addEventListener('keydown', function(event){
- 
-		if(event.keyCode===90 && event.ctrlKey){
-        	if (event.shiftKey) {
-				//リドゥ
-				redo();
+	document.addEventListener('keyup',function(event){
+		if(event.keyCode===32){
+			flg_active_layer_only=false;
+			refreshMain();
+		}
+	});
 
-			}else{
-				//アンドゥ
-				undo();
+	document.addEventListener('keydown', function(event){
+		if(event.target.tagName==="INPUT"){
+			return;
+		}
+
+		switch(event.keyCode){
+		case 65://a
+			inputs["pen"].checked=true;
+			refreshTab("tools");
+			break;
+		case 83://s
+			inputs["eraser"].checked=true;
+			refreshTab("tools");
+			break;
+		case 68://d
+			inputs["fill"].checked=true;
+			refreshTab("tools");
+			break;
+		case 70://f
+			inputs["translate"].checked=true;
+			refreshTab("tools");
+			break;
+		case 81://q
+			break;
+		case 87://w
+			break;
+		case 69://e
+			inputs["weight"].value=parseFloat(inputs["weight"].value)-1;
+			Util.fireEvent(inputs["weight"],"change");
+			break;
+		case 82://r
+			inputs["weight"].value=parseFloat(inputs["weight"].value)+1;
+			Util.fireEvent(inputs["weight"],"change");
+			break;
+		case 90:
+			if(event.ctrlKey){
+				if (event.shiftKey) {
+					//リドゥ
+					redo();
+
+				}else{
+					//アンドゥ
+					undo();
+				}
 			}
 			event.preventDefault();
+			break;
+		case 32://space
+			flg_active_layer_only=true;
+			event.preventDefault();
+			refreshMain(1);
+			break;
 		}
     });
 
@@ -382,6 +429,9 @@ var onloadfunc=function(e){
 	  		}
 			if(e.target.id==="ch_gamma" || e.target.id==="gamma" || e.target.id==="ev"){
 				refreshMain(2);
+				Layer.eachLayers(function(layer){
+					refresh_thumbnail.push(layer);
+				});
 	  		}
 			
 	  });
@@ -758,10 +808,10 @@ var createNewCompositeLayer=function(e){
 		<div id="tools">
 			ツール
 			<ul>
-			<li><label><input type="radio" id="pen" name="tool" checked>ペン</label>
-			<li><label><input type="radio" id="eraser" name="tool" >消しゴム</label>
-				<li><label><input type="radio" id="fill" name="tool">塗りつぶし</label></li>
-				<li><label><input type="radio" id="translate" name="tool">移動</label></li>
+			<li><label><input type="radio" id="pen" name="tool" checked>a:ペン</label>
+			<li><label><input type="radio" id="eraser" name="tool" >s:消しゴム</label>
+				<li><label><input type="radio" id="fill" name="tool">d:塗りつぶし</label></li>
+				<li><label><input type="radio" id="translate" name="tool">f:移動</label></li>
 			</ul>
 		</div>
 		<div id="tool_status">

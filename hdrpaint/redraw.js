@@ -1,4 +1,5 @@
 
+var flg_active_layer_only=false;
 var horizon_img=null;
 var bloomed_img=null;
 var bloom_img=null;
@@ -87,6 +88,8 @@ var refreshMain_sub=function(step,x,y,w,h){
 	var bloom_size = parseFloat(inputs["bloom_size"].value);
 	var joined_img = root_layer.img;
 
+	
+
 	//引数無しの場合、デフォルトで更新領域は全域
 	var left = 0;
 	var right = joined_img.width; 
@@ -116,6 +119,7 @@ var refreshMain_sub=function(step,x,y,w,h){
 		bottom=Math.ceil(bottom);
 	}
 
+
 	var joined_img_data = joined_img.data;
 	var joined_img_width = joined_img.width;
 
@@ -138,6 +142,10 @@ var refreshMain_sub=function(step,x,y,w,h){
 			//ブルーム処理ありの場合は前処理を行う
 			gauss(bloom_size,bloom_size,left,right,top,bottom);
 		}
+	}
+
+	if(flg_active_layer_only){
+		root_layer.compositeLayer(selected_layer,left,top,right,bottom);
 	}
 
 	//ブルーム処理
@@ -178,22 +186,23 @@ var refreshMain_sub=function(step,x,y,w,h){
 		var ctx_imagedata_data = preview_ctx_imagedata.data;
 		var ev = parseFloat(inputs["ev"].value);
 		var gamma = 1.0/parseFloat(inputs["gamma"].value);
-		var r = Math.pow(2,-ev)*255;
 
 		joined_img_data = bloom_img.data;
 
 		if(inputs["ch_gamma"].checked){
+			var r = Math.pow(2,-ev);
 			for(var yi=top;yi<bottom;yi++){
 				var idx = yi * joined_img_width + left << 2;
 				var max = yi * joined_img_width + right << 2;
 				for(;idx<max;idx+=4){
-					ctx_imagedata_data[idx+0]=Math.pow(joined_img_data[idx+0],gamma)*r;
-					ctx_imagedata_data[idx+1]=Math.pow(joined_img_data[idx+1],gamma)*r;
-					ctx_imagedata_data[idx+2]=Math.pow(joined_img_data[idx+2],gamma)*r;
+					ctx_imagedata_data[idx+0]=Math.pow(joined_img_data[idx+0]*r,gamma)*255;
+					ctx_imagedata_data[idx+1]=Math.pow(joined_img_data[idx+1]*r,gamma)*255;
+					ctx_imagedata_data[idx+2]=Math.pow(joined_img_data[idx+2]*r,gamma)*255;
 					ctx_imagedata_data[idx+3]=joined_img_data[idx+3]*255;
 				}
 			}
 		}else{
+			var r = Math.pow(2,-ev)*255;
 			for(var yi=top;yi<bottom;yi++){
 				var idx = yi * joined_img_width + left << 2;
 				var max = yi * joined_img_width + right << 2;
