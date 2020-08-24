@@ -54,25 +54,51 @@ var Layer=(function(){
 			layer_img.style.width="100%";
 			layer_img.style.height="auto";
 		}
-		if(r>1){
-			ctx.globalCompositeOperation = "copy";
-			var ii=Math.log2(r)|0;
-			var r = r/(1<<ii);
-			ctx.drawImage(can,0,0,img.width/r,img.height/r
-				,0,0,img.width,img.height);
-			for(var i=0;i<ii;i++){
-				ctx.drawImage(can,0,0,img.width/(r),img.height/(r)
-					,0,0,img.width/(r*2),img.height/(r*2));
-				r*=2;
+		//if(r>1){
+		//	ctx.globalCompositeOperation = "copy";
+		//	var ii=Math.log2(r)|0;
+		//	var r = r/(1<<ii);
+		//	ctx.drawImage(can,0,0,img.width/r,img.height/r
+		//		,0,0,img.width,img.height);
+		//	for(var i=0;i<ii;i++){
+		//		ctx.drawImage(can,0,0,img.width/(r),img.height/(r)
+		//			,0,0,img.width/(r*2),img.height/(r*2));
+		//		r*=2;
+		//	}
+		//}else if(r<1){
+		//	ctx.drawImage(can,0,0,img.width/r,img.height/r
+		//		,0,0,img.width,img.height);
+		//}
+		var newx = img.width/r|0;
+		var newy = img.height/r|0;
+		var data = img.data;
+		var sum=new Vec4();
+		var _255 = 1/255;
+		for(var yi=0;yi<newy;yi++){
+			for(var xi=0;xi<newx;xi++){
+				Vec4.set(sum,0,0,0,0);
+				for(var yii=0;yii<r;yii++){
+					for(var xii=0;xii<r;xii++){
+						var idx = img.getIndex(xi*r+xii|0,yi*r+yii|0)<<2;
+						var alpha = data[idx+3]*_255;
+						sum[0]+=data[idx+0]*alpha;
+						sum[1]+=data[idx+1]*alpha;
+						sum[2]+=data[idx+2]*alpha;
+						sum[3]+=alpha;
+					}
+				}
+				var idx = img.getIndex(xi,yi)<<2;
+				var _r = 1/sum[3];
+				data[idx]=sum[0]*_r;
+				data[idx+1]=sum[1]*_r;
+				data[idx+2]=sum[2]*_r;
+				data[idx+3]=sum[3]/(r*r)*255;
 			}
-		}else if(r<1){
-			ctx.drawImage(can,0,0,img.width/r,img.height/r
-				,0,0,img.width,img.height);
 		}
 		thumbnail_canvas.width=(img.width/r)|0;
 		thumbnail_canvas.height=(img.height/r)|0;
 
-		thumbnail_ctx.drawImage(can
+		thumbnail_ctx.drawImage(img.toCanvas()
 			,0,0,thumbnail_canvas.width
 			,thumbnail_canvas.height
 			,0,0,thumbnail_canvas.width
