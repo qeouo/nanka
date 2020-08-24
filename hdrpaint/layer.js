@@ -323,13 +323,12 @@ var layerSelect= function(e){
 }
 
 //ドラッグ＆ドロップによるレイヤ順編集
-var dragTarget=null;
+var drag_layer=null;
 function DragStart(event) {
 	//ドラッグ開始
-	var drag_layer= getLayerFromDiv(event.currentTarget);
-     event.dataTransfer.setData("text", drag_layer.id);
+	drag_layer= getLayerFromDiv(event.currentTarget);
+//     event.dataTransfer.setData("text", drag_layer.id);
 	 selectLayer(drag_layer);
-	dragTarget = drag_layer;
 
 	event.stopPropagation();
 }
@@ -337,55 +336,73 @@ function dragover_handler(event) {
  event.preventDefault();
  event.dataTransfer.dropEffect = "move";
 }	
-//function Drop(event) {
+function dragend(event) {
+}
+
 function DragEnter(event) {
-	//ドロップ時
-    var drag = parseInt(event.dataTransfer.getData("text"));
-	drag = dragTarget;
-	var layer=dragTarget;//layers[drag];
-	var drag_div = layer.div;
+	//ドラッグ移動時
 	var drop_layer = getLayerFromDiv(event.currentTarget);
-	if(layer === drop_layer){
+
+	event.stopPropagation();
+	if(drag_layer=== drop_layer){
+		//自分自身の場合は無視
 		return;
 	}
 
-	var now_parent_layer = Layer.findParent(layer);
+	if(drag_layer.type ===1){
+		//グループレイヤドラッグ時は、自身の子になるかチェックし、その場合は無視
+		var flg = false;
+		Layer.bubble_func(drop_layer,
+			function(layer){
+				if(layer === drag_layer){
+					flg=true;
+					return true;
+				}
+			}
+		);
+		if(flg){
+			return;
+		}
+	}
+
 	var parent_layer = Layer.findParent(drop_layer);
-
 	var position= parent_layer.children.indexOf(drop_layer);
-	//if(drop_layer === now_parent_layer){
-	//	return;
-	//}
 
-	//Command.executeCommand("moveLayer",{"layer_id":layer.id,"position":drop});
-	Command.executeCommand("moveLayer",{"layer_id":layer.id
+	Command.executeCommand("moveLayer",{"layer_id":drag_layer.id
 		,"parent_layer_id":parent_layer.id,"position":position});
 }
 
 function DragEnterChild(event) {
-	//ドロップ時
+	//ドラッグ移動時
 	
 	event.stopPropagation();
 
     var drag = parseInt(event.dataTransfer.getData("text"));
-	drag = dragTarget;
-	var layer=dragTarget;//layers[drag];
-	var drag_div = layer.div;
 	var parent_layer= getLayerFromDiv(event.currentTarget.parentNode);
 
 
-	if(parent_layer === layer ){
-		return;
+	if(drag_layer.type ===1){
+		//グループレイヤドラッグ時は、自身の子になるかチェックし、その場合は無視
+		var flg = false;
+		Layer.bubble_func(parent_layer,
+			function(layer){
+				if(layer === drag_layer){
+					flg=true;
+					return true;
+				}
+			}
+		);
+		if(flg){
+			return;
+		}
 	}
 
 	var position= 0;
 
-
-	Command.executeCommand("moveLayer",{"layer_id":layer.id
+	Command.executeCommand("moveLayer",{"layer_id":drag_layer.id
 		,"parent_layer_id":parent_layer.id,"position":position});
 }
-function dragend(event) {
-}
+
 var appendLayer=function(root,idx,layer){
 	var layers = root.children;
 	layers.splice(idx,0,layer);
