@@ -177,48 +177,6 @@ funcs["sub"] = function(dst,dst_idx,src,src_idx,alpha,power){
 	dst[dst_idx+1]=dst[dst_idx+1]  - src[src_idx+1]*src_r;
 	dst[dst_idx+2]=dst[dst_idx+2]  - src[src_idx+2]*src_r;
 }
-Layer.prototype.compositeLayer=function(layer,left,top,right,bottom){
-	var img = this.img;
-	var img_data = img.data;
-	var img_width = img.width;
-	
-	for(var yi=top;yi<bottom;yi++){
-		var idx = yi * img_width + left << 2;
-		var max = yi * img_width + right << 2;
-		for(;idx<max;idx+=4){
-			img_data[idx+0]=0;
-			img_data[idx+1]=0;
-			img_data[idx+2]=0;
-			img_data[idx+3]=0;
-		}
-	}
-
-	var layer_img_data = layer.img.data;
-	var layer_alpha=layer.alpha;
-	var layer_power=Math.pow(2,layer.power);
-	var layer_img_width = layer.img.width;
-	var func = funcs[layer.blendfunc];
-	var layer_position_x= layer.position[0];
-	var layer_position_y= layer.position[1];
-
-	//レイヤごとのクランプ
-	var left2 = Math.max(left,layer.position[0]);
-	var top2 = Math.max(top,layer.position[1]);
-	var right2 = Math.min(layer.img.width + layer_position_x ,right);
-	var bottom2 = Math.min(layer.img.height + layer_position_y ,bottom);
-
-	for(var yi=top2;yi<bottom2;yi++){
-		var idx = yi * img_width + left2 << 2;
-		var max = yi * img_width + right2 << 2;
-		var idx2 = (yi-layer_position_y) * layer_img_width + left2 - layer_position_x << 2;
-		for(;idx<max;idx+=4){
-			func(img_data,idx,layer_img_data,idx2,layer_alpha,layer_power);
-			idx2+=4;
-		}
-	}
-	
-	
-}
 Layer.prototype.composite=function(left,top,right,bottom){
 
 	var layers=this.children;

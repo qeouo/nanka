@@ -207,16 +207,11 @@ var onloadfunc=function(e){
 				return;
 			}
 			//塗りつぶし
-			var fill_layer=0;
-			if(inputs["fill_layer"].checked){
-				fill_layer=1;
-			}
+
 			var joined_img = root_layer.img;
-			if(!fill_layer){
-				if(x<0 || x>=joined_img.width || y<0 || y>=joined_img.height){
-					//範囲外は無視
-					return;
-				}
+			if(x<0 || x>=joined_img.width || y<0 || y>=joined_img.height){
+				//範囲外は無視
+				return;
 			}
 			var layer = selected_layer;
 			x -= layer.position[0];
@@ -225,16 +220,16 @@ var onloadfunc=function(e){
 				//範囲外は無視
 				return;
 			}
-			Command.executeCommand("fill",{"layer_id":selected_layer.id,"x":x,"y":y,"color":new Float32Array(doc.draw_col),"is_layer":fill_layer});
+			Command.executeCommand("fill",{"layer_id":selected_layer.id,"x":x,"y":y,"color":new Float32Array(doc.draw_col),"is_layer":flg_active_layer_only});
 
 		}else if(inputs["translate"].checked && (e.buttons &1) ){
 			//レイヤ位置移動
 			drag_start[0]= x | 0;
 			drag_start[1]= y | 0;
-			var layer_id= selected_layer.id;
-			if(inputs["translate_joined"].checked){
-				//全レイヤ移動
-				layer_id=-1;
+			var layer_id=-1;//全レイヤ移動
+			if(flg_active_layer_only){
+				//アクティブレイヤ
+				layer_id=selected_layer.id;
 			}
 			pen_log = Command.executeCommand("translateLayer",{"layer_id":layer_id,"x":0,"y":0} ,{"x":selected_layer.position[0],"y":selected_layer.position[1]},1);
 
@@ -317,7 +312,9 @@ var onloadfunc=function(e){
 
 	document.addEventListener('keydown', function(event){
 		if(event.target.tagName==="INPUT"){
-			return;
+			if(event.target.type==="text"){
+				return;
+			}
 		}
 
 		switch(event.keyCode){
@@ -810,11 +807,13 @@ var createNewCompositeLayer=function(e){
 			<ul>
 			<li><label><input type="radio" id="pen" name="tool" checked>a:ペン</label>
 			<li><label><input type="radio" id="eraser" name="tool" >s:消しゴム</label>
-				<li><label><input type="radio" id="fill" name="tool">d:塗りつぶし</label></li>
+				<li><label><input type="radio" id="fill" name="tool">d:バケツ</label></li>
 				<li><label><input type="radio" id="translate" name="tool">f:移動</label></li>
 			</ul>
+			<span style="font-weight:bold;">※スペースキー押下で<br>アクティブレイヤのみ表示<br>(バケツコマンド等にも影響)</span>
 		</div>
 		<div id="tool_status">
+			<!--
 			<div id="tab_fill">
 				<ul>
 					<li><label><input id="fill_joined" type="radio" name="fill_type" checked/>結合画像</label></li>
@@ -827,6 +826,7 @@ var createNewCompositeLayer=function(e){
 					<li><label><input id="translate_joined" type="radio" name="translate_type" />全レイヤ</label></li>
 				</ul>
 			</div>
+				-->
 		</div>
 	</div>
 
