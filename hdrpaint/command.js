@@ -1077,16 +1077,18 @@ Command.moveLayer=function(log,undo_flg){
 					l = Math.abs(Vec2.dot(dist,side));
 				}
 				var idx = dy*img.width+ dx|0;
-				var dr = 1-l/local_weight;
+				var aa = (1-l/local_weight)*a;
 
-			//	if(painted_mask[idx]>dr){
-			//		continue;
-			//	}
-				painted_mask[idx]=dr;
+				//if(painted_mask[idx]>=aa){
+				//	continue;
+				//}
+				//var olda =painted_mask[idx];
+				//painted_mask[idx]=aa;
+				//aa = (aa - olda)/(1-olda);
 				var _r = r;// point0.pressure * (1-l) + point1.pressure * l;
 				var _g = g;// point0.pressure * (1-l) + point1.pressure * l;
 				var _b = b;// point0.pressure * (1-l) + point1.pressure * l;
-				var _a = a  *dr;//a *((local_pressure - 1)*alpha_pressure_effect + 1);
+				var _a = aa;//a *((local_pressure - 1)*alpha_pressure_effect + 1);
 				drawfunc(idx<<2,_r,_g,_b,_a);
 			}
 		}
