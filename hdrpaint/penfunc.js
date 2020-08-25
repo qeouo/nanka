@@ -1,3 +1,5 @@
+
+var painted_mask=new Float32Array(1024*1024);
 var PenFunc = (function(){
 	var PenFunc=function(){
 		this.pen_log=null;
@@ -18,6 +20,8 @@ var PenFunc = (function(){
 		
 		if(this.endFlg && points.length <= this.idx){
 			var layer = Layer.findById(log.param.layer_id);
+
+			painted_mask.fill(0);
 
 			refreshMain();
 			Layer.bubble_func(layer,

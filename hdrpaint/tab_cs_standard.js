@@ -119,15 +119,17 @@ var img_hsv =(function(){
 
 			redraw();
 		}
-		setCursor();
+		if(flg || flg2){
+			setCursor();
 
-		col[0]=h_cursor;
-		col[1]=1-cursor[1];
-		col[2]=cursor[0];
-		Util.hsv2rgb(obj.color,col);
+			col[0]=h_cursor;
+			col[1]=1-cursor[1];
+			col[2]=cursor[0];
+			Util.hsv2rgb(obj.color,col);
 
-		if(obj.func){
-			obj.func();
+			if(obj.func){
+				obj.func();
+			}
 		}
 
 	}

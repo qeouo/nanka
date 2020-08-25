@@ -966,6 +966,8 @@ Command.moveLayer=function(log,undo_flg){
 	var dist = new Vec2();
 	var drawPen=function(img,point0,point1,color,effect,weight,pressure_mask,alpha_direct){
 		//描画
+		var img_data = img.data;
+	
 		weight*=0.5;
 		var r=color[0];
 		var g=color[1];
@@ -978,7 +980,6 @@ Command.moveLayer=function(log,undo_flg){
 
 		var weight_pressure_effect = pressure_mask&1;
 		var alpha_pressure_effect = (pressure_mask&2)>>1;
-		var img_data = img.data;
 		var new_p = point1.pos;
 		var old_p = point0.pos;
 		vec2[0] = new_p[0];
@@ -1019,11 +1020,14 @@ Command.moveLayer=function(log,undo_flg){
 		Vec2.norm(side);
 
 		var drawfunc=function(idx,r,g,b,a){
+			var sa = a
+			var da = img_data[idx+3]*(1-a);
+			var rr = 1/Math.max(0.01,sa+da);
 
-			img_data[idx+0] += (r - img_data[idx+0]) * a;
-			img_data[idx+1] += (g - img_data[idx+1]) * a;
-			img_data[idx+2] += (b - img_data[idx+2]) * a;
-			img_data[idx+3] += (1 - img_data[idx+3]) * a;
+			img_data[idx+0] = (img_data[idx+0] * da + r * a)*rr;
+			img_data[idx+1] = (img_data[idx+1] * da + g * a)*rr;
+			img_data[idx+2] = (img_data[idx+2] * da + b * a)*rr;
+			img_data[idx+3] = da + sa;
 
 		}
 		if(alpha_direct){
@@ -1037,7 +1041,6 @@ Command.moveLayer=function(log,undo_flg){
 		}
 		for(var dy=top;dy<bottom;dy++){
 			for(var dx=left;dx<right;dx++){
-				var idx = dy*img.width+ dx<<2;
 				dist[0]=dx-old_p[0];
 				dist[1]=dy-old_p[1];
 				l = Vec2.dot(vec2,dist);
@@ -1047,10 +1050,11 @@ Command.moveLayer=function(log,undo_flg){
 					if(Vec2.scalar2(dist)>point0_weight2){
 						continue;
 					}
+					l = Vec2.scalar(dist);
+					local_weight = point0_weight;
 					local_pressure=point0_pressure;
 				}else if(l>=1){
 					//終端より後
-
 
 					dist[0]=dx-new_p[0];
 					dist[1]=dy-new_p[1];
@@ -1058,6 +1062,8 @@ Command.moveLayer=function(log,undo_flg){
 					if(Vec2.scalar2(dist)>point1_weight2){
 						continue;
 					}
+					l = Vec2.scalar(dist);
+					local_weight = point1_weight;
 					local_pressure=point0_pressure+point1_0_pressure;
 				}else{
 					//線半ば
@@ -1068,12 +1074,20 @@ Command.moveLayer=function(log,undo_flg){
 						//線幅より外の場合
 						continue;
 					}
+					l = Math.abs(Vec2.dot(dist,side));
 				}
+				var idx = dy*img.width+ dx|0;
+				var dr = 1-l/local_weight;
+
+			//	if(painted_mask[idx]>dr){
+			//		continue;
+			//	}
+				painted_mask[idx]=dr;
 				var _r = r;// point0.pressure * (1-l) + point1.pressure * l;
 				var _g = g;// point0.pressure * (1-l) + point1.pressure * l;
 				var _b = b;// point0.pressure * (1-l) + point1.pressure * l;
-				var _a = a *((local_pressure - 1)*alpha_pressure_effect + 1);
-				drawfunc(idx,_r,_g,_b,_a);
+				var _a = a  *dr;//a *((local_pressure - 1)*alpha_pressure_effect + 1);
+				drawfunc(idx<<2,_r,_g,_b,_a);
 			}
 		}
 

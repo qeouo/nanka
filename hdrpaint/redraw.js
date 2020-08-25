@@ -522,6 +522,7 @@ var oldblob=null;
 
 
 		var alpha_direct=inputs["pen_alpha_direct"].checked;
+		painted_mask.fill(0);
 		pen_preview_img.clear();
 		for(var li=0;li<points.length-1;li++){
 			drawPen(pen_preview_img,points[li],points[li+1],doc.draw_col,[1,1,1,1],weight,pressure_effect_flg,alpha_direct);
