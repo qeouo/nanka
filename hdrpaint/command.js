@@ -278,7 +278,6 @@ var createDif=function(layer,left,top,width,height){
 		var alpha_direct = param.alpha_direct;
 
 		for(var li=1;li<points.length;li++){
-			//Command.drawLine(layer,points[li],points[li+1],weight,color,color_mask,pressure_effect_flgs,alpha_direct);
 			Command.drawHermitian(log,li);
 		}
 		refreshThumbnails(layer);
@@ -349,6 +348,7 @@ var createDif=function(layer,left,top,width,height){
 			var devide= clamp((len/4)|0,1,MAX-1);
 
 			if(!param.stroke_interpolation){
+				//補間しない
 				devide=1;
 			}
 			var _devide=1/devide;
@@ -409,56 +409,6 @@ var createDif=function(layer,left,top,width,height){
 		}
 	})();
 
-	ret.drawLine=function(layer,pen_log,point0,point1,weight,col,color_mask,pressure_effect_flgs,alpha_direct){
-		var img= layer.img;
-		var new_p = point1.pos;
-		var old_p = point0.pos;
-
-
-		var point0_weight = weight*0.5;
-		var point1_weight = weight*0.5;
-		if(pressure_effect_flgs &1){
-			point0_weight*=point0.pressure;
-			point1_weight*=point1.pressure;
-		}
-		var max_weight = Math.max(point0_weight,point1_weight);
-
-		var left = Math.min(new_p[0],old_p[0]);
-		var right= Math.max(new_p[0],old_p[0])+1;
-		var top= Math.min(new_p[1],old_p[1]);
-		var bottom= Math.max(new_p[1],old_p[1])+1;
-		
-		left = Math.floor(clamp(left-max_weight,0,img.width));
-		right= Math.ceil(clamp(right+max_weight,0,img.width));
-		top= Math.floor(clamp(top-max_weight,0,img.height));
-		bottom=Math.ceil(clamp(bottom+max_weight,0,img.height));
-
-
-		if(pen_log){
-			//差分ログ作成
-			var log = pen_log;
-			if(!log.undo_data){
-				log.undo_data={"difs":[]};
-			}
-			var dif=createDif(layer,left-layer.position[0],top-layer.position[1],right-left,bottom-top);
-			log.undo_data.difs.push(dif);
-		}
-		var org_pos0=point0.pos;
-		var org_pos1=point1.pos;
-		point0.pos=new Vec2();
-		point1.pos=new Vec2();
-		Vec2.sub(point0.pos,org_pos0,layer.position);
-		Vec2.sub(point1.pos,org_pos1,layer.position);
-
-		drawPen(layer.img,point0,point1,col,color_mask,weight,pressure_effect_flgs,alpha_direct);
-		point0.pos=org_pos0;
-		point1.pos=org_pos1;
-
-		if(right-left>0 && bottom-top>0){
-			//再描画
-			refreshMain(0,left,top,right-left,bottom-top);
-		}
-	}
 
 	Command.loadImageFile_=function(file,n){
 		var position = n;
@@ -980,36 +930,29 @@ Command.moveLayer=function(log,undo_flg){
 
 		var weight_pressure_effect = pressure_mask&1;
 		var alpha_pressure_effect = (pressure_mask&2)>>1;
-		var new_p = point1.pos;
-		var old_p = point0.pos;
-		vec2[0] = new_p[0];
-		vec2[1] = new_p[1];
+		var pos1 = point1.pos;
+		var pos0 = point0.pos;
 
-		var point0_pressure=point0.pressure;
-		var point1_pressure=point1.pressure;
-		var point1_0_pressure=point1.pressure - point0.pressure;
+		var pressure_0=point0.pressure;
+		var d_pressure=point1.pressure - point0.pressure;
 
-		var point0_weight = weight;
-		var point1_weight = weight;
-		if(weight_pressure_effect){
-			point0_weight*=point0.pressure;
-			point1_weight*=point1.pressure;
-		}
-		var point0_weight2=point0_weight*point0_weight;
-		var point1_weight2=point1_weight*point1_weight;
-		var max_weight = Math.max(point0_weight,point1_weight);
+		var weight_0pow2 = weight  *( ( pressure_0 - 1)*weight_pressure_effect + 1);
+		var weight_1pow2 = weight  *( (d_pressure + pressure_0 - 1)*weight_pressure_effect + 1);
+		var max_weight = Math.max(weight_0pow2,weight_1pow2);
+		var weight_0pow2 = weight_0pow2 * weight_0pow2;
+		var weight_1pow2 = weight_1pow2 * weight_1pow2;
 
-		var left = Math.min(new_p[0],old_p[0]);
-		var right= Math.max(new_p[0],old_p[0])+1;
-		var top= Math.min(new_p[1],old_p[1]);
-		var bottom= Math.max(new_p[1],old_p[1])+1;
+		var left = Math.min(pos1[0],pos0[0]);
+		var right= Math.max(pos1[0],pos0[0])+1;
+		var top= Math.min(pos1[1],pos0[1]);
+		var bottom= Math.max(pos1[1],pos0[1])+1;
 		
 		left = Math.floor(clamp(left-max_weight,0,img.width));
 		right= Math.ceil(clamp(right+max_weight,0,img.width));
 		top= Math.floor(clamp(top-max_weight,0,img.height));
 		bottom=Math.ceil(clamp(bottom+max_weight,0,img.height));
 
-		Vec2.sub(vec2,new_p,old_p);
+		Vec2.sub(vec2,pos1,pos0);
 		var l = Vec2.scalar2(vec2);
 		if(l!==0){
 			Vec2.mul(vec2,vec2,1/l);
@@ -1041,40 +984,45 @@ Command.moveLayer=function(log,undo_flg){
 		}
 		for(var dy=top;dy<bottom;dy++){
 			for(var dx=left;dx<right;dx++){
-				dist[0]=dx-old_p[0];
-				dist[1]=dy-old_p[1];
-				l = Vec2.dot(vec2,dist);
+				dist[0]=dx-pos0[0];
+				dist[1]=dy-pos0[1];
+				var dp = Vec2.dot(vec2,dist);
+				var l=0;
+				var l2=0;
 				var local_pressure=0;
-				if(l<=0){
+				if(dp<=0){
 					//始点より前
-					if(Vec2.scalar2(dist)>point0_weight2){
+					
+					if(Vec2.scalar2(dist)>weight_0pow2){
 						continue;
 					}
+					dp=0;
 					l = Vec2.scalar(dist);
-					local_weight = point0_weight;
-					local_pressure=point0_pressure;
-				}else if(l>=1){
+					local_pressure = d_pressure * dp + pressure_0 ;
+					local_weight = weight  *( (local_pressure - 1)*weight_pressure_effect + 1);
+				}else if(dp>=1){
 					//終端より後
 
-					dist[0]=dx-new_p[0];
-					dist[1]=dy-new_p[1];
+					dist[0]=dx-pos1[0];
+					dist[1]=dy-pos1[1];
 					
-					if(Vec2.scalar2(dist)>point1_weight2){
+					if(Vec2.scalar2(dist)>weight_1pow2){
 						continue;
 					}
+					dp=1;
 					l = Vec2.scalar(dist);
-					local_weight = point1_weight;
-					local_pressure=point0_pressure+point1_0_pressure;
+					local_pressure = d_pressure * dp + pressure_0 ;
+					local_weight = weight  *( (local_pressure - 1)*weight_pressure_effect + 1);
 				}else{
 					//線半ば
 					
-					local_pressure = point1_0_pressure * l + point0_pressure ;
-					var local_weight = weight  *( (local_pressure - 1)*weight_pressure_effect + 1);
-					if(Math.abs(Vec2.dot(dist,side))>local_weight){
+					local_pressure = d_pressure * dp + pressure_0 ;
+					local_weight = weight  *( (local_pressure - 1)*weight_pressure_effect + 1);
+					l = Math.abs(Vec2.dot(dist,side));
+					if(l>local_weight){
 						//線幅より外の場合
 						continue;
 					}
-					l = Math.abs(Vec2.dot(dist,side));
 				}
 				var idx = dy*img.width+ dx|0;
 				var aa = (1-l/local_weight)*a;
