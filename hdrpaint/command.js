@@ -962,16 +962,47 @@ Command.moveLayer=function(log,undo_flg){
 		Vec2.set(side,vec2[1],-vec2[0]);
 		Vec2.norm(side);
 
+		var blush_antialias=function(dst,idx,color,pressure,dist,flg,weight){
+			var sa = color[3]; 
+			var l = Vec2.scalar(dist);
+			sa = sa  * Math.min(1, weight - (weight*l));
+			var rr = 1;
+
+			if(flg[idx>>2]>=sa){
+				return;
+			}
+			var olda =flg[idx>>2];
+			flg[idx>>2]=sa;
+			sa = (sa - olda)/(1-olda);
+
+			var da = dst[idx+3]*(1-sa);
+			dst[idx+3] = da + sa;
+
+			if( dst[idx+3] ){
+				rr = 1/dst[idx+3];
+				da*=rr;
+				sa*=rr;
+				dst[idx+0] = (dst[idx+0] * da + color[0] * sa);
+				dst[idx+1] = (dst[idx+1] * da + color[1] * sa);
+				dst[idx+2] = (dst[idx+2] * da + color[2] * sa);
+			}
+		}
+
 		var drawfunc=function(idx,r,g,b,a){
 			var sa = a
 			var da = img_data[idx+3]*(1-a);
-			var rr = 1/Math.max(0.01,sa+da);
+			var rr = 1;
 
-			img_data[idx+0] = (img_data[idx+0] * da + r * a)*rr;
-			img_data[idx+1] = (img_data[idx+1] * da + g * a)*rr;
-			img_data[idx+2] = (img_data[idx+2] * da + b * a)*rr;
 			img_data[idx+3] = da + sa;
 
+			if( img_data[idx+3] ){
+				rr = 1/img_data[idx+3];
+				da*=rr;
+				sa*=rr;
+				img_data[idx+0] = (img_data[idx+0] * da + r * sa);
+				img_data[idx+1] = (img_data[idx+1] * da + g * sa);
+				img_data[idx+2] = (img_data[idx+2] * da + b * sa);
+			}
 		}
 		if(alpha_direct){
 			drawfunc=function(idx,r,g,b,a){
@@ -1018,14 +1049,18 @@ Command.moveLayer=function(log,undo_flg){
 					
 					local_pressure = d_pressure * dp + pressure_0 ;
 					local_weight = weight  *( (local_pressure - 1)*weight_pressure_effect + 1);
-					l = Math.abs(Vec2.dot(dist,side));
-					if(l>local_weight){
+					l = Vec2.dot(dist,side);
+					if(l*l>local_weight*local_weight){
 						//線幅より外の場合
 						continue;
 					}
+					Vec2.mul(dist,side,l);
+					l=Math.abs(l);
 				}
 				var idx = dy*img.width+ dx|0;
 				var aa = (1-l/local_weight)*a;
+
+				Vec2.mul(dist,dist,1/local_weight);
 
 				//if(painted_mask[idx]>=aa){
 				//	continue;
@@ -1037,7 +1072,8 @@ Command.moveLayer=function(log,undo_flg){
 				var _g = g;// point0.pressure * (1-l) + point1.pressure * l;
 				var _b = b;// point0.pressure * (1-l) + point1.pressure * l;
 				var _a = aa;//a *((local_pressure - 1)*alpha_pressure_effect + 1);
-				drawfunc(idx<<2,_r,_g,_b,_a);
+				blush_antialias(img_data,idx<<2,color,local_pressure,dist,painted_mask,local_weight);
+				//drawfunc(idx<<2,_r,_g,_b,_a);
 			}
 		}
 
