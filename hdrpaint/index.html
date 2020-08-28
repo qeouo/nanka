@@ -267,7 +267,9 @@ var onloadfunc=function(e){
 			pen_func= new PenFunc();
 			pen_func.pen_log=pen_log;
 			if(inputs["stroke_correction"].checked){
-				pen_func.ragtime=33;
+				pen_func.ragtime=40;
+			}else{
+				pen_func.ragtime=18;
 			}
 
 			drawfunc(e);

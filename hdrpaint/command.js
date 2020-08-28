@@ -316,18 +316,31 @@ var createDif=function(layer,left,top,width,height){
 
 			//補間するための係数を求める
 			if(n>=2 ){
-				Vec2.sub(q0,p1,points[n-2].pos);
-				Vec2.mul(q0,q0,0.5);
-			}else if(i==0){
+				//Vec2.sub(q0,p1,points[n-2].pos);
+				//Vec2.mul(q0,q0,0.5);
+				Vec2.sub(A,p0,points[n-2].pos);
+				var l1 = Vec2.scalar(A);
+				Vec2.sub(B,p1,p0);
+				var l2 = Vec2.scalar(B);
+				Vec2.mul(q0,A,  (l2/(l1+l2)));
+				Vec2.madd(q0,q0,B, (l1/(l1+l2)));
+				
+			}else{
 				Vec2.sub(q0,p1,p0);
 				//Vec2.madd(q0,q0,q1,-0.5);
 			}
-			if(n+1>=points.length){
+			if(n+ 1<points.length) {
+//				Vec2.sub(q1,points[n+1].pos,p0);
+//				Vec2.mul(q1,q1,0.5);
+				Vec2.sub(A,p1,p0);
+				var l1 = Vec2.scalar(A);
+				Vec2.sub(B,points[n+1].pos,p1);
+				var l2 = Vec2.scalar(B);
+				Vec2.mul(q1,A, (l2/(l1+l2)));
+				Vec2.madd(q1,q1,B, (l1/(l1+l2)));
+			}else{
 				Vec2.sub(q1,p1,p0);
 				Vec2.madd(q1,q1,q0,-0.5);
-			}else{
-				Vec2.sub(q1,points[n+1].pos,p0);
-				Vec2.mul(q1,q1,0.5);
 			}
 
 			Vec2.copy(D,p0);
