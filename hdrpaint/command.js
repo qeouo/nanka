@@ -277,6 +277,8 @@ var createDif=function(layer,left,top,width,height){
 		var pressure_effect_flgs= param.pressure_effect_flgs;
 		var alpha_direct = param.alpha_direct;
 
+			painted_mask.fill(0);
+
 		for(var li=1;li<points.length;li++){
 			Command.drawHermitian(log,li);
 		}
@@ -293,7 +295,7 @@ var createDif=function(layer,left,top,width,height){
 		var q0=new Vec2();
 		var q1=new Vec2();
 		var _p = [];
-		var MAX=10;
+		var MAX=32;
 		for(var i=0;i<MAX;i++){
 			_p.push(new PenPoint());
 		}
@@ -304,6 +306,9 @@ var createDif=function(layer,left,top,width,height){
 			var param=pen_log.param;
 			var points = param.points;
 			var layer = Layer.findById(param.layer_id);
+			if(!layer){
+				layer = param.layer;
+			}
 			var img= layer.img;
 
 
@@ -406,14 +411,14 @@ var createDif=function(layer,left,top,width,height){
 				if(!log.undo_data){
 					log.undo_data={"difs":[]};
 				}
-				var dif=createDif(layer,left,top,right-left+1,bottom-top+1);
-				log.undo_data.difs.push(dif);
+				if(log.undo_data.difs.length<n){
+					var dif=createDif(layer,left,top,right-left+1,bottom-top+1);
+					log.undo_data.difs.push(dif);
+				}
 			}
 
 			for(var i=0;i<devide;i++){
-				drawPen(layer.img,_p[i],_p[i+1],param.color
-					,param.color_effect,param.weight
-					,param.pressure_effect_flgs,param.alpha_direct);
+				drawPen(layer.img,_p[i],_p[i+1],param);
 			}
 
 			//再描画
@@ -927,7 +932,79 @@ Command.moveLayer=function(log,undo_flg){
 	var vec2 =new Vec2();
 	var side = new Vec2();
 	var dist = new Vec2();
-	var drawPen=function(img,point0,point1,color,effect,weight,pressure_mask,alpha_direct){
+
+	var blush_aaa=function(dst,idx,pressure,dist,flg,weight,param){
+		var color = param.color;
+		var color_effect = param.color_effect;
+		var sa = color[3]; 
+		var l = Vec2.scalar(dist);
+		if(param.softness){
+			sa = sa  * Math.min(1,( weight - (weight*l))/(weight*param.softness));
+		}
+		var rr = 1;
+
+
+		var da = dst[idx+3]*(1-sa);
+		dst[idx+3] = da + sa;
+
+		if( dst[idx+3] ){
+			rr = 1/dst[idx+3];
+			da*=rr;
+			sa*=rr;
+			dst[idx+0] += (dst[idx+0] * (-1+da) + color[0] * sa)*color_effect[0];
+			dst[idx+1] += (dst[idx+1] * (-1+da) + color[1] * sa)*color_effect[1];
+			dst[idx+2] += (dst[idx+2] * (-1+da) + color[2] * sa)*color_effect[2];
+		}
+	}
+	var blush_blend=function(dst,idx,pressure,dist,flg,weight,param){
+		var color = param.color;
+		var color_effect = param.color_effect;
+		var sa = color[3]; 
+		var l = Vec2.scalar(dist);
+		if(param.softness){
+			sa = sa  * Math.min(1,( weight - (weight*l))/(weight*param.softness));
+		}
+		var rr = 1;
+
+		if(flg[idx>>2]>=sa){
+			return;
+		}
+		var olda =flg[idx>>2];
+		flg[idx>>2]=sa;
+		sa = (sa - olda)/(1-olda);
+
+		var da = dst[idx+3]*(1-sa);
+		dst[idx+3] = da + sa;
+
+		if( dst[idx+3] ){
+			rr = 1/dst[idx+3];
+			da*=rr;
+			sa*=rr;
+			dst[idx+0] += (dst[idx+0] * (-1+da) + color[0] * sa)*color_effect[0];
+			dst[idx+1] += (dst[idx+1] * (-1+da) + color[1] * sa)*color_effect[1];
+			dst[idx+2] += (dst[idx+2] * (-1+da) + color[2] * sa)*color_effect[2];
+		}
+	}
+	var blush_direct=function(dst,idx,pressure,dist,flg,weight,param){
+		var color = param.color;
+		var color_effect = param.color_effect;
+		var sa = color[3]; 
+		var l = Vec2.scalar(dist);
+		if(param.softness){
+			sa = sa  * Math.min(1,( weight - (weight*l))/(weight*param.softness));
+		}
+
+		dst[idx+0] += (color[0] - dst[idx+0]) * color_effect[0];
+		dst[idx+1] += (color[1] - dst[idx+1]) * color_effect[1];
+		dst[idx+2] += (color[2] - dst[idx+2]) * color_effect[2];
+		dst[idx+3] += (sa - dst[idx+3]) * color_effect[3];
+	}
+	var drawPen=function(img,point0,point1,param){
+		var color = param.color;
+		var effect = param.color_effect;
+		var weight = param.weight;
+		var pressure_mask = param.pressure_mask;
+		var softness= param.softness;
 		//描画
 		var img_data = img.data;
 	
@@ -975,57 +1052,8 @@ Command.moveLayer=function(log,undo_flg){
 		Vec2.set(side,vec2[1],-vec2[0]);
 		Vec2.norm(side);
 
-		var blush_antialias=function(dst,idx,color,pressure,dist,flg,weight){
-			var sa = color[3]; 
-			var l = Vec2.scalar(dist);
-			sa = sa  * Math.min(1, weight - (weight*l));
-			var rr = 1;
 
-			if(flg[idx>>2]>=sa){
-				return;
-			}
-			var olda =flg[idx>>2];
-			flg[idx>>2]=sa;
-			sa = (sa - olda)/(1-olda);
-
-			var da = dst[idx+3]*(1-sa);
-			dst[idx+3] = da + sa;
-
-			if( dst[idx+3] ){
-				rr = 1/dst[idx+3];
-				da*=rr;
-				sa*=rr;
-				dst[idx+0] = (dst[idx+0] * da + color[0] * sa);
-				dst[idx+1] = (dst[idx+1] * da + color[1] * sa);
-				dst[idx+2] = (dst[idx+2] * da + color[2] * sa);
-			}
-		}
-
-		var drawfunc=function(idx,r,g,b,a){
-			var sa = a
-			var da = img_data[idx+3]*(1-a);
-			var rr = 1;
-
-			img_data[idx+3] = da + sa;
-
-			if( img_data[idx+3] ){
-				rr = 1/img_data[idx+3];
-				da*=rr;
-				sa*=rr;
-				img_data[idx+0] = (img_data[idx+0] * da + r * sa);
-				img_data[idx+1] = (img_data[idx+1] * da + g * sa);
-				img_data[idx+2] = (img_data[idx+2] * da + b * sa);
-			}
-		}
-		if(alpha_direct){
-			drawfunc=function(idx,r,g,b,a){
-
-				img_data[idx+0] += (r - img_data[idx+0]) * effect_r;
-				img_data[idx+1] += (g - img_data[idx+1]) * effect_g;
-				img_data[idx+2] += (b - img_data[idx+2]) * effect_b;
-				img_data[idx+3] += (a - img_data[idx+3]) * effect_a;
-			}
-		}
+		drawfunc=([blush_blend,blush_aaa,blush_direct])[param.overlap];
 		for(var dy=top;dy<bottom;dy++){
 			for(var dx=left;dx<right;dx++){
 				dist[0]=dx-pos0[0];
@@ -1075,18 +1103,7 @@ Command.moveLayer=function(log,undo_flg){
 
 				Vec2.mul(dist,dist,1/local_weight);
 
-				//if(painted_mask[idx]>=aa){
-				//	continue;
-				//}
-				//var olda =painted_mask[idx];
-				//painted_mask[idx]=aa;
-				//aa = (aa - olda)/(1-olda);
-				var _r = r;// point0.pressure * (1-l) + point1.pressure * l;
-				var _g = g;// point0.pressure * (1-l) + point1.pressure * l;
-				var _b = b;// point0.pressure * (1-l) + point1.pressure * l;
-				var _a = aa;//a *((local_pressure - 1)*alpha_pressure_effect + 1);
-				blush_antialias(img_data,idx<<2,color,local_pressure,dist,painted_mask,local_weight);
-				//drawfunc(idx<<2,_r,_g,_b,_a);
+				drawfunc(img_data,idx<<2,local_pressure,dist,painted_mask,local_weight,param);
 			}
 		}
 

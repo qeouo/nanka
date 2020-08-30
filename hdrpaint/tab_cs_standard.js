@@ -181,7 +181,6 @@ var tab_cs_standard=(function(){
 		doc.draw_col[2] = img_hsv.color[2] * lumi;
 		doc.draw_col[3] = parseFloat(inputs["color_A"].value);
 
-
 		changeColor(tab_cs_standard);
 	}
 	img_hsv.func=change_default;

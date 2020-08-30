@@ -106,6 +106,23 @@ div.spacer{
 	touch-action:none;
 }
 
+/* ブラシ ---------------------------------------------------*/
+.brushes{
+	border:solid 1px;
+	overflow:visible scroll;
+	height:200px;
+}
+.brush{
+	border:solid 1px;
+	height:32px;
+	min-height:32px;
+	font-size:smaller;
+	line-height:1;
+	background-color:transparent;
+	padding:2px;
+	white-space: nowrap;
+	clear:both;
+}
 /* レイヤ ------------------------------------------------*/
 
 .layers{
@@ -164,7 +181,7 @@ clear:both;
 	background-image:url(back.png);
 }
 
-.active_layer{
+.active{
 background-color:#FFBF00;
 color:#000;
 }

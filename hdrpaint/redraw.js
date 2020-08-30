@@ -489,10 +489,12 @@ var refreshActiveLayerParam = function(){
 var initPenPreview=function(){
 	pen_preview=  document.getElementById('pen_preview');
 	//pen_preview_ctx =  pen_preview.getContext('2d')
-	pen_preview_img= new Img(pen_preview.width,pen_preview.height);
 	pen_preview_log = new Log.CommandLog();
+	var param = pen_preview_log.param;
+	pen_preview_img= new Img(pen_preview.width,pen_preview.height);
+	param.layer =createLayer(pen_preview_img,0);
 	var points=[];
-	pen_preview_log.param.points=points;
+	param.points=points;
 	var MAX = 17;
 	for(var i=0;i<MAX;i++){
 		var x = 2*i/(MAX-1)-1;
@@ -503,29 +505,39 @@ var initPenPreview=function(){
 		
 		points.push(point);
 	}
+	param.color_effect = new Float32Array([1.0,1.0,1.0,1.0]);
+	param.undo_data={};
 }
 
 
 var oldblob=null;
 	var refreshPen=function(){
 //		refreshColor();
-		var weight=parseFloat(inputs["weight"].value);
+		var param = pen_preview_log.param;
+		param.weight=parseFloat(inputs["weight"].value);
+		param.softness=parseFloat(inputs["softness"].value);
+		param.stroke_interpolation = inputs["stroke_interpolation"].checked;
 	  	var points = pen_preview_log.param.points;
 
-		var pressure_effect_flg= 0;
+		param.pressure_effect_flg= 0;
+		param.overlap=inputs["pen_overlap"].value;
 		if(inputs["weight_pressure_effect"].checked){
-			pressure_effect_flg|=1;
+			param.pressure_effect_flg|=1;
 		}
 		if(inputs["alpha_pressure_effect"].checked){
-			pressure_effect_flg|=2;
+			param.pressure_effect_flg|=2;
 		}
+		param.color=doc.draw_col;
 
 
-		var alpha_direct=inputs["pen_alpha_direct"].checked;
 		painted_mask.fill(0);
 		pen_preview_img.clear();
-		for(var li=0;li<points.length-1;li++){
-			drawPen(pen_preview_img,points[li],points[li+1],doc.draw_col,[1,1,1,1],weight,pressure_effect_flg,alpha_direct);
+		//for(var li=0;li<points.length-1;li++){
+		//	drawPen(pen_preview_img,points[li],points[li+1],param);
+		//}
+		var points = pen_preview_log.param.points;
+		for(var li=1;li<points.length;li++){
+			Command.drawHermitian(pen_preview_log,li);
 		}
 
 		//ctx = document.getElementById("pen_preview").getContext("2d");

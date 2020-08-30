@@ -326,9 +326,9 @@ var selectLayer=function(target_layer){
 	each_layers(function(layer){
 		if(target_layer !== layer){
 			//アクティブレイヤ以外の表示を非アクティブにする
-			layer.div.classList.remove("active_layer");
+			layer.div.classList.remove("active");
 		}else{
-			layer.div.classList.add("active_layer");
+			layer.div.classList.add("active");
 		}
 	});
 

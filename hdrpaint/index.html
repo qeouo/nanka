@@ -31,6 +31,7 @@
 <script type="text/javascript" src="./redraw.js"></script>
 <script type="text/javascript" src="./tab.js"></script>
 <script type="text/javascript" src="./penfunc.js"></script>
+<script type="text/javascript" src="./brush.js"></script>
 <script type="text/javascript">
 "use strict"
 
@@ -251,14 +252,18 @@ var onloadfunc=function(e){
 			param.points=[];
 			param.layer_id = selected_layer.id;
 			param.weight=parseFloat(inputs["weight"].value);
-			param.alpha_direct = inputs["pen_alpha_direct"].checked;
+			param.softness=parseFloat(inputs["softness"].value);
+
+			param.overlap=inputs["pen_overlap"].value;
 			param.pressure_effect_flgs= 
  				  (1 * inputs["weight_pressure_effect"].checked)
 				| (2 * inputs["alpha_pressure_effect"].checked);
 			param.stroke_interpolation = inputs["stroke_interpolation"].checked;
 			if(inputs["eraser"].checked){
+				param.alpha_direct = 1;
 				param.color= new Float32Array([1.0,1.0,1.0,0.0])
-				param.color_effect = new Float32Array([0.0,0.0,0.0,doc.draw_col[3]])
+				//param.color_effect = new Float32Array([0.0,0.0,0.0,doc.draw_col[3]])
+				param.color_effect = new Float32Array([0.0,0.0,0.0,1]);
 				pen_log = Command.executeCommand("eraser",param);
 				
 			}else{
@@ -451,7 +456,9 @@ var onloadfunc=function(e){
 	//	});
 	//}
 	
-	var input_tags = document.getElementById("pen_info").getElementsByTagName("input");
+	var brush_param=document.getElementById("brush_param");
+	var input_tags = Array.prototype.slice.call(brush_param.getElementsByTagName("input"));
+	input_tags= input_tags.concat(Array.prototype.slice.call(brush_param.getElementsByTagName("select")));
 	for(var i=0;i<input_tags.length;i++){
 		var input = input_tags[i]
 		input.addEventListener("change",function(event){refreshpen_flg=true;});
@@ -639,6 +646,9 @@ var onloadfunc=function(e){
 	var url=location.search.substring(1,location.search.length)
 	var args=url.split("&")
 
+	Vec4.set(doc.draw_col,0.8,0.2,0.2,1);
+	changeColor(null);
+
 	for(i=args.length;i--;){
 		var arg=args[i].split("=")
 		if(arg.length >1){
@@ -654,7 +664,7 @@ var onloadfunc=function(e){
 			}
 		}
 		if(inputs.hasOwnProperty(name)){
-			if(inputs[name].type=="checkbox" && globalParam[name]){
+			if((inputs[name].type=="checkbox" || inputs[name].type=="radio") && globalParam[name]){
 				inputs[name].checked=true;
 			}else{
 				inputs[name].value = globalParam[name];
@@ -663,8 +673,7 @@ var onloadfunc=function(e){
 		}
 	}
 //初期化
-	Vec4.set(doc.draw_col,0.8,0.2,0.2,1);
-	changeColor(null);
+	img_hsv.func();
 
 	if(globalParam.hasOwnProperty("load")){
 
@@ -699,6 +708,12 @@ var onloadfunc=function(e){
 		refreshTab("tools");
 		//refreshTab("color_selector_tab");
 	}
+
+	var brush=createBrush();
+	brushes.push(brush);
+	brush=createBrush();
+	brushes.push(brush);
+	refreshBrush();
 
 	animation_frame_id=window.requestAnimationFrame(function(e){
 		refreshMain_();
@@ -815,56 +830,69 @@ var createNewCompositeLayer=function(e){
 			<span style="font-weight:bold;">※スペースキー押下で<br>アクティブレイヤのみ表示<br>(バケツコマンド等にも影響)</span>
 		</div>
 		<div id="tool_status">
-			<!--
-			<div id="tab_fill">
-				<ul>
-					<li><label><input id="fill_joined" type="radio" name="fill_type" checked/>結合画像</label></li>
-					<li><label><input id="fill_layer" type="radio" name="fill_type" />アクティブレイヤ</label></li>
-				</ul>
-			</div>
-			<div id="tab_translate">
-				<ul>
-					<li><label><input id="translate_layer" type="radio" name="translate_type" checked/>アクティブレイヤのみ</label></li>
-					<li><label><input id="translate_joined" type="radio" name="translate_type" />全レイヤ</label></li>
-				</ul>
-			</div>
-				-->
 		</div>
 	</div>
 
-	<div class="area" id="pen_info">
-		<div>ペン情報</div>
+	<div class="area" id="brush_param">
+		<div>ブラシ</div>
 		<img width="160" height="48" id="pen_preview"><br>
-		<!--
-		<canvas width="160" height="48" id="pen_preview"></canvas>
-		-->
-		<br>
-
+		<div>名前<input type="text" id="brush_name" style="width:80%;" ></div>
 		<div>直径<input class="slider" id="weight" max="30"  value="3"/></div>
+		<div>縁ぼかし<input class="slider" id="softness" max="1"  value="0"/></div>
 		<div>
 			筆圧影響
-			<label><input type="checkbox" id="weight_pressure_effect"/>半径</label>
+			<label><input type="checkbox" id="weight_pressure_effect"/>径</label>
 			<label><input type="checkbox" id="alpha_pressure_effect"/>アルファ</label>
 		</div>
 		<div>
 			<label><input type="checkbox" id="stroke_correction"/>補正</label>
-		</div>
-		<div>
 			<label><input type="checkbox" id="stroke_interpolation" checked/>補間</label>
 		</div>
-		<ul>
-		<li><label><input type="radio" id="pen_alpha_direct" name="pen_alpha" checked />アルファ値を直接書き込む</label></li>
-		<li> <label><input type="radio" id="pen_alpha_blend" name="pen_alpha" />アルファ値でブレンドする</label></li>
+		重なり処理<select id="pen_overlap">
+			<option value="0">大きいα優先</option>
+			<option value="1">αブレンド</option>
+			<option value="2">α直書</option>
+		</select>
 		</ul>
+
+		<div>
+
+			<div style="float:left;text-align:left;">
+				<input type="button" id="down_layer" value="↓">
+				<input type="button" id="up_layer" value="↑" >
+			</div>
+			<div style="text-align:right;">
+				<input type="button" id="delete_brush" value="上書" >
+				<input type="button" id="delete_brush" value="新規保存" >
+				<input type="button" id="delete_brush" value="削除" ><br>
+			</div>
+		</div>
+		<div class="brushes" id="brushes_container">
+		</div>
+
+		<div style="display:none;" id="brush_template">
+			<div class="brush" draggable="true" ondragstart="Brush_DragStart(event)" ondragover="brush_dragover_handler(event)" ondragenter="brush_DragEnter(event)" >
+				<div class="name"></div>
+				<div class="attributes"></div>
+			</div>
+		</div>
+
+		<div  style="">
+			<input type="button" id="new" onclick="createNewbrush(event);" value="新規ブラシ">
+			<ul>
+			<li><a id="" href="#" style="text-decoration:line-through;" onclick=";return false;">ブラシインポート</a></li>
+			</ul>
+			<input style="display:none;"type="file" id="open_brush" accept="image/*,.hdr,.exr" >
+		</div>
 	</div>
 
 	<div id="color_selecter" class="area">
 		<div>カラーセレクタ</div>
 		<div class="color_status">
 			<ul>
-			<li class="red">R<input type="input" id="color_R" /></li>
-			<li class="green">G<input type="input" id="color_G"/></li>
-			<li class="blue">B<input type="input" id="color_B"/></li>
+			<li class="red">R<input type="input" id="color_R" value="0.8" /></li>
+			<li class="green">G<input type="input" id="color_G" value="0.2"/></li>
+			<li class="blue">B<input type="input" id="color_B" value="0.2"/></li>
 			</ul>
 		</div>
 		<!--
@@ -902,14 +930,6 @@ var createNewCompositeLayer=function(e){
 		</div>
 		-->
 		<div>A<input class="slider" id="color_A" max="1" value="1"/></div>
-	</div>
-	<div id="post_effect" class="area">
-		<div>ポストエフェクト</div>
-		<input type="checkbox" id="ch_gamma">ガンマ<input class="slider" id="gamma" max="4" value="2.2"/><br>
-		露光<input class="slider" id="ev" min="-10" max="10" value="0"/><br>
-		<label><input type="checkbox" id="ch_bloom">拡散</label><br>
-		拡散率<input class="slider" id="bloom_power" max="1" value="0.1"/><br>
-		拡散範囲<input class="slider" id="bloom_size" max="100" value="10"/><br>
 	</div>
 </div>
 
@@ -999,6 +1019,14 @@ var createNewCompositeLayer=function(e){
 		</div>
 	</div>
 
+	<div id="post_effect" class="area">
+		<div>ポストエフェクト</div>
+		<input type="checkbox" id="ch_gamma">ガンマ<input class="slider" id="gamma" max="4" value="2.2"/><br>
+		露光<input class="slider" id="ev" min="-10" max="10" value="0"/><br>
+		<label><input type="checkbox" id="ch_bloom">拡散</label><br>
+		拡散率<input class="slider" id="bloom_power" max="1" value="0.1"/><br>
+		拡散範囲<input class="slider" id="bloom_size" max="100" value="10"/><br>
+	</div>
 <div class="area">
 	操作履歴<br>
 	<div>
