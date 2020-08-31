@@ -960,32 +960,56 @@ Command.moveLayer=function(log,undo_flg){
 		var color = param.color;
 		var color_effect = param.color_effect;
 		var sa = color[3]; 
+		if(param.eraser){
+			sa = 1;
+		}
 		var l = Vec2.scalar(dist);
 		if(param.softness){
 			sa = sa  * Math.min(1,( weight - (weight*l))/(weight*param.softness));
+		}else{
+			if(param.antialias){
+				sa = sa  * Math.min(1,( weight - (weight*l)));
+			}	
 		}
-		if(param.antialias){
-			sa = sa  * Math.min(1,( weight - (weight*l))/(weight*param.softness));
+		if(param.eraser){
+		sa=1-sa;
+			if(param.overlap===2){
+				dst[idx+3]=sa * (1-param.alpha);
+			return;
+			}
 		}
-		var rr = 1;
 
-		if(flg[idx>>2]>=sa){
+		if(param.overlap===2){
+			dst[idx+0] =  color[0] ;
+			dst[idx+1] =  color[1] ;
+			dst[idx+2] =  color[2] ;
+			dst[idx+3] =  sa ;
 			return;
 		}
-		var olda =flg[idx>>2];
-		flg[idx>>2]=sa;
-		sa = (sa - olda)/(1-olda);
+
+		if(param.overlap==0){
+			if(flg[idx>>2]>=sa){
+				return;
+			}
+			var olda =flg[idx>>2];
+			flg[idx>>2]=sa;
+			sa = (sa - olda)/(1-olda);
+		}
+		if(param.eraser){
+			dst[idx+3] = dst[idx+3] * (1-sa) + (1-param.alpha) * sa;
+			return;
+		}
 
 		var da = dst[idx+3]*(1-sa);
 		dst[idx+3] = da + sa;
 
-		if( dst[idx+3] ){
-			rr = 1/dst[idx+3];
+		if( dst[idx+3] && !param.eraser){
+			var rr = 1/dst[idx+3];
 			da*=rr;
 			sa*=rr;
-			dst[idx+0] += (dst[idx+0] * (-1+da) + color[0] * sa)*color_effect[0];
-			dst[idx+1] += (dst[idx+1] * (-1+da) + color[1] * sa)*color_effect[1];
-			dst[idx+2] += (dst[idx+2] * (-1+da) + color[2] * sa)*color_effect[2];
+			dst[idx+0] += (dst[idx+0] * (-1+da) + color[0] * sa);
+			dst[idx+1] += (dst[idx+1] * (-1+da) + color[1] * sa);
+			dst[idx+2] += (dst[idx+2] * (-1+da) + color[2] * sa);
 		}
 	}
 	var blush_direct=function(dst,idx,pressure,dist,flg,weight,param){
@@ -1068,6 +1092,7 @@ Command.moveLayer=function(log,undo_flg){
 
 
 		drawfunc=([blush_blend,blush_aaa,blush_direct,brush_eraser])[param.overlap];
+		drawfunc=blush_blend;
 		for(var dy=top;dy<bottom;dy++){
 			for(var dx=left;dx<right;dx++){
 				dist[0]=dx-pos0[0];

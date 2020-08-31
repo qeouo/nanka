@@ -517,7 +517,7 @@ var oldblob=null;
 		Brush.setParam(param);
 
 		painted_mask.fill(0);
-		if(param.overlap==3){
+		if(param.eraser){
 			//黒でクリア
 			var data = pen_preview_img.data;
 			var size = data.length;

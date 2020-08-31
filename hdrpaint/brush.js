@@ -17,6 +17,7 @@ var Brush=(function(){
 		this.overlap=0;
 		this.alpha=1.0;
 		this.antialias=0;
+		this.eraser=0;
 		this.weight_pressure_effect=0;
 		this.alpha_pressure_effect=0;
 		this.stroke_correction=0;
@@ -102,8 +103,12 @@ ret.update=function(){
 		param.color_effect = new Float32Array([1.0,1.0,1.0,1.0]);
 		param.weight=parseFloat(inputs["weight"].value);
 		param.softness=parseFloat(inputs["softness"].value);
+		param.antialias=inputs["brush_antialias"].checked;
+		param.alpha = inputs["brush_alpha"].value;
 
-		param.overlap=inputs["brush_overlap"].value;
+		param.eraser = inputs["eraser"].checked;
+		
+		param.overlap=parseInt(inputs["brush_overlap"].value);
 		param.pressure_effect_flgs= 
  			  (1 * inputs["weight_pressure_effect"].checked)
 			| (2 * inputs["alpha_pressure_effect"].checked);
