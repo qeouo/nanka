@@ -86,7 +86,7 @@ var onloadfunc=function(e){
 			return;
 		}
 
-		if(inputs["pen"].checked || inputs["eraser"].checked){
+		if(inputs["pen"].checked){
 			//ペンのとき
 			if(!pen_log)return;
 
@@ -235,7 +235,7 @@ var onloadfunc=function(e){
 			pen_log = Command.executeCommand("translateLayer",{"layer_id":layer_id,"x":0,"y":0} ,{"x":selected_layer.position[0],"y":selected_layer.position[1]},1);
 
 
-		}else if((inputs["pen"].checked || inputs["eraser"].checked) && (e.buttons &1) ){
+		}else if((inputs["pen"].checked) && (e.buttons &1) ){
 			//ペンもしくは消しゴム
 
 			if(selected_layer.type !== 0){
@@ -247,28 +247,19 @@ var onloadfunc=function(e){
 			//ペン状態取得
 
 			var param={};
-			param.color = new Float32Array(doc.draw_col);
-			param.color_effect = new Float32Array([1.0,1.0,1.0,1.0]);
+			Brush.setParam(param);
 			param.points=[];
 			param.layer_id = selected_layer.id;
-			param.weight=parseFloat(inputs["weight"].value);
-			param.softness=parseFloat(inputs["softness"].value);
-
-			param.overlap=inputs["pen_overlap"].value;
-			param.pressure_effect_flgs= 
- 				  (1 * inputs["weight_pressure_effect"].checked)
-				| (2 * inputs["alpha_pressure_effect"].checked);
-			param.stroke_interpolation = inputs["stroke_interpolation"].checked;
-			if(inputs["eraser"].checked){
-				param.alpha_direct = 1;
-				param.color= new Float32Array([1.0,1.0,1.0,0.0])
-				//param.color_effect = new Float32Array([0.0,0.0,0.0,doc.draw_col[3]])
-				param.color_effect = new Float32Array([0.0,0.0,0.0,1]);
-				pen_log = Command.executeCommand("eraser",param);
-				
-			}else{
+//			if(inputs["eraser"].checked){
+//				param.alpha_direct = 1;
+//				param.color= new Float32Array([1.0,1.0,1.0,0.0])
+//				//param.color_effect = new Float32Array([0.0,0.0,0.0,doc.draw_col[3]])
+//				param.color_effect = new Float32Array([0.0,0.0,0.0,1]);
+//				pen_log = Command.executeCommand("eraser",param);
+//				
+//			}else{
 				pen_log = Command.executeCommand("pen",param);
-			}
+//			}
 			pen_func= new PenFunc();
 			pen_func.pen_log=pen_log;
 			if(inputs["stroke_correction"].checked){
@@ -323,16 +314,25 @@ var onloadfunc=function(e){
 				return;
 			}
 		}
+		for(var bi=0;bi<brushes.length;bi++){
+			var brush = brushes[bi];
+			if(!brush.shortcut)continue;
+			var shortcut = brush.shortcut.toUpperCase().charCodeAt(0);
+			if(shortcut === event.keyCode){
+				selectBrush(brush);
+				return;
+			}
+		}
 
 		switch(event.keyCode){
-		case 65://a
-			inputs["pen"].checked=true;
-			refreshTab("tools");
-			break;
-		case 83://s
-			inputs["eraser"].checked=true;
-			refreshTab("tools");
-			break;
+//		case 65://a
+//			inputs["pen"].checked=true;
+//			refreshTab("tools");
+//			break;
+//		case 83://s
+//			inputs["eraser"].checked=true;
+//			refreshTab("tools");
+//			break;
 		case 68://d
 			inputs["fill"].checked=true;
 			refreshTab("tools");
@@ -709,11 +709,8 @@ var onloadfunc=function(e){
 		//refreshTab("color_selector_tab");
 	}
 
-	var brush=createBrush();
-	brushes.push(brush);
-	brush=createBrush();
-	brushes.push(brush);
-	refreshBrush();
+	Brush.create();
+	Brush.create();
 
 	animation_frame_id=window.requestAnimationFrame(function(e){
 		refreshMain_();
@@ -822,8 +819,7 @@ var createNewCompositeLayer=function(e){
 		<div id="tools">
 			ツール
 			<ul>
-			<li><label><input type="radio" id="pen" name="tool" checked>a:ペン</label>
-			<li><label><input type="radio" id="eraser" name="tool" >s:消しゴム</label>
+			<li><label><input type="radio" id="pen" name="tool" checked>ブラシ</label>
 				<li><label><input type="radio" id="fill" name="tool">d:バケツ</label></li>
 				<li><label><input type="radio" id="translate" name="tool">f:移動</label></li>
 			</ul>
@@ -835,10 +831,13 @@ var createNewCompositeLayer=function(e){
 
 	<div class="area" id="brush_param">
 		<div>ブラシ</div>
-		<img width="160" height="48" id="pen_preview"><br>
+		<img width="128" height="32" id="pen_preview"><br>
 		<div>名前<input type="text" id="brush_name" style="width:80%;" ></div>
+		<div>ショートカット<input type="text" id="brush_shortcut" ></div>
 		<div>直径<input class="slider" id="weight" max="30"  value="3"/></div>
 		<div>縁ぼかし<input class="slider" id="softness" max="1"  value="0"/></div>
+		<label><input type="checkbox" id="brush_antialias"/>アンチエイリアス</label>
+		<div>不透明度<input class="slider" id="brush_alpha" max="1"  value="0"/></div>
 		<div>
 			筆圧影響
 			<label><input type="checkbox" id="weight_pressure_effect"/>径</label>
@@ -848,37 +847,41 @@ var createNewCompositeLayer=function(e){
 			<label><input type="checkbox" id="stroke_correction"/>補正</label>
 			<label><input type="checkbox" id="stroke_interpolation" checked/>補間</label>
 		</div>
-		重なり処理<select id="pen_overlap">
+		上書き処理<select id="brush_overlap">
 			<option value="0">大きいα優先</option>
 			<option value="1">αブレンド</option>
 			<option value="2">α直書</option>
+			<option value="3">消しゴム</option>
 		</select>
 		</ul>
 
 		<div>
-
 			<div style="float:left;text-align:left;">
-				<input type="button" id="down_layer" value="↓">
-				<input type="button" id="up_layer" value="↑" >
+				<input type="button" id="down_brush" value="↓">
+				<input type="button" id="up_brush" value="↑" >
 			</div>
 			<div style="text-align:right;">
-				<input type="button" id="delete_brush" value="上書" >
-				<input type="button" id="delete_brush" value="新規保存" >
-				<input type="button" id="delete_brush" value="削除" ><br>
+				<input type="button" id="create_brush" onclick="Brush.update();" value="上書" >
+				<input type="button" id="update_brush" onclick="Brush.create();" value="新規保存" >
+				<input type="button" id="delete_brush" onclick="Brush.delete();" value="削除" ><br>
 			</div>
 		</div>
+
+		<!-- ブラシ一覧表示部分 -->
 		<div class="brushes" id="brushes_container">
 		</div>
 
+		<!-- ブラシ一覧テンプレート -->
 		<div style="display:none;" id="brush_template">
 			<div class="brush" draggable="true" ondragstart="Brush_DragStart(event)" ondragover="brush_dragover_handler(event)" ondragenter="brush_DragEnter(event)" >
-				<div class="name"></div>
+				<img>
+				<span class="name"></span>
 				<div class="attributes"></div>
 			</div>
 		</div>
 
+
 		<div  style="">
-			<input type="button" id="new" onclick="createNewbrush(event);" value="新規ブラシ">
 			<ul>
 			<li><a id="" href="#" style="text-decoration:line-through;" onclick=";return false;">ブラシインポート</a></li>
 			</ul>

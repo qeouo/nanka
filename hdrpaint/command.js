@@ -964,6 +964,9 @@ Command.moveLayer=function(log,undo_flg){
 		if(param.softness){
 			sa = sa  * Math.min(1,( weight - (weight*l))/(weight*param.softness));
 		}
+		if(param.antialias){
+			sa = sa  * Math.min(1,( weight - (weight*l))/(weight*param.softness));
+		}
 		var rr = 1;
 
 		if(flg[idx>>2]>=sa){
@@ -999,11 +1002,22 @@ Command.moveLayer=function(log,undo_flg){
 		dst[idx+2] += (color[2] - dst[idx+2]) * color_effect[2];
 		dst[idx+3] += (sa - dst[idx+3]) * color_effect[3];
 	}
+	var brush_eraser=function(dst,idx,pressure,dist,flg,weight,param){
+		var color = param.color;
+		var color_effect = param.color_effect;
+		var sa = 0;
+		var l = Vec2.scalar(dist);
+		if(param.softness){
+			sa = sa  * Math.min(1,( weight - (weight*l))/(weight*param.softness));
+		}
+
+		dst[idx+3] += (sa - dst[idx+3]) ;
+	}
 	var drawPen=function(img,point0,point1,param){
 		var color = param.color;
 		var effect = param.color_effect;
 		var weight = param.weight;
-		var pressure_mask = param.pressure_mask;
+		var pressure_mask = param.pressure_effect_flgs;
 		var softness= param.softness;
 		//描画
 		var img_data = img.data;
@@ -1053,7 +1067,7 @@ Command.moveLayer=function(log,undo_flg){
 		Vec2.norm(side);
 
 
-		drawfunc=([blush_blend,blush_aaa,blush_direct])[param.overlap];
+		drawfunc=([blush_blend,blush_aaa,blush_direct,brush_eraser])[param.overlap];
 		for(var dy=top;dy<bottom;dy++){
 			for(var dx=left;dx<right;dx++){
 				dist[0]=dx-pos0[0];

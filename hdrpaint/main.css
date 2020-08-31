@@ -113,6 +113,7 @@ div.spacer{
 	height:200px;
 }
 .brush{
+	position:relative;
 	border:solid 1px;
 	height:32px;
 	min-height:32px;
@@ -121,7 +122,20 @@ div.spacer{
 	background-color:transparent;
 	padding:2px;
 	white-space: nowrap;
-	clear:both;
+}
+.brush span{
+	/*
+	background-color:black;
+	color:white;
+	position:relative;
+	*/
+}
+.brush img{
+	width:128px;
+	height:32px;
+	background-image:url(back.png);
+	position:absolute;
+	right:1px;
 }
 /* レイヤ ------------------------------------------------*/
 

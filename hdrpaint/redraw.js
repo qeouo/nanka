@@ -514,49 +514,32 @@ var oldblob=null;
 	var refreshPen=function(){
 //		refreshColor();
 		var param = pen_preview_log.param;
-		param.weight=parseFloat(inputs["weight"].value);
-		param.softness=parseFloat(inputs["softness"].value);
-		param.stroke_interpolation = inputs["stroke_interpolation"].checked;
-	  	var points = pen_preview_log.param.points;
-
-		param.pressure_effect_flg= 0;
-		param.overlap=inputs["pen_overlap"].value;
-		if(inputs["weight_pressure_effect"].checked){
-			param.pressure_effect_flg|=1;
-		}
-		if(inputs["alpha_pressure_effect"].checked){
-			param.pressure_effect_flg|=2;
-		}
-		param.color=doc.draw_col;
-
+		Brush.setParam(param);
 
 		painted_mask.fill(0);
-		pen_preview_img.clear();
-		//for(var li=0;li<points.length-1;li++){
-		//	drawPen(pen_preview_img,points[li],points[li+1],param);
-		//}
+		if(param.overlap==3){
+			//黒でクリア
+			var data = pen_preview_img.data;
+			var size = data.length;
+			for(var i=0;i<size;i+=4){
+				data[i]=0;
+				data[i+1]=0;
+				data[i+2]=0;
+				data[i+3]=1;
+			}
+		}else{
+			//透明でクリア
+			pen_preview_img.clear();
+		}
+
 		var points = pen_preview_log.param.points;
 		for(var li=1;li<points.length;li++){
 			Command.drawHermitian(pen_preview_log,li);
 		}
 
-		//ctx = document.getElementById("pen_preview").getContext("2d");
-		//ctx.putImageData(pen_preview_img.toImageData(),0,0);
-		//pen_preview_img.toBlob(function(b){
 		var img = document.getElementById("pen_preview");
 		img.src = pen_preview_img.toDataURL();
 
-		//	if(oldblob){
-		//		URL.revokeObjectURL(img.src);
-		//		delete oldblob;
-		//	}
-
-		//	pen_url	= URL.createObjectURL(b);
-		//	img.src = pen_url;
-
-		//	oldblob=b;
-
-		//},"image/png");
 	}
 
 var refreshPreviewStatus = function(e){

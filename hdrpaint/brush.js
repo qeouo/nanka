@@ -1,7 +1,12 @@
-
+//現在選択状態にあるブラシ
 var selected_brush=null;
+
+//全ブラシ
 var brushes=[];
+
+//現在のブラシID 作るたびインクリメントされる
 var brush_id_count=0;
+
 var Brush=(function(){
 //ブラシ
 	var Brush = function(){
@@ -10,51 +15,135 @@ var Brush=(function(){
 		this.weight=4.0;
 		this.softness=0.0;
 		this.overlap=0;
-		this.pressure_efect_flgs=1;
+		this.alpha=1.0;
+		this.antialias=0;
+		this.weight_pressure_effect=0;
+		this.alpha_pressure_effect=0;
 		this.stroke_correction=0;
 		this.stroke_interpolation=1;
+		this.shortcut='';
 		this.div=[];
 	};
 	var ret = Brush;
 
+ret.create=function(){
+	var brush_template= document.getElementById("brush_template");
+	var brush = new Brush();
+
+	var brush_div = brush_template.children[0].cloneNode(true);
+
+	brush_div.addEventListener("click",brusheselect);
+	brush.div=brush_div;
+
+	brush.id=brush_id_count;
+	brush_id_count++;
+	brushes.push(brush);
+
+	//現在の内容でアクティブブラシを更新
+	var inputs=brush_inputs;
+
+	for(var i=0;i<brush_inputs.length;i++){
+		var input = brush_inputs[i];
+		switch(input.id){
+		default:
+			var member = input.id.replace("brush_","");
+			if(member in brush){
+				if(input.getAttribute("type")==="checkbox"){
+					brush[member] = input.checked;
+				}else{
+					brush[member]=input.value;
+				}
+			}
+		}
+	}
+
+	brush.name ="brush"+("0000"+brush.id).slice(-4);
+	refreshBrush(brush);
+	refreshBrush();
+	selectBrush(brush);
+
+	return brush;
+
+}
+
+ret.update=function(){
+	//現在の内容でアクティブブラシを更新
+	var inputs=brush_inputs;
+	var brush = selected_brush;
+
+	for(var i=0;i<brush_inputs.length;i++){
+		var input = brush_inputs[i];
+		switch(input.id){
+		default:
+			var member = input.id.replace("brush_","");
+			if(member in brush){
+				if(input.getAttribute("type")==="checkbox"){
+					brush[member] = input.checked;
+				}else{
+					brush[member]=input.value;
+				}
+			}
+		}
+	}
+
+	brush.div.querySelector("img").src =  document.getElementById("pen_preview").src ;
+
+	refreshBrush(brush);
+	}
+	Brush.delete=function(){
+		var num = brushes.indexOf(selected_brush);
+		brushes.splice(num,1);
+
+		refreshBrush();
+	}
+
+	ret.setParam=function(param){
+		param.color = new Float32Array(doc.draw_col);
+		param.color_effect = new Float32Array([1.0,1.0,1.0,1.0]);
+		param.weight=parseFloat(inputs["weight"].value);
+		param.softness=parseFloat(inputs["softness"].value);
+
+		param.overlap=inputs["brush_overlap"].value;
+		param.pressure_effect_flgs= 
+ 			  (1 * inputs["weight_pressure_effect"].checked)
+			| (2 * inputs["alpha_pressure_effect"].checked);
+		param.stroke_interpolation = inputs["stroke_interpolation"].checked;
+
+	}
+
 	return ret;
 })();
 
-getBrushFromDiv=function(div){
+var getBrushFromDiv=function(div){
 	var result_brush = null;
 	return brushes.find(function(a){
-		return (a.div==div);});
+		return (a.div===div);});
 }
-
 var brush_inputs=[];
 var onload=function(){
 	brush_inputs = Array.prototype.slice.call(document.getElementById("brush_param").getElementsByTagName("input"));
 	brush_inputs = brush_inputs.concat(Array.prototype.slice.call(document.getElementById("brush_param").getElementsByTagName("select")));
 
-	var inputs=brush_inputs;
-	for(var i=0;i<inputs.length;i++){
-		var input = inputs[i];
-		var f = function(e){
-			if(!selected_brush){
-	  			return;
-	  		}
-			var input = e.target;
-			var brush= selected_brush;
-			var member = e.target.id.replace("brush_","");
-			if(input.getAttribute("type")==="checkbox"){
-				brush[member]=input.checked;
-			}else{
-				brush[member]=input.value;
-			}
-		}
-
-		input.addEventListener("change",f);
-	}
 }
 window.addEventListener("load",onload);
 var refreshActiveBrushParam = function(){
+}
+var selectBrush=function(target_brush){
+	//アクティブブラシ変更
+	selected_brush=target_brush;
+	for(var bi=0;bi<brushes.length;bi++){
+		var brush = brushes[bi];
+
+		if(target_brush !== brush){
+			//アクティブブラシ以外の表示を非アクティブにする
+			brush.div.classList.remove("active");
+		}else{
+			brush.div.classList.add("active");
+		}
+	}
+
 	//アクティブブラシパラメータ更新
-	var brush= selected_brush;
+	var brush= target_brush;
 	if(!brush){
 		return;
 	}
@@ -75,22 +164,7 @@ var refreshActiveBrushParam = function(){
 	}
 	
 	refreshpen_flg=true;
-}
-var selectBrush=function(target_brush){
-	//アクティブブラシ変更
-	selected_brush=target_brush;
-	for(var bi=0;bi<brushes.length;bi++){
-		var brush = brushes[bi];
 
-		if(target_brush !== brush){
-			//アクティブブラシ以外の表示を非アクティブにする
-			brush.div.classList.remove("active");
-		}else{
-			brush.div.classList.add("active");
-		}
-	}
-
-	refreshActiveBrushParam();
 }
 var brusheselect= function(e){
 //ブラシー一覧クリック時、クリックされたものをアクティブ化する
@@ -128,9 +202,6 @@ function DragEnter(event) {
 		return;
 	}
 
-	Command.executeCommand("moveBrush",{"brush_id":drag_brush.id
-		,"parent_brush_id":parent_brush.id,"position":position});
-
 	var num = brushes.indexOf(drag_brush);
 	brushes.splice(num,1);
 
@@ -138,51 +209,26 @@ function DragEnter(event) {
 	layers.splice(num,0,drag_brush);
 }
 
-var createBrush=function(){
-	var brush_template= document.getElementById("brush_template");
-	var brush = new Brush();
-
-
-	var brush_div = brush_template.children[0].cloneNode(true);
-	if(brush.type == 1){
-		brush_div.classList.add("group");
-	}
-
-	brush_div.addEventListener("click",brusheselect);
-	brush.div=brush_div;
-
-	brush.id=brush_id_count;
-	brush_id_count++;
-	brush.name ="brush"+("0000"+brush.id).slice(-4);
-
-	refreshBrush(brush);
-
-	return brush;
-
-}
 
 var refreshBrush= function(brush){
 	if(!brush){
 		var container = document.getElementById("brushes_container");
 		//子ブラシセット
 		while (container.firstChild)container.removeChild(container.firstChild);
-		for(var li=brushes.length;li--;){
+		for(var li=0;li<brushes.length;li++){
 			container.appendChild(brushes[li].div);
 		}
 
 
 	}else{
 		var div= brush.div.getElementsByClassName("name")[0];
-		div.innerHTML=brush.name;
+		div.innerHTML=brush.shortcut + ":"  + brush.name;
 		var span = brush.div.getElementsByClassName("attributes")[0];
 		var txt="";
 		span.innerHTML = txt;
 
 	}
 
-	if(brush === selected_brush){
-		refreshActiveBrushParam();
-	}
 
 
 
