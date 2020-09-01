@@ -935,7 +935,6 @@ Command.moveLayer=function(log,undo_flg){
 
 	var blush_blend=function(dst,idx,pressure,dist,flg,weight,param){
 		var color = param.color;
-		var color_effect = param.color_effect;
 		var sa = color[3]; 
 		if(param.eraser){
 			sa = 1;
@@ -990,8 +989,6 @@ Command.moveLayer=function(log,undo_flg){
 		}
 	}
 	var drawPen=function(img,point0,point1,param){
-		var color = param.color;
-		var effect = param.color_effect;
 		var weight = param.weight;
 		var pressure_mask = param.pressure_effect_flgs;
 		var softness= param.softness;
@@ -999,14 +996,6 @@ Command.moveLayer=function(log,undo_flg){
 		var img_data = img.data;
 	
 		weight*=0.5;
-		var r=color[0];
-		var g=color[1];
-		var b=color[2];
-		var a=color[3];
-		var effect_r = effect[0];
-		var effect_g = effect[1];
-		var effect_b = effect[2];
-		var effect_a = effect[3];
 
 		var weight_pressure_effect = pressure_mask&1;
 		var alpha_pressure_effect = (pressure_mask&2)>>1;
@@ -1089,10 +1078,8 @@ Command.moveLayer=function(log,undo_flg){
 					l=Math.abs(l);
 				}
 				var idx = dy*img.width+ dx|0;
-				var aa = (1-l/local_weight)*a;
 
 				Vec2.mul(dist,dist,1/local_weight);
-
 				drawfunc(img_data,idx<<2,local_pressure,dist,painted_mask,local_weight,param);
 			}
 		}

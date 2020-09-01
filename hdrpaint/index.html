@@ -709,8 +709,14 @@ var onloadfunc=function(e){
 		//refreshTab("color_selector_tab");
 	}
 
-	Brush.create();
-	Brush.create();
+	Brush.init();
+	var brush = Brush.create();
+	brush.select();
+	refreshPen();
+	brush.update();
+	brush = Brush.create();
+	brush.select();
+	brush.update();
 
 	animation_frame_id=window.requestAnimationFrame(function(e){
 		refreshMain_();
@@ -865,9 +871,9 @@ var createNewCompositeLayer=function(e){
 				<input type="button" id="up_brush" value="↑" >
 			</div>
 			<div style="text-align:right;">
-				<input type="button" id="create_brush" onclick="Brush.update();" value="上書" >
-				<input type="button" id="update_brush" onclick="Brush.create();" value="新規保存" >
-				<input type="button" id="delete_brush" onclick="Brush.delete();" value="削除" ><br>
+				<input type="button" id="update_brush" value="上書" >
+				<input type="button" id="create_brush" value="新規保存" >
+				<input type="button" id="delete_brush" value="削除" ><br>
 			</div>
 		</div>
 
@@ -877,8 +883,8 @@ var createNewCompositeLayer=function(e){
 
 		<!-- ブラシ一覧テンプレート -->
 		<div style="display:none;" id="brush_template">
-			<div class="brush" draggable="true" ondragstart="Brush_DragStart(event)" ondragover="brush_dragover_handler(event)" ondragenter="brush_DragEnter(event)" >
-				<img>
+			<div class="brush" draggable="true" ondragstart="{Brush.DragStart(event)}" ondragover="{Brush.dragover_handler(event)}" ondragenter="{Brush.DragEnter(event)}" >
+				<img draggable="false">
 				<span class="name"></span>
 				<div class="attributes"></div>
 			</div>
