@@ -933,29 +933,6 @@ Command.moveLayer=function(log,undo_flg){
 	var side = new Vec2();
 	var dist = new Vec2();
 
-	var blush_aaa=function(dst,idx,pressure,dist,flg,weight,param){
-		var color = param.color;
-		var color_effect = param.color_effect;
-		var sa = color[3]; 
-		var l = Vec2.scalar(dist);
-		if(param.softness){
-			sa = sa  * Math.min(1,( weight - (weight*l))/(weight*param.softness));
-		}
-		var rr = 1;
-
-
-		var da = dst[idx+3]*(1-sa);
-		dst[idx+3] = da + sa;
-
-		if( dst[idx+3] ){
-			rr = 1/dst[idx+3];
-			da*=rr;
-			sa*=rr;
-			dst[idx+0] += (dst[idx+0] * (-1+da) + color[0] * sa)*color_effect[0];
-			dst[idx+1] += (dst[idx+1] * (-1+da) + color[1] * sa)*color_effect[1];
-			dst[idx+2] += (dst[idx+2] * (-1+da) + color[2] * sa)*color_effect[2];
-		}
-	}
 	var blush_blend=function(dst,idx,pressure,dist,flg,weight,param){
 		var color = param.color;
 		var color_effect = param.color_effect;
@@ -972,9 +949,8 @@ Command.moveLayer=function(log,undo_flg){
 			}	
 		}
 		if(param.eraser){
-		sa=1-sa;
 			if(param.overlap===2){
-				dst[idx+3]=sa * (1-param.alpha);
+				dst[idx+3]=(1-sa) * (1-param.alpha);
 			return;
 			}
 		}
@@ -996,7 +972,8 @@ Command.moveLayer=function(log,undo_flg){
 			sa = (sa - olda)/(1-olda);
 		}
 		if(param.eraser){
-			dst[idx+3] = dst[idx+3] * (1-sa) + (1-param.alpha) * sa;
+			sa = param.alpha * sa;
+			dst[idx+3] = dst[idx+3] * (1-sa) + 0* sa;
 			return;
 		}
 
@@ -1011,31 +988,6 @@ Command.moveLayer=function(log,undo_flg){
 			dst[idx+1] += (dst[idx+1] * (-1+da) + color[1] * sa);
 			dst[idx+2] += (dst[idx+2] * (-1+da) + color[2] * sa);
 		}
-	}
-	var blush_direct=function(dst,idx,pressure,dist,flg,weight,param){
-		var color = param.color;
-		var color_effect = param.color_effect;
-		var sa = color[3]; 
-		var l = Vec2.scalar(dist);
-		if(param.softness){
-			sa = sa  * Math.min(1,( weight - (weight*l))/(weight*param.softness));
-		}
-
-		dst[idx+0] += (color[0] - dst[idx+0]) * color_effect[0];
-		dst[idx+1] += (color[1] - dst[idx+1]) * color_effect[1];
-		dst[idx+2] += (color[2] - dst[idx+2]) * color_effect[2];
-		dst[idx+3] += (sa - dst[idx+3]) * color_effect[3];
-	}
-	var brush_eraser=function(dst,idx,pressure,dist,flg,weight,param){
-		var color = param.color;
-		var color_effect = param.color_effect;
-		var sa = 0;
-		var l = Vec2.scalar(dist);
-		if(param.softness){
-			sa = sa  * Math.min(1,( weight - (weight*l))/(weight*param.softness));
-		}
-
-		dst[idx+3] += (sa - dst[idx+3]) ;
 	}
 	var drawPen=function(img,point0,point1,param){
 		var color = param.color;
@@ -1091,7 +1043,6 @@ Command.moveLayer=function(log,undo_flg){
 		Vec2.norm(side);
 
 
-		drawfunc=([blush_blend,blush_aaa,blush_direct,brush_eraser])[param.overlap];
 		drawfunc=blush_blend;
 		for(var dy=top;dy<bottom;dy++){
 			for(var dx=left;dx<right;dx++){
