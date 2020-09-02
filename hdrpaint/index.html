@@ -41,6 +41,8 @@ doc.draw_col=new Vec4();
 doc.scale=100;
 doc.canvas_pos=new Vec2();
 doc.cursor_pos=new Vec2();
+	var pen_log=null;
+	var pen_func=null;
 
 
 var canvas_field;
@@ -62,7 +64,6 @@ var onloadfunc=function(e){
 	preview_ctx =  preview.getContext('2d')
 	preview_ctx_imagedata=preview_ctx.createImageData(preview.width,preview.height);
 
-	initPenPreview();
 
 
 
@@ -694,12 +695,20 @@ var onloadfunc=function(e){
 
 	Brush.init();
 	var brush = Brush.create();
-	brush.select();
-	refreshPen();
-	brush.update();
+	var brush1 = brush;
+	brush.name="ペン"
+	brush.shortcut="a";
+	brush.refresh();
+
 	brush = Brush.create();
-	brush.select();
-	brush.update();
+	brush.name="消しゴム"
+	brush.eraser=true;
+	brush.shortcut="s";
+	brush.weight=10;
+	brush.refresh();
+
+	brush1.select();
+
 
 	animation_frame_id=window.requestAnimationFrame(function(e){
 		refreshMain_();
@@ -1032,8 +1041,8 @@ var createNewCompositeLayer=function(e){
 	</select>
 	</div>
 	<ul class="yoko">
-	<li><input type="button" id="button_undo" value="アンドゥ(ctrl+z)" onclick="undo()"></li>
-	<li><input type="button" id="button_redo" value="リドゥ(ctrl+shift+z)" onclick="redo()"></li>
+	<li><input type="button" id="button_undo" value="[ctrl+z]アンドゥ" onclick="undo()"></li>
+	<li><input type="button" id="button_redo" value="[ctrl+shift+z]リドゥ" onclick="redo()"></li>
 	</ul>
 	<span class="comment">リストを直接選択でそこまで戻る。最大10こ前まで</span>
 </div>

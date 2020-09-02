@@ -270,12 +270,6 @@ var createDif=function(layer,left,top,width,height){
 		var param = log.param;
 		var layer = Layer.findById(param.layer_id);
 		var points = param.points;
-		var weight= param.weight;
-		var color= param.color;
-		var color_mask= param.color_effect;
-		color_mask[3] *= (1-layer.mask_alpha);
-		var pressure_effect_flgs= param.pressure_effect_flgs;
-		var alpha_direct = param.alpha_direct;
 
 			painted_mask.fill(0);
 
@@ -1044,7 +1038,7 @@ Command.moveLayer=function(log,undo_flg){
 				if(dp<=0){
 					//始点より前
 					
-					if(Vec2.scalar2(dist)>weight_0pow2){
+					if(Vec2.scalar2(dist)>=weight_0pow2){
 						continue;
 					}
 					dp=0;
@@ -1057,7 +1051,7 @@ Command.moveLayer=function(log,undo_flg){
 					dist[0]=dx-pos1[0];
 					dist[1]=dy-pos1[1];
 					
-					if(Vec2.scalar2(dist)>weight_1pow2){
+					if(Vec2.scalar2(dist)>=weight_1pow2){
 						continue;
 					}
 					dp=1;
@@ -1070,7 +1064,7 @@ Command.moveLayer=function(log,undo_flg){
 					local_pressure = d_pressure * dp + pressure_0 ;
 					local_weight = weight  *( (local_pressure - 1)*weight_pressure_effect + 1);
 					l = Vec2.dot(dist,side);
-					if(l*l>local_weight*local_weight){
+					if(l*l>=local_weight*local_weight){
 						//線幅より外の場合
 						continue;
 					}

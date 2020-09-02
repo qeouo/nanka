@@ -37,6 +37,9 @@ var Brush=(function(){
 		document.querySelector("#create_brush").addEventListener("click"
 			,function(){Brush.create().update();});
 
+
+
+		initPenPreview();
 	}
 
 ret.create=function(){
@@ -61,6 +64,10 @@ ret.create=function(){
 	return brush;
 
 }
+ret.prototype.refresh = function(){
+	refreshBrush(this);
+	ret.refreshPen(this);
+}
 
 ret.prototype.update=function(){
 	//現在の内容でアクティブブラシを更新
@@ -82,7 +89,7 @@ ret.prototype.update=function(){
 		}
 	}
 
-	brush.div.querySelector("img").src =  document.getElementById("pen_preview").src ;
+	//brush.div.querySelector("img").src =  document.getElementById("pen_preview").src ;
 
 	refreshBrush(brush);
 	}
@@ -95,7 +102,6 @@ ret.prototype.update=function(){
 
 	ret.setParam=function(param){
 		param.color = new Float32Array(doc.draw_col);
-		param.color_effect = new Float32Array([1.0,1.0,1.0,1.0]);
 		param.weight=parseFloat(inputs["weight"].value);
 		param.softness=parseFloat(inputs["softness"].value);
 		param.antialias=inputs["brush_antialias"].checked;
@@ -110,6 +116,82 @@ ret.prototype.update=function(){
 		param.stroke_interpolation = inputs["stroke_interpolation"].checked;
 
 	}
+	var pen_preview;
+	var pen_preview_img;
+		var pen_preview_log;
+var initPenPreview=function(){
+	pen_preview=  document.getElementById('pen_preview');
+	pen_preview_log = new Log.CommandLog();
+	var param = pen_preview_log.param;
+	pen_preview_img= new Img(pen_preview.width,pen_preview.height);
+	param.layer =createLayer(pen_preview_img,0);
+	var points=[];
+	param.points=points;
+	var MAX = 17;
+	for(var i=0;i<MAX;i++){
+		var x = 2*i/(MAX-1)-1;
+		var point={"pos":new Vec2(),"pressure":0};
+		point.pos[0]=(x*0.8+1)*(pen_preview.width>>>1);
+		point.pos[1]=(Math.sin(x*Math.PI)*0.5+1)*(pen_preview.height>>>1);
+		point.pressure= 1-(i/(MAX-1));
+		
+		points.push(point);
+	}
+	param.color_effect = new Float32Array([1.0,1.0,1.0,1.0]);
+	param.undo_data={};
+}
+
+	ret.refreshPen=function(brush){
+		var param = pen_preview_log.param;
+		if(!brush){
+			Brush.setParam(param);
+		}else{
+			param.color = new Float32Array([0,0,0,1]);
+			param.weight=parseFloat(brush["weight"]);
+			param.softness=parseFloat(brush["softness"]);
+			param.antialias=brush.antialias;
+			param.alpha = brush.brush_alpha;
+
+			param.eraser = brush.eraser;
+			
+			param.overlap=parseInt(brush.overlap);
+			param.pressure_effect_flgs= 
+				  (1 * brush.weight_pressure_effect)
+				| (2 * brush.alpha_pressure_effect);
+			param.stroke_interpolation = brush.stroke_interpolation;
+			img = brush.img;
+		}
+
+		painted_mask.fill(0);
+		if(param.eraser){
+			//黒でクリア
+			var data = pen_preview_img.data;
+			var size = data.length;
+			for(var i=0;i<size;i+=4){
+				data[i]=0;
+				data[i+1]=0;
+				data[i+2]=0;
+				data[i+3]=1;
+			}
+		}else{
+			//透明でクリア
+			pen_preview_img.clear();
+		}
+
+		var points = pen_preview_log.param.points;
+		for(var li=1;li<points.length;li++){
+			Command.drawHermitian(pen_preview_log,li);
+		}
+		var dataurl = pen_preview_img.toDataURL();
+		if(brush){
+			brush.div.querySelector("img").src = dataurl;
+		}else{
+			document.getElementById("pen_preview").src=dataurl;
+		}
+
+
+	}
+
 
 	ret.prototype.select=function(){
 		//アクティブブラシ変更
@@ -185,8 +267,6 @@ var refreshBrush= function(brush){
 		span.innerHTML = txt;
 
 	}
-
-
 }
 
 ret.DragEnter = function(event) {

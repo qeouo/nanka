@@ -70,7 +70,7 @@ var refreshMain_=function(){
 	animation_frame_id=null;
 
 	if(refreshpen_flg){
-		refreshPen();
+		Brush.refreshPen();
 		refreshpen_flg=false;
 	}
 
@@ -481,66 +481,6 @@ var refreshActiveLayerParam = function(){
 	
 }
 
-	var pen_preview;
-	var pen_log=null;
-	var pen_func=null;
-	var pen_preview_img;
-		var pen_preview_log;
-var initPenPreview=function(){
-	pen_preview=  document.getElementById('pen_preview');
-	//pen_preview_ctx =  pen_preview.getContext('2d')
-	pen_preview_log = new Log.CommandLog();
-	var param = pen_preview_log.param;
-	pen_preview_img= new Img(pen_preview.width,pen_preview.height);
-	param.layer =createLayer(pen_preview_img,0);
-	var points=[];
-	param.points=points;
-	var MAX = 17;
-	for(var i=0;i<MAX;i++){
-		var x = 2*i/(MAX-1)-1;
-		var point={"pos":new Vec2(),"pressure":0};
-		point.pos[0]=(x*0.8+1)*(pen_preview.width>>>1);
-		point.pos[1]=(Math.sin(x*Math.PI)*0.5+1)*(pen_preview.height>>>1);
-		point.pressure= 1-(i/(MAX-1));
-		
-		points.push(point);
-	}
-	param.color_effect = new Float32Array([1.0,1.0,1.0,1.0]);
-	param.undo_data={};
-}
-
-
-var oldblob=null;
-	var refreshPen=function(){
-//		refreshColor();
-		var param = pen_preview_log.param;
-		Brush.setParam(param);
-
-		painted_mask.fill(0);
-		if(param.eraser){
-			//黒でクリア
-			var data = pen_preview_img.data;
-			var size = data.length;
-			for(var i=0;i<size;i+=4){
-				data[i]=0;
-				data[i+1]=0;
-				data[i+2]=0;
-				data[i+3]=1;
-			}
-		}else{
-			//透明でクリア
-			pen_preview_img.clear();
-		}
-
-		var points = pen_preview_log.param.points;
-		for(var li=1;li<points.length;li++){
-			Command.drawHermitian(pen_preview_log,li);
-		}
-
-		var img = document.getElementById("pen_preview");
-		img.src = pen_preview_img.toDataURL();
-
-	}
 
 var refreshPreviewStatus = function(e){
 	//カーソル下情報表示
