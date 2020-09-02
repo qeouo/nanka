@@ -250,16 +250,7 @@ var onloadfunc=function(e){
 			Brush.setParam(param);
 			param.points=[];
 			param.layer_id = selected_layer.id;
-//			if(inputs["eraser"].checked){
-//				param.alpha_direct = 1;
-//				param.color= new Float32Array([1.0,1.0,1.0,0.0])
-//				//param.color_effect = new Float32Array([0.0,0.0,0.0,doc.draw_col[3]])
-//				param.color_effect = new Float32Array([0.0,0.0,0.0,1]);
-//				pen_log = Command.executeCommand("eraser",param);
-//				
-//			}else{
-				pen_log = Command.executeCommand("pen",param);
-//			}
+			pen_log = Command.executeCommand("pen",param);
 			pen_func= new PenFunc();
 			pen_func.pen_log=pen_log;
 			if(inputs["stroke_correction"].checked){
@@ -319,20 +310,12 @@ var onloadfunc=function(e){
 			if(!brush.shortcut)continue;
 			var shortcut = brush.shortcut.toUpperCase().charCodeAt(0);
 			if(shortcut === event.keyCode){
-				selectBrush(brush);
+				brush.select();
 				return;
 			}
 		}
 
 		switch(event.keyCode){
-//		case 65://a
-//			inputs["pen"].checked=true;
-//			refreshTab("tools");
-//			break;
-//		case 83://s
-//			inputs["eraser"].checked=true;
-//			refreshTab("tools");
-//			break;
 		case 68://d
 			inputs["fill"].checked=true;
 			refreshTab("tools");
@@ -825,11 +808,11 @@ var createNewCompositeLayer=function(e){
 		<div id="tools">
 			ツール
 			<ul>
-			<li><label><input type="radio" id="pen" name="tool" checked>ブラシ</label>
-				<li><label><input type="radio" id="fill" name="tool">d:バケツ</label></li>
-				<li><label><input type="radio" id="translate" name="tool">f:移動</label></li>
+				<li><label><input type="radio" id="pen" name="tool" checked>ブラシ</label>
+					<br><span class="comment">(ブラシ毎にショートカット設定可)</span></li>
+				<li><label><input type="radio" id="fill" name="tool">[d]バケツ</label></li>
+				<li><label><input type="radio" id="translate" name="tool">[f]移動</label></li>
 			</ul>
-			<span style="font-weight:bold;">※スペースキー押下で<br>アクティブレイヤのみ表示<br>(バケツコマンド等にも影響)</span>
 		</div>
 		<div id="tool_status">
 		</div>
@@ -837,9 +820,13 @@ var createNewCompositeLayer=function(e){
 
 	<div class="area" id="brush_param">
 		<div>ブラシ</div>
-		<img width="128" height="32" id="pen_preview"><br>
-		<div>名前<input type="text" id="brush_name" style="width:80%;" ></div>
-		<div>ショートカット<input type="text" id="brush_shortcut" ></div>
+		<div>
+		<img width="128" height="32" id="pen_preview" style="float:left;">
+		<label><input type="checkbox" id="brush_antialias"/>アンチエ</label><br>
+		<label><input type="checkbox" id="eraser"/>消しゴム</label>
+		</div>
+		<div style="clear:both;">名前<input type="text" id="brush_name" style="width:80px;" >
+		ショトカ<input type="text" id="brush_shortcut" style="width:20px;"></div>
 		<div>直径<input class="slider" id="weight" max="30"  value="3"/></div>
 		<div>縁ぼかし<input class="slider" id="softness" max="1"  value="0"/></div>
 		<div>不透明度<input class="slider" id="brush_alpha" max="1"  value="0"/></div>
@@ -849,8 +836,6 @@ var createNewCompositeLayer=function(e){
 			<label><input type="checkbox" id="alpha_pressure_effect"/>アルファ</label>
 		</div>
 		<div>
-		<label><input type="checkbox" id="brush_antialias"/>アンチエイリアス</label>
-		<label><input type="checkbox" id="eraser"/>消しゴム</label>
 		
 		</div>
 		<div>
@@ -861,7 +846,6 @@ var createNewCompositeLayer=function(e){
 			<option value="0">大きいα優先</option>
 			<option value="1">αブレンド</option>
 			<option value="2">α直書</option>
-			<option value="3">消しゴム</option>
 		</select>
 		</ul>
 
@@ -1008,6 +992,7 @@ var createNewCompositeLayer=function(e){
 				<input type="button" id="delete_layer" value="レイヤ削除" ><br>
 			</div>
 		</div>
+			<span class="comment">※スペースキー押下でアクティブレイヤのみ表示<br>(バケツコマンド等にも影響)</span>
 		<div class="layers" id="layers_container">
 		</div>
 
@@ -1046,11 +1031,11 @@ var createNewCompositeLayer=function(e){
 	<select size=10 id="history" >
 	</select>
 	</div>
-	<ul>
+	<ul class="yoko">
 	<li><input type="button" id="button_undo" value="アンドゥ(ctrl+z)" onclick="undo()"></li>
 	<li><input type="button" id="button_redo" value="リドゥ(ctrl+shift+z)" onclick="redo()"></li>
 	</ul>
-	リストを直接選択でそこまで戻る。最大10こ前まで
+	<span class="comment">リストを直接選択でそこまで戻る。最大10こ前まで</span>
 </div>
 </div>
 

@@ -22,6 +22,9 @@ div.area{
 	padding:2px;
 	overflow:auto;
 }
+ul.yoko li{
+	display: inline-block;
+}
 ul{
 	list-style-type: none;
 	padding-left:10px;
@@ -110,7 +113,7 @@ div.spacer{
 .brushes{
 	border:solid 1px;
 	overflow:visible scroll;
-	height:200px;
+	height:100px;
 }
 .brush{
 	position:relative;
@@ -253,4 +256,9 @@ color:#000;
 }
 #cursor_img_hsv2{
 	width:8px;
+}
+
+span.comment{
+font-size:xx-small;
+font-weight:bold;
 }

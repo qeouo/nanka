@@ -145,6 +145,9 @@ ret.prototype.update=function(){
 				}
 			}
 		}
+
+		//ブラシ選択状態にする
+		inputs["pen"].checked=true;
 		
 		refreshpen_flg=true;
 
@@ -176,7 +179,7 @@ var refreshBrush= function(brush){
 
 	}else{
 		var div= brush.div.getElementsByClassName("name")[0];
-		div.innerHTML=brush.shortcut + ":"  + brush.name;
+		div.innerHTML="[" + brush.shortcut + "]"  + brush.name;
 		var span = brush.div.getElementsByClassName("attributes")[0];
 		var txt="";
 		span.innerHTML = txt;
