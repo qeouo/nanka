@@ -118,8 +118,8 @@ div.spacer{
 .brush{
 	position:relative;
 	border:solid 1px;
-	height:32px;
-	min-height:32px;
+	height:24px;
+	min-height:24px;
 	font-size:smaller;
 	line-height:1;
 	background-color:transparent;
@@ -127,56 +127,57 @@ div.spacer{
 	white-space: nowrap;
 }
 .brush span{
-	/*
-	background-color:black;
-	color:white;
-	position:relative;
-	*/
 }
 .brush img{
 	width:128px;
-	height:32px;
+	height:24px;
 	background-image:url(back.png);
 	position:absolute;
 	right:1px;
+  object-fit: cover;
 }
 /* レイヤ ------------------------------------------------*/
 
 .layers{
 	border:solid 1px;
 	overflow:visible scroll;
-	height:300px;
+	height:240px;
 }
 .layer{
 	border:solid 1px;
-	height:64px;
-	min-height:64px;
+	height:32px;
+	min-height:32px;
 	font-size:smaller;
 	line-height:1;
 	background-color:transparent;
 	padding:2px;
-white-space: nowrap;
-clear:both;
+	white-space: nowrap;
+	position:relative;
+}
+.layer_attributes{
+	position:absolute;
+	top:2px;
+	right:0px;
 }
 .layer.group{
-	border:inset 2px;
 	height:auto;
 }
 .layer div.children{
 	display:none;
 }
 .layer.group>div.children{
-    min-height: 20px;
+    min-height: 16px;
     /* min-width: 100px; */
-    border: 1px solid black
+    border: 1px solid black;
 }
 .layer.group div.children{
 	display:block;
-	margin-left:20px;
+	margin-left:16px;
 }
-
-
 .layer .name{
+	position:absolute;
+	left:34px;
+	top:0px;
 	text-align:left;
 	font-weight:bold;
 
@@ -186,9 +187,8 @@ clear:both;
 
 }
 .layer .thumbnailouter{
-	float:left;
-	width:64px;
-	height:64px;
+	width:32px;
+	height:100%;
     display: flex;
     align-items: center;
     justify-content: center;

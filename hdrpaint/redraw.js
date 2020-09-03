@@ -413,7 +413,7 @@ var refreshLayer = function(layer){
 				+ "size:(" + layer.img.width + "," + layer.img.height +")<br>";
 		}
 		layer.power=parseFloat(layer.power);
-		txt += "power: "+layer.power.toFixed(4)+"<br>";
+		txt += "power: "+layer.power.toFixed(4)+"";
 		layer.alpha=parseFloat(layer.alpha);
 		txt += "alpha: "+layer.alpha.toFixed(4)+"<br>";
 		
