@@ -89,9 +89,7 @@ ret.prototype.update=function(){
 		}
 	}
 
-	//brush.div.querySelector("img").src =  document.getElementById("pen_preview").src ;
-
-	refreshBrush(brush);
+	brush.refresh();
 	}
 	Brush.delete=function(){
 		var num = brushes.indexOf(selected_brush);

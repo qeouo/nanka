@@ -334,10 +334,12 @@ var selectLayer=function(target_layer){
 
 	refreshActiveLayerParam();
 
-	if(selected_layer.type ===1){
-		inputs["join_layer"].value="結合し通常レイヤにする";
-	}else{
-		inputs["join_layer"].value="下のレイヤと結合";
+	if(selected_layer){
+		if(selected_layer.type ===1){
+			inputs["join_layer"].value="結合し通常レイヤにする";
+		}else{
+			inputs["join_layer"].value="下のレイヤと結合";
+		}
 	}
 
 }
