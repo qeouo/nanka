@@ -31,10 +31,29 @@ var Command = (function(){
 	var ret = Command;
 
 	ret.onlyExecute= function(command,param){
+		if(param.layer_id && command !=="changeLayerAttribute"){
+			var layer = Layer.findById(param.layer_id);
+			if(layer){
+				if(layer.lock || !layer.display){
+					return;
+				}
+			}
+		}
+	
 		var log ={"param":param};
 		Command[command](log);
 	}
 	ret.executeCommand = function(command,param,flg){
+
+		if(param.layer_id && command !=="changeLayerAttribute"){
+			var layer = Layer.findById(param.layer_id);
+			if(layer){
+				if(layer.lock || !layer.display){
+					return null;
+				}
+			}
+		}
+
 		var log = Log.createLog(command,param,flg);
 		Log.appendOption();
 		Command[log.command](log);
@@ -451,7 +470,7 @@ var createDif=function(layer,left,top,width,height){
 			}
 				
 		}
-		refreshLayer(parent_layer);
+		parent_layer.refresh();
 		refreshMain();
 	}
 	Command.createNewCompositeLayer=function(log,undo_flg){
@@ -543,7 +562,7 @@ Command.moveLayer=function(log,undo_flg){
 		}
 		layer[name] = value;
 
-		refreshLayer(layer);
+		layer.refresh();
 		refreshMain(0);
 	}
 
@@ -582,7 +601,7 @@ Command.moveLayer=function(log,undo_flg){
 		layer.name = file;
 
 		refreshThumbnails(layer);
-		refreshLayer(layer);
+		layer.refresh();
 		selectLayer(layer);
 
 		return layer;
@@ -609,13 +628,13 @@ Command.moveLayer=function(log,undo_flg){
 				var l = layers[li];
 				l.position[0]+=x;
 				l.position[1]+=y;
-				refreshLayer(l);
+				l.refresh();
 
 			}
 		}else{
 			layer.position[0]+=x;
 			layer.position[1]+=y;
-			refreshLayer(layer);
+			layer.refresh();
 		}
 
 		refreshMain();
@@ -664,7 +683,7 @@ Command.moveLayer=function(log,undo_flg){
 			var layer = undo_data.layer;
 			layer.children = undo_data.children;
 			layer.type=1;
-			refreshLayer(layer);
+			layer.refresh();
 			return;
 		}
 		var layer = Layer.findById(param.layer_id);
@@ -676,7 +695,7 @@ Command.moveLayer=function(log,undo_flg){
 		layer.type=0;
 		layer.children=[];
 
-		refreshLayer(layer);
+		layer.refresh();
 		refreshMain(0);
 
 //		selectLayer(layer);
@@ -765,8 +784,8 @@ Command.moveLayer=function(log,undo_flg){
 		}
 
 		appendLayer(root_layer,n,layer);
-		refreshLayer(layer);
-		refreshLayer(root_layer);
+		layer.refresh();
+		root_layer.refresh();
 
 		refreshMain(0,layer.position[0],layer.position[1],layer.img.width,layer.img.height);
 
@@ -780,6 +799,7 @@ Command.moveLayer=function(log,undo_flg){
 		if(param.layer_id===-1){
 			//全レイヤ一括の場合バッチ化
 			var logs =[];
+			var layers = Layer.layerArray();
 			for(var li=0;li<layers.length;li++){
 				var layer = layers[li];
 				var _log = new Log.CommandLog();
@@ -830,7 +850,7 @@ Command.moveLayer=function(log,undo_flg){
 
 		layer.img=new Img(width,height);
 		copyImg(layer.img,0,0,old_img,0,0,old_img.width,old_img.height);
-		refreshLayer(layer);
+		layer.refresh();
 		refreshThumbnails(layer);
 		refreshMain(0,0,0,layer.img.width,layer.img.height);
 
@@ -903,7 +923,7 @@ Command.moveLayer=function(log,undo_flg){
 
 			layers.splice(idx,1);
 			layer.div.classList.remove("active_layer");
-			refreshLayer(parent_layer);
+			parent_layer.refresh();
 
 
 			if(layer === selected_layer){
@@ -927,11 +947,14 @@ Command.moveLayer=function(log,undo_flg){
 	var side = new Vec2();
 	var dist = new Vec2();
 
-	var blush_blend=function(dst,idx,pressure,dist,flg,weight,param){
+	var brush_blend=function(dst,idx,pressure,dist,flg,weight,param){
 		var color = param.color;
-		var sa = color[3]; 
+		var sa = color[3] * param.alpha; 
 		if(param.eraser){
-			sa = 1;
+			sa = param.alpha;
+		}
+		if(param.alpha_pressure_effect){
+			sa *= pressure;
 		}
 		var l = Vec2.scalar(dist);
 		if(param.softness){
@@ -965,7 +988,6 @@ Command.moveLayer=function(log,undo_flg){
 			sa = (sa - olda)/(1-olda);
 		}
 		if(param.eraser){
-			sa = param.alpha * sa;
 			dst[idx+3] = dst[idx+3] * (1-sa) + 0* sa;
 			return;
 		}
@@ -1026,7 +1048,7 @@ Command.moveLayer=function(log,undo_flg){
 		Vec2.norm(side);
 
 
-		drawfunc=blush_blend;
+		drawfunc=brush_blend;
 		for(var dy=top;dy<bottom;dy++){
 			for(var dx=left;dx<right;dx++){
 				dist[0]=dx-pos0[0];

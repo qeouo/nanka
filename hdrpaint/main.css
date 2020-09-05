@@ -14,6 +14,9 @@ body{
 	margin:0px;
 	background-color:#444;
 }
+div.area div.label{
+	background-color:#644;
+}
 div.area{
 	background-color:#222;
 
@@ -40,18 +43,21 @@ div.all{
 }
 div.left{
 	float:left;
-	min-width:256px;
+	/*min-width:256px;*/
 }
 div.center{
 	float:left;
 	flex:1;
 	height:100%;
-//	max-width:calc(100% - 600px);
+/*	max-width:calc(100% - 600px);
+	*/
 	min-width:540px;
 }
 div.right{
 	float:left;
+		  /*
 	min-width:280px;
+	*/
 }
 input.js-text{
 	text-align:right;

@@ -252,15 +252,17 @@ var onloadfunc=function(e){
 			param.points=[];
 			param.layer_id = selected_layer.id;
 			pen_log = Command.executeCommand("pen",param);
-			pen_func= new PenFunc();
-			pen_func.pen_log=pen_log;
-			if(inputs["stroke_correction"].checked){
-				pen_func.ragtime=40;
-			}else{
-				pen_func.ragtime=18;
-			}
+			if(pen_log){
+				pen_func= new PenFunc();
+				pen_func.pen_log=pen_log;
+				if(inputs["stroke_correction"].checked){
+					pen_func.ragtime=40;
+				}else{
+					pen_func.ragtime=18;
+				}
 
-			drawfunc(e);
+				drawfunc(e);
+			}
 		}
 
 		drawfunc(e);
@@ -274,6 +276,10 @@ var onloadfunc=function(e){
 			if(x<0 || x>=img.width || y<0 || y>img.height){
 			}else{
 				var data = img.data;
+				if( flg_active_layer_only){
+					data = selected_layer.img.data;
+				}
+
 				var idx=((y|0)*img.width+(x|0))*4;
 
 				doc.draw_col[0]=data[idx];
@@ -673,7 +679,6 @@ var onloadfunc=function(e){
 		//Command.executeCommand("resizeLayer",{"layer_id":root_layer.id,"width":512,"height":512});
 
 		Command.executeCommand("resizeCanvas",{"width":512,"height":512});
-		Log.reset();
 		Command.executeCommand("createNewLayer",{"position":0,"parent":root_layer.id,"width":preview.width,"height":preview.height});
 		var layer = root_layer.children[0];
 		var img_data = layer.img.data;
@@ -681,14 +686,18 @@ var onloadfunc=function(e){
 			img_data[i]=1;
 		}
 		layer.name="background"
-		refreshLayer(layer);
+		layer.lock=true;
+		layer.refresh();
+
+		Log.reset();
 
 		Command.executeCommand("createNewLayer",{"position":1,"parent":root_layer.id,"width":preview.width,"height":preview.height});
-		var layer = root_layer.children[0];
+		layer = root_layer.children[1];
 		layer.name="default"
+		layer.refresh();
 
 		refreshMain();
-		refreshLayer(root_layer);
+		root_layer.refresh();
 		refreshTab("tools");
 		//refreshTab("color_selector_tab");
 	}
@@ -698,6 +707,9 @@ var onloadfunc=function(e){
 	var brush1 = brush;
 	brush.name="ペン"
 	brush.shortcut="a";
+	brush.weight_pressure_effect=true;
+	brush.stroke_correction=true;
+	brush.weight=5;
 	brush.refresh();
 
 	brush = Brush.create();
@@ -801,21 +813,21 @@ var createNewCompositeLayer=function(e){
 
 <div class="left">
 	<div class="area">
-		ファイル
-			<input style="display:none;" type="file" value="画像ファイル読み込み" id="open_hpd" accept="application/octet-stream/,.hpd">
-			<ul>
+		<div class="label">ファイル</div>
+		<input style="display:none;" type="file" value="画像ファイル読み込み" id="open_hpd" accept="application/octet-stream/,.hpd">
+		<ul>
 			<li><a id="opne_hpd" href="#" onclick="inputs['open_hpd'].click();return false;">ドキュメントファイルを開く(*.hpd)</a></li>
-			</ul>
-			<ul>
+		</ul>
+		<ul>
 			<li><a id="save_hpd" href="#">ドキュメントファイルを保存(*.hpd)</a></li>
 			<li><a id="save_hdr" href="#">結合データをHDRで保存(*.exr)</a></li>
 			<li><a id="save_ldr" href="#">プレビュー画像をLDRで保存(*.png)</a></li>
-			</ul>
+		</ul>
 	</div>
 
 	<div class="area">
+		<div class="label">ツール</div>
 		<div id="tools">
-			ツール
 			<ul>
 				<li><label><input type="radio" id="pen" name="tool" checked>ブラシ</label>
 					<br><span class="comment">(ブラシ毎にショートカット設定可)</span></li>
@@ -828,14 +840,14 @@ var createNewCompositeLayer=function(e){
 	</div>
 
 	<div class="area" id="brush_param">
-		<div>ブラシ</div>
+		<div class="label">ブラシ</div>
+		<div style="clear:both;">名前<input type="text" id="brush_name" style="width:80px;" >
+		ショトカ<input type="text" id="brush_shortcut" style="width:20px;"></div>
 		<div>
 		<img width="128" height="32" id="pen_preview" style="float:left;">
 		<label><input type="checkbox" id="brush_antialias"/>アンチエ</label><br>
 		<label><input type="checkbox" id="eraser"/>消しゴム</label>
 		</div>
-		<div style="clear:both;">名前<input type="text" id="brush_name" style="width:80px;" >
-		ショトカ<input type="text" id="brush_shortcut" style="width:20px;"></div>
 		<div>直径<input class="slider" id="weight" max="30"  value="3"/></div>
 		<div>縁ぼかし<input class="slider" id="softness" max="1"  value="0"/></div>
 		<div>不透明度<input class="slider" id="brush_alpha" max="1"  value="0"/></div>
@@ -871,12 +883,12 @@ var createNewCompositeLayer=function(e){
 		</div>
 
 		<!-- ブラシ一覧表示部分 -->
-		<div class="brushes" id="brushes_container">
+		<div class="brushes" id="brushes_container" >
 		</div>
 
 		<!-- ブラシ一覧テンプレート -->
 		<div style="display:none;" id="brush_template">
-			<div class="brush" draggable="true" ondragstart="{Brush.DragStart(event)}" ondragover="{Brush.dragover_handler(event)}" ondragenter="{Brush.DragEnter(event)}" >
+			<div class="brush" onclick="{Brush.brushselect(event)}" draggable="true" ondragstart="{Brush.DragStart(event)}" ondragover="{Brush.dragover_handler(event)}" ondragenter="{Brush.DragEnter(event)}" >
 				<img draggable="false">
 				<span class="name"></span>
 				<div class="attributes"></div>
@@ -893,7 +905,7 @@ var createNewCompositeLayer=function(e){
 	</div>
 
 	<div id="color_selecter" class="area">
-		<div>カラーセレクタ</div>
+		<div class="label">カラーセレクタ</div>
 		<div class="color_status">
 			<ul>
 			<li class="red">R<input type="input" id="color_R" value="0.8" /></li>
@@ -901,13 +913,6 @@ var createNewCompositeLayer=function(e){
 			<li class="blue">B<input type="input" id="color_B" value="0.2"/></li>
 			</ul>
 		</div>
-		<!--
-		<ul id="color_selector_tab">
-			<li><label><input type="radio" id="cs_default" name="color_selector" checked>通常</label>
-			<li><label><input type="radio" id="cs_base" name="color_selector" >a</label>
-			<li><label><input type="radio" id="cs_rgb" name="color_selector">RGB</label></li>
-		</ul>
-		-->
 		<div id="tab_cs_default" onselectstart="return false;">
 			<div>
 				<div style="position:relative;display:inline-block;" id="img_hsv_area">
@@ -922,28 +927,13 @@ var createNewCompositeLayer=function(e){
 			</div>
 			明るさ<input class="slider" id="cs_default_lumi" min="-10" max="10" value="0"><br>
 		</div>
-		<!--
-		<div id="tab_cs_base">
-		ベース色<input class="colorpicker" id="color_base" value="ff0000"/><br>
-		明るさ<input class="slider" id="color_lumi" min="-10" max="10" value="0"><br>
-		</div>
-		<div id="tab_cs_rgb">
-			<ul>
-				<li>R<input class="slider" id="color_R" max="100"/></li>
-				<li>G<input class="slider" id="color_G" max="100"/></li>
-				<li>B<input class="slider" id="color_B" max="100"/></li>
-			</ul>
-		</div>
-		-->
 		<div>A<input class="slider" id="color_A" max="1" value="1"/></div>
 	</div>
 </div>
 
 <div class="center">
 	<div class="area canvas_area" id="canvas_area">
-		<div style="float:left;text-align:left;">
-		ビュー
-		</div>
+		<div class="label">ビュー</div>
 		<div id="canvas_field" style="clear:both;" class="canvas_field">
 			<div id="spacer" class="spacer">
 				<canvas width="256" height="256" id="preview" ></canvas>
@@ -969,11 +959,12 @@ var createNewCompositeLayer=function(e){
 
 <div class="right">
 	<div class="area">
-		<div>レイヤ</div>
+		<div class="label" >レイヤ</div>
 		<div id="layer_param" >
 			<div style="width:100%;">
 				名前<input type="text" id="layer_name" style="width:100px;" >
-				<label><input type="checkbox" id="layer_display" style="width:30px;"/>表示</label><br>
+				<label><input type="checkbox" id="layer_display"/>表示</label>
+				<label><input type="checkbox" id="layer_lock"/>ロック</label>
 			</div>
 			位置<input type="text" id="layer_x" value="" class="size">
 			<input type="text" id="layer_y" value="" class="size">
@@ -987,7 +978,7 @@ var createNewCompositeLayer=function(e){
 				<option value="transmit">transmit</option>
 			</select><br>
 			α<input class="slider" id="layer_alpha" max="1"/>
-			<label><input type="checkbox" id="layer_mask_alpha"/>αマスク</label><br>
+			<label><input type="checkbox" id="layer_mask_alpha"/>αロック</label><br>
 			明るさ<input class="slider" id="layer_power" min="-10" max="10"/><br>
 		</div>
 
@@ -1027,7 +1018,7 @@ var createNewCompositeLayer=function(e){
 	</div>
 
 	<div id="post_effect" class="area">
-		<div>ポストエフェクト</div>
+		<div class="label">ポストエフェクト</div>
 		<input type="checkbox" id="ch_gamma">ガンマ<input class="slider" id="gamma" max="4" value="2.2"/><br>
 		露光<input class="slider" id="ev" min="-10" max="10" value="0"/><br>
 		<label><input type="checkbox" id="ch_bloom">拡散</label><br>
@@ -1035,7 +1026,7 @@ var createNewCompositeLayer=function(e){
 		拡散範囲<input class="slider" id="bloom_size" max="100" value="10"/><br>
 	</div>
 <div class="area">
-	操作履歴<br>
+	<div class="label">操作履歴</div>
 	<div>
 	<select size=10 id="history" >
 	</select>

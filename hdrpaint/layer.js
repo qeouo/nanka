@@ -14,6 +14,7 @@ var Layer=(function(){
 	var Layer = function(){
 		this.name="";
 		this.display = true;
+		this.lock = false;
 		this.power=0.0;
 		this.alpha=1.0;
 		this.blendfunc="normal";
@@ -26,6 +27,68 @@ var Layer=(function(){
 		this.children=[]; //子供レイヤ
 	};
 	var ret = Layer;
+
+	ret.prototype.refresh= function(){
+	var layer = this;
+	var layers_container = null;
+
+	if(layer === root_layer){
+		layers_container = document.getElementById("layers_container");
+	}else{
+		layer.div.classList.remove("group");
+		if(layer.type===1){
+			layer.div.classList.add("group");
+		}
+		var div= layer.div.getElementsByClassName("name")[0];
+		var name=layer.name;
+		if(!this.display){
+			name +="(非表示)";
+		}
+		if(this.lock){
+			name +="(lock)";
+		}
+		if(this.mask_alpha){
+			name +="(αlock)";
+		}
+		div.innerHTML=name;
+		
+		var span = layer.div.getElementsByClassName("layer_attributes")[0];
+		var txt="";
+		txt += "blendfunc: "+layer.blendfunc +"<br>";
+		if(layer.img){
+			txt += "offset:("+layer.position[0]+","+layer.position[1] +")"
+				+ "size:(" + layer.img.width + "," + layer.img.height +")<br>";
+		}
+		layer.power=parseFloat(layer.power);
+		txt += "power: "+layer.power.toFixed(4)+"";
+		layer.alpha=parseFloat(layer.alpha);
+		txt += "alpha: "+layer.alpha.toFixed(4)+"<br>";
+		
+		 if(!layer.display){
+			layer.div.classList.add("disable_layer");
+		 }else{
+			layer.div.classList.remove("disable_layer");
+		 }
+
+		span.innerHTML = txt;
+
+		layers_container = layer.div.getElementsByClassName("children")[0];
+	}
+
+	//子レイヤ設定
+	while (layers_container.firstChild) layers_container.removeChild(layers_container.firstChild);
+	for(var li=layer.children.length;li--;){
+		layers_container.appendChild(layer.children[li].div);
+	}
+
+
+	if(layer === selected_layer){
+		refreshActiveLayerParam();
+	}
+
+
+
+}
 
 	ret.prototype.refreshThumbnail=function(){
 		//レイヤサムネイル更新
@@ -439,7 +502,7 @@ var appendLayer=function(root,idx,layer){
 	var layers = root.children;
 	layers.splice(idx,0,layer);
 
-	refreshLayer(root);
+	root.refresh();
 	refreshMain();
 }
 var createLayer=function(img,composite_flg){
@@ -471,7 +534,7 @@ var createLayer=function(img,composite_flg){
 			refreshLayerThumbnail(layer);
 		}
 	);
-	refreshLayer(layer);
+	layer.refresh();
 
 	return layer;
 

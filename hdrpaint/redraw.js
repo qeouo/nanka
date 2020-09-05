@@ -393,55 +393,6 @@ var gauss=function(d,size,left,right,top,bottom){
 	 }
 
 }
-var refreshLayer = function(layer){
-	var layers_container = null;
-
-	if(layer === root_layer){
-		layers_container = document.getElementById("layers_container");
-	}else{
-		layer.div.classList.remove("group");
-		if(layer.type===1){
-			layer.div.classList.add("group");
-		}
-		var div= layer.div.getElementsByClassName("name")[0];
-		div.innerHTML=layer.name;
-		var span = layer.div.getElementsByClassName("layer_attributes")[0];
-		var txt="";
-		txt += "blendfunc: "+layer.blendfunc +"<br>";
-		if(layer.img){
-			txt += "offset:("+layer.position[0]+","+layer.position[1] +")"
-				+ "size:(" + layer.img.width + "," + layer.img.height +")<br>";
-		}
-		layer.power=parseFloat(layer.power);
-		txt += "power: "+layer.power.toFixed(4)+"";
-		layer.alpha=parseFloat(layer.alpha);
-		txt += "alpha: "+layer.alpha.toFixed(4)+"<br>";
-		
-		 if(!layer.display){
-			layer.div.classList.add("disable_layer");
-		 }else{
-			layer.div.classList.remove("disable_layer");
-		 }
-
-		span.innerHTML = txt;
-
-		layers_container = layer.div.getElementsByClassName("children")[0];
-	}
-
-	//子レイヤ設定
-	while (layers_container.firstChild) layers_container.removeChild(layers_container.firstChild);
-	for(var li=layer.children.length;li--;){
-		layers_container.appendChild(layer.children[li].div);
-	}
-
-
-	if(layer === selected_layer){
-		refreshActiveLayerParam();
-	}
-
-
-
-}
 
 var refreshActiveLayerParam = function(){
 	//アクティブレイヤパラメータ更新
