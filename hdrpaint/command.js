@@ -1033,8 +1033,8 @@ Command.moveLayer=function(log,undo_flg){
 		drawfunc=brush_blend;
 		for(var dy=top;dy<bottom;dy++){
 			for(var dx=left;dx<right;dx++){
-				dist[0]=dx-pos0[0];
-				dist[1]=dy-pos0[1];
+				dist[0]=dx-pos0[0]+0.5;
+				dist[1]=dy-pos0[1]+0.5;
 				var dp = Vec2.dot(vec2,dist);
 				var l=0;
 				var l2=0;
@@ -1052,8 +1052,8 @@ Command.moveLayer=function(log,undo_flg){
 				}else if(dp>=1){
 					//終端より後
 
-					dist[0]=dx-pos1[0];
-					dist[1]=dy-pos1[1];
+					dist[0]=dx-pos1[0]+0.5;
+					dist[1]=dy-pos1[1]+0.5;
 					
 					if(Vec2.scalar2(dist)>=weight_1pow2){
 						continue;

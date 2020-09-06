@@ -50,9 +50,9 @@ var PenFunc = (function(){
 
 			//ÉçÉOï∂ñ ïœçX
 			log.label = ("0000" + log.id).slice(-4) + "| pen" ;
-			log.label += "(" + points[0].pos[0].toFixed(0)+ ","+ points[0].pos[1].toFixed(0)+")-";
+			log.label += "(" + points[0].pos[0].toFixed(2)+ ","+ points[0].pos[1].toFixed(2)+")-";
 			log.label += (points.length-2) +"-";
-			log.label += "(" + points[points.length-1].pos[0].toFixed(0)+ ","+ points[points.length-1].pos[1].toFixed(0)+")";
+			log.label += "(" + points[points.length-1].pos[0].toFixed(2)+ ","+ points[points.length-1].pos[1].toFixed(2)+")";
 			var option = inputs["history"].options[inputs["history"].selectedIndex];
 			Util.setText(option,log.label);
 
