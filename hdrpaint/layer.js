@@ -467,10 +467,7 @@ function DragEnter(event) {
 
 function DragEnterChild(event) {
 	//ドラッグ移動時
-	if(event.target.classList[0]!=="layer"){
-		return;
-	}
-	var drop_layer = getLayerFromDiv(event.target);
+	var drop_layer = getLayerFromDiv(event.currentTarget);
 	
 	event.stopPropagation();
 
