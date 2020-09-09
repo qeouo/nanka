@@ -662,7 +662,7 @@ var onloadfunc=function(e){
 			Log.appendOption(log);
 		});
 	}else{
-		root_layer = createLayer(new Img(1,1),1);
+		root_layer = Layer.create(new Img(1,1),1);
 		refreshLayerThumbnail(root_layer);
 		//Command.executeCommand("resizeLayer",{"layer_id":root_layer.id,"width":512,"height":512});
 
@@ -985,13 +985,17 @@ var createNewCompositeLayer=function(e){
 		</div>
 
 		<div style="display:none;" id="layer_template">
-			<div class="layer" draggable="true" ondragstart="DragStart(event)" ondragenter="DragEnter(event)"   ondragover="dragover_handler(event)" onclick="layerSelect(event)">
+			<div class="layer" draggable="true"
+				ondragstart="Layer.DragStart(event)"
+				ondragenter="Layer.DragEnter(event)"
+				ondragover="Layer.DragOver(event)"
+				onclick="Layer.click(event)">
 				<div class="thumbnailouter" >
 					<img class="thumbnail" >
 				</div>
 				<div class="name"></div>
 				<div class="layer_attributes"></div>
-				<div class="children" ondragenter="DragEnterChild(event)"></div>
+				<div class="children" ondragenter="Layer.DragEnterChild(event)"></div>
 			</div>
 		</div>
 

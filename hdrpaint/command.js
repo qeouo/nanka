@@ -441,9 +441,9 @@ var createDif=function(layer,left,top,width,height){
 		if(selected_layer===layer){
 			if(idx>0)idx-=1;
 			if(layers.length>0){
-				selectLayer(layers[idx]);
+				layers[idx].select();
 			}else{
-				selectLayer(null);
+				Layer.select(null);
 			}
 				
 		}
@@ -474,15 +474,15 @@ var createDif=function(layer,left,top,width,height){
 				data[i+3]= 0;
 			}
 
-			layer =createLayer(img,param.composite_flg);
+			layer =Layer.create(img,param.composite_flg);
 			log.undo_data={"layer":layer};
 		}else{
 			layer = log.undo_data.layer;
 		}
 		var parentLayer = Layer.findById(param.parent);
 
-		appendLayer(parentLayer,n,layer);
-		selectLayer(layer);
+		parentLayer.append(n,layer);
+		Layer.select(layer);
 
 		return layer;
 
@@ -514,11 +514,9 @@ Command.moveLayer=function(log,undo_flg){
 
 	now_parent_layer.children.splice(layer_num,1);
 
-	
-
 	var layers_container = layer.div.parentNode;
 
-	appendLayer(next_parent_layer,position,layer);
+	next_parent_layer.append(position,layer);
 
 	if(!log.undo_data){
 		log.undo_data = {"before":layer_num,"before_parent":now_parent_layer.id};
@@ -567,19 +565,19 @@ Command.moveLayer=function(log,undo_flg){
 		}
 		if(!log.undo_data){
 			log.param.img=null;
-			layer=createLayer(img);
+			layer=Layer.create(img);
 			log.undo_data={"layer":layer};
 		}else{
 			layer=log.undo_data.layer;
 		}
-		appendLayer(parent_layer,n,layer);
+		parent_layer.append(n,layer);
 
 		//layer.img=img;
 		layer.name = file;
 
 		refreshThumbnails(layer);
 		layer.refresh();
-		selectLayer(layer);
+		Layer.select(layer);
 
 		return layer;
 	}
@@ -675,7 +673,6 @@ Command.moveLayer=function(log,undo_flg){
 		layer.refresh();
 		refreshMain(0);
 
-//		selectLayer(layer);
 
 	}
 	Command.joinLayer=function(log,undo_flg){
@@ -690,8 +687,8 @@ Command.moveLayer=function(log,undo_flg){
 			//width=log.undo_data.width;
 			//height=log.undo_data.height;
 			removeNewLayer(undo_data.layer);
-			appendLayer(root_layer,undo_data.position,undo_data.layerA);
-			appendLayer(root_layer,undo_data.positionB,undo_data.layerB);
+			root_layer.append(undo_data.position,undo_data.layerA);
+			root_layer.append(undo_data.positionB,undo_data.layerB);
 			return;
 		}
 
@@ -746,7 +743,7 @@ Command.moveLayer=function(log,undo_flg){
 				}
 				
 			}
-			layer =createLayer(img);
+			layer =Layer.create(img);
 			layer.name=layerA.name + "+" + layerB.name;
 			layer.position[0]=x;
 			layer.position[1]=y;
@@ -760,13 +757,13 @@ Command.moveLayer=function(log,undo_flg){
 			layers.splice(n,1);
 		}
 
-		appendLayer(root_layer,n,layer);
+		root_layer.append(n,layer);
 		layer.refresh();
 		root_layer.refresh();
 
 		refreshMain(0,layer.position[0],layer.position[1],layer.img.width,layer.img.height);
 
-		selectLayer(layer);
+		Layer.select(layer);
 
 	}
 	Command.resizeLayer=function(log,undo_flg){
@@ -876,7 +873,7 @@ Command.moveLayer=function(log,undo_flg){
 			var idx = log.undo_data.position;
 			var parent_layer = Layer.findById(log.undo_data.parent);
 
-			appendLayer(parent_layer,idx,layer);
+			parent_layer.append(idx,layer);
 			refreshMain();
 			return;
 		}
@@ -906,10 +903,10 @@ Command.moveLayer=function(log,undo_flg){
 			if(layer === selected_layer){
 				idx = Math.max(idx-1,0);
 				if(layers.length){
-					selectLayer(layers[idx]);
+					Layer.select(layers[idx]);
 				}
 			}else{
-				selected_layer = null;
+				Layer.select(null);
 			}
 		}
 		refreshMain();

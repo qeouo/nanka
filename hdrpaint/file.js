@@ -55,9 +55,8 @@ var loadHpd=function(buffer){
 			img = Img.loadExr(img_file.data);
 		}
 
-		var layer =createLayer(img,parseInt(doc_layer.type));
+		var layer =Layer.create(img,parseInt(doc_layer.type));
 		layers.push(layer);
-		//appendLayer(li,layer);
 
 		//レイヤパラメータ設定
 		var keys=Object.keys(doc_layer);
@@ -81,13 +80,12 @@ var loadHpd=function(buffer){
 			var child_id = doc_layer.children[ki];
 			var child = layers.find(
 				function(a){return a.id===child_id;});
-			appendLayer(layer,ki,child);
+			layer.append(ki,child);
 			//layer.children[ki]=layers.find(
 		}
 
 		layer.refresh();
 	}
-	//selectLayer(layer);
 
 
 	enableRefresh();
@@ -95,7 +93,7 @@ var loadHpd=function(buffer){
 
 	refreshMain();
 	refreshTab("tools");
-	selectLayer(root_layer.children[root_layer.children.length-1]);
+	root_layer.children[root_layer.children.length-1].select();
 	
 	//refreshTab("color_selector_tab");
 	//createRGBA();

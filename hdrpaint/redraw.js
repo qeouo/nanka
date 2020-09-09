@@ -16,7 +16,9 @@ var enableRefresh=function(){
 
 
 var refreshLayerThumbnail = function(layer){
-	refresh_thumbnail.push(layer);
+	if(refresh_thumbnail.indexOf(layer)<0){
+		refresh_thumbnail.push(layer);
+	}
 }
 
 var refreshThumbnails=function(layer){
@@ -462,7 +464,7 @@ var refreshPreviewStatus = function(e){
 		Util.setText(document.getElementById("pos_A"),"-");
 
 	}else{
-		var idx=((y|0)*preview.width+(x|0))*4;
+		var idx=img.getIndex(x|0,y|0)<<2;
 		r= data[idx];
 		g= data[idx+1];
 		b= data[idx+2];

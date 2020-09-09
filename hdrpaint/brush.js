@@ -48,7 +48,7 @@ var Brush=(function(){
 		var param = pen_preview_log.param;
 		var pen_preview=  document.getElementById('pen_preview');
 		pen_preview_img= new Img(pen_preview.width,pen_preview.height);
-		param.layer =createLayer(pen_preview_img,0);
+		param.layer =Layer.create(pen_preview_img,0);
 
 		var points=[];
 		var xs=[-1,-0.7,-0.3,0.3,0.7,1];
