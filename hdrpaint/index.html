@@ -417,56 +417,31 @@ var onloadfunc=function(e){
 	}
 
 	inputs["color_A"].addEventListener("change",function(){
-		//doc.draw_col[3] = parseFloat(inputs["color_A"].value);
 		changeColor(null);
 
 	});
 
-	var input_tags = document.getElementById("post_effect").getElementsByTagName("input");
-	for(var i=0;i<input_tags.length;i++){
-		var input = input_tags[i]
-		input.addEventListener("change",function(e){
+	document.getElementById("post_effect").addEventListener("change",function(e){
 
-			//refreshColor();
-			if(e.target.id==="bloom_power"){
-				refreshMain(1);
-	  		}
-			if(e.target.id==="ch_bloom" || e.target.id==="bloom_size"){
-				refreshMain();
-	  		}
-			if(e.target.id==="ch_gamma" || e.target.id==="gamma" || e.target.id==="ev"){
-				refreshMain(2);
-				Layer.eachLayers(function(layer){
-					refresh_thumbnail.push(layer);
-				});
-	  		}
-			
+		//refreshColor();
+		if(e.target.id==="bloom_power"){
+			refreshMain(1);
+		}
+		if(e.target.id==="ch_bloom" || e.target.id==="bloom_size"){
+			refreshMain();
+		}
+		if(e.target.id==="ch_gamma" || e.target.id==="gamma" || e.target.id==="ev"){
+			refreshMain(2);
+			Layer.eachLayers(function(layer){
+				refresh_thumbnail.push(layer);
+			});
+		}
+		
 	  });
-	}
-	var tool_radios = document.getElementById("tools").getElementsByTagName("input");
-	for(var i=0;i<tool_radios.length;i++){
-		var input = tool_radios[i]
-		input.addEventListener("change",function(e){
-			refreshTab("tools");
-		});
-	}
+	document.getElementById("tools").addEventListener("change",function(e){
+		refreshTab("tools");
+	});
 
-	//tool_radios = document.getElementById("color_selector_tab").getElementsByTagName("input");
-	//for(var i=0;i<tool_radios.length;i++){
-	//	var input = tool_radios[i]
-	//	input.addEventListener("change",function(e){
-	//		refreshTab("color_selector_tab");
-	//	});
-	//}
-	
-	var brush_param=document.getElementById("brush_param");
-	var input_tags = Array.prototype.slice.call(brush_param.getElementsByTagName("input"));
-	input_tags= input_tags.concat(Array.prototype.slice.call(brush_param.getElementsByTagName("select")));
-	for(var i=0;i<input_tags.length;i++){
-		var input = input_tags[i]
-		input.addEventListener("change",function(event){refreshpen_flg=true;});
-	}
-	  
 
 	var resizeCanvas=function(){
 		var width = parseInt(inputs["canvas_width"].value);
@@ -852,7 +827,7 @@ var createNewCompositeLayer=function(e){
 		</div>
 	</div>
 
-	<div class="area" id="brush_param">
+	<div class="area" id="brush_param" onchange="{refreshpen_flg=1;}">
 		<div class="label">ブラシ</div>
 		<div style="clear:both;">名前<input type="text" id="brush_name" style="width:80px;" >
 		ショトカ<input type="text" id="brush_shortcut" style="width:20px;"></div>
@@ -901,7 +876,7 @@ var createNewCompositeLayer=function(e){
 
 		<!-- ブラシ一覧テンプレート -->
 		<div style="display:none;" id="brush_template">
-			<div class="brush" onclick="{Brush.brushselect(event)}" draggable="true" ondragstart="{Brush.DragStart(event)}" ondragover="{Brush.dragover_handler(event)}" ondragenter="{Brush.DragEnter(event)}" >
+			<div class="brush"  onclick="Brush.brushselect(event)" draggable="true" ondragstart="{Brush.DragStart(event)}" ondragover="{Brush.dragover_handler(event)}" ondragenter="{Brush.DragEnter(event)}" >
 				<img draggable="false">
 				<span class="name"></span>
 				<div class="attributes"></div>
@@ -1006,11 +981,11 @@ var createNewCompositeLayer=function(e){
 			</div>
 		</div>
 			<span class="comment">※スペースキー押下でアクティブレイヤのみ表示<br>(バケツコマンド等にも影響)</span>
-		<div class="layers" id="layers_container">
+		<div class="layers" id="layers_container" >
 		</div>
 
 		<div style="display:none;" id="layer_template">
-			<div class="layer" draggable="true" ondragstart="DragStart(event)" ondragover="dragover_handler(event)" ondragenter="DragEnter(event)"  ondragend="dragend(event);">
+			<div class="layer" draggable="true" ondragstart="DragStart(event)" ondragenter="DragEnter(event)"   ondragover="dragover_handler(event)" onclick="layerSelect(event)">
 				<div class="thumbnailouter" >
 					<img class="thumbnail" >
 				</div>

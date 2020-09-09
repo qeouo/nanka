@@ -49,14 +49,15 @@ var Brush=(function(){
 		var pen_preview=  document.getElementById('pen_preview');
 		pen_preview_img= new Img(pen_preview.width,pen_preview.height);
 		param.layer =createLayer(pen_preview_img,0);
+
 		var points=[];
-		var MAX = 5;
-		for(var i=0;i<MAX;i++){
-			var x = 2*i/(MAX-1)-1;
+		var xs=[-1,-0.7,-0.3,0.3,0.7,1];
+		for(var i=0;i<xs.length;i++){
+			var x = xs[i];
 			var point={"pos":new Vec2(),"pressure":0};
 			point.pos[0]=(x*0.8+1)*(pen_preview.width>>>1);
 			point.pos[1]=(Math.sin(x*Math.PI)*0.7+1)*(pen_preview.height>>>1);
-			point.pressure= 1-(i/(MAX-1));
+			point.pressure= 1-(i/(xs.length-1));
 			
 			points.push(point);
 		}
@@ -305,12 +306,6 @@ var Brush=(function(){
 	ret.brushselect= function(e){
 	//ブラシー一覧クリック時、クリックされたものをアクティブ化する
 
-		//var targetNode = e.target;
-		//while(targetNode.getAttribute("class")!=="brush"){
-		//	if(targetNode === e.currentTarget)return;
-		//	targetNode = targetNode.parentNode;
-
-		//}
 		var brush=getBrushFromDiv(e.currentTarget);
 
 		brush.select();

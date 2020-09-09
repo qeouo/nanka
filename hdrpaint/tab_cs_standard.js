@@ -159,12 +159,12 @@ var tab_cs_standard=(function(){
 	obj.setRGB=function(col){
 		var color=new Vec3();
 		
-		var max = Math.max(col[0],Math.max(col[1],col[2]));
-		var min= Math.min(col[0],Math.min(col[1],col[2]));
-		if(max==0){max=1};
-		if(max<=1 && min>=0.01){
-			max=1;
-		}
+		var max = Math.max(Math.max(col[0],Math.max(col[1],col[2])),1);
+		//var min= Math.min(col[0],Math.min(col[1],col[2]));
+		//if(max==0){max=1};
+		//if(max<=1 && min>=0.01){
+		//	max=1;
+		//}
 		Vec3.mul(color,col,1/max);
 
 		img_hsv.setRGB(color);
@@ -179,10 +179,6 @@ var tab_cs_standard=(function(){
 		inputs["color_R"].value=img_hsv.color[0] * lumi;
 		inputs["color_G"].value=img_hsv.color[1] * lumi;
 		inputs["color_B"].value=img_hsv.color[2] * lumi;
-		//doc.draw_col[0] = img_hsv.color[0] * lumi;
-		//doc.draw_col[1] = img_hsv.color[1] * lumi;
-		//doc.draw_col[2] = img_hsv.color[2] * lumi;
-		//doc.draw_col[3] = parseFloat(inputs["color_A"].value);
 
 		changeColor(tab_cs_standard);
 	}

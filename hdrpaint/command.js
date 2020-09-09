@@ -22,7 +22,7 @@ var Command = (function(){
 	}
 	ret.executeCommand = function(command,param,flg){
 
-		if(param.layer_id && command !=="changeLayerAttribute"){
+		if(param.layer_id && command !=="changeLayerAttribute" && command!=="moveLayer"){
 			var layer = Layer.findById(param.layer_id);
 			if(layer){
 				if(layer.lock || !layer.display){

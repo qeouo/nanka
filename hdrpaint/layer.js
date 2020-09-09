@@ -429,10 +429,8 @@ function DragStart(event) {
 }
 function dragover_handler(event) {
  event.preventDefault();
- event.dataTransfer.dropEffect = "move";
+// event.dataTransfer.dropEffect = "move";
 }	
-function dragend(event) {
-}
 
 function DragEnter(event) {
 	//ドラッグ移動時
@@ -469,11 +467,15 @@ function DragEnter(event) {
 
 function DragEnterChild(event) {
 	//ドラッグ移動時
+	if(event.target.classList[0]!=="layer"){
+		return;
+	}
+	var drop_layer = getLayerFromDiv(event.target);
 	
 	event.stopPropagation();
 
     var drag = parseInt(event.dataTransfer.getData("text"));
-	var parent_layer= getLayerFromDiv(event.currentTarget.parentNode);
+	var parent_layer= getLayerFromDiv(event.target.parentNode);
 
 
 	if(drag_layer.type ===1){
@@ -520,7 +522,7 @@ var createLayer=function(img,composite_flg){
 		layer_div.classList.add("group");
 	}
 
-	layer_div.addEventListener("click",layerSelect);
+	//layer_div.addEventListener("click",layerSelect);
 	layer.div=layer_div;
 
 	layer.img=img;
