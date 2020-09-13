@@ -2,8 +2,6 @@
 var root_layer=null;
 var selected_layer = null;
 
-
-
 var Layer=(function(){
 //レイヤ
 	var Layer = function(){
@@ -27,7 +25,9 @@ var Layer=(function(){
 	ret.bubble_func=function(layer,f){
 		//親に伝搬する処理
 		f(layer);
-		var parent_layer= Layer.findParent(layer);
+		//var parent_layer= Layer.findParent(layer);
+		var parent_layer=layer.parent;
+
 		if(parent_layer){
 			Layer.bubble_func(parent_layer,f);
 		}
@@ -237,6 +237,8 @@ var Layer=(function(){
 			span.innerHTML = txt;
 
 			layers_container = layer.div.getElementsByClassName("children")[0];
+
+			layer.refreshThumbnail();
 		}
 
 		//子レイヤ設定
@@ -255,6 +257,8 @@ var Layer=(function(){
 	ret.prototype.append=function(idx,layer){
 		var layers = this.children;
 		layers.splice(idx,0,layer);
+
+		layer.parent = this;
 
 		this.refresh();
 		refreshMain();
@@ -379,7 +383,7 @@ var Layer=(function(){
 
 		Layer.bubble_func(layer,
 			function(layer){
-				refreshLayerThumbnail(layer);
+				//refreshLayerThumbnail(layer);
 			}
 		);
 		layer.refresh();
@@ -389,6 +393,7 @@ var Layer=(function(){
 	}
 
 	var funcs=[];
+	ret.funcs=funcs;
 	funcs["normal"] = function(dst,d_idx,src,s_idx,alpha,power){
 		var src_alpha=src[s_idx+3]*alpha;
 		var sa = src[s_idx+3]*alpha;
@@ -449,6 +454,7 @@ var Layer=(function(){
 		dst[d_idx+1]=dst[d_idx+1]  - src[s_idx+1]*src_r;
 		dst[d_idx+2]=dst[d_idx+2]  - src[s_idx+2]*src_r;
 	}
+
 	ret.prototype.composite=function(left,top,right,bottom){
 
 		var layers=this.children;
@@ -459,16 +465,7 @@ var Layer=(function(){
 		var img_data = img.data;
 		var img_width = img.width;
 		
-			for(var yi=top;yi<bottom;yi++){
-				var idx = yi * img_width + left << 2;
-				var max = yi * img_width + right << 2;
-				for(;idx<max;idx+=4){
-					img_data[idx+0]=0;
-					img_data[idx+1]=0;
-					img_data[idx+2]=0;
-					img_data[idx+3]=0;
-				}
-			}
+		img.clear(left,top,right-left+1,top-bottom+1);
 
 		for(var li=0;li<layers.length;li++){
 			var layer = layers[li];
