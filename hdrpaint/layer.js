@@ -199,7 +199,10 @@ var Layer=(function(){
 		if(layer === root_layer){
 			layers_container = document.getElementById("layers_container");
 		}else{
-			layer.div.classList.remove("group");
+			layer.div.className="layer";
+			if(selected_layer === layer){
+				layer.div.classList.add("active");
+			}
 			if(layer.type===1){
 				layer.div.classList.add("group");
 			}
@@ -207,9 +210,11 @@ var Layer=(function(){
 			var name=layer.name;
 			if(!this.display){
 				name +="(非表示)";
+				layer.div.classList.add("invisible");
 			}
 			if(this.lock){
 				name +="(lock)";
+				layer.div.classList.add("lock");
 			}
 			if(this.mask_alpha){
 				name +="(αlock)";
@@ -228,11 +233,6 @@ var Layer=(function(){
 			layer.alpha=parseFloat(layer.alpha);
 			txt += "alpha: "+layer.alpha.toFixed(4)+"<br>";
 			
-			 if(!layer.display){
-				layer.div.classList.add("disable_layer");
-			 }else{
-				layer.div.classList.remove("disable_layer");
-			 }
 
 			span.innerHTML = txt;
 
@@ -465,7 +465,7 @@ var Layer=(function(){
 		var img_data = img.data;
 		var img_width = img.width;
 		
-		img.clear(left,top,right-left+1,top-bottom+1);
+		img.clear(left,top,right-left+1,bottom-top+1);
 
 		for(var li=0;li<layers.length;li++){
 			var layer = layers[li];

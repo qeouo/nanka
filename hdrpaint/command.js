@@ -533,7 +533,7 @@ Command.moveLayer=function(log,undo_flg){
 		layer[name] = value;
 
 		layer.refresh();
-		refreshMain(0);
+		refreshMain2(layer);
 	}
 
 	Command.loadImageFile=function(log,undo_flg){

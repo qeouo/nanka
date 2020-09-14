@@ -165,6 +165,12 @@ div.spacer{
 	top:2px;
 	right:0px;
 }
+.layer.invisible {
+	opacity:0.3;
+}
+ .layer.lock .layer_attributes{
+	text-decoration: line-through;
+}
 .layer.group{
 	height:auto;
 }
@@ -207,9 +213,6 @@ div.spacer{
 .active{
 background-color:#FFBF00;
 color:#000;
-}
-.disable_layer{
-	border-style:dotted;
 }
 
 /*----------------------------------------------------------*/
