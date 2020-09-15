@@ -227,15 +227,21 @@ var Layer=(function(){
 		if(layer.parent){
 			layer.parent.bubbleComposite(left+layer.position[0]
 				,top + layer.position[1]
-				,right  +layer.position[0]
-				,bottom + layer.position[1]);
+				,right -left +1
+				,bottom -top +1);
 		}
 	}
-	ret.prototype.bubbleComposite=function(_left,_top,_right,_bottom){
-		var left = Math.max(0,_left);
-		var top = Math.max(0,_top);
-		var right = Math.min(this.img.width-1,_right);
-		var bottom = Math.min(this.img.height-1,_bottom);
+	ret.prototype.bubbleComposite=function(x,y,w,h){
+		if(typeof x === 'undefined'){
+			x = 0;
+			y = 0;
+			w = this.img.width;
+			h = this.img.height;
+		}
+		var left = Math.max(0,x);
+		var top = Math.max(0,y);
+		var right = Math.min(this.img.width-1,x+w-1);
+		var bottom = Math.min(this.img.height-1,y+h);
 		left=Math.floor(left);
 		right=Math.ceil(right);
 		top=Math.floor(top);
@@ -249,8 +255,8 @@ var Layer=(function(){
 		if(this.parent){
 			this.parent.bubbleComposite(left+this.position[0]
 				,top + this.position[1]
-				,right  +this.position[0]
-				,bottom + this.position[1]);
+				,right-left+1
+				,bottom-top+1);
 		}
 		if(root_layer === this){
 			if(refresh_stack.length === 1){
@@ -338,7 +344,9 @@ var Layer=(function(){
 		layer.parent = this;
 
 		this.refreshDiv();
-		refreshMain();
+		//refreshMain();
+		this.bubbleComposite();
+		refreshLayerThumbnail(this);
 	}
 
 	//レイヤサムネイル作成用
@@ -542,7 +550,7 @@ var Layer=(function(){
 		var img_data = img.data;
 		var img_width = img.width;
 		
-		//img.clear(left,top,right-left+1,bottom-top+1);
+		img.clear(left,top,right-left+1,bottom-top+1);
 
 		for(var li=0;li<layers.length;li++){
 			var layer = layers[li];
