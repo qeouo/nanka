@@ -192,7 +192,84 @@ var Layer=(function(){
 			,"parent_layer_id":parent_layer.id,"position":position});
 	}
 
-	ret.prototype.refresh= function(){
+	ret.prototype.refreshImg=function(x,y,w,h){
+		var layer = this;
+
+
+		var img_width = layer.img.width;
+		var img_height= layer.img.height;
+		var left = 0;
+		var right = img_width;
+		var top = 0;
+		var bottom = img_height;
+		
+		if( typeof w !== 'undefined'){
+			left = x ;
+			right=x+ w;
+			top = y;
+			bottom=y+h;
+
+			//更新領域設定、はみ出している場合はクランプする
+			
+			left=Math.max(0,left);
+			right=Math.min(img_width,right);
+			top=Math.max(0,top);
+			bottom=Math.min(img_height,bottom);
+
+		}
+		left=Math.floor(left);
+		right=Math.ceil(right);
+		top=Math.floor(top);
+		bottom=Math.ceil(bottom);
+		var width=right-left+1;
+		var height=bottom-top+1;
+
+		if(layer.parent){
+			layer.parent.bubbleComposite(left+layer.position[0]
+				,top + layer.position[1]
+				,right  +layer.position[0]
+				,bottom + layer.position[1]);
+		}
+	}
+	ret.prototype.bubbleComposite=function(_left,_top,_right,_bottom){
+		var left = Math.max(0,_left);
+		var top = Math.max(0,_top);
+		var right = Math.min(this.img.width-1,_right);
+		var bottom = Math.min(this.img.height-1,_bottom);
+		left=Math.floor(left);
+		right=Math.ceil(right);
+		top=Math.floor(top);
+		bottom=Math.ceil(bottom);
+
+		if(left == right || top == bottom){
+			return;
+		}
+
+		this.composite(left,top,right,bottom);
+		if(this.parent){
+			this.parent.bubbleComposite(left+this.position[0]
+				,top + this.position[1]
+				,right  +this.position[0]
+				,bottom + this.position[1]);
+		}
+		if(root_layer === this){
+			if(refresh_stack.length === 1){
+				//全更新がある場合は無視
+				if(refresh_stack[0].step===0 
+				&& refresh_stack[0].w === 0){
+					return;
+				}
+			}
+			var refresh_data={};
+			refresh_data.step=0;
+			refresh_data.x=left;
+			refresh_data.y=top;
+			refresh_data.w=right-left+1;
+			refresh_data.h=bottom-top+1;
+			refresh_stack.push(refresh_data);
+		}
+	}
+	ret.prototype.refreshDiv= function(){
 		var layer = this;
 		var layers_container = null;
 
@@ -260,7 +337,7 @@ var Layer=(function(){
 
 		layer.parent = this;
 
-		this.refresh();
+		this.refreshDiv();
 		refreshMain();
 	}
 
@@ -386,7 +463,7 @@ var Layer=(function(){
 				//refreshLayerThumbnail(layer);
 			}
 		);
-		layer.refresh();
+		layer.refreshDiv();
 
 		return layer;
 
@@ -450,9 +527,9 @@ var Layer=(function(){
 		var dst_r = (1-src_alpha);
 		var src_r = power*alpha;
 
-		dst[d_idx+0]=dst[d_idx+0]  - src[s_idx+0]*src_r;
-		dst[d_idx+1]=dst[d_idx+1]  - src[s_idx+1]*src_r;
-		dst[d_idx+2]=dst[d_idx+2]  - src[s_idx+2]*src_r;
+		dst[d_idx+0] = dst[d_idx+0]  - src[s_idx+0]*src_r;
+		dst[d_idx+1] = dst[d_idx+1]  - src[s_idx+1]*src_r;
+		dst[d_idx+2] = dst[d_idx+2]  - src[s_idx+2]*src_r;
 	}
 
 	ret.prototype.composite=function(left,top,right,bottom){
@@ -465,7 +542,7 @@ var Layer=(function(){
 		var img_data = img.data;
 		var img_width = img.width;
 		
-		img.clear(left,top,right-left+1,bottom-top+1);
+		//img.clear(left,top,right-left+1,bottom-top+1);
 
 		for(var li=0;li<layers.length;li++){
 			var layer = layers[li];
@@ -487,14 +564,14 @@ var Layer=(function(){
 			//レイヤごとのクランプ
 			var left2 = Math.max(left,layer.position[0]);
 			var top2 = Math.max(top,layer.position[1]);
-			var right2 = Math.min(layer.img.width + layer_position_x ,right);
-			var bottom2 = Math.min(layer.img.height + layer_position_y ,bottom);
+			var right2 = Math.min(layer.img.width + layer_position_x -1,right);
+			var bottom2 = Math.min(layer.img.height + layer_position_y-1 ,bottom);
 
-			for(var yi=top2;yi<bottom2;yi++){
+			for(var yi=top2;yi<=bottom2;yi++){
 				var idx = yi * img_width + left2 << 2;
 				var max = yi * img_width + right2 << 2;
 				var idx2 = (yi-layer_position_y) * layer_img_width + left2 - layer_position_x << 2;
-				for(;idx<max;idx+=4){
+				for(;idx<=max;idx+=4){
 					func(img_data,idx,layer_img_data,idx2,layer_alpha,layer_power);
 					idx2+=4;
 				}

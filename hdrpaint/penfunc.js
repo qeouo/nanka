@@ -23,7 +23,7 @@ var PenFunc = (function(){
 
 			painted_mask.fill(0);
 
-			refreshMain();
+			//refreshMain();
 			Layer.bubble_func(layer,
 				function(layer){
 					refreshLayerThumbnail(layer);

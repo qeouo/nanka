@@ -33,69 +33,6 @@ var refresh_thumbnail=[] ;
 var refresh_stack=[] ;
 var animation_frame_id=null; 
 
-var refreshMain2=function(layer,x,y,w,h){
-
-	var left = 0;
-	var right = root_layer.img.width-1;
-	var top = 0;
-	var bottom = root_layer.img.height-1;
-
-	var img_width = layer.img.width;
-	var img_height= layer.img.height;
-	
-	if(w){
-		left=x;
-		right=x+w;
-		top=y;
-		bottom=y+h;
-
-		//更新領域設定、はみ出している場合はクランプする
-		
-		left=Math.max(0,left);
-		right=Math.min(img_width,right);
-		top=Math.max(0,top);
-		bottom=Math.min(img_height,bottom);
-
-		left=Math.floor(left);
-		right=Math.ceil(right);
-		top=Math.floor(top);
-		bottom=Math.ceil(bottom);
-	}
-	var width=right-left+1;
-	var height=bottom-top+1;
-
-	if(layer.parent){
-		Layer.bubble_func(layer.parent,
-			function(l){
-				l.composite(left,top,right,bottom);
-			}
-		);
-	}
-	var step = 0;
-	if(refreshoff){
-		//更新禁止フラグが立っている場合は処理しない
-		return;
-	}
-	if(refresh_stack.length === 1){
-		//全更新がある場合は無視
-		if(refresh_stack[0].step===0 
-		&& refresh_stack[0].w === 0){
-			return;
-		}
-	}
-	if(step===0 && !w){
-		//全更新の場合はコレまでのは無視する
-		refresh_stack=[];
-	}
-	var refresh_data={};
-	refresh_data.step=step;
-	refresh_data.x=x;
-	refresh_data.y=y;
-	refresh_data.w=w;
-	refresh_data.h=h;
-	refresh_data.layer=layer;
-	refresh_stack.push(refresh_data);
-}
 var refreshMain=function(step,x,y,w,h,layer){
 
 	var left = 0;
@@ -116,9 +53,9 @@ var refreshMain=function(step,x,y,w,h,layer){
 			//更新領域設定、はみ出している場合はクランプする
 			
 			left=Math.max(0,left);
-			right=Math.min(img_width,right);
+			right=Math.min(img_width-1,right);
 			top=Math.max(0,top);
-			bottom=Math.min(img_height,bottom);
+			bottom=Math.min(img_height-1,bottom);
 
 			left=Math.floor(left);
 			right=Math.ceil(right);
@@ -175,9 +112,12 @@ var refreshMain=function(step,x,y,w,h,layer){
 	refresh_stack.push(refresh_data);
 }
 var refreshMain_=function(){
-	for(var ri=0;ri<refresh_stack.length;ri++){
-		var r= refresh_stack[ri];
-		refreshMain_sub(r.step,r.x,r.y,r.w,r.h);
+	if(!refreshoff){
+		//更新禁止フラグが立っている場合は処理しない
+		for(var ri=0;ri<refresh_stack.length;ri++){
+			var r= refresh_stack[ri];
+			refreshMain_sub(r.step,r.x,r.y,r.w,r.h);
+		}
 	}
 
 	for(var ri=0;ri<refresh_thumbnail.length;ri++){
@@ -272,7 +212,7 @@ var refreshMain_sub=function(step,x,y,w,h){
 			var bloom_img_data = bloom_img.data;
 			var bloomed_img_data = bloomed_img.data;
 			if(inputs["ch_bloom"].checked && bloom>0){
-				for(var yi=top;yi<bottom;yi++){
+				for(var yi=top;yi<=bottom;yi++){
 					var idx = yi * joined_img_width + left << 2;
 					var max = yi * joined_img_width + right<< 2;
 					for(;idx<max;idx+=4){
@@ -298,7 +238,7 @@ var refreshMain_sub=function(step,x,y,w,h){
 
 		if(inputs["ch_gamma"].checked){
 			var r = Math.pow(2,-ev);
-			for(var yi=top;yi<bottom;yi++){
+			for(var yi=top;yi<=bottom;yi++){
 				var idx = yi * joined_img_width + left << 2;
 				var max = yi * joined_img_width + right << 2;
 				for(;idx<max;idx+=4){
@@ -310,7 +250,7 @@ var refreshMain_sub=function(step,x,y,w,h){
 			}
 		}else{
 			var r = Math.pow(2,-ev)*255;
-			for(var yi=top;yi<bottom;yi++){
+			for(var yi=top;yi<=bottom;yi++){
 				var idx = yi * joined_img_width + left << 2;
 				var max = yi * joined_img_width + right << 2;
 				for(;idx<max;idx+=4){
@@ -324,7 +264,7 @@ var refreshMain_sub=function(step,x,y,w,h){
 	}
 
 	//結果をキャンバスに表示
-	preview_ctx.putImageData(preview_ctx_imagedata,0,0,left,top,right-left,bottom-top);
+	preview_ctx.putImageData(preview_ctx_imagedata,0,0,left,top,right-left+1,bottom-top+1);
 
 	
 }

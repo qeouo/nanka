@@ -675,17 +675,17 @@ var onloadfunc=function(e){
 		}
 		layer.name="background"
 		layer.lock=true;
-		layer.refresh();
+		layer.refreshDiv();
 
 		Log.reset();
 
 		Command.executeCommand("createNewLayer",{"position":1,"parent":root_layer.id,"width":preview.width,"height":preview.height});
 		layer = root_layer.children[1];
 		layer.name="default"
-		layer.refresh();
+		layer.refreshDiv();
 
 		refreshMain();
-		root_layer.refresh();
+		root_layer.refreshDiv();
 		refreshTab("tools");
 		//refreshTab("color_selector_tab");
 	}
