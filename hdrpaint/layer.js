@@ -195,27 +195,17 @@ var Layer=(function(){
 	ret.prototype.refreshImg=function(x,y,w,h){
 		var layer = this;
 
-
-		var img_width = layer.img.width;
-		var img_height= layer.img.height;
 		var left = 0;
-		var right = img_width;
+		var right = layer.img.width-1;
 		var top = 0;
-		var bottom = img_height;
+		var bottom = layer.img.height-1;
 		
 		if( typeof w !== 'undefined'){
-			left = x ;
-			right=x+ w;
-			top = y;
-			bottom=y+h;
-
 			//更新領域設定、はみ出している場合はクランプする
-			
-			left=Math.max(0,left);
-			right=Math.min(img_width,right);
-			top=Math.max(0,top);
-			bottom=Math.min(img_height,bottom);
-
+			left=Math.max(left,x);
+			right=Math.min(right,x+w-1);
+			top=Math.max(top,y);
+			bottom=Math.min(bottom,y+h-1);
 		}
 		left=Math.floor(left);
 		right=Math.ceil(right);
@@ -321,7 +311,7 @@ var Layer=(function(){
 
 			layers_container = layer.div.getElementsByClassName("children")[0];
 
-			layer.refreshThumbnail();
+			//layer.refreshThumbnail();
 		}
 
 		//子レイヤ設定
@@ -542,6 +532,12 @@ var Layer=(function(){
 
 	ret.prototype.composite=function(left,top,right,bottom){
 
+		if(typeof left === 'undefined'){
+			left=0;
+			top=0;
+			right = this.img.width-1;
+			bottom= this.img.height-1;
+		}
 		var layers=this.children;
 		if(!layers){
 			return;

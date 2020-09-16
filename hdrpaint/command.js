@@ -610,13 +610,16 @@ var createDif=function(layer,left,top,width,height){
 				l.refreshDiv();
 
 			}
+			root_layer.composite();
+			refreshPreview();
 		}else{
 			layer.position[0]+=x;
 			layer.position[1]+=y;
 			layer.refreshDiv();
+			layer.refreshImg();
 		}
 
-		refreshMain();
+	//	refreshMain();
 //		refreshMain(0,layer.position[0]-Math.abs(x),layer.position[1]-Math.abs(y)
 //			,layer.img.width+Math.abs(x)*2,layer.img.height+Math.abs(y)*2);
 	}

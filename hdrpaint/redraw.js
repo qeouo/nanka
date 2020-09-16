@@ -33,6 +33,23 @@ var refresh_thumbnail=[] ;
 var refresh_stack=[] ;
 var animation_frame_id=null; 
 
+var refreshPreview=function(x,y,w,h){
+	if(typeof x === 'undefined'){
+		//全更新の場合はコレまでのは無視する
+		refresh_stack=[];
+		x = 0;
+		y = 0;
+		w = root_layer.img.width;
+		h = root_layer.img.height;
+	}
+	var refresh_data={};
+	refresh_data.step=0;
+	refresh_data.x=x;
+	refresh_data.y=y;
+	refresh_data.w=w;
+	refresh_data.h=h;
+	refresh_stack.push(refresh_data);
+}
 var refreshMain=function(step,x,y,w,h,layer){
 
 	var left = 0;
@@ -195,6 +212,7 @@ var refreshMain_sub=function(step,x,y,w,h){
 			,top-layer.position[1],width,height);
 
 	}else{
+
 		if(step<=0){
 
 			if(inputs["ch_bloom"].checked ){
