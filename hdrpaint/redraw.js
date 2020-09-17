@@ -155,6 +155,7 @@ var refreshMain_=function(){
 	});
 }
 
+var absolute=new Vec2();
 var refreshMain_sub=function(step,x,y,w,h){
 	//プレビュー画面を更新
 	
@@ -208,8 +209,9 @@ var refreshMain_sub=function(step,x,y,w,h){
 		var layer = selected_layer;
 		
 		//bloom_img.clear(left,top,width,height);
-		bloom_img.copy(left,top,layer.img,left-layer.position[0]
-			,top-layer.position[1],width,height);
+		layer.getAbsolutePosition(absolute);
+		bloom_img.copy(left,top,layer.img,left-absolute[0]
+			,top-absolute[1],width,height);
 
 	}else{
 

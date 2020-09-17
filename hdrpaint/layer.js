@@ -1,7 +1,6 @@
 
 var root_layer=null;
 var selected_layer = null;
-var absolute_offset = new Vec2();
 
 var Layer=(function(){
 //レイヤ
@@ -217,7 +216,6 @@ var Layer=(function(){
 		bottom=Math.ceil(bottom);
 		var width=right-left+1;
 		var height=bottom-top+1;
-		left+=layer.position[0];
 
 		if(layer.parent){
 			if(typeof w === 'undefined'){
@@ -241,7 +239,7 @@ var Layer=(function(){
 		var left = Math.max(0,x);
 		var top = Math.max(0,y);
 		var right = Math.min(this.img.width-1,x+w-1);
-		var bottom = Math.min(this.img.height-1,y+h);
+		var bottom = Math.min(this.img.height-1,y+h-1);
 		left=Math.floor(left);
 		right=Math.ceil(right);
 		top=Math.floor(top);
@@ -422,14 +420,16 @@ var Layer=(function(){
 			}
 		}
 
-		Vec2.set(absolute_offset,0,0);
 
-		ret.bubble_func(selected_layer,function(layer){
-			Vec2.add(absolute_offset,absolute_offset,layer.position);
+
+
+	}
+	ret.prototype.getAbsolutePosition=function(p){
+		Vec2.set(p,0,0);
+
+		ret.bubble_func(this,function(layer){
+			Vec2.add(p,p,layer.position);
 		});
-
-
-
 	}
 	ret.prototype.select=function(){
 		Layer.select(this);

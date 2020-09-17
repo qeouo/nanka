@@ -11,6 +11,23 @@ var Log = (function(){
 		this.param={};
 		this.undo_data=null;
 	}
+	CommandLog.prototype.refreshLabel=function(){
+		var log = this;
+		//optionのテキストをセット
+		var param_txt="";
+		var param= log.param;
+		var keys=Object.keys(param);
+		for(var ki=0;ki<keys.length;ki++){
+			var key = keys[ki];
+			if(ki){
+				param_txt+=",";
+			}
+			param_txt+=param[key];
+		}
+		var label="" + ("0000" + log.id).substr(-4) + "| " 
+			+ log.command+"("+param_txt+")";
+		Util.setText(this.option, label);
+	}
 	var command_logs=[];
 	var undo_max=10; //undo情報最大保持ステップ数
 	var command_log_cursor=-1; //現在のログ位置(undo redoで移動する)
@@ -152,20 +169,11 @@ var Log = (function(){
 		var log = command_logs[command_log_cursor];
 		option.value = command_log_cursor;
 
-		//optionのテキストをセット
-		var param_txt="";
-		var param= log.param;
-		var keys=Object.keys(param);
-		for(var ki=0;ki<keys.length;ki++){
-			var key = keys[ki];
-			if(ki){
-				param_txt+=",";
-			}
-			param_txt+=param[key];
-		}
-		var label="" + ("0000" + log.id).substr(-4) + "| " 
-			+ log.command+"("+param_txt+")";
-		Util.setText(option, label);
+		log.option = option;
+		log.refreshLabel();
+//		var label="" + ("0000" + log.id).substr(-4) + "| " 
+//			+ log.command+"("+param_txt+")";
+//		Util.setText(option, label);
 
 		//選択状態にする
 		inputs["history"].selectedIndex=options.length-1;
