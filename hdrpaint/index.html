@@ -92,8 +92,8 @@ var onloadfunc=function(e){
 			if(!pen_log)return;
 
 			var point=new PenPoint();
-			point.pos[0]= x;
-			point.pos[1]= y;
+			point.pos[0]= x - absolute_offset[0];
+			point.pos[1]= y - absolute_offset[1];
 			if(e.buttons&1){
 				if(e.pointerType === "mouse"){
 					point.pressure=1;
@@ -216,8 +216,8 @@ var onloadfunc=function(e){
 				return;
 			}
 			var layer = selected_layer;
-			x -= layer.position[0];
-			y -= layer.position[1];
+			x -= absolute_offset[0];
+			y -= absolute_offset[1];
 			if(x<0 || x>=layer.img.width || y<0 || y>=layer.img.height){
 				//範囲外は無視
 				return;
@@ -676,6 +676,7 @@ var onloadfunc=function(e){
 		layer.name="background"
 		layer.lock=true;
 		layer.refreshDiv();
+		layer.registRefreshThumbnail();
 
 		Log.reset();
 
@@ -683,6 +684,7 @@ var onloadfunc=function(e){
 		layer = root_layer.children[1];
 		layer.name="default"
 		layer.refreshDiv();
+		layer.registRefreshThumbnail();
 
 		refreshMain();
 		root_layer.refreshDiv();
@@ -691,6 +693,7 @@ var onloadfunc=function(e){
 	}
 
 	Brush.init();
+	Layer.init();
 	var brush = Brush.create();
 	var brush1 = brush;
 	brush.name="ペン"

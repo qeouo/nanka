@@ -1,6 +1,7 @@
 
 var root_layer=null;
 var selected_layer = null;
+var absolute_offset = new Vec2();
 
 var Layer=(function(){
 //レイヤ
@@ -21,6 +22,9 @@ var Layer=(function(){
 	};
 	var ret = Layer;
 
+
+	ret.init=function(){
+	}
 
 	ret.bubble_func=function(layer,f){
 		//親に伝搬する処理
@@ -213,12 +217,18 @@ var Layer=(function(){
 		bottom=Math.ceil(bottom);
 		var width=right-left+1;
 		var height=bottom-top+1;
+		left+=layer.position[0];
 
 		if(layer.parent){
-			layer.parent.bubbleComposite(left+layer.position[0]
-				,top + layer.position[1]
-				,right -left +1
-				,bottom -top +1);
+			if(typeof w === 'undefined'){
+				layer.parent.bubbleComposite();
+
+			}else{
+				layer.parent.bubbleComposite(left+layer.position[0]
+					,top + layer.position[1]
+					,right -left +1
+					,bottom -top +1);
+			}
 		}
 	}
 	ret.prototype.bubbleComposite=function(x,y,w,h){
@@ -241,28 +251,16 @@ var Layer=(function(){
 			return;
 		}
 
-		this.composite(left,top,right,bottom);
+		if(typeof x === 'undefined'){
+			this.composite();
+		}else{
+			this.composite(left,top,right,bottom);
+		}
 		if(this.parent){
 			this.parent.bubbleComposite(left+this.position[0]
 				,top + this.position[1]
 				,right-left+1
 				,bottom-top+1);
-		}
-		if(root_layer === this){
-			if(refresh_stack.length === 1){
-				//全更新がある場合は無視
-				if(refresh_stack[0].step===0 
-				&& refresh_stack[0].w === 0){
-					return;
-				}
-			}
-			var refresh_data={};
-			refresh_data.step=0;
-			refresh_data.x=left;
-			refresh_data.y=top;
-			refresh_data.w=right-left+1;
-			refresh_data.h=bottom-top+1;
-			refresh_stack.push(refresh_data);
 		}
 	}
 	ret.prototype.refreshDiv= function(){
@@ -311,7 +309,6 @@ var Layer=(function(){
 
 			layers_container = layer.div.getElementsByClassName("children")[0];
 
-			//layer.refreshThumbnail();
 		}
 
 		//子レイヤ設定
@@ -425,6 +422,14 @@ var Layer=(function(){
 			}
 		}
 
+		Vec2.set(absolute_offset,0,0);
+
+		ret.bubble_func(selected_layer,function(layer){
+			Vec2.add(absolute_offset,absolute_offset,layer.position);
+		});
+
+
+
 	}
 	ret.prototype.select=function(){
 		Layer.select(this);
@@ -456,12 +461,8 @@ var Layer=(function(){
 		layer_id_count++;
 		layer.name ="layer"+("0000"+layer.id).slice(-4);
 
-		Layer.bubble_func(layer,
-			function(layer){
-				//refreshLayerThumbnail(layer);
-			}
-		);
 		layer.refreshDiv();
+		layer.registRefreshThumbnail();
 
 		return layer;
 
@@ -530,6 +531,30 @@ var Layer=(function(){
 		dst[d_idx+2] = dst[d_idx+2]  - src[s_idx+2]*src_r;
 	}
 
+	var stackThumbnail=[];
+	var refreshThumbnail=function(){
+		var layer = stackThumbnail.shift();
+		layer.refreshThumbnail();
+		if(stackThumbnail.length>0){
+			window.requestAnimationFrame(function(e){
+				refreshThumbnail();
+			});
+		}
+	}
+	ret.prototype.registRefreshThumbnail = function(){
+		if(stackThumbnail.indexOf(this)>=0){
+			return;
+		}
+		stackThumbnail.push(this);
+
+		if(stackThumbnail.length===1){
+			window.requestAnimationFrame(function(e){
+				refreshThumbnail();
+			});
+		}
+	}
+	
+
 	ret.prototype.composite=function(left,top,right,bottom){
 
 		if(typeof left === 'undefined'){
@@ -546,6 +571,13 @@ var Layer=(function(){
 		var img_data = img.data;
 		var img_width = img.width;
 		
+		if(this === root_layer){
+			refreshPreview(left,top,right-left+1,bottom-top+1);
+		}else{
+			this.registRefreshThumbnail();
+		}
+
+
 		img.clear(left,top,right-left+1,bottom-top+1);
 
 		for(var li=0;li<layers.length;li++){

@@ -381,7 +381,7 @@ var createDif=function(layer,left,top,width,height){
 
 				p.pressure=point0.pressure + dp*dt;
 
-				Vec2.sub(p.pos,p.pos,layer.position);
+//				Vec2.sub(p.pos,p.pos,layer.position);
 
 				left   = Math.min(p.pos[0],left);
 				right  = Math.max(p.pos[0],right);
@@ -611,7 +611,6 @@ var createDif=function(layer,left,top,width,height){
 
 			}
 			root_layer.composite();
-			refreshPreview();
 		}else{
 			layer.position[0]+=x;
 			layer.position[1]+=y;
