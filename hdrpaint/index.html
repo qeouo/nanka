@@ -24,8 +24,9 @@
 <script type="text/javascript" src="../lib/geono.js"></script>
 <script type="text/javascript" src="../lib/img.js"></script>
 
-<script type="text/javascript" src="./log.js"></script>
+<script type="text/javascript" src="./history.js"></script>
 <script type="text/javascript" src="./command.js"></script>
+<script type="text/javascript" src="./command/fill.js"></script>
 <script type="text/javascript" src="./layer.js"></script>
 <script type="text/javascript" src="./file.js"></script>
 <script type="text/javascript" src="./redraw.js"></script>
@@ -167,7 +168,7 @@ var onloadfunc=function(e){
 				pen_log.param.y=y;
 
 				pen_log.refreshLabel();
-				//Log.appendOption();
+				//CommandLog.appendOption();
 				
 			}
 
@@ -318,7 +319,7 @@ var onloadfunc=function(e){
     inputs["history"].addEventListener('change', function(event){
 		var index = this.selectedIndex;
 		var option = this.options[index];
-		Log.moveLog(parseInt(option.value));
+		CommandLog.moveLog(parseInt(option.value));
 	});
 
 	document.addEventListener('keyup',function(event){
@@ -485,8 +486,8 @@ var onloadfunc=function(e){
 		var file=this.files[0];
 		Util.loadBinary(file,function(buffer){
 			loadHpd(buffer);
-			var log =Log.createLog("loadDocumentFile",{"file":file.name});
-			Log.appendOption(log);
+			var log =CommandLog.createCommandLog("loadDocumentFile",{"file":file.name});
+			CommandLog.appendOption(log);
 		});
 
 		this.value=null;
@@ -667,8 +668,8 @@ var onloadfunc=function(e){
 		//パラメタ渡されてる場合はそれ開く
 		Util.loadBinary(globalParam.load,function(buffer){
 			loadHpd(buffer);
-			var log =Log.createLog("loadDocumentFile",{"file":globalParam.load});
-			Log.appendOption(log);
+			var log =CommandLog.createCommandLog("loadDocumentFile",{"file":globalParam.load});
+			CommandLog.appendOption(log);
 		});
 	}else{
 		root_layer = Layer.create(new Img(1,1),1);
@@ -687,7 +688,7 @@ var onloadfunc=function(e){
 		layer.refreshDiv();
 		layer.registRefreshThumbnail();
 
-		Log.reset();
+		CommandLog.reset();
 
 		Command.executeCommand("createNewLayer",{"position":1,"parent":root_layer.id,"width":preview.width,"height":preview.height});
 		layer = root_layer.children[1];
@@ -741,7 +742,7 @@ var redo=function(){
 	var option = options[option_index];
 	inputs["history"].selectedIndex = option_index;
 
-	Log.moveLog(parseInt(option.value));
+	CommandLog.moveLog(parseInt(option.value));
 
 }
 
@@ -760,7 +761,7 @@ var undo=function(){
 	option_index--;
 	inputs["history"].selectedIndex = option_index;
 
-	Log.moveLog(parseInt(option.value));
+	CommandLog.moveLog(parseInt(option.value));
 
 }
 var createNewLayer=function(e){

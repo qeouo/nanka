@@ -1,17 +1,16 @@
-var Log = (function(){
+var CommandLog = (function(){
 	//ログ制御
 	
-	var Log = function(){};
-	var ret = Log;
-
-	var log_id=0;
-
-	var CommandLog=ret.CommandLog = function(){
+	var CommandLog = function(){
 		this.command="";
 		this.param={};
 		this.undo_data=null;
 	}
-	CommandLog.prototype.refreshLabel=function(){
+	var ret = CommandLog;
+
+	var log_id=0;
+
+	ret.prototype.refreshLabel=function(){
 		var log = this;
 		//optionのテキストをセット
 		var param_txt="";

@@ -44,7 +44,7 @@ var Brush=(function(){
 
 
 		//ブラシプレビュー準備
-		pen_preview_log = new Log.CommandLog();
+		pen_preview_log = new CommandLog();
 		var param = pen_preview_log.param;
 		var pen_preview=  document.getElementById('pen_preview');
 		pen_preview_img= new Img(pen_preview.width,pen_preview.height);

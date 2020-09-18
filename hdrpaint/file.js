@@ -100,7 +100,7 @@ var loadHpd=function(buffer){
 	changeColor(null);
 	
 
-	Log.reset();
+	CommandLog.reset();
 
 }
 var saveHpd= function(e){
