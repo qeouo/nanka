@@ -2,9 +2,12 @@ Command["fill"] = (function(){
 	var fillStack=[];
 	var joined_r,joined_g,joined_b,joined_a;
 	var target_r,target_g,target_b,target_a;
+
+	var offset = new Vec2();
+
 	var fillCheckAll = function(layer,joined,x,y){
-		var x2 = x+layer.position[0];
-		var y2 = y+layer.position[1];
+		var x2 = x+offset[0];
+		var y2 = y+offset[1];
 		if(joined.width<=x2 || x2<0 || y2<0 || joined.height<=y2){
 			return false;
 		}
@@ -39,8 +42,9 @@ Command["fill"] = (function(){
 		}
 		var joined_img = root_layer.img;
 
-		var target_data=target.data;
 		var mode=0;
+
+		//塗りつぶし領域を求める
 
 		//左の端を探す
 		var xi = left;
@@ -56,7 +60,6 @@ Command["fill"] = (function(){
 			}
 		}
 
-		//塗りつぶし領域を求める
 		if(mode===1){
 			fillStack.push(y);
 			fillStack.push(xi+1);
@@ -102,6 +105,8 @@ Command["fill"] = (function(){
 		var refresh_left,refresh_top,refresh_bottom,refresh_right;
 		var param = log.param;
 		var layer = Layer.findById(param.layer_id);
+
+		layer.getAbsolutePosition(offset);
 		point_x = param.x;
 		point_y = param.y;
 		is_layer = param.is_layer;
@@ -181,7 +186,7 @@ Command["fill"] = (function(){
 				fillSub(layer,yi+1,left,right,is_layer);
 			}
 
-			//
+			//更新領域を求める
 			refresh_left=Math.min(refresh_left,left);
 			refresh_right=Math.max(refresh_right,right);
 			refresh_top=Math.min(refresh_top,yi);
@@ -201,10 +206,12 @@ Command["fill"] = (function(){
 			log.undo_data.difs.push(dif);
 		}
 
-		refreshMain(0,refresh_left + layer.position[0]
-			,refresh_top + layer.position[1]
-			,refresh_right-refresh_left,refresh_bottom-refresh_top);
+		//refreshMain(0,refresh_left + layer.position[0]
+		//	,refresh_top + layer.position[1]
+		//	,refresh_right-refresh_left,refresh_bottom-refresh_top);
+		layer.refreshImg(refresh_left
+			,refresh_top
+			,refresh_right-refresh_left+1,refresh_bottom-refresh_top+1);
 
-		refreshThumbnails(layer);
 	}
 })();

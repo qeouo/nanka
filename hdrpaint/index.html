@@ -27,6 +27,7 @@
 <script type="text/javascript" src="./history.js"></script>
 <script type="text/javascript" src="./command.js"></script>
 <script type="text/javascript" src="./command/fill.js"></script>
+<script type="text/javascript" src="./command/translate.js"></script>
 <script type="text/javascript" src="./layer.js"></script>
 <script type="text/javascript" src="./file.js"></script>
 <script type="text/javascript" src="./redraw.js"></script>
@@ -181,11 +182,13 @@ var onloadfunc=function(e){
 
 	
 	window.addEventListener("pointerup",function(e){
-			getPos(e);
-			if(pen_log){
-				drawfunc(e);
-				e.preventDefault();
-			}
+		getPos(e);
+		if(pen_log){
+			drawfunc(e);
+			e.preventDefault();
+		}
+
+		Layer.enableRefreshThumbnail = true;
 	});
 	window.addEventListener("pointermove",function(e){
 		getPos(e);
@@ -208,6 +211,8 @@ var onloadfunc=function(e){
 		var y = doc.cursor_pos[1];
 		drag_start[0]= x;
 		drag_start[1]= y;
+
+		Layer.enableRefreshThumbnail = false;
 
 		if(selected_layer===null){
 			return;
@@ -325,11 +330,12 @@ var onloadfunc=function(e){
 	document.addEventListener('keyup',function(event){
 		if(event.keyCode===32){
 			flg_active_layer_only=false;
-			refreshMain();
+			refreshPreview(1);
 		}
 	});
 
 	document.addEventListener('keydown', function(event){
+		//キーショートカット
 		if(event.target.tagName==="INPUT"){
 			if(event.target.type==="text"){
 				return;
@@ -346,11 +352,11 @@ var onloadfunc=function(e){
 		}
 
 		switch(event.keyCode){
-		case 68://d
+		case 70://f
 			inputs["fill"].checked=true;
 			refreshTab("tools");
 			break;
-		case 70://f
+		case 84://t
 			inputs["translate"].checked=true;
 			refreshTab("tools");
 			break;
@@ -380,9 +386,11 @@ var onloadfunc=function(e){
 			event.preventDefault();
 			break;
 		case 32://space
-			flg_active_layer_only=true;
-			event.preventDefault();
-			refreshMain(1);
+			if(!flg_active_layer_only){
+				flg_active_layer_only=true;
+				event.preventDefault();
+				refreshPreview(1);
+			}
 			break;
 		}
     });
@@ -435,13 +443,13 @@ var onloadfunc=function(e){
 
 		//refreshColor();
 		if(e.target.id==="bloom_power"){
-			refreshMain(1);
+			refreshPreview(1);
 		}
 		if(e.target.id==="ch_bloom" || e.target.id==="bloom_size"){
-			refreshMain();
+			refreshPreview(0);
 		}
 		if(e.target.id==="ch_gamma" || e.target.id==="gamma" || e.target.id==="ev"){
-			refreshMain(2);
+			refreshPreview(2);
 			Layer.eachLayers(function(layer){
 				refresh_thumbnail.push(layer);
 			});
@@ -481,16 +489,35 @@ var onloadfunc=function(e){
 
 	});
 
-	inputs["open_hpd"].addEventListener("change",function(e){
 
-		var file=this.files[0];
-		Util.loadBinary(file,function(buffer){
-			loadHpd(buffer);
-			var log =CommandLog.createCommandLog("loadDocumentFile",{"file":file.name});
-			CommandLog.appendOption(log);
-		});
+	document.getElementById("open_hpd").addEventListener("click",function(e){
+		var file_hpd = inputs['file_hpd'];
+		file_hpd.onchange=function(){
+			var file = file_hpd.files[0];
 
-		this.value=null;
+			Util.loadBinary(file,function(buffer){
+				loadHpd(buffer);
+				var log =CommandLog.createLog("loadDocumentFile",{"file":file.name});
+				CommandLog.appendOption(log);
+			});
+			file_hpd.value=null;
+		};
+		file_hpd.click();
+		return false;
+	});
+
+	document.getElementById("add_brush").addEventListener("click",function(e){
+		var file_hpd = inputs['file_hpd'];
+		file_hpd.onchange=function(){
+			var file = file_hpd.files[0];
+
+			Util.loadBinary(file,function(buffer){
+				addBrush(buffer);
+			});
+			file_hpd.value=null;
+		};
+		file_hpd.click();
+		return false;
 	});
 
 	inputs["down_layer"].addEventListener("click",function(e){
@@ -668,12 +695,11 @@ var onloadfunc=function(e){
 		//パラメタ渡されてる場合はそれ開く
 		Util.loadBinary(globalParam.load,function(buffer){
 			loadHpd(buffer);
-			var log =CommandLog.createCommandLog("loadDocumentFile",{"file":globalParam.load});
+			var log =CommandLog.createLog("loadDocumentFile",{"file":globalParam.load});
 			CommandLog.appendOption(log);
 		});
 	}else{
 		root_layer = Layer.create(new Img(1,1),1);
-		refreshLayerThumbnail(root_layer);
 		//Command.executeCommand("resizeLayer",{"layer_id":root_layer.id,"width":512,"height":512});
 
 		Command.executeCommand("resizeCanvas",{"width":512,"height":512});
@@ -696,10 +722,8 @@ var onloadfunc=function(e){
 		layer.refreshDiv();
 		layer.registRefreshThumbnail();
 
-		refreshMain();
 		root_layer.refreshDiv();
 		refreshTab("tools");
-		//refreshTab("color_selector_tab");
 	}
 
 	Brush.init();
@@ -711,6 +735,7 @@ var onloadfunc=function(e){
 	brush.weight_pressure_effect=true;
 	brush.stroke_correction=true;
 	brush.weight=5;
+	brushes.push(brush);
 	brush.refresh();
 
 	brush = Brush.create();
@@ -718,15 +743,11 @@ var onloadfunc=function(e){
 	brush.eraser=true;
 	brush.shortcut="s";
 	brush.weight=10;
+	brushes.push(brush);
 	brush.refresh();
+	Brush.refreshBrush();
 
 	brush1.select();
-
-
-	animation_frame_id=window.requestAnimationFrame(function(e){
-		refreshMain_();
-	});
-
 
 }
 
@@ -815,9 +836,9 @@ var createNewCompositeLayer=function(e){
 <div class="left">
 	<div class="area">
 		<div class="label">ファイル</div>
-		<input style="display:none;" type="file" value="画像ファイル読み込み" id="open_hpd" accept="application/octet-stream/,.hpd">
+		<input style="display:none;" type="file" value="" id="file_hpd" accept="application/octet-stream/,.hpd">
 		<ul>
-			<li><a id="opne_hpd" href="#" onclick="inputs['open_hpd'].click();return false;">ドキュメントファイルを開く(*.hpd)</a></li>
+			<li><a id="open_hpd" href="#" onclick="">ドキュメントファイルを開く(*.hpd)</a></li>
 		</ul>
 		<ul>
 			<li><a id="save_hpd" href="#">ドキュメントファイルを保存(*.hpd)</a></li>
@@ -832,15 +853,15 @@ var createNewCompositeLayer=function(e){
 			<ul>
 				<li><label><input type="radio" id="pen" name="tool" checked>ブラシ</label>
 					<br><span class="comment">(ブラシ毎にショートカット設定可)</span></li>
-				<li><label><input type="radio" id="fill" name="tool">[d]バケツ</label></li>
-				<li><label><input type="radio" id="translate" name="tool">[f]移動</label></li>
+				<li><label><input type="radio" id="translate" name="tool">[t]移動</label></li>
+				<li><label><input type="radio" id="fill" name="tool">[f]塗り潰し</label></li>
 			</ul>
 		</div>
 		<div id="tool_status">
 		</div>
 	</div>
 
-	<div class="area" id="brush_param" onchange="{refreshpen_flg=1;}">
+	<div class="area" id="brush_param" onchange="{Brush.refreshPreview();}">
 		<div class="label">ブラシ</div>
 		<div style="clear:both;">名前<input type="text" id="brush_name" style="width:80px;" >
 		ショトカ<input type="text" id="brush_shortcut" style="width:20px;"></div>
@@ -899,7 +920,7 @@ var createNewCompositeLayer=function(e){
 
 		<div  style="">
 			<ul>
-			<li><a id="" href="#" style="text-decoration:line-through;" onclick=";return false;">ブラシインポート</a></li>
+			<li><a id="add_brush" href="#" style="text-decoration:line-through;" onclick=";return false;">ブラシインポート</a></li>
 			</ul>
 			<input style="display:none;"type="file" id="open_brush" accept="image/*,.hdr,.exr" >
 		</div>
@@ -998,16 +1019,19 @@ var createNewCompositeLayer=function(e){
 		</div>
 
 		<div style="display:none;" id="layer_template">
-			<div class="layer" draggable="true"
+			<div class="layer open" draggable="true"
 				ondragstart="Layer.DragStart(event)"
-				ondragenter="Layer.DragEnter(event)"
 				ondragover="Layer.DragOver(event)"
 				onclick="Layer.click(event)">
-				<div class="thumbnailouter" >
-					<img class="thumbnail" >
+				<a href="#" class="openclosebutton" onclick="Layer.opencloseClick(event)">
+				</a>
+				<div ondragenter="Layer.DragEnter(event)" >
+					<div class="thumbnailouter" >
+						<img class="thumbnail" >
+					</div>
+					<div class="name"></div>
+					<div class="layer_attributes"></div>
 				</div>
-				<div class="name"></div>
-				<div class="layer_attributes"></div>
 				<div class="children" ondragenter="Layer.DragEnterChild(event)"></div>
 			</div>
 		</div>

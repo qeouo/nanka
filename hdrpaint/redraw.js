@@ -14,26 +14,16 @@ var enableRefresh=function(){
 	refreshoff=false;
 }
 
-
-var refreshLayerThumbnail = function(layer){
-	if(refresh_thumbnail.indexOf(layer)<0){
-		refresh_thumbnail.push(layer);
-	}
-}
-
-var refreshThumbnails=function(layer){
-	Layer.bubble_func(layer,
-		function(l){
-			refreshLayerThumbnail(l);
-		}
-	);
-}
-
-var refresh_thumbnail=[] ;
 var refresh_stack=[] ;
-var animation_frame_id=null; 
 
-var refreshPreview=function(x,y,w,h){
+var refreshPreview=function(step,x,y,w,h){
+	if(refresh_stack.length === 1){
+		//全更新がある場合は無視
+		if(refresh_stack[0].step===0 
+		&& refresh_stack[0].w === 0){
+			return;
+		}
+	}
 	if(typeof x === 'undefined'){
 		//全更新の場合はコレまでのは無視する
 		refresh_stack=[];
@@ -42,82 +32,11 @@ var refreshPreview=function(x,y,w,h){
 		w = root_layer.img.width;
 		h = root_layer.img.height;
 	}
-	var refresh_data={};
-	refresh_data.step=0;
-	refresh_data.x=x;
-	refresh_data.y=y;
-	refresh_data.w=w;
-	refresh_data.h=h;
-	refresh_stack.push(refresh_data);
-}
-var refreshMain=function(step,x,y,w,h,layer){
 
-	var left = 0;
-	var right = root_layer.img.width-1;
-	var top = 0;
-	var bottom = root_layer.img.height-1;
-	if(layer){
-
-		var img_width = layer.img.width;
-		var img_height= layer.img.height;
-		
-		if(w){
-			left=x;
-			right=x+w;
-			top=y;
-			bottom=y+h;
-
-			//更新領域設定、はみ出している場合はクランプする
-			
-			left=Math.max(0,left);
-			right=Math.min(img_width-1,right);
-			top=Math.max(0,top);
-			bottom=Math.min(img_height-1,bottom);
-
-			left=Math.floor(left);
-			right=Math.ceil(right);
-			top=Math.floor(top);
-			bottom=Math.ceil(bottom);
-		}
-		var width=right-left+1;
-		var height=bottom-top+1;
-
-		if(layer.parent){
-			Layer.bubble_func(layer.parent,
-				function(l){
-					l.composite(left,top,right,bottom);
-				}
-			);
-		}
-	}else{
-		//全レイヤ更新
-		var f = function(layer,left,top,right,bottom){
-			var lower_layers = layer.children;
-			for(var li=0;li<lower_layers.length;li++){
-				lower_layer = lower_layers[li];
-				if(lower_layer.type){
-					f(lower_layer,left,top,right,bottom);
-				}
-			}
-			layer.composite(left,top,right,bottom);
-
-		}
-		f(root_layer,left,top,right,bottom);
-	}
-	if(refreshoff){
-		//更新禁止フラグが立っている場合は処理しない
-		return;
-	}
-	if(refresh_stack.length === 1){
-		//全更新がある場合は無視
-		if(refresh_stack[0].step===0 
-		&& refresh_stack[0].w === 0){
-			return;
-		}
-	}
-	if(step===0 && !w){
-		//全更新の場合はコレまでのは無視する
-		refresh_stack=[];
+	if(refresh_stack.length===0){
+		window.requestAnimationFrame(function(e){
+			refreshMain_();
+		});
 	}
 	var refresh_data={};
 	refresh_data.step=step;
@@ -125,8 +44,22 @@ var refreshMain=function(step,x,y,w,h,layer){
 	refresh_data.y=y;
 	refresh_data.w=w;
 	refresh_data.h=h;
-	refresh_data.layer=layer;
 	refresh_stack.push(refresh_data);
+
+
+}
+var compositeAll=function(){
+	//全レイヤ更新
+	var f = function(layer,left,top,right,bottom){
+		var lower_layers = layer.children;
+		for(var li=0;li<lower_layers.length;li++){
+			lower_layer = lower_layers[li];
+			f(lower_layer,left,top,right,bottom);
+		}
+		layer.composite(left,top,right,bottom);
+
+	}
+	f(root_layer);
 }
 var refreshMain_=function(){
 	if(!refreshoff){
@@ -135,24 +68,17 @@ var refreshMain_=function(){
 			var r= refresh_stack[ri];
 			refreshMain_sub(r.step,r.x,r.y,r.w,r.h);
 		}
+		refresh_stack=[];
 	}
 
-	for(var ri=0;ri<refresh_thumbnail.length;ri++){
-		var r= refresh_thumbnail[ri];
-		r.refreshThumbnail();
-	}
-	refresh_stack=[];
-	refresh_thumbnail=[];
-	animation_frame_id=null;
 
-	if(refreshpen_flg){
-		Brush.refreshPen();
-		refreshpen_flg=false;
-	}
 
-	animation_frame_id=window.requestAnimationFrame(function(e){
-		refreshMain_();
-	});
+	if(refresh_stack.length>0){
+
+		window.requestAnimationFrame(function(e){
+			refreshMain_();
+		});
+	}
 }
 
 var absolute=new Vec2();
@@ -198,8 +124,8 @@ var refreshMain_sub=function(step,x,y,w,h){
 		top=Math.floor(top);
 		bottom=Math.ceil(bottom);
 	}
-	var width=right-left+1;
-	var height=bottom-top+1;
+	var width=right-left;
+	var height=bottom-top;
 
 	if(flg_active_layer_only){
 		//選択レイヤのみ表示
@@ -208,7 +134,7 @@ var refreshMain_sub=function(step,x,y,w,h){
 		var img_width = img.width;
 		var layer = selected_layer;
 		
-		//bloom_img.clear(left,top,width,height);
+		bloom_img.clear(left,top,width,height);
 		layer.getAbsolutePosition(absolute);
 		bloom_img.copy(left,top,layer.img,left-absolute[0]
 			,top-absolute[1],width,height);
@@ -219,7 +145,7 @@ var refreshMain_sub=function(step,x,y,w,h){
 
 			if(inputs["ch_bloom"].checked ){
 				//ブルーム処理ありの場合は前処理を行う
-				gauss(bloom_size,bloom_size,left,right,top,bottom);
+				gauss(bloom_size,bloom_size,left,right-1,top,bottom-1);
 			}
 		}
 

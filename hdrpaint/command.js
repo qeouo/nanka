@@ -64,7 +64,6 @@ var Command = (function(){
 		for(var li=1;li<points.length;li++){
 			Command.drawHermitian(log,li);
 		}
-		//refreshThumbnails(layer);
 	}
 
 	ret.eraser=function(log,undo_flg){
@@ -205,8 +204,7 @@ var Command = (function(){
 
 			//再描画
 			layer.refreshImg(left,top,right-left+1,bottom-top+1);
-			//refreshMain(0,left+layer.position[0]
-			//	   	,top + layer.position[1] ,right-left+1,bottom-top+1,layer);
+
 		}
 	})();
 
@@ -241,7 +239,7 @@ var Command = (function(){
 				
 		}
 		parent_layer.refreshDiv();
-		refreshMain();
+		parent_layer.refreshImg();
 	}
 	Command.createNewCompositeLayer=function(log,undo_flg){
 		Command.createNewLayer(log,undo_flg);
@@ -307,7 +305,6 @@ var Command = (function(){
 
 		now_parent_layer.children.splice(layer_num,1);
 		now_parent_layer.bubbleComposite();
-		refreshLayerThumbnail(now_parent_layer);
 
 		var layers_container = layer.div.parentNode;
 
@@ -371,49 +368,13 @@ var Command = (function(){
 		//layer.img=img;
 		layer.name = file;
 
-		refreshThumbnails(layer);
 		layer.refreshDiv();
 		Layer.select(layer);
+		layer.registRefreshThumbnail();
 
 		return layer;
 	}
 
-	Command.translateLayer=function(log,undo_flg){
-		var param = log.param;
-		var layer = Layer.findById(param.layer_id);
-
-		var x = param.x;
-		var y = param.y;
-		if(undo_flg){
-			x*=-1;
-			y*=-1;
-		}
-		if(!log.undo_data){
-			log.undo_data={};
-		}
-
-		if(!layer){
-			//レイヤ指定無しの場合はルート直下のレイヤすべてを移動
-			var layers = root_layer.children;
-			for(var li=0;li<layers.length;li++){
-				var l = layers[li];
-				l.position[0]+=x;
-				l.position[1]+=y;
-				l.refreshDiv();
-
-			}
-			root_layer.composite();
-		}else{
-			layer.position[0]+=x;
-			layer.position[1]+=y;
-			layer.refreshDiv();
-			layer.refreshImg();
-		}
-
-	//	refreshMain();
-//		refreshMain(0,layer.position[0]-Math.abs(x),layer.position[1]-Math.abs(y)
-//			,layer.img.width+Math.abs(x)*2,layer.img.height+Math.abs(y)*2);
-	}
 	var flgdata=[];
 	Command.resizeCanvas=function(log,undo_flg){
 		var width = log.param.width;
@@ -442,7 +403,7 @@ var Command = (function(){
 		inputs["canvas_width"].value = root_layer.img.width;
 		inputs["canvas_height"].value = root_layer.img.height;
 
-		refreshMain(0);
+		root_layer.composite();
 	}
 
 
@@ -469,17 +430,13 @@ var Command = (function(){
 		layer.children=[];
 
 		layer.refreshDiv();
-		refreshMain(0);
-
-
+		//layer.refreshImg();
 	}
 	Command.joinLayer=function(log,undo_flg){
 		//レイヤ結合
 
 		var param = log.param;
 
-		if(param.layer_id===-1){
-		}
 		if(undo_flg){
 			var undo_data=log.undo_data;
 			//width=log.undo_data.width;
@@ -496,9 +453,8 @@ var Command = (function(){
 		var parent_layer = Layer.findParent(layerA);
 		var layers = parent_layer.children;
 		var ls=[layerA,layerB];
-		//差分ログ作成
-		if(!log.undo_data){
 
+		if(!log.undo_data){
 
 			var x=Math.min(layerA.position[0] ,layerB.position[0]);
 			var y=Math.min(layerA.position[1] ,layerB.position[1]);
@@ -511,40 +467,47 @@ var Command = (function(){
 			log.undo_data={"layerA":layerA,"position":position,"layerB":layerB,"positionB":position2};
 
 			var img = new Img(width,height);
-
-			//レイヤ合成
-			for(var li=0;li<ls.length;li++){
-				var layer = ls[li];
-
-				var layer_img_data = layer.img.data;
-				var layer_alpha=layer.alpha;
-				var layer_power=Math.pow(2,layer.power);
-				var layer_img_width = layer.img.width;
-				var func = funcs["normal"];
-				var layer_position_x= layer.position[0] -x;
-				var layer_position_y= layer.position[1] -y;
-
-				//レイヤごとのクランプ
-				var left2 = Math.max(0,layer.position[0]);
-				var top2 = Math.max(0,layer.position[1]);
-				var right2 = Math.min(layer.img.width + layer_position_x ,width);
-				var bottom2 = Math.min(layer.img.height + layer_position_y ,height);
-
-				for(var yi=top2;yi<bottom2;yi++){
-					var idx = yi * width + left2 << 2;
-					var max = yi * width + right2 << 2;
-					var idx2 = (yi-layer_position_y) * layer_img_width + left2 - layer_position_x << 2;
-					for(;idx<max;idx+=4){
-						func(img.data,idx,layer_img_data,idx2,layer_alpha,layer_power);
-						idx2+=4;
-					}
-				}
-				
-			}
-			layer =Layer.create(img);
-			layer.name=layerA.name + "+" + layerB.name;
+			layer =Layer.create(img,1);
 			layer.position[0]=x;
 			layer.position[1]=y;
+			layer.append(0,layerB);
+			Vec2.sub(layerB.position,layerB.position,layer.position);
+			Vec2.sub(layerA.position,layerA.position,layer.position);
+			layer.append(1,layerA);
+			layer.composite();
+			layer.type=0;
+			layer.children=[];
+
+
+//			//レイヤ合成
+//			for(var li=0;li<ls.length;li++){
+//				var layer = ls[li];
+//
+//				var layer_img_data = layer.img.data;
+//				var layer_alpha=layer.alpha;
+//				var layer_power=Math.pow(2,layer.power);
+//				var layer_img_width = layer.img.width;
+//				var func = funcs["normal"];
+//				var layer_position_x= layer.position[0] -x;
+//				var layer_position_y= layer.position[1] -y;
+//
+//				//レイヤごとのクランプ
+//				var left2 = Math.max(0,layer.position[0]);
+//				var top2 = Math.max(0,layer.position[1]);
+//				var right2 = Math.min(layer.img.width + layer_position_x ,width);
+//				var bottom2 = Math.min(layer.img.height + layer_position_y ,height);
+//
+//				for(var yi=top2;yi<bottom2;yi++){
+//					var idx = yi * width + left2 << 2;
+//					var max = yi * width + right2 << 2;
+//					var idx2 = (yi-layer_position_y) * layer_img_width + left2 - layer_position_x << 2;
+//					for(;idx<max;idx+=4){
+//						func(img.data,idx,layer_img_data,idx2,layer_alpha,layer_power);
+//						idx2+=4;
+//					}
+//				}
+//			}
+			layer.name=layerA.name + "+" + layerB.name;
 
 			log.undo_data.layer=layer;
 		}else{
@@ -555,9 +518,9 @@ var Command = (function(){
 			layers.splice(n,1);
 		}
 
-		root_layer.append(n,layer);
+		parent_layer.append(n,layer);
 		layer.refreshDiv();
-		root_layer.refreshDiv();
+		parent_layer.refreshDiv();
 
 		refreshMain(0,layer.position[0],layer.position[1],layer.img.width,layer.img.height);
 
@@ -623,12 +586,8 @@ var Command = (function(){
 		layer.img=new Img(width,height);
 		Img.copy(layer.img,0,0,old_img,0,0,old_img.width,old_img.height);
 		layer.refreshDiv();
-		refreshThumbnails(layer);
-		refreshMain(0,0,0,layer.img.width,layer.img.height);
-
-
-
-		refreshMain(0);
+		layer.registRefreshThumbnail();
+		layer.parent.bubbleComposite();
 	}
 
 	Command.multiCommand=function(_log,undo_flg){
@@ -649,8 +608,6 @@ var Command = (function(){
 						var dif = difs[di];
 						Img.copy(layer.img,dif.x,dif.y,dif.img,0,0,dif.img.width,dif.img.height);
 					}
-					refreshMain();
-					refreshThumbnails(layer);
 				}
 			}
 		}else{
@@ -672,7 +629,6 @@ var Command = (function(){
 			var parent_layer = Layer.findById(log.undo_data.parent);
 
 			parent_layer.append(idx,layer);
-			refreshMain();
 			return;
 		}
 		var layer_id = log.param.layer_id;
@@ -707,7 +663,9 @@ var Command = (function(){
 				Layer.select(null);
 			}
 		}
-		refreshMain();
+		if(parent_layer){
+			parent_layer.bubbleComposite();
+		}
 	}
 	return ret;
 })();

@@ -1,4 +1,5 @@
 
+"use strict"
 var root_layer=null;
 var selected_layer = null;
 
@@ -20,6 +21,8 @@ var Layer=(function(){
 		this.children=[]; //子供レイヤ
 	};
 	var ret = Layer;
+
+	ret.enableRefreshThumbnail=true;
 
 
 	ret.init=function(){
@@ -132,7 +135,11 @@ var Layer=(function(){
 
 	ret.DragEnter = function(event) {
 		//ドラッグ移動時
-		var drop_layer = getLayerFromDiv(event.currentTarget);
+		var drop_layer = getLayerFromDiv(event.currentTarget.parentNode);
+
+		if(!drop_layer){
+			return;
+		}
 
 		event.stopPropagation();
 		if(drag_layer=== drop_layer){
@@ -170,7 +177,7 @@ var Layer=(function(){
 		event.stopPropagation();
 
 		var drag = parseInt(event.dataTransfer.getData("text"));
-		var parent_layer= getLayerFromDiv(event.target.parentNode);
+		var parent_layer= getLayerFromDiv(event.currentTarget.parentNode);
 
 
 		if(drag_layer.type ===1){
@@ -191,6 +198,9 @@ var Layer=(function(){
 
 		var position= 0;
 
+		if(parent_layer ===null){
+			console.log("NUL");
+		}
 		Command.executeCommand("moveLayer",{"layer_id":drag_layer.id
 			,"parent_layer_id":parent_layer.id,"position":position});
 	}
@@ -228,6 +238,7 @@ var Layer=(function(){
 					,bottom -top +1);
 			}
 		}
+		this.registRefreshThumbnail();
 	}
 	ret.prototype.bubbleComposite=function(x,y,w,h){
 		if(typeof x === 'undefined'){
@@ -268,22 +279,31 @@ var Layer=(function(){
 		if(layer === root_layer){
 			layers_container = document.getElementById("layers_container");
 		}else{
-			layer.div.className="layer";
+			//layer.div.className="layer";
 			if(selected_layer === layer){
 				layer.div.classList.add("active");
+			}else{
+				layer.div.classList.remove("active");
 			}
+
 			if(layer.type===1){
 				layer.div.classList.add("group");
+			}else{
+				layer.div.classList.remove("group");
 			}
 			var div= layer.div.getElementsByClassName("name")[0];
 			var name=layer.name;
 			if(!this.display){
 				name +="(非表示)";
 				layer.div.classList.add("invisible");
+			}else{
+				layer.div.classList.remove("invisible");
 			}
 			if(this.lock){
 				name +="(lock)";
 				layer.div.classList.add("lock");
+			}else{
+				layer.div.classList.remove("lock");
 			}
 			if(this.mask_alpha){
 				name +="(αlock)";
@@ -331,7 +351,6 @@ var Layer=(function(){
 		this.refreshDiv();
 		//refreshMain();
 		this.bubbleComposite();
-		refreshLayerThumbnail(this);
 	}
 
 	//レイヤサムネイル作成用
@@ -365,6 +384,7 @@ var Layer=(function(){
 		}
 		var newx = img.width/r|0;
 		var newy = img.height/r|0;
+		thumbnail_img.clear(0,0,newx,newy);
 		var data = img.data;
 		var dst_data = thumbnail_img.data;
 		var sum=new Vec4();
@@ -393,7 +413,11 @@ var Layer=(function(){
 				dst_data[idx+3]=sum[3]*rr255;
 			}
 		}
+		thumbnail_img.width=newx;
+		thumbnail_img.height=newy;
 		layer_img.src = thumbnail_img.toDataURL();
+		thumbnail_img.width=64;
+		thumbnail_img.height=64;
 
 	}
 
@@ -414,7 +438,7 @@ var Layer=(function(){
 
 		if(selected_layer){
 			if(selected_layer.type ===1){
-				inputs["join_layer"].value="結合し通常レイヤにする";
+				inputs["join_layer"].value="全ての子を結合";
 			}else{
 				inputs["join_layer"].value="下のレイヤと結合";
 			}
@@ -436,7 +460,7 @@ var Layer=(function(){
 
 	}
 
-	var layer_id_count=0;
+	ret.layer_id_count=0;
 	ret.create=function(img,composite_flg){
 		var layer_template= document.getElementById("layer_template");
 		var layer = new Layer();
@@ -457,8 +481,8 @@ var Layer=(function(){
 
 		layer.img=img;
 
-		layer.id=layer_id_count;
-		layer_id_count++;
+		layer.id=this.layer_id_count;
+		this.layer_id_count++;
 		layer.name ="layer"+("0000"+layer.id).slice(-4);
 
 		layer.refreshDiv();
@@ -533,8 +557,10 @@ var Layer=(function(){
 
 	var stackThumbnail=[];
 	var refreshThumbnail=function(){
-		var layer = stackThumbnail.shift();
-		layer.refreshThumbnail();
+		if(Layer.enableRefreshThumbnail){
+			var layer = stackThumbnail.shift();
+			layer.refreshThumbnail();
+		}
 		if(stackThumbnail.length>0){
 			window.requestAnimationFrame(function(e){
 				refreshThumbnail();
@@ -563,19 +589,20 @@ var Layer=(function(){
 			right = this.img.width-1;
 			bottom= this.img.height-1;
 		}
-		var layers=this.children;
-		if(!layers){
+
+		if(this === root_layer){
+			refreshPreview(0,left,top,right-left+1,bottom-top+1);
+		}else{
+			this.registRefreshThumbnail();
+		}
+		if(this.type !==1){
 			return;
 		}
+		var layers=this.children;
 		var img = this.img;
 		var img_data = img.data;
 		var img_width = img.width;
 		
-		if(this === root_layer){
-			refreshPreview(left,top,right-left+1,bottom-top+1);
-		}else{
-			this.registRefreshThumbnail();
-		}
 
 
 		img.clear(left,top,right-left+1,bottom-top+1);
@@ -614,9 +641,14 @@ var Layer=(function(){
 			}
 			
 		}
-		
 
 	}
+	ret.opencloseClick = function(e){
+		var layer= getLayerFromDiv(event.target.parentNode);
+		layer.div.classList.toggle("open");
+		return false;
+	}
+	
 	return ret;
 })();
 

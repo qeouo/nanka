@@ -1,4 +1,109 @@
 
+
+var saveHpd= function(e){
+	//ドキュメントファイル保存
+	var files=[];
+	var doc_data={};
+
+	var layers = Layer.layerArray();
+	doc_data.layers=[];
+
+	for(var li=0;li<layers.length;li++){
+		var layer = layers[li];
+		var layer2={};
+
+		//レイヤをopneExrファイル化
+		if(layer.type===0){
+			var file={};
+			files.push(file);
+			file.data= new Uint8Array(layer.img.createExr(3));
+			file.name = layer.id+".exr";
+		}else{
+			layer2.width=layer.img.width;
+			layer2.height=layer.img.height;
+
+		}
+
+		//レイヤ情報収集
+		var keys=Object.keys(layer);
+		for(var ki=0;ki<keys.length;ki++){
+			layer2[keys[ki]]=layer[keys[ki]];
+		}
+		//親子関係をid化
+		layer2.children=[];
+		for(var ki=0;ki<layer.children.length;ki++){
+			layer2.children.push(layer.children[ki].id);
+		}
+		//不要なデータを削除
+		delete layer2.img;
+		delete layer2.parent;
+		delete layer2.div;
+		delete layer2.aaadiv;
+
+		doc_data.layers.push(layer2);
+	}
+	//ブラシ情報セット
+	doc_data.brushes =[];
+	for(var bi=0;bi<brushes.length;bi++){
+		var brush = brushes[bi];
+		var brush2 = {};
+
+		//情報収集
+		var keys=Object.keys(brush);
+		for(var ki=0;ki<keys.length;ki++){
+			brush2[keys[ki]]=brush[keys[ki]];
+		}
+		//不要なデータを削除
+		delete brush2.div;
+
+		doc_data.brushes.push(brush2);
+	}
+
+	//その他情報をセット
+	doc_data.canvas_width = preview.width;
+	doc_data.canvas_height= preview.height;
+	var keys=Object.keys(inputs);
+	for(var i=0;i<keys.length;i++){
+		var id = keys[i]
+		var input = inputs[id];
+		doc_data[id] = input.value;
+		if(input.type==="checkbox"){
+			if(input.checked){
+				doc_data[id] =1;
+			}else{
+				doc_data[id] =0;
+			}
+		}
+	}
+	doc_data.layer_id_count = Layer.layer_id_count;
+
+	//ドキュメント情報をdoc.txtとして書き込む
+	var file = {}
+	file.data = Util.stringToUtf8(JSON.stringify(doc_data));
+	file.name="doc.txt"
+	files.push(file);
+
+	//doc.txtと画像ファイルを無圧縮zipにする
+	var buffer = Zip.create(files);
+    var blob = new Blob([buffer], {type: "application/octet-stream"});
+
+	var a = e.target;
+    a.href =  window.URL.createObjectURL(blob);
+    a.target = '_blank';
+    a.download = "project.hpd";
+}
+
+var setParam = function(dst,src){
+	var keys=Object.keys(src);
+	for(var ki=0;ki<keys.length;ki++){
+		var key = keys[ki];
+		if(typeof dst[key] ==="number"){
+			dst[key]=Number(src[key]);
+		}else{
+			dst[key]=src[key];
+		}
+	}
+}
 var loadHpd=function(buffer){
 
 	var fu =function(img){
@@ -16,9 +121,6 @@ var loadHpd=function(buffer){
 	}
 
 	disableRefresh();
-//	for(var li=layers.length;li--;){
-//		Command.deleteLayer({param:{"layer_id":layers[li].id}});
-//	}
 	if(root_layer){
 		Command.deleteLayer({param:{"layer_id":root_layer.id}});
 	}
@@ -38,9 +140,24 @@ var loadHpd=function(buffer){
 			input.checked = true;
 		}
 	}
-	layer_id_count = doc_data.layer_id_count;
+	Layer.layer_id_count = doc_data.layer_id_count;
 
 	
+	brushes=[];
+	for(var bi=0;bi<doc_data.brushes.length;bi++){
+		//ブラシ読み込み
+		var doc_brush=doc_data.brushes[bi];
+		var brush=Brush.create();
+		brushes.push(brush);
+
+		//パラメータ設定
+		var id = brush.id;
+		setParam(brush,doc_brush);
+		brush.id=id;
+		
+		brush.refresh();
+	}
+	Brush.refreshBrush();
 
 	var layers=[];
 	for(var li=0;li<doc_data.layers.length;li++){
@@ -83,15 +200,11 @@ var loadHpd=function(buffer){
 			layer.append(ki,child);
 			//layer.children[ki]=layers.find(
 		}
-
-		layer.refresh();
 	}
-
-
 	enableRefresh();
 
 
-	refreshMain();
+	compositeAll();
 	refreshTab("tools");
 	root_layer.children[root_layer.children.length-1].select();
 	
@@ -99,83 +212,34 @@ var loadHpd=function(buffer){
 	//createRGBA();
 	changeColor(null);
 	
-
 	CommandLog.reset();
 
+	if(brushes.length>0){
+		brushes[0].select();
+	}
 }
-var saveHpd= function(e){
-	//ドキュメントファイル保存
-	var files=[];
-	var doc_data={};
-
-	var layers = Layer.layerArray();
-	doc_data.layers=[];
-
-	for(var li=0;li<layers.length;li++){
-		var layer = layers[li];
-		var layer2={};
-
-		//レイヤをopneExrファイル化
-		if(layer.type===0){
-			var file={};
-			files.push(file);
-			file.data= new Uint8Array(layer.img.createExr(3));
-			file.name = layer.id+".exr";
-		}else{
-			layer2.width=layer.img.width;
-			layer2.height=layer.img.height;
-
-		}
-
-		//レイヤ情報収集
-		var keys=Object.keys(layer);
-		for(var ki=0;ki<keys.length;ki++){
-			layer2[keys[ki]]=layer[keys[ki]];
-		}
-		//親子関係をid化
-		layer2.children=[];
-		for(var ki=0;ki<layer.children.length;ki++){
-			layer2.children.push(layer.children[ki].id);
-		}
-		//不要なデータを削除
-		delete layer2.img;
-		delete layer2.div;
-		delete layer2.aaadiv;
-
-		doc_data.layers.push(layer2);
+var addBrush = function(buffer){
+	var files=Zip.read(buffer);
+	var doc_file = files.find(function(f){return f.name==="doc.txt";});
+	if(!doc_file){
+		return;
 	}
-	//レイヤ以外の情報をセット
-	doc_data.canvas_width = preview.width;
-	doc_data.canvas_height= preview.height;
-	var keys=Object.keys(inputs);
-	for(var i=0;i<keys.length;i++){
-		var id = keys[i]
-		var input = inputs[id];
-		doc_data[id] = input.value;
-		if(input.type==="checkbox"){
-			if(input.checked){
-				doc_data[id] =1;
-			}else{
-				doc_data[id] =0;
-			}
-		}
+	var doc_data = JSON.parse(Util.utf8ToString(doc_file.data));
+
+	for(var bi=0;bi<doc_data.brushes.length;bi++){
+		//ブラシ読み込み
+		var doc_brush=doc_data.brushes[bi];
+		var brush=Brush.create();
+		brushes.push(brush);
+
+		//パラメータ設定
+		var id = brush.id;
+		setParam(brush,doc_brush);
+		brush.id=id;
+		
+		brush.refresh();
 	}
-	doc_data.layer_id_count = layer_id_count;
-
-	//ドキュメント情報をdoc.txtとして書き込む
-	var file = {}
-	file.data = Util.stringToUtf8(JSON.stringify(doc_data));
-	file.name="doc.txt"
-	files.push(file);
-
-	//doc.txtと画像ファイルを無圧縮zipにする
-	var buffer = Zip.create(files);
-    var blob = new Blob([buffer], {type: "application/octet-stream"});
-
-	var a = e.target;
-    a.href =  window.URL.createObjectURL(blob);
-    a.target = '_blank';
-    a.download = "project.hpd";
+	Brush.refreshBrush();
 }
 
 var saveHdr= function(e){

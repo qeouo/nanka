@@ -40,7 +40,16 @@ var Brush=(function(){
 			  ,function(){selected_brush.update();});
 		document.querySelector("#create_brush").addEventListener(
 			"click"
-			,function(){Brush.create().update();});
+			,function(){
+				var brush = Brush.create()
+				brushes.push(brush);
+				brush.update();
+				brush.select();
+				Brush.refreshBrush();
+			});
+		document.querySelector("#delete_brush").addEventListener(
+			"click"
+			  ,function(){selected_brush.delete();});
 
 
 		//ブラシプレビュー準備
@@ -67,6 +76,20 @@ var Brush=(function(){
 
 
 	}
+	//削除
+	ret.prototype.delete = function(){
+		var num = brushes.indexOf(this);
+		brushes.splice(num,1);
+
+		if(num>=brushes.length){
+			num=brushes.length-1;
+		}
+		if(num>=0){
+			brushes[num].select();
+		}
+		Brush.refreshBrush();
+
+	}
 
 	//現在のブラシID 作るたびインクリメントされる
 	var brush_id_count=0;
@@ -80,13 +103,13 @@ var Brush=(function(){
 
 		brush.id=brush_id_count;
 		brush_id_count++;
-		brushes.push(brush);
+		//brushes.push(brush);
 
 		brush.name ="brush"+("0000"+brush.id).slice(-4);
 
 		refreshBrush(brush);
-		refreshBrush();
-		brush.select();
+		//refreshBrush();
+		//brush.select();
 
 		return brush;
 
@@ -108,7 +131,7 @@ var Brush=(function(){
 				var member = input.id.replace("brush_","");
 				if(member in brush){
 					if(input.getAttribute("type")==="checkbox"){
-						brush[member] = input.checked;
+						brush[member] = Number(input.checked);
 					}else{
 						brush[member]=input.value;
 					}
@@ -117,7 +140,7 @@ var Brush=(function(){
 		}
 
 		brush.refresh();
-		}
+	}
 		Brush.delete=function(){
 			var num = brushes.indexOf(selected_brush);
 			brushes.splice(num,1);
@@ -132,17 +155,17 @@ var Brush=(function(){
 			param.color[1] = inputs["color_G"].value;
 			param.color[2] = inputs["color_B"].value;
 			param.color[3] = inputs["color_A"].value;
-			param.weight=parseFloat(inputs["weight"].value);
-			param.softness=parseFloat(inputs["softness"].value);
-			param.antialias=inputs["brush_antialias"].checked;
+			param.weight=Number(inputs["weight"].value);
+			param.softness=Number(inputs["softness"].value);
+			param.antialias=Number(inputs["brush_antialias"].checked);
+			param.eraser = Number(inputs["eraser"].checked);
 			param.alpha = inputs["brush_alpha"].value;
 
-			param.eraser = inputs["eraser"].checked;
 			
 			param.overlap=parseInt(inputs["brush_overlap"].value);
 			param.pressure_effect_flgs= 
-				  (1 * inputs["weight_pressure_effect"].checked)
-				| (2 * inputs["alpha_pressure_effect"].checked);
+				  (1 * Number(inputs["weight_pressure_effect"].checked))
+				| (2 * Number(inputs["alpha_pressure_effect"].checked));
 			param.alpha_pressure_effect = inputs["alpha_pressure_effect"].checked;
 			param.stroke_interpolation = inputs["stroke_interpolation"].checked;
 
@@ -202,6 +225,20 @@ var Brush=(function(){
 		}
 
 
+		var refresh_flg=false;
+		ret.refreshPreview = function(){
+			if(!refresh_flg){
+				window.requestAnimationFrame(Brush.refreshPreview_);
+				refresh_flg=true;
+			}
+		}
+		ret.refreshPreview_=function(){
+			if(refreshpen_flg){
+				Brush.refreshPen();
+				refresh_flg=false;
+			}
+		}
+
 		ret.prototype.select=function(){
 			//アクティブブラシ変更
 			selected_brush=this;
@@ -239,9 +276,8 @@ var Brush=(function(){
 
 			//ブラシ選択状態にする
 			inputs["pen"].checked=true;
+			Brush.refreshPreview();
 			
-			refreshpen_flg=true;
-
 		}
 
 	//ドラッグ＆ドロップによるブラシ順編集
@@ -277,6 +313,7 @@ var Brush=(function(){
 
 		}
 	}
+	ret.refreshBrush = refreshBrush;
 
 	ret.DragEnter = function(event) {
 		//ドラッグ移動時

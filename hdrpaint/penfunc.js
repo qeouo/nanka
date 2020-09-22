@@ -23,12 +23,6 @@ var PenFunc = (function(){
 
 			painted_mask.fill(0);
 
-			//refreshMain();
-			Layer.bubble_func(layer,
-				function(layer){
-					refreshLayerThumbnail(layer);
-				}
-			);
 		}else{
 			//window.requestAnimationFrame(function(){
 			//	aaa.actualDraw()
