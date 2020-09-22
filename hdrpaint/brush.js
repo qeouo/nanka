@@ -35,6 +35,24 @@ var Brush=(function(){
 		brush_inputs = Array.prototype.slice.call(f.getElementsByTagName("input"));
 		brush_inputs = brush_inputs.concat(Array.prototype.slice.call(f.getElementsByTagName("select")));
 
+		document.querySelector("#up_brush").addEventListener(
+			"click"
+			  ,function(){
+				var num = brushes.indexOf(selected_brush);
+				if(num<=0){ return; }
+				brushes.splice(num,1);
+				brushes.splice(num-1,0,selected_brush);
+				refreshBrush();
+			});
+		document.querySelector("#down_brush").addEventListener(
+			"click"
+			  ,function(){
+				var num = brushes.indexOf(selected_brush);
+				if(num+1>=brushes.length){ return; }
+				brushes.splice(num,1);
+				brushes.splice(num+1,0,selected_brush);
+				refreshBrush();
+			});
 		document.querySelector("#update_brush").addEventListener(
 			"click"
 			  ,function(){selected_brush.update();});
