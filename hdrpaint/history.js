@@ -28,6 +28,7 @@ var CommandLog = (function(){
 		Util.setText(this.option, label);
 	}
 	var command_logs=[];
+	ret.command_logs = command_logs;
 	var undo_max=10; //undo情報最大保持ステップ数
 	var command_log_cursor=-1; //現在のログ位置(undo redoで移動する)
 
@@ -39,7 +40,7 @@ var CommandLog = (function(){
 		for(var i=options.length;i--;){
 			inputs["history"].removeChild(options[i]);
 		}
-		command_logs=[];
+		command_logs.length=0;
 		command_log_cursor=-1;
 	}
 

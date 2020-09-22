@@ -26,8 +26,6 @@
 
 <script type="text/javascript" src="./history.js"></script>
 <script type="text/javascript" src="./command.js"></script>
-<script type="text/javascript" src="./command/fill.js"></script>
-<script type="text/javascript" src="./command/translate.js"></script>
 <script type="text/javascript" src="./layer.js"></script>
 <script type="text/javascript" src="./file.js"></script>
 <script type="text/javascript" src="./redraw.js"></script>
@@ -66,7 +64,13 @@ var onloadfunc=function(e){
 	preview_ctx =  preview.getContext('2d')
 	preview_ctx_imagedata=preview_ctx.createImageData(preview.width,preview.height);
 
-
+	window.addEventListener("beforeunload",function(event){ 
+		if(CommandLog.command_logs.length>1){
+			event.returnValue = '移動前に表示する確認のメッセージ';
+			return false;
+		}
+		return true;
+	});
 
 
 	var keys=Object.keys(inputs);
@@ -278,7 +282,7 @@ var onloadfunc=function(e){
 			param.alpha_mask = selected_layer.mask_alpha;
 			param.points=[];
 			param.layer_id = selected_layer.id;
-			pen_log = Command.executeCommand("pen",param);
+			pen_log = Command.executeCommand("brush",param);
 			if(pen_log){
 				pen_func= new PenFunc();
 				pen_func.pen_log=pen_log;
@@ -384,6 +388,12 @@ var onloadfunc=function(e){
 				}
 			}
 			event.preventDefault();
+			break;
+		case 46://delete
+			if(selected_layer.type===1){
+				break;
+			}
+			Command.executeCommand("clear",{"layer_id":selected_layer.id});
 			break;
 		case 32://space
 			if(!flg_active_layer_only){
@@ -503,6 +513,7 @@ var onloadfunc=function(e){
 			file_hpd.value=null;
 		};
 		file_hpd.click();
+		e.preventDefault();
 		return false;
 	});
 
@@ -517,6 +528,7 @@ var onloadfunc=function(e){
 			file_hpd.value=null;
 		};
 		file_hpd.click();
+		e.preventDefault();
 		return false;
 	});
 
@@ -527,12 +539,14 @@ var onloadfunc=function(e){
 		var parent_layer =  Layer.findParent(selected_layer);
 		var layers = parent_layer.children;
 		var position = layers.indexOf(selected_layer);
+		if(position<=0){return;}
 		Command.executeCommand("moveLayer",{"layer_id":selected_layer.id,"parent_layer_id":parent_layer.id,"position":position-1});
 	});
 	inputs["up_layer"].addEventListener("click",function(e){
 		var parent_layer =  Layer.findParent(selected_layer);
 		var layers = parent_layer.children;
 		var position = layers.indexOf(selected_layer);
+		if(position+1>=layers.length){return;}
 		Command.executeCommand("moveLayer",{"layer_id":selected_layer.id,"parent_layer_id":parent_layer.id,"position":position+1});
 	});
 
@@ -920,7 +934,7 @@ var createNewCompositeLayer=function(e){
 
 		<div  style="">
 			<ul>
-			<li><a id="add_brush" href="#" style="text-decoration:line-through;" onclick=";return false;">ブラシインポート</a></li>
+			<li><a id="add_brush" href="#" >ブラシインポート</a></li>
 			</ul>
 			<input style="display:none;"type="file" id="open_brush" accept="image/*,.hdr,.exr" >
 		</div>
@@ -928,9 +942,9 @@ var createNewCompositeLayer=function(e){
 
 	<div id="color_selecter" class="area">
 		<div class="label">カラーセレクタ</div>
-		<div class="color_status">
+		<div class="color_status" onchange="{changeColor();}">
 			<ul>
-			<li class="red">R<input type="input" id="color_R" value="0.8" onchange="{changeColor(null);}" /></li>
+			<li class="red">R<input type="input" id="color_R" value="0.8" /></li>
 			<li class="green">G<input type="input" id="color_G" value="0.2"/></li>
 			<li class="blue">B<input type="input" id="color_B" value="0.2"/></li>
 			</ul>
@@ -1101,7 +1115,7 @@ var createNewCompositeLayer=function(e){
 			tabs[i].setRGB(color);
 		}
 
-		refreshpen_flg=true;
+		Brush.refreshPreview();
 	}
 </script>
 

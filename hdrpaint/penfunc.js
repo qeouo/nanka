@@ -43,7 +43,7 @@ var PenFunc = (function(){
 		if(this.idx>=1){
 
 			//ÉçÉOï∂ñ ïœçX
-			log.label = ("0000" + log.id).slice(-4) + "| pen" ;
+			log.label = ("0000" + log.id).slice(-4) + "| " + log.command;
 			log.label += "(" + points[0].pos[0].toFixed(2)+ ","+ points[0].pos[1].toFixed(2)+")-";
 			log.label += (points.length-2) +"-";
 			log.label += "(" + points[points.length-1].pos[0].toFixed(2)+ ","+ points[points.length-1].pos[1].toFixed(2)+")";
