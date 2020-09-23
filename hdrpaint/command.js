@@ -83,79 +83,7 @@ var Command = (function(){
 		parent_layer.refreshDiv();
 		parent_layer.refreshImg();
 	}
-	Command.createNewCompositeLayer=function(log,undo_flg){
-		Command.createNewLayer(log,undo_flg);
-	}
-	Command.createNewLayer=function(log,undo_flg){
-		var param = log.param;
-		var width = param.width;
-		var height= param.height;
-		var n= param.position;
 
-		var layer;
-		if(undo_flg){
-			removeNewLayer(log.undo_data.layer);
-			return;
-		}
-		if(!log.undo_data){
-			var img = new Img(width,height);
-			var data = img.data;
-			for(var i=0;i<data.length;i+=4){
-				data[i+0]= 1;
-				data[i+1]= 1;
-				data[i+2]= 1;
-				data[i+3]= 0;
-			}
-
-			layer =Layer.create(img,param.composite_flg);
-			log.undo_data={"layer":layer};
-		}else{
-			layer = log.undo_data.layer;
-		}
-		var parentLayer = Layer.findById(param.parent);
-
-		parentLayer.append(n,layer);
-		Layer.select(layer);
-
-		return layer;
-
-	}
-
-
-	Command.moveLayer=function(log,undo_flg){
-
-		var param = log.param;
-		var layer = Layer.findById(param.layer_id);
-		var now_parent_layer= Layer.findParent(layer);
-		var layers =now_parent_layer.children;
-		var next_parent_layer = param.parent_layer_id;
-		var position = param.position;
-		var layer_num = layers.indexOf(layer);
-
-		if(undo_flg){
-			position = log.undo_data.before;
-			next_parent_layer= log.undo_data.before_parent;
-		}
-		next_parent_layer = Layer.findById(next_parent_layer);
-		
-		if(position<0|| layers.length < position){
-			return;
-		}	
-		if(layer_num === position && now_parent_layer === next_parent_layer){
-			return;
-		}	
-
-		now_parent_layer.children.splice(layer_num,1);
-		now_parent_layer.bubbleComposite();
-
-		var layers_container = layer.div.parentNode;
-
-		next_parent_layer.append(position,layer);
-
-		if(!log.undo_data){
-			log.undo_data = {"before":layer_num,"before_parent":now_parent_layer.id};
-		}
-	}
 
 
 	Command.changeLayerAttribute=function(log,undo_flg){
@@ -217,7 +145,6 @@ var Command = (function(){
 		return layer;
 	}
 
-	var flgdata=[];
 	Command.resizeCanvas=function(log,undo_flg){
 		var width = log.param.width;
 		var height = log.param.height;
@@ -466,54 +393,8 @@ var Command = (function(){
 		}
 
 	}
-	Command.deleteLayer=function(log,undo_flg){
 
-		if(undo_flg){
-			var layer = log.undo_data.layer;
-			var idx = log.undo_data.position;
-			var parent_layer = Layer.findById(log.undo_data.parent);
-
-			parent_layer.append(idx,layer);
-			return;
-		}
-		var layer_id = log.param.layer_id;
-
-		var layer = Layer.findById(layer_id);
-		var parent_layer = Layer.findParent(layer);
-		if(parent_layer){
-			var layers = parent_layer.children;
-			var idx=  layers.indexOf(layer);
-
-			if(!log.undo_data){
-				log.undo_data ={"layer":layer,"position":idx,"parent":parent_layer.id};
-			}
-
-			//レイヤ削除
-			 if(idx<0){
-				 return;
-			 }
-			 
-
-			layers.splice(idx,1);
-			layer.div.classList.remove("active_layer");
-			parent_layer.refreshDiv();
-
-
-			if(layer === selected_layer){
-				idx = Math.max(idx-1,0);
-				if(layers.length){
-					Layer.select(layers[idx]);
-				}
-			}else{
-				Layer.select(null);
-			}
-		}
-		if(parent_layer){
-			parent_layer.bubbleComposite();
-		}
-	}
-
-	var commands=["fill","translate","clear","brush"];
+	var commands=["fill","translate","clear","brush","createNewLayer","moveLayer","deleteLayer"];
 	for(var i=0;i<commands.length;i++){
 		Util.loadJs("./command/" + commands[i] +".js");
 	}
