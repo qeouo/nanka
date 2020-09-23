@@ -26,6 +26,13 @@ Command["deleteLayer"] = (function(){
 			 if(idx<0){
 				 return;
 			 }
+			if(layer === selected_layer){
+				if(layers.length>0){
+					Layer.select(layers[Math.max(idx-1,0)]);
+				}else{
+					Layer.select(null);
+				}
+			}
 			 
 
 			layers.splice(idx,1);
@@ -33,14 +40,6 @@ Command["deleteLayer"] = (function(){
 			parent_layer.refreshDiv();
 
 
-			if(layer === selected_layer){
-				idx = Math.max(idx-1,0);
-				if(layers.length){
-					Layer.select(layers[idx]);
-				}
-			}else{
-				Layer.select(null);
-			}
 		}
 		if(parent_layer){
 			parent_layer.bubbleComposite();

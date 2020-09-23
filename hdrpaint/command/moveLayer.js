@@ -16,7 +16,7 @@ Command["moveLayer"] = (function(){
 		}
 		next_parent_layer = Layer.findById(next_parent_layer);
 		
-		if(position<0|| layers.length < position){
+		if(position<0|| next_parent_layer.children.length < position){
 			return;
 		}	
 		if(layer_num === position && now_parent_layer === next_parent_layer){

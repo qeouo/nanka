@@ -156,7 +156,6 @@ div.spacer{
 	border:solid 1px;
 	height:auto;
 	min-width:240px;
-	min-height:34px;
 	font-size:smaller;
 	line-height:1;
 	background-color:#333;
@@ -168,6 +167,15 @@ div.spacer{
 	margin-bottom:0px;
 	white-space: nowrap;
 	position:relative;
+	min-height:34px;
+}
+.layer_dragenter{
+	min-height:34px;
+	min-width:240px;
+	position:absolute;
+	left:0px;
+	top:0px;
+
 }
 .layer .openclosebutton{
 	float:left;

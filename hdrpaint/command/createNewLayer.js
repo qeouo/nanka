@@ -8,7 +8,25 @@ Command["createNewLayer"] = (function(){
 
 		var layer;
 		if(undo_flg){
-			removeNewLayer(log.undo_data.layer);
+			//removeNewLayer(log.undo_data.layer);
+
+			layer = log.undo_data.layer;
+			var parent_layer = Layer.findParent(layer);
+			var layers = parent_layer.children;
+			var idx = layers.indexOf(layer);
+
+			if(layer == selected_layer){
+				if(parent_layer.children.length>1){
+					if(parent_layer.children.length<=idx){
+						idx--;
+					}
+					
+					parent_layer.children[idx].select();
+				}
+			}
+			layers.splice(idx,1);
+			parent_layer.refreshDiv();
+			parent_layer.bubbleComposite();
 			return;
 		}
 		if(!log.undo_data){

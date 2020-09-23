@@ -200,15 +200,12 @@ Command["fill"] = (function(){
 			log.undo_data={};
 			var layer_img= layer.img;
 			layer.img = old_img;
-			var dif=Command.createDif(layer,refresh_left,refresh_top,width,height);
+			var dif=Hdrpaint.createDif(layer,refresh_left,refresh_top,width,height);
 			layer.img=layer_img;
 			log.undo_data.difs=[];
 			log.undo_data.difs.push(dif);
 		}
 
-		//refreshMain(0,refresh_left + layer.position[0]
-		//	,refresh_top + layer.position[1]
-		//	,refresh_right-refresh_left,refresh_bottom-refresh_top);
 		layer.refreshImg(refresh_left
 			,refresh_top
 			,refresh_right-refresh_left+1,refresh_bottom-refresh_top+1);

@@ -24,6 +24,7 @@
 <script type="text/javascript" src="../lib/geono.js"></script>
 <script type="text/javascript" src="../lib/img.js"></script>
 
+<script type="text/javascript" src="./hdrpaint.js"></script>
 <script type="text/javascript" src="./history.js"></script>
 <script type="text/javascript" src="./command.js"></script>
 <script type="text/javascript" src="./layer.js"></script>
@@ -1039,14 +1040,14 @@ var createNewCompositeLayer=function(e){
 				onclick="Layer.click(event)">
 				<a href="#" class="openclosebutton" onclick="Layer.opencloseClick(event)">
 				</a>
-				<div ondragenter="Layer.DragEnter(event)" >
 					<div class="thumbnailouter" >
 						<img class="thumbnail" >
 					</div>
 					<div class="name"></div>
 					<div class="layer_attributes"></div>
-				</div>
 				<div class="children" ondragenter="Layer.DragEnterChild(event)"></div>
+				<div class="layer_dragenter" ondragenter="Layer.DragEnter(event)" >
+				</div>
 			</div>
 		</div>
 

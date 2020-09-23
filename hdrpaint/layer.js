@@ -165,6 +165,10 @@ var Layer=(function(){
 
 		var parent_layer = Layer.findParent(drop_layer);
 		var position= parent_layer.children.indexOf(drop_layer);
+		var now_position= parent_layer.children.indexOf(drag_layer);
+		if(now_position <0){
+			position++;
+		}
 
 		Command.executeCommand("moveLayer",{"layer_id":drag_layer.id
 			,"parent_layer_id":parent_layer.id,"position":position});
@@ -198,9 +202,6 @@ var Layer=(function(){
 
 		var position= 0;
 
-		if(parent_layer ===null){
-			console.log("NUL");
-		}
 		Command.executeCommand("moveLayer",{"layer_id":drag_layer.id
 			,"parent_layer_id":parent_layer.id,"position":position});
 	}
