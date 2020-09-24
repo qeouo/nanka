@@ -8,12 +8,13 @@ Command["deleteLayer"] = (function(){
 			var parent_layer = Layer.findById(log.undo_data.parent);
 
 			parent_layer.append(idx,layer);
+			layer.select();
 			return;
 		}
 		var layer_id = log.param.layer_id;
 
 		var layer = Layer.findById(layer_id);
-		var parent_layer = Layer.findParent(layer);
+		var parent_layer = layer.parent;
 		if(parent_layer){
 			var layers = parent_layer.children;
 			var idx=  layers.indexOf(layer);
@@ -22,23 +23,20 @@ Command["deleteLayer"] = (function(){
 				log.undo_data ={"layer":layer,"position":idx,"parent":parent_layer.id};
 			}
 
+			var index = layers.indexOf(layer);
 			//ƒŒƒCƒ„íœ
-			 if(idx<0){
-				 return;
-			 }
+			Hdrpaint.removeLayer(layer);
 			if(layer === selected_layer){
-				if(layers.length>0){
-					Layer.select(layers[Math.max(idx-1,0)]);
+				if(index<layers.length){
+					layers[index].select();
 				}else{
-					Layer.select(null);
+					if(index===0){
+						layers[index].select();
+					}else{
+						layers[index-1].select();
+					}
 				}
 			}
-			 
-
-			layers.splice(idx,1);
-			layer.div.classList.remove("active_layer");
-			parent_layer.refreshDiv();
-
 
 		}
 		if(parent_layer){

@@ -59,17 +59,25 @@ var CommandLog = (function(){
 			//リドゥ
 			command_log_cursor++
 			var log = command_logs[command_log_cursor];
-			Command[log.command](log);
+			
+			command = Command[log.command];
+			if(command.execute){
+				command.execute(log);
+			}else{
+				command(log);
+			}
 		}
 
 		for(;command_log_cursor>n;){
 			//アンドゥ
 			var log = command_logs[command_log_cursor];
-			if(!log.undo_data){
-				break;
-			}
 
-			Command[log.command](log,true);
+			command = Command[log.command];
+			if(command.execute){
+				command.undo(log);
+			}else{
+				command(log,true);
+			}
 
 			var difs = log.undo_data.difs;
 			if(difs){
@@ -82,11 +90,6 @@ var CommandLog = (function(){
 					var dif = difs[di];
 					Img.copy(layer.img,dif.x,dif.y,dif.img,0,0,dif.img.width,dif.img.height);
 				}
-				//Layer.bubble_func(layer,
-				//	function(layer){
-				//		refreshLayerThumbnail(layer);
-				//	}
-				//);
 			}
 
 			command_log_cursor--;

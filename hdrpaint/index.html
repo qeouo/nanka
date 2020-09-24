@@ -26,7 +26,6 @@
 
 <script type="text/javascript" src="./hdrpaint.js"></script>
 <script type="text/javascript" src="./history.js"></script>
-<script type="text/javascript" src="./command.js"></script>
 <script type="text/javascript" src="./layer.js"></script>
 <script type="text/javascript" src="./file.js"></script>
 <script type="text/javascript" src="./redraw.js"></script>
@@ -247,7 +246,7 @@ var onloadfunc=function(e){
 			color[1] = inputs["color_G"].value;
 			color[2] = inputs["color_B"].value;
 			color[3] = inputs["color_A"].value;
-			Command.executeCommand("fill",{"layer_id":selected_layer.id,"x":x,"y":y,"color":color,"is_layer":flg_active_layer_only});
+			Hdrpaint.executeCommand("fill",{"layer_id":selected_layer.id,"x":x,"y":y,"color":color,"is_layer":flg_active_layer_only});
 
 		}else if(inputs["translate"].checked && (e.buttons &1) ){
 			//レイヤ位置移動
@@ -258,7 +257,7 @@ var onloadfunc=function(e){
 				//アクティブレイヤ
 				layer_id=selected_layer.id;
 			}
-			pen_log = Command.executeCommand("translateLayer",{"layer_id":layer_id,"x":0,"y":0} ,{"x":selected_layer.position[0],"y":selected_layer.position[1]},1);
+			pen_log = Hdrpaint.executeCommand("translateLayer",{"layer_id":layer_id,"x":0,"y":0} ,{"x":selected_layer.position[0],"y":selected_layer.position[1]},1);
 
 
 		}else if((inputs["pen"].checked) && (e.buttons &1) ){
@@ -283,7 +282,7 @@ var onloadfunc=function(e){
 			param.alpha_mask = selected_layer.mask_alpha;
 			param.points=[];
 			param.layer_id = selected_layer.id;
-			pen_log = Command.executeCommand("brush",param);
+			pen_log = Hdrpaint.executeCommand("brush",param);
 			if(pen_log){
 				pen_func= new PenFunc();
 				pen_func.pen_log=pen_log;
@@ -394,7 +393,7 @@ var onloadfunc=function(e){
 			if(selected_layer.type===1){
 				break;
 			}
-			Command.executeCommand("clear",{"layer_id":selected_layer.id});
+			Hdrpaint.executeCommand("clear",{"layer_id":selected_layer.id});
 			break;
 		case 32://space
 			if(!flg_active_layer_only){
@@ -418,9 +417,9 @@ var onloadfunc=function(e){
 			var layer = selected_layer;
 			var member = e.target.id.replace("layer_","");
 			if(e.target.getAttribute("type")==="checkbox"){
-				Command.executeCommand("changeLayerAttribute",{"layer_id":layer.id,"name":member,"value":e.target.checked});
+				Hdrpaint.executeCommand("changeLayerAttribute",{"layer_id":layer.id,"name":member,"value":e.target.checked});
 			  }else{
-				Command.executeCommand("changeLayerAttribute",{"layer_id":layer.id,"name":member,"value":e.target.value});
+				Hdrpaint.executeCommand("changeLayerAttribute",{"layer_id":layer.id,"name":member,"value":e.target.value});
 			}
 		}
 		if(input.id==="layer_width"  || input.id==="layer_height"){
@@ -428,7 +427,7 @@ var onloadfunc=function(e){
 				var layer = selected_layer;
 				var width = parseInt(inputs["layer_width"].value);
 				var height= parseInt(inputs["layer_height"].value);
-				Command.executeCommand("resizeLayer",{"layer_id":layer.id,"width":width,"height":height});
+				Hdrpaint.executeCommand("resizeLayer",{"layer_id":layer.id,"width":width,"height":height});
 			}
 		}
 		if(input.id==="layer_x"  || input.id==="layer_y"){
@@ -438,7 +437,7 @@ var onloadfunc=function(e){
 				var y= parseInt(inputs["layer_y"].value);
 				x-=layer.position[0];
 				y-=layer.position[1];
-				Command.executeCommand("translateLayer",{"layer_id":layer.id,"x":x,"y":y});
+				Hdrpaint.executeCommand("translateLayer",{"layer_id":layer.id,"x":x,"y":y});
 			}
 		}
 
@@ -475,27 +474,28 @@ var onloadfunc=function(e){
 	var resizeCanvas=function(){
 		var width = parseInt(inputs["canvas_width"].value);
 		var height= parseInt(inputs["canvas_height"].value);
-		Command.executeCommand("resizeCanvas",{"width":width,"height":height});
+		Hdrpaint.executeCommand("resizeCanvas",{"width":width,"height":height});
 	}
 	inputs["canvas_width"].addEventListener("change",resizeCanvas);
 	inputs["canvas_height"].addEventListener("change",resizeCanvas);
 	inputs["btn_resize_layer"].addEventListener("click",function(e){
 		var width = parseInt(preview.width);
 		var height= parseInt(preview.height);
-		Command.executeCommand("resizeLayer",{"layer_id":selected_layer.id,"width":width,"height":height});
+		Hdrpaint.executeCommand("resizeLayer",{"layer_id":selected_layer.id,"width":width,"height":height});
 
 	});
 	inputs["btn_resize_layers"].addEventListener("click",function(e){
 		var width = parseInt(preview.width);
 		var height= parseInt(preview.height);
-		Command.executeCommand("resizeLayer",{"layer_id":-1,"width":width,"height":height});
+		Hdrpaint.executeCommand("resizeLayer",{"layer_id":-1,"width":width,"height":height});
 
 	});
 	inputs["open_layer"].addEventListener("change",function(e){
 		var file=this.files[0];
-		//Command.executeCommand("loadImageFile",{"position":layers.indexOf(selected_layer)+1,"file":file});
 		
-		Command.loadImageFile_(file,selected_layer.id);
+		if(file){
+			Hdrpaint.loadImageFile_(file);
+		}
 		this.value=null;
 
 	});
@@ -541,20 +541,20 @@ var onloadfunc=function(e){
 		var layers = parent_layer.children;
 		var position = layers.indexOf(selected_layer);
 		if(position<=0){return;}
-		Command.executeCommand("moveLayer",{"layer_id":selected_layer.id,"parent_layer_id":parent_layer.id,"position":position-1});
+		Hdrpaint.executeCommand("moveLayer",{"layer_id":selected_layer.id,"parent_layer_id":parent_layer.id,"position":position-1});
 	});
 	inputs["up_layer"].addEventListener("click",function(e){
 		var parent_layer =  Layer.findParent(selected_layer);
 		var layers = parent_layer.children;
 		var position = layers.indexOf(selected_layer);
 		if(position+1>=layers.length){return;}
-		Command.executeCommand("moveLayer",{"layer_id":selected_layer.id,"parent_layer_id":parent_layer.id,"position":position+1});
+		Hdrpaint.executeCommand("moveLayer",{"layer_id":selected_layer.id,"parent_layer_id":parent_layer.id,"position":position+1});
 	});
 
 	//レイヤ結合ボタン押下時
 	inputs["join_layer"].addEventListener("click",function(e){
 		if(selected_layer.type===1){
-			Command.executeCommand("composite"
+			Hdrpaint.executeCommand("composite"
 				,{"layer_id":selected_layer.id});
 			return;
 		}
@@ -570,11 +570,11 @@ var onloadfunc=function(e){
 		}
 
 		var id2= parent_layer.children[position-1].id;
-		Command.executeCommand("joinLayer",{"layer_id":id2,"layer_id2":selected_layer.id});
+		Hdrpaint.executeCommand("joinLayer",{"layer_id":id2,"layer_id2":selected_layer.id});
 	});
 
 	inputs["delete_layer"].addEventListener("click",function(e){
-		Command.executeCommand("deleteLayer",{"layer_id":selected_layer.id});
+		Hdrpaint.executeCommand("deleteLayer",{"layer_id":selected_layer.id});
 	});
 
 	var oldpos=new Vec2();
@@ -715,10 +715,10 @@ var onloadfunc=function(e){
 		});
 	}else{
 		root_layer = Layer.create(new Img(1,1),1);
-		//Command.executeCommand("resizeLayer",{"layer_id":root_layer.id,"width":512,"height":512});
+		//Hdrpaint.executeCommand("resizeLayer",{"layer_id":root_layer.id,"width":512,"height":512});
 
-		Command.executeCommand("resizeCanvas",{"width":512,"height":512});
-		Command.executeCommand("createNewLayer",{"position":0,"parent":root_layer.id,"width":preview.width,"height":preview.height});
+		Hdrpaint.executeCommand("resizeCanvas",{"width":512,"height":512});
+		Hdrpaint.executeCommand("createNewLayer",{"position":0,"parent":root_layer.id,"width":preview.width,"height":preview.height});
 		var layer = root_layer.children[0];
 		var img_data = layer.img.data;
 		for(var i=0;i<img_data.length;i++){
@@ -731,7 +731,7 @@ var onloadfunc=function(e){
 
 		CommandLog.reset();
 
-		Command.executeCommand("createNewLayer",{"position":1,"parent":root_layer.id,"width":preview.width,"height":preview.height});
+		Hdrpaint.executeCommand("createNewLayer",{"position":1,"parent":root_layer.id,"width":preview.width,"height":preview.height});
 		layer = root_layer.children[1];
 		layer.name="default"
 		layer.refreshDiv();
@@ -823,7 +823,7 @@ var createNewLayer=function(e){
 	var width= parent_layer.img.width;
 	var height= parent_layer.img.height;
 	
-	Command.executeCommand("createNewLayer",{"position":pos,"parent":parent_layer.id,"width":width,"height":height});
+	Hdrpaint.executeCommand("createNewLayer",{"position":pos,"parent":parent_layer.id,"width":width,"height":height});
 }
 var createNewCompositeLayer=function(e){
 	//新規コンポジットレイヤーを作成
@@ -836,7 +836,7 @@ var createNewCompositeLayer=function(e){
 	}
 	var idx= parent_layer.children.indexOf(selected_layer)+1;
 	
-	Command.executeCommand("createNewCompositeLayer",{"parent":parent_layer.id,"position":idx,"width":width,"height":height,"composite_flg":1});
+	Hdrpaint.executeCommand("createNewCompositeLayer",{"parent":parent_layer.id,"position":idx,"width":width,"height":height,"composite_flg":1});
 
 
 }

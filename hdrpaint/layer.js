@@ -170,7 +170,7 @@ var Layer=(function(){
 			position++;
 		}
 
-		Command.executeCommand("moveLayer",{"layer_id":drag_layer.id
+		Hdrpaint.executeCommand("moveLayer",{"layer_id":drag_layer.id
 			,"parent_layer_id":parent_layer.id,"position":position});
 	}
 
@@ -202,7 +202,7 @@ var Layer=(function(){
 
 		var position= 0;
 
-		Command.executeCommand("moveLayer",{"layer_id":drag_layer.id
+		Hdrpaint.executeCommand("moveLayer",{"layer_id":drag_layer.id
 			,"parent_layer_id":parent_layer.id,"position":position});
 	}
 
@@ -313,15 +313,15 @@ var Layer=(function(){
 			
 			var span = layer.div.getElementsByClassName("layer_attributes")[0];
 			var txt="";
-			txt += "blendfunc: "+layer.blendfunc +"<br>";
+			txt += "func:"+layer.blendfunc +"<br>";
 			if(layer.img){
-				txt += "offset:("+layer.position[0]+","+layer.position[1] +")"
-					+ "size:(" + layer.img.width + "," + layer.img.height +")<br>";
+				txt += "offset:["+layer.position[0]+","+layer.position[1] +"]"
+					+ "size:[" + layer.img.width + "," + layer.img.height +"]<br>";
 			}
 			layer.power=parseFloat(layer.power);
-			txt += "power: "+layer.power.toFixed(4)+"";
+			txt += "pow:"+layer.power.toFixed(2)+"";
 			layer.alpha=parseFloat(layer.alpha);
-			txt += "alpha: "+layer.alpha.toFixed(4)+"<br>";
+			txt += "α:"+layer.alpha.toFixed(2)+"<br>";
 			
 
 			span.innerHTML = txt;
