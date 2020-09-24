@@ -59,6 +59,11 @@ var canvas_field;
 	}
 var onloadfunc=function(e){
 
+	if(Util.getLoadingCount()>0){
+		window.setTimeout(onloadfunc,1000);
+		return;
+	}
+
 
 	preview=  document.getElementById('preview');
 	preview_ctx =  preview.getContext('2d')

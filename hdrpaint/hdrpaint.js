@@ -95,11 +95,17 @@ Hdrpaint=(function(){
 
 		var log = CommandLog.createLog(command,param,flg);
 		CommandLog.appendOption();
-		var command = Command[log.command];
-		if(command.execute){
-			command.execute(log);
+		if(log.command === "joinLayer"){
+			log.obj = new CommandJoinLayer();
+			log.obj.param = param;
+			log.obj.func();
 		}else{
-			command(log);
+			var command = Command[log.command];
+			if(command.execute){
+				command.execute(log);
+			}else{
+				command(log);
+			}
 		}
 		return log;
 	}
@@ -107,10 +113,6 @@ Hdrpaint=(function(){
 })();
 
 
-var PenPoint=function(){
-	this.pos=new Vec2();
-	this.pressure=1;
-}
 var Command = {};
 
 	var commands= [ "brush"

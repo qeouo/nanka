@@ -1,3 +1,7 @@
+var PenPoint=function(){
+	this.pos=new Vec2();
+	this.pressure=1;
+}
 Command["eraser"]=(function(){
 	return function(log,undo_flg){
 		//消しゴム描画
