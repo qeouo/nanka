@@ -34,7 +34,7 @@ commandObjs["noise"] = (function(){
 					r = 0;
 					for(var i=0;i<octave;i++){
 						scale2 =(1<<i)*scale;
-						r += Noise.noise(x*scale2+i*0.123+n*0.345
+						r += Noise.perlinnoise(x*scale2+i*0.123+n*0.345
 								,y*scale2+i*0.123+n*0.345
 								,z*scale2+i*0.123+n*0.345+ n*5) / (2<<i);
 					}

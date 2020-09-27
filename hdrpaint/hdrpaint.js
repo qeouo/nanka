@@ -117,7 +117,7 @@ Hdrpaint=(function(){
 		,"add"
 		,"sub"
 		,"transmit"
-		,"slide"
+		,"shift"
 	];
 
 	for(var i=0;i<ret.blendfuncsname.length;i++){

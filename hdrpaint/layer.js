@@ -573,7 +573,7 @@ var Layer=(function(){
 			var right2 = Math.min(layer.img.width + layer_position_x -1,right);
 			var bottom2 = Math.min(layer.img.height + layer_position_y-1 ,bottom);
 
-			if(layer.blendfunc === "slide"){
+			if(layer.blendfunc === "shift"){
 				bufimg.width = img.width;
 				bufimg.height = img.height;
 				Img.copy(bufimg,0,0,img,0,0,img.width,img.height);
@@ -589,9 +589,11 @@ var Layer=(function(){
 					var idx = yi * img_width + left2 << 2;
 					var max = yi * img_width + right2 << 2;
 					var idx2 = (yi-layer_position_y) * layer_img_width + left2 - layer_position_x << 2;
+					var xi = left2;
 					for(;idx<=max;idx+=4){
-						func(img_data,idx,layer_img_data,idx2,layer_alpha,layer_power,this,bufimg);
+						func(img_data,idx,layer_img_data,idx2,layer_alpha,layer_power,xi,yi,this,layer,bufimg);
 						idx2+=4;
+						xi++;
 					}
 				}
 			}
