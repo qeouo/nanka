@@ -60,10 +60,10 @@ var CommandLog = (function(){
 			command_log_cursor++
 			var log = command_logs[command_log_cursor];
 			
-			command = Command[log.command];
-			if(command.execute){
-				command.execute(log);
+			if(log.obj){
+				log.obj.func();
 			}else{
+				command = Command[log.command];
 				command(log);
 			}
 		}
@@ -72,25 +72,27 @@ var CommandLog = (function(){
 			//アンドゥ
 			var log = command_logs[command_log_cursor];
 
-			command = Command[log.command];
-			if(command.execute){
-				command.undo(log);
+			if(log.obj){
+				log.obj.undo();
+				log.obj.undo_default();
 			}else{
+				command = Command[log.command];
 				command(log,true);
-			}
 
-			var difs = log.undo_data.difs;
-			if(difs){
-				//画像戻す
-				var param = log.param;
-				var layer_id= param.layer_id;
-				var layer = Layer.findById(layer_id);
+				var difs = log.undo_data.difs;
+				if(difs){
+					//画像戻す
+					var param = log.param;
+					var layer_id= param.layer_id;
+					var layer = Layer.findById(layer_id);
 
-				for(var di=difs.length;di--;){
-					var dif = difs[di];
-					Img.copy(layer.img,dif.x,dif.y,dif.img,0,0,dif.img.width,dif.img.height);
+					for(var di=difs.length;di--;){
+						var dif = difs[di];
+						Img.copy(layer.img,dif.x,dif.y,dif.img,0,0,dif.img.width,dif.img.height);
+					}
 				}
 			}
+
 
 			command_log_cursor--;
 		}

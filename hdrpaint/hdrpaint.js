@@ -23,8 +23,8 @@ Hdrpaint=(function(){
 	ret.loadImageFile_=function(file){
 		var data = Hdrpaint.getPosition();
 		var fu =function(img){
-			var log =Command.executeCommand("loadImageFile",{"img":img,"file":file.name
-				,"parent":data.parent_layer_id,"position":data.position});
+			var log =Hdrpaint.executeCommand("loadImage",{"img":img,"file":file.name
+				,"parent_layer_id":data.parent_layer_id,"position":data.position});
 		}
 	 	if(/.*exr$/.test(file.name)){
 			Img.loadExr(file,0,fu);
@@ -49,16 +49,16 @@ Hdrpaint=(function(){
 		var layers = parent_layer.children;
 		var idx = layers.indexOf(layer);
 
+		layers.splice(idx,1);
 		if(layer == selected_layer){
-			if(parent_layer.children.length>1){
+			if(parent_layer.children.length>0){
 				if(parent_layer.children.length<=idx){
-					idx--;
+					idx= parent_layer.children.length-1;
 				}
 				
 				parent_layer.children[idx].select();
 			}
 		}
-		layers.splice(idx,1);
 		parent_layer.refreshDiv();
 		parent_layer.bubbleComposite();
 	}
@@ -95,8 +95,8 @@ Hdrpaint=(function(){
 
 		var log = CommandLog.createLog(command,param,flg);
 		CommandLog.appendOption();
-		if(log.command === "joinLayer"){
-			log.obj = new CommandJoinLayer();
+		if(commandObjs[log.command]){
+			log.obj = new commandObjs[log.command]();
 			log.obj.param = param;
 			log.obj.func();
 		}else{
@@ -109,6 +109,55 @@ Hdrpaint=(function(){
 		}
 		return log;
 	}
+
+//ブレンドファンクション
+	ret.blendfuncs={};
+	ret.blendfuncsname= [ "normal"
+		,"mul"
+		,"add"
+		,"sub"
+		,"transmit"
+		,"slide"
+	];
+
+	for(var i=0;i<ret.blendfuncsname.length;i++){
+		var name  = ret.blendfuncsname[i];
+		Util.loadJs("./blendfuncs/" + name +".js");
+	}
+
+	ret.addFilter = function(id,name){
+
+		var a= document.createElement("a");
+		a.id=id;
+		Util.setText(a,name);
+		a.setAttribute("href","#");
+		var area = document.getElementById("additional");
+		area.appendChild( a);
+		
+	}
+	ret.addPrompt= function(id,html){
+		var div= document.createElement("div");
+		div.id=id;
+		div.classList.add("area");
+		div.classList.add("prompt");
+		div.insertAdjacentHTML('beforeend',html);
+
+		var prompt_parent= document.querySelector(".prompt_parent");
+		prompt_parent.appendChild(div);
+	}
+	ret.showPrompt=function(id){
+		document.getElementById(id).style.display="inline";
+		document.querySelector(".prompt_parent").style.display="flex";
+	}
+	ret.closePrompt=function(){
+		var parent= document.querySelector(".prompt_parent")
+		parent.style.display="none";
+		for(var i=0;i<parent.children.length;i++){
+			parent.children[i].style.display="none";
+		 }
+	}
+
+
 	return ret;
 })();
 
@@ -123,14 +172,48 @@ var Command = {};
 		,"deleteLayer"
 		,"fill"
 		,"joinLayer"
-		,"loadImageFile"
+		,"loadImage"
 		,"moveLayer"
 		,"multiCommand"
 		,"resizeCanvas"
 		,"resizeLayer"
 		,"translate"
+		,"noise"
 	];
 
+var commandObjs={};
 	for(var i=0;i<commands.length;i++){
-		Util.loadJs("./command/" + commands[i] +".js");
+		var name = commands[i];
+		Util.loadJs("./command/" + commands[i] +".js",function(){
+				if(!commandObjs[name])return;
+			if(commandObjs[name].filter){
+
+			}
+
+		});
 	}
+var CommandBase = (function(){
+	var CommandBase = function(){
+		this.param={};
+		this.undo_data=null;
+	}
+	var ret = CommandBase;
+	ret.prototype.undo=function(){};
+	ret.prototype.func=function(){};
+	ret.prototype.undo_default=function(){
+		var difs = this.undo_data.difs;
+		if(difs){
+			//画像戻す
+			var param = this.param;
+			var layer_id= param.layer_id;
+			var layer = Layer.findById(layer_id);
+
+			for(var di=difs.length;di--;){
+				var dif = difs[di];
+				Img.copy(layer.img,dif.x,dif.y,dif.img,0,0,dif.img.width,dif.img.height);
+			}
+		}
+	}
+
+	return ret;
+})();

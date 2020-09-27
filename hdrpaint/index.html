@@ -10,11 +10,13 @@
 <meta http-equiv="Cache-Control" content="no-cache" />
 <title>hdr_paint</title>
 <link rel="stylesheet" type="text/css" href="main.css">
+<link rel="stylesheet" type="text/css" href="prompt.css">
 <style>
 </style>
 <script type="text/javascript" src="../lib/inherits.js"></script>
 <script type="text/javascript" src="../lib/util.js"></script>
 <script type="text/javascript" src="../lib/datastream.js"></script>
+<script type="text/javascript" src="../lib/noise.js"></script>
 <script type="text/javascript" src="../lib/vector.js"></script>
 <script type="text/javascript" src="../lib/openexr.js"></script>
 <script type="text/javascript" src="../lib/zip.js"></script>
@@ -75,6 +77,24 @@ var onloadfunc=function(e){
 			return false;
 		}
 		return true;
+	});
+
+	//blendfuncセット
+	var layer_blendfunc = document.querySelector("#layer_blendfunc");
+	 while(layer_blendfunc.firstChild){
+	 	layer_blendfunc.removeChild(layer_blendfunc.firstChild);
+	 }
+	for(var i=0;i<Hdrpaint.blendfuncsname.length;i++){
+		var name = Hdrpaint.blendfuncsname[i];
+		var option = document.createElement("option");
+		option.value = name;
+		Util.setText(option,name);
+		layer_blendfunc.appendChild(option);
+	}
+		
+	document.querySelector(".prompt_parent").addEventListener("click",function(e){
+		if(this !== e.target)return false;
+		Hdrpaint.closePrompt();
 	});
 
 
@@ -707,6 +727,8 @@ var onloadfunc=function(e){
 			Util.fireEvent(inputs[name],"input");
 		}
 	}
+
+
 //初期化
 	img_hsv.func();
 
@@ -844,7 +866,9 @@ var createNewCompositeLayer=function(e){
 	Hdrpaint.executeCommand("createNewCompositeLayer",{"parent":parent_layer.id,"position":idx,"width":width,"height":height,"composite_flg":1});
 
 
+
 }
+
 
 </script>
 </head>
@@ -948,28 +972,33 @@ var createNewCompositeLayer=function(e){
 
 	<div id="color_selecter" class="area">
 		<div class="label">カラーセレクタ</div>
-		<div class="color_status" onchange="{changeColor();}">
-			<ul>
-			<li class="red">R<input type="input" id="color_R" value="0.8" /></li>
-			<li class="green">G<input type="input" id="color_G" value="0.2"/></li>
-			<li class="blue">B<input type="input" id="color_B" value="0.2"/></li>
-			</ul>
-		</div>
-		<div id="tab_cs_default" onselectstart="return false;">
-			<div>
+		<div id="tab_cs_default"> 
+			<div style="float:left;" onselectstart="return false;">
 				<div style="position:relative;display:inline-block;" id="img_hsv_area">
 					<img id="img_hsv" width="128" height="128" draggable="false">
 					<div id="cursor_img_hsv"></div>
 					<div id="cursor2_img_hsv"></div>
 				</div>
-				<div style="position:relative;;display:inline-block;">
+				<div style="position:relative;display:inline-block;">
 					<img id="img_hsv2" width="8" height="128" draggable="false">
 					<div id="cursor_img_hsv2" ></div>
 				</div>
 			</div>
-			明るさ<input class="slider" id="cs_default_lumi" min="-10" max="10" value="0"><br>
+			<div class="color_status" class="float:left;" onchange="{changeColor();}">
+				<ul>
+				<li class="red">R<input type="text" id="color_R" value="0.8" /></li>
+				<li class="green">G<input type="text" id="color_G" value="0.2"/></li>
+				<li class="blue">B<input type="text" id="color_B" value="0.2"/></li>
+				</ul>
+			</div>
+			<div style="clear:both;">
+				明るさ<input class="slider" id="cs_default_lumi" min="-10" max="10" value="0"><br>
+			</div>
 		</div>
-		<div>A<input class="slider" id="color_A" max="1" value="1"/></div>
+		A<input class="slider" id="color_A" max="1" value="1"/>
+	</div>
+	<div id="additional" class="area">
+		<div class="label">フィルタとか</div>
 	</div>
 </div>
 
@@ -988,7 +1017,7 @@ var createNewCompositeLayer=function(e){
 			<input type="button" id="btn_resize_layers" value="全レイヤーをキャンバスに合わせる" ><br>
 			<span id="status2">
 			</span>
-			<div class="color_status" style="display:inline-block;">
+			<div class="color_status color_monitor" style="display:inline-block;">
 					<li class="red">R:<span id="pos_R"></span></li>
 					<li class="green">G:<span id="pos_G"></span></li>
 					<li class="blue">B:<span id="pos_B"></span></li>
@@ -1013,11 +1042,6 @@ var createNewCompositeLayer=function(e){
 			サイズ<input type="text" id="layer_width" value="" class="size">
 			<input type="text" id="layer_height" value="" class="size"><br>
 			合成func<select type="text" id="layer_blendfunc">
-				<option value="normal">normal</option>
-				<option value="add">add</option>
-				<option value="mul">mul</option>
-				<option value="sub">sub</option>
-				<option value="transmit">transmit</option>
 			</select><br>
 			α<input class="slider" id="layer_alpha" max="1"/>
 			<label><input type="checkbox" id="layer_mask_alpha"/>αロック</label><br>
@@ -1125,6 +1149,7 @@ var createNewCompositeLayer=function(e){
 	}
 </script>
 
+<div class="prompt_parent"></div>
 </body>
 </html>
 

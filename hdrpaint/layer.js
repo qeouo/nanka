@@ -359,10 +359,10 @@ var Layer=(function(){
 	ret.prototype.refreshThumbnail=function(){
 		//レイヤサムネイル更新
 		var layer=this;
-		if(!layer){
+		if(!layer.img){
 			return;
 		}
-		if(!layer.img){
+		if(!layer.img.data){
 			return;
 		}
 		var img = layer.img;
@@ -493,68 +493,6 @@ var Layer=(function(){
 
 	}
 
-	var funcs=[];
-	ret.funcs=funcs;
-	funcs["normal"] = function(dst,d_idx,src,s_idx,alpha,power){
-		var src_alpha=src[s_idx+3]*alpha;
-		var sa = src[s_idx+3]*alpha;
-		var da = dst[d_idx+3]*(1-sa);
-		var dst_r = (1 - sa);
-
-		var r = da+sa;
-		if(r==0){
-		   return;
-		}
-		r=1/r;
-		da*=r;
-		sa*=r;
-
-		sa = power*sa;
-
-		dst[d_idx+0]=dst[d_idx+0] * da  +  src[s_idx+0]*sa;
-		dst[d_idx+1]=dst[d_idx+1] * da  +  src[s_idx+1]*sa;
-		dst[d_idx+2]=dst[d_idx+2] * da  +  src[s_idx+2]*sa;
-		dst[d_idx+3]=dst[d_idx+3] * dst_r +  src_alpha;
-
-	}
-	funcs["mul"] = function(dst,d_idx,src,s_idx,alpha,power){
-		var src_alpha=src[s_idx+3]*alpha;
-		var dst_r = (1-src_alpha);
-		var src_r = power*src_alpha;
-
-		dst[d_idx+0]=dst[d_idx+0] * (dst_r +  src[s_idx+0]*src_r);
-		dst[d_idx+1]=dst[d_idx+1] * (dst_r +  src[s_idx+1]*src_r);
-		dst[d_idx+2]=dst[d_idx+2] * (dst_r +  src[s_idx+2]*src_r);
-	}
-	funcs["transmit"] = function(dst,d_idx,src,s_idx,alpha,power){
-		var src_alpha=src[s_idx+3]*alpha;
-		var dst_r = (1-src_alpha);
-		var src_r = power*src_alpha;
-
-		dst[d_idx+0]=dst[d_idx+0] * dst_r * src[s_idx+0]+  src[s_idx+0]*src_r;
-		dst[d_idx+1]=dst[d_idx+1] * dst_r * src[s_idx+1]+  src[s_idx+1]*src_r;
-		dst[d_idx+2]=dst[d_idx+2] * dst_r * src[s_idx+2]+  src[s_idx+2]*src_r;
-		dst[d_idx+3]=dst[d_idx+3] * dst_r +  src_alpha;
-	}
-	funcs["add"] = function(dst,d_idx,src,s_idx,alpha,power){
-		var src_alpha=src[s_idx+3]*alpha;
-		var dst_r = (1-src_alpha);
-		var src_r = power*src_alpha;
-
-		dst[d_idx+0]=dst[d_idx+0]  + src[s_idx+0]*src_r;
-		dst[d_idx+1]=dst[d_idx+1]  + src[s_idx+1]*src_r;
-		dst[d_idx+2]=dst[d_idx+2]  + src[s_idx+2]*src_r;
-	}
-
-	funcs["sub"] = function(dst,d_idx,src,s_idx,alpha,power){
-		var src_alpha=src[s_idx+3]*alpha;
-		var dst_r = (1-src_alpha);
-		var src_r = power*alpha;
-
-		dst[d_idx+0] = dst[d_idx+0]  - src[s_idx+0]*src_r;
-		dst[d_idx+1] = dst[d_idx+1]  - src[s_idx+1]*src_r;
-		dst[d_idx+2] = dst[d_idx+2]  - src[s_idx+2]*src_r;
-	}
 
 	var stackThumbnail=[];
 	var refreshThumbnail=function(){
@@ -582,6 +520,7 @@ var Layer=(function(){
 	}
 	
 
+	var bufimg = new Img(1024,1024);
 	ret.prototype.composite=function(left,top,right,bottom){
 
 		if(typeof left === 'undefined'){
@@ -607,6 +546,8 @@ var Layer=(function(){
 
 
 		img.clear(left,top,right-left+1,bottom-top+1);
+		var funcs = Hdrpaint.blendfuncs;
+
 
 		for(var li=0;li<layers.length;li++){
 			var layer = layers[li];
@@ -616,6 +557,7 @@ var Layer=(function(){
 				//非表示の場合スルー
 				continue;
 			}
+
 
 			var layer_img_data = layer.img.data;
 			var layer_alpha=layer.alpha;
@@ -631,13 +573,26 @@ var Layer=(function(){
 			var right2 = Math.min(layer.img.width + layer_position_x -1,right);
 			var bottom2 = Math.min(layer.img.height + layer_position_y-1 ,bottom);
 
-			for(var yi=top2;yi<=bottom2;yi++){
-				var idx = yi * img_width + left2 << 2;
-				var max = yi * img_width + right2 << 2;
-				var idx2 = (yi-layer_position_y) * layer_img_width + left2 - layer_position_x << 2;
-				for(;idx<=max;idx+=4){
-					func(img_data,idx,layer_img_data,idx2,layer_alpha,layer_power);
-					idx2+=4;
+			if(layer.blendfunc === "slide"){
+				bufimg.width = img.width;
+				bufimg.height = img.height;
+				Img.copy(bufimg,0,0,img,0,0,img.width,img.height);
+			}
+			if(layer.func2){
+				for(var yi=top2;yi<=bottom2;yi++){
+					for(var xi=left2;xi<=right2;xi++){
+						layer.func2(img,layer,xi,yi,this,bufimg);
+					}
+				}
+			}else{
+				for(var yi=top2;yi<=bottom2;yi++){
+					var idx = yi * img_width + left2 << 2;
+					var max = yi * img_width + right2 << 2;
+					var idx2 = (yi-layer_position_y) * layer_img_width + left2 - layer_position_x << 2;
+					for(;idx<=max;idx+=4){
+						func(img_data,idx,layer_img_data,idx2,layer_alpha,layer_power,this,bufimg);
+						idx2+=4;
+					}
 				}
 			}
 			

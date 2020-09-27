@@ -176,9 +176,9 @@ var tab_cs_standard=(function(){
 
 	var change_default= function(){
 		var lumi = Math.pow(2,parseFloat(inputs["cs_default_lumi"].value));
-		inputs["color_R"].value=img_hsv.color[0] * lumi;
-		inputs["color_G"].value=img_hsv.color[1] * lumi;
-		inputs["color_B"].value=img_hsv.color[2] * lumi;
+		inputs["color_R"].value=(img_hsv.color[0] * lumi).toFixed(4);
+		inputs["color_G"].value=(img_hsv.color[1] * lumi).toFixed(4);
+		inputs["color_B"].value=(img_hsv.color[2] * lumi).toFixed(4);
 
 		changeColor(tab_cs_standard);
 	}

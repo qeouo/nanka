@@ -265,8 +265,17 @@ color:#000;
 }
 
 /*カラーセレクタ-------------------------------------------*/
+.color_status {
+display:inline-block;
+}
+.color_monitor li{
+display:inline-block;
+}
+.color_status ul{
+display:inline-block;
+}
 .color_status li{
-	display:inline-block;
+/*	display:inline-block;*/
 	background-color:#000;
 }
 .color_status li.red{
