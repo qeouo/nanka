@@ -520,14 +520,33 @@ var Layer=(function(){
 	}
 	
 
-	var bufimg = new Img(1024,1024);
+	var composite_area = new Vec4();
 	ret.prototype.composite=function(left,top,right,bottom){
+		var funcs = Hdrpaint.blendfuncs;
+		var layers=this.children;
 
 		if(typeof left === 'undefined'){
 			left=0;
 			top=0;
 			right = this.img.width-1;
 			bottom= this.img.height-1;
+		}else{
+			for(var li=0;li<layers.length;li++){
+				var layer = layers[li];
+				var func = funcs[layer.blendfunc];
+				if(func.flg){
+					var pow = (Math.abs(layer.power*10)>>1)+1;
+					left-=pow;
+					top-=pow;
+					right+=pow;
+					bottom+=pow;
+					break;
+				}
+			}
+			left=Math.max(left,0);
+			top=Math.max(top,0);
+			right=Math.min(right,this.img.width-1);
+			bottom=Math.min(bottom,this.img.height-1);
 		}
 
 		if(this === root_layer){
@@ -538,7 +557,6 @@ var Layer=(function(){
 		if(this.type !==1){
 			return;
 		}
-		var layers=this.children;
 		var img = this.img;
 		var img_data = img.data;
 		var img_width = img.width;
@@ -546,7 +564,6 @@ var Layer=(function(){
 
 
 		img.clear(left,top,right-left+1,bottom-top+1);
-		var funcs = Hdrpaint.blendfuncs;
 
 
 		for(var li=0;li<layers.length;li++){
@@ -573,17 +590,9 @@ var Layer=(function(){
 			var right2 = Math.min(layer.img.width + layer_position_x -1,right);
 			var bottom2 = Math.min(layer.img.height + layer_position_y-1 ,bottom);
 
-			if(layer.blendfunc === "shift"){
-				bufimg.width = img.width;
-				bufimg.height = img.height;
-				Img.copy(bufimg,0,0,img,0,0,img.width,img.height);
-			}
-			if(layer.func2){
-				for(var yi=top2;yi<=bottom2;yi++){
-					for(var xi=left2;xi<=right2;xi++){
-						layer.func2(img,layer,xi,yi,this,bufimg);
-					}
-				}
+			Vec4.set(composite_area,left2,top2,right2-left2+1,bottom2-top2+1);
+			if(func.flg){
+				func(img,layer,left2,top2,right2,bottom2);
 			}else{
 				for(var yi=top2;yi<=bottom2;yi++){
 					var idx = yi * img_width + left2 << 2;
@@ -591,7 +600,7 @@ var Layer=(function(){
 					var idx2 = (yi-layer_position_y) * layer_img_width + left2 - layer_position_x << 2;
 					var xi = left2;
 					for(;idx<=max;idx+=4){
-						func(img_data,idx,layer_img_data,idx2,layer_alpha,layer_power,xi,yi,this,layer,bufimg);
+						func(img_data,idx,layer_img_data,idx2,layer_alpha,layer_power);
 						idx2+=4;
 						xi++;
 					}
@@ -599,7 +608,25 @@ var Layer=(function(){
 			}
 			
 		}
+	}
 
+	var pixel_data=new Float32Array(4);
+	ret.prototype.getPixel = function(x,y){
+		pixel_data.fill(0);
+		if(x<0 || y<0 || x>=this.img.width || y>=this.img.height){
+			return pixel_data;
+		}
+		if(this.func2){
+			this.prototype.func2(pixel_data,x,y);
+		}else if(this.img.data){
+			var data = this.img.data;
+			var idx = this.img.getIndex(x,y)<<2;
+			pixel_data[0] = data[idx];
+			pixel_data[1] = data[idx+1];
+			pixel_data[2] = data[idx+2];
+			pixel_data[3] = data[idx+3];
+		}
+		return pixel_data;
 	}
 	ret.opencloseClick = function(e){
 		var layer= getLayerFromDiv(event.target.parentNode);
