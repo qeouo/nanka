@@ -97,7 +97,8 @@ var CommandLog = (function(){
 			command_log_cursor--;
 		}
 		
-		compositeAll();
+		//compositeAll();
+		layer.refreshImg();
 
 	}
 

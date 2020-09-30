@@ -13,31 +13,50 @@ var PenFunc = (function(){
 	PenFunc.prototype.end=function(){
 		this.endFlg=1;
 	}
+
+	var id=-1;
 	PenFunc.prototype.actualDraw=function(){
 		var aaa=this;
 		var log = this.pen_log;
 		var points = log.param.points;
+
+		if(id>=0){
+			id=-1;
+			clearTimeout(id);
+		}
 		
 		if(this.endFlg && points.length <= this.idx){
 			var layer = Layer.findById(log.param.layer_id);
+		var funcs = Hdrpaint.blendfuncs;
+
+			var layers = layer.parent.children;
+			for(var i=layers.length;i--;){
+				if(layers[i] === layer){
+					break;
+				}
+				if(funcs[layers[i].blendfunc].flg){
+					layer.refreshImg();
+					break;
+				}
+			}
 
 			painted_mask.fill(0);
+			return;
 
-		}else{
-			//window.requestAnimationFrame(function(){
-			//	aaa.actualDraw()
-			//});
-			setTimeout(function(){aaa.actualDraw();},1);
 		}
 
 		if(points.length <= this.idx){
+			id =setTimeout(function(){aaa.actualDraw();},16);
 			return;
 		}
 
+		var now = Date.now();
 		var org = points[this.idx];
 
 
-		if(org.time + this.ragtime>Date.now()){
+		var d= this.ragtime - (now-org.time);
+		if(d>0){
+			id=setTimeout(function(){aaa.actualDraw();},d*0.5);
 			return;
 		}
 		if(this.idx>=1){
@@ -54,6 +73,15 @@ var PenFunc = (function(){
 			Command.drawHermitian(log,this.idx);
 		}
 		this.idx++;
+
+		if(points.length <= this.idx){
+			id=setTimeout(function(){aaa.actualDraw();},16);
+			return;
+		}
+		d= Math.max(this.ragtime - (now-org.time),1);
+		id=setTimeout(function(){aaa.actualDraw();},d*0.5);
+		return;
+		
 	}
 	return PenFunc;
 })();

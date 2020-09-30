@@ -12,13 +12,6 @@ Hdrpaint.blendfuncs["shift"] = (function(){
 		Img.copy(bufimg,0,0,img,0,0,img.width,img.height);
 		var img_data = img.data;
 
-		var pow = Math.abs(layer.power*10)>>1;
-		top2+=pow;
-		left2+=pow;
-		bottom2-=pow;
-		right2-=pow;
-
-
 		for(var yi=top2;yi<=bottom2;yi++){
 			var idx = yi * img_width + left2 << 2;
 			var max = yi * img_width + right2 << 2;

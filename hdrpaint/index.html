@@ -168,8 +168,6 @@ var onloadfunc=function(e){
 						points[pi].pressure = a + (b-a) * r;
 					}
 				}
-
-				
 			}
 
 			if(!(e.buttons&1)){
@@ -177,6 +175,8 @@ var onloadfunc=function(e){
 				point.pressure=0;
 				pen_log=null;
 			}	
+
+		pen_func.actualDraw();
 
 			
 		}else if(inputs["translate"].checked) {

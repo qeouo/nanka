@@ -525,35 +525,15 @@ var Layer=(function(){
 		var funcs = Hdrpaint.blendfuncs;
 		var layers=this.children;
 
+		var pow=0;
 		if(typeof left === 'undefined'){
 			left=0;
 			top=0;
 			right = this.img.width-1;
 			bottom= this.img.height-1;
-		}else{
-			for(var li=0;li<layers.length;li++){
-				var layer = layers[li];
-				var func = funcs[layer.blendfunc];
-				if(func.flg){
-					var pow = (Math.abs(layer.power*10)>>1)+1;
-					left-=pow;
-					top-=pow;
-					right+=pow;
-					bottom+=pow;
-					break;
-				}
-			}
-			left=Math.max(left,0);
-			top=Math.max(top,0);
-			right=Math.min(right,this.img.width-1);
-			bottom=Math.min(bottom,this.img.height-1);
 		}
 
-		if(this === root_layer){
-			refreshPreview(0,left,top,right-left+1,bottom-top+1);
-		}else{
-			this.registRefreshThumbnail();
-		}
+
 		if(this.type !==1){
 			return;
 		}
@@ -593,6 +573,11 @@ var Layer=(function(){
 			Vec4.set(composite_area,left2,top2,right2-left2+1,bottom2-top2+1);
 			if(func.flg){
 				func(img,layer,left2,top2,right2,bottom2);
+
+				top+=pow;
+				left+=pow;
+				bottom-=pow;
+				right-=pow;
 			}else{
 				for(var yi=top2;yi<=bottom2;yi++){
 					var idx = yi * img_width + left2 << 2;
@@ -607,6 +592,11 @@ var Layer=(function(){
 				}
 			}
 			
+		}
+		if(this === root_layer){
+			refreshPreview(0,left,top,right-left+1,bottom-top+1);
+		}else{
+			this.registRefreshThumbnail();
 		}
 	}
 
