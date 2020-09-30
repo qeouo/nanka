@@ -21,8 +21,8 @@ var PenFunc = (function(){
 		var points = log.param.points;
 
 		if(id>=0){
-			id=-1;
 			clearTimeout(id);
+			id=-1;
 		}
 		
 		if(this.endFlg && points.length <= this.idx){

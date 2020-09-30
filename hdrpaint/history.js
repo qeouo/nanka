@@ -90,6 +90,7 @@ var CommandLog = (function(){
 						var dif = difs[di];
 						Img.copy(layer.img,dif.x,dif.y,dif.img,0,0,dif.img.width,dif.img.height);
 					}
+					layer.refreshImg();
 				}
 			}
 
@@ -98,7 +99,6 @@ var CommandLog = (function(){
 		}
 		
 		//compositeAll();
-		layer.refreshImg();
 
 	}
 
