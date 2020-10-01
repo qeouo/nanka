@@ -492,6 +492,30 @@ var Layer=(function(){
 		return layer;
 
 	}
+	ret.createModifier=function(){
+		var layer_template= document.getElementById("layer_template");
+		var layer = new Layer();
+
+		layer.type=2;
+		layer.children=[];
+
+		var layer_div = layer_template.children[0].cloneNode(true);
+		layer_div.classList.add("group");
+		layer_div.classList.add("modifier");
+
+		layer.div=layer_div;
+
+		layer.img=null;
+
+		layer.id=this.layer_id_count;
+		this.layer_id_count++;
+		layer.name ="modifier"+("0000"+layer.id).slice(-4);
+
+		layer.refreshDiv();
+
+		return layer;
+
+	}
 
 
 	var stackThumbnail=[];

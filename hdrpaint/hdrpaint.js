@@ -169,6 +169,7 @@ var Command = {};
 		,"clear"
 		,"composite"
 		,"createNewLayer"
+		,"copylayer"
 		,"deleteLayer"
 		,"fill"
 		,"joinLayer"
