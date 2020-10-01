@@ -15,6 +15,7 @@ Command["changeLayerAttribute"] = (function(){
 		layer[name] = value;
 
 		layer.refreshDiv();
-		layer.refreshImg();
+		//layer.refreshImg();
+		layer.parent.bubbleComposite();
 	}
 })();

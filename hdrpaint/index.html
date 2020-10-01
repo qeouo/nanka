@@ -1,4 +1,4 @@
-r!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
 
@@ -10,6 +10,7 @@ r!DOCTYPE html>
 <meta http-equiv="Cache-Control" content="no-cache" />
 <title>hdr_paint</title>
 <link rel="stylesheet" type="text/css" href="main.css">
+<link rel="stylesheet" type="text/css" href="./css/layer.css">
 <link rel="stylesheet" type="text/css" href="prompt.css">
 <style>
 </style>
@@ -226,6 +227,7 @@ r!DOCTYPE html>
 			<input type="button" id="new" onclick="createNewLayer(event);" value="新規">
 			<input type="button" id="copylayer" onclick="copylayer(event);" value="複製">
 			<input type="button" id="new_composite_layer" onclick="createNewCompositeLayer(event);" value="新規グループレイヤ"><br>
+			<input type="button" id="new_modifier" onclick="createModifier(event);" value="モディファイア"><br>
 			<ul>
 			<li><a id="" href="#" onclick="inputs['open_layer'].click();return false;">画像ファイルを新規レイヤで開く</a></li>
 			</ul>
@@ -1141,9 +1143,14 @@ var createNewCompositeLayer=function(e){
 	
 	Hdrpaint.executeCommand("createNewCompositeLayer",{"parent":parent_layer.id,"position":idx,"width":width,"height":height,"composite_flg":1});
 
-
-
 }
+var createModifier=function(e){
+	//新規モディファイア
+	var data = Hdrpaint.getPosition();
+	
+	Hdrpaint.executeCommand("createmodifier",{"parent_layer_id":data.parent_layer_id,"position":data.position});
+}
+
 
 
 	var changeColor=function(target){

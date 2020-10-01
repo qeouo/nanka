@@ -170,6 +170,7 @@ var Command = {};
 		,"composite"
 		,"createNewLayer"
 		,"copylayer"
+		,"createmodifier"
 		,"deleteLayer"
 		,"fill"
 		,"joinLayer"

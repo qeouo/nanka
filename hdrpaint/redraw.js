@@ -367,10 +367,14 @@ var refreshActiveLayerParam = function(){
 			input.value = layer.position[1];
 			break;
 		case "layer_width":
-			input.value = layer.img.width;
+			if(layer.img){
+				input.value = layer.img.width;
+			}
 			break;
 		case "layer_height":
-			input.value = layer.img.height;
+			if(layer.img){
+				input.value = layer.img.height;
+			}
 			break;
 		default:
 			var member = input.id.replace("layer_","");
