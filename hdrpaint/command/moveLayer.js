@@ -4,7 +4,8 @@ Command["moveLayer"] = (function(){
 
 		var param = log.param;
 		var layer = Layer.findById(param.layer_id);
-		var now_parent_layer= Layer.findParent(layer);
+//		var now_parent_layer= Layer.findParent(layer);
+		var now_parent_layer= layer.parent;
 		var layers =now_parent_layer.children;
 		var next_parent_layer = param.parent_layer_id;
 		var position = param.position;

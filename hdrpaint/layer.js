@@ -1,4 +1,3 @@
-
 "use strict"
 var root_layer=null;
 var selected_layer = null;
@@ -147,7 +146,7 @@ var Layer=(function(){
 			return;
 		}
 
-		if(drag_layer.type ===1){
+		if(drag_layer.type !==0){
 			//グループレイヤドラッグ時は、自身の子になるかチェックし、その場合は無視
 			var flg = false;
 			Layer.bubble_func(drop_layer,
@@ -242,6 +241,15 @@ var Layer=(function(){
 		this.registRefreshThumbnail();
 	}
 	ret.prototype.bubbleComposite=function(x,y,w,h){
+		if(this.type===2){
+			if(this.parent){
+				this.parent.bubbleComposite(left+this.position[0]
+					,top + this.position[1]
+					,right-left+1
+					,bottom-top+1);
+			}
+			return;
+		}
 		if(typeof x === 'undefined'){
 			x = 0;
 			y = 0;
@@ -287,10 +295,10 @@ var Layer=(function(){
 				layer.div.classList.remove("active");
 			}
 
-			if(layer.type===1){
-				layer.div.classList.add("group");
-			}else{
+			if(layer.type===0){
 				layer.div.classList.remove("group");
+			}else{
+				layer.div.classList.add("group");
 			}
 			var div= layer.div.getElementsByClassName("name")[0];
 			var name=layer.name;
@@ -573,9 +581,16 @@ var Layer=(function(){
 		for(var li=0;li<layers.length;li++){
 			var layer = layers[li];
 
-			if(!layer.img
-			|| !layer.display ){
+			if(!layer.display ){
 				//非表示の場合スルー
+				continue;
+			}
+
+			if(layer.type ===2){
+				Hdrpaint.modifier["grayscale"](this,left,top,right-left+1,bottom-top+1);
+				continue;
+			}
+			if(!layer.img){
 				continue;
 			}
 
@@ -645,6 +660,7 @@ var Layer=(function(){
 	ret.opencloseClick = function(e){
 		var layer= getLayerFromDiv(event.target.parentNode);
 		layer.div.classList.toggle("open");
+		e.preventDefault();
 		return false;
 	}
 	

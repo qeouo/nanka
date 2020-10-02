@@ -125,6 +125,16 @@ Hdrpaint=(function(){
 		Util.loadJs("./blendfuncs/" + name +".js");
 	}
 
+//モデファイア
+	ret.modifier={};
+	ret.modifiername= [ "grayscale"
+	];
+
+	for(var i=0;i<ret.modifiername.length;i++){
+		var name  = ret.modifiername[i];
+		Util.loadJs("./modifier/" + name +".js");
+	}
+
 	ret.addFilter = function(id,name){
 
 		var a= document.createElement("a");
