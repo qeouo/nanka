@@ -54,7 +54,7 @@
 		ショトカ<input type="text" id="brush_shortcut" style="width:20px;"></div>
 		<div>
 		<img width="128" height="32" id="pen_preview" style="float:left;">
-		<label><input type="checkbox" id="brush_antialias"/>アンチエ</label><br>
+		<label><input type="checkbox" id="brush_antialias"/>AA</label><br>
 		<label><input type="checkbox" id="eraser"/>消しゴム</label>
 		</div>
 		<div>直径<input class="slider" id="weight" max="30"  value="3"/></div>
@@ -187,7 +187,7 @@
 			<div id="div_blendfunc">合成func<select type="text" id="layer_blendfunc">
 			</select></div>
 			<div id="div_modifier">モデファイア<select type="text" id="layer_modifier">
-			</select></div>
+			</select></div><br>
 			α<input class="slider" id="layer_alpha" max="1"/>
 			<label><input type="checkbox" id="layer_mask_alpha"/>αロック</label><br>
 			明るさ<input class="slider" id="layer_power" min="-10" max="10"/><br>
@@ -203,7 +203,6 @@
 				<input type="button" id="delete_layer" value="レイヤ削除" ><br>
 			</div>
 		</div>
-			<span class="comment">※スペースキー押下でアクティブレイヤのみ表示<br>(バケツコマンド等にも影響)</span>
 		<div class="layers" id="layers_container" >
 		</div>
 
@@ -234,6 +233,9 @@
 			</ul>
 			<input style="display:none;"type="file" id="open_layer" accept="image/*,.hdr,.exr" >
 		</div>
+	</div>
+	<div id="modifier_param" class="area">
+		<div class="label">モデファイア</div>
 	</div>
 
 	<div id="post_effect" class="area">
@@ -707,44 +709,6 @@ var onloadfunc=function(e){
 		}
     });
 
-	//レイヤパラメータコントロール変更時反映
-	var layer_inputs = Array.prototype.slice.call(document.getElementById("layer_param").getElementsByTagName("input"));
-	layer_inputs = layer_inputs.concat(Array.prototype.slice.call(document.getElementById("layer_param").getElementsByTagName("select")));
-	for(var i=0;i<layer_inputs.length;i++){
-		var input = layer_inputs[i];
-		var f = function(e){
-			if(!selected_layer){
-	  			return;
-	  		}
-			var layer = selected_layer;
-			var member = e.target.id.replace("layer_","");
-			if(e.target.getAttribute("type")==="checkbox"){
-				Hdrpaint.executeCommand("changeLayerAttribute",{"layer_id":layer.id,"name":member,"value":e.target.checked});
-			  }else{
-				Hdrpaint.executeCommand("changeLayerAttribute",{"layer_id":layer.id,"name":member,"value":e.target.value});
-			}
-		}
-		if(input.id==="layer_width"  || input.id==="layer_height"){
-			f=function(e){
-				var layer = selected_layer;
-				var width = parseInt(inputs["layer_width"].value);
-				var height= parseInt(inputs["layer_height"].value);
-				Hdrpaint.executeCommand("resizeLayer",{"layer_id":layer.id,"width":width,"height":height});
-			}
-		}
-		if(input.id==="layer_x"  || input.id==="layer_y"){
-			f=function(e){
-				var layer = selected_layer;
-				var x= parseInt(inputs["layer_x"].value);
-				var y= parseInt(inputs["layer_y"].value);
-				x-=layer.position[0];
-				y-=layer.position[1];
-				Hdrpaint.executeCommand("translateLayer",{"layer_id":layer.id,"x":x,"y":y});
-			}
-		}
-
-		input.addEventListener("change",f);
-	}
 
 	inputs["color_A"].addEventListener("change",function(){
 		changeColor(null);

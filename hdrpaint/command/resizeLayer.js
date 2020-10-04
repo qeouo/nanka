@@ -47,11 +47,11 @@ Command["resizeLayer"] = (function(){
 			
 			var dif;
 			if(dx>0){
-				dif=Hdrpaint.createDif(layer,width,0,dx,old_height);
+				dif = Hdrpaint.createDif(layer,width,0,dx,old_height);
 				log.undo_data.difs.push(dif);
 			}
 			if(dy>0){
-				dif=createDif(layer,0,height,old_width,dy);
+				dif= Hdrpaint.createDif(layer,0,height,old_width,dy);
 				log.undo_data.difs.push(dif);
 			}
 		}
@@ -59,7 +59,7 @@ Command["resizeLayer"] = (function(){
 
 		layer.img=new Img(width,height);
 		layer.size[0]=width;
-		layer.height[0]=height;
+		layer.size[1]=height;
 		Img.copy(layer.img,0,0,old_img,0,0,old_img.width,old_img.height);
 		layer.refreshDiv();
 		layer.registRefreshThumbnail();

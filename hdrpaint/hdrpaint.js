@@ -131,6 +131,10 @@ Hdrpaint=(function(){
 	ret.modifier={};
 	ret.modifiername= [ "grayscale"
 		,"shift"
+		,"gradient"
+		,"repeat"
+		,"mirror"
+		,"noise"
 	];
 
 	for(var i=0;i<ret.modifiername.length;i++){
@@ -171,6 +175,16 @@ Hdrpaint=(function(){
 	}
 
 
+	ret.addModifierControl= function(id,html){
+		var div= document.createElement("div");
+		div.id="div_"+id;
+		div.classList.add("modifier_area");
+		div.insertAdjacentHTML('beforeend',html);
+
+		var dialog_parent= document.querySelector("#modifier_param");
+		dialog_parent.appendChild(div);
+	}
+
 	return ret;
 })();
 
@@ -179,6 +193,7 @@ var Command = {};
 
 	var commands= [ "brush"
 		,"changeLayerAttribute"
+		,"changeModifierAttribute"
 		,"clear"
 		,"composite"
 		,"createNewLayer"
