@@ -37,6 +37,9 @@
 	border:solid 1px;
 	background-image:url(../back.png);
 }
+.layer.modifier>.thumbnailouter{
+	display:none;
+}
 .layer .name{
 	text-align:left;
 	font-weight:bold;
@@ -45,7 +48,7 @@
 
 }
 .layer_attributes{
-	position:absolute;
+	/*position:absolute;*/
 	top:2px;
 	right:0px;
 }

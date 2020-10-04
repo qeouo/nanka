@@ -68,25 +68,25 @@ commandObjs["noise"] = (function(){
 			rgb別:<input type="checkbox" class="betsu"><br>
 			<a href="#" class="button">実行</a>
 		`;
-	Hdrpaint.addPrompt("noise_prompt",html);
+	Hdrpaint.addDialog("noise_dialog",html);
 
-		var prompt = document.querySelector("#noise_prompt");
+		var dialog = document.querySelector("#noise_dialog");
 
 	document.getElementById("noise").addEventListener("click",function(){
-		Hdrpaint.showPrompt("noise_prompt");
+		Hdrpaint.showDialog("noise_dialog");
 		return false;
 	});
 
 	
-	prompt.querySelector(".button").addEventListener("click",function(e){
+	dialog.querySelector(".button").addEventListener("click",function(e){
 		Hdrpaint.executeCommand("noise",{
 			"layer_id":selected_layer.id
-			,"scale":Number(prompt.querySelector(".scale").value)
-			,"octave":Number(prompt.querySelector(".octave").value)
-			,"z":Number(prompt.querySelector(".z").value)
-			,"betsu":Number(prompt.querySelector(".betsu").checked)
+			,"scale":Number(dialog.querySelector(".scale").value)
+			,"octave":Number(dialog.querySelector(".octave").value)
+			,"z":Number(dialog.querySelector(".z").value)
+			,"betsu":Number(dialog.querySelector(".betsu").checked)
 		});
-		Hdrpaint.closePrompt();
+		Hdrpaint.closeDialog();
 
 	});
 

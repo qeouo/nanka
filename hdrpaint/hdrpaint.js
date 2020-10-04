@@ -7,14 +7,17 @@ Hdrpaint=(function(){
 		var data={};
 		if(!selected_layer){
 			data.parent_layer_id = root_layer.id;
+			data.parent_layer = root_layer;
 			data.position = root_layer.length;
 		}else{
-			if(selected_layer.type===1){
-				data.parent_layer_id = selected_layer.id;
-				data.position = selected_layer.length;
-			}else{
+			if(selected_layer.type===0){
 				data.parent_layer_id = selected_layer.parent.id;
+				data.parent_layer = selected_layer.parent;
 				data.position = selected_layer.parent.children.indexOf(selected_layer)+1;
+			}else{
+				data.parent_layer_id = selected_layer.id;
+				data.parent_layer = selected_layer;
+				data.position = selected_layer.length;
 			}
 		}
 		return data;
@@ -117,7 +120,6 @@ Hdrpaint=(function(){
 		,"add"
 		,"sub"
 		,"transmit"
-		,"shift"
 	];
 
 	for(var i=0;i<ret.blendfuncsname.length;i++){
@@ -128,6 +130,7 @@ Hdrpaint=(function(){
 //モデファイア
 	ret.modifier={};
 	ret.modifiername= [ "grayscale"
+		,"shift"
 	];
 
 	for(var i=0;i<ret.modifiername.length;i++){
@@ -145,22 +148,22 @@ Hdrpaint=(function(){
 		area.appendChild( a);
 		
 	}
-	ret.addPrompt= function(id,html){
+	ret.addDialog= function(id,html){
 		var div= document.createElement("div");
 		div.id=id;
 		div.classList.add("area");
-		div.classList.add("prompt");
+		div.classList.add("dialog");
 		div.insertAdjacentHTML('beforeend',html);
 
-		var prompt_parent= document.querySelector(".prompt_parent");
-		prompt_parent.appendChild(div);
+		var dialog_parent= document.querySelector(".dialog_parent");
+		dialog_parent.appendChild(div);
 	}
-	ret.showPrompt=function(id){
+	ret.showDialog=function(id){
 		document.getElementById(id).style.display="inline";
-		document.querySelector(".prompt_parent").style.display="flex";
+		document.querySelector(".dialog_parent").style.display="flex";
 	}
-	ret.closePrompt=function(){
-		var parent= document.querySelector(".prompt_parent")
+	ret.closeDialog=function(){
+		var parent= document.querySelector(".dialog_parent")
 		parent.style.display="none";
 		for(var i=0;i<parent.children.length;i++){
 			parent.children[i].style.display="none";

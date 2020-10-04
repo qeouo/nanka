@@ -7,7 +7,6 @@ var PenFunc = (function(){
 		this.idx=0;
 		this.ragtime=0;
 		var aaa=this;
-		//window.requestAnimationFrame(function(){aaa.actualDraw()});
 		setTimeout(function(){aaa.actualDraw();},1);
 	}
 	PenFunc.prototype.end=function(){
@@ -34,7 +33,7 @@ var PenFunc = (function(){
 				if(layers[i] === layer){
 					break;
 				}
-				if(funcs[layers[i].blendfunc].flg){
+				if(layers[i].modifier === "shift"){
 					layer.refreshImg();
 					break;
 				}

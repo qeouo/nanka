@@ -58,6 +58,8 @@ Command["resizeLayer"] = (function(){
 		var old_img = img;
 
 		layer.img=new Img(width,height);
+		layer.size[0]=width;
+		layer.height[0]=height;
 		Img.copy(layer.img,0,0,old_img,0,0,old_img.width,old_img.height);
 		layer.refreshDiv();
 		layer.registRefreshThumbnail();

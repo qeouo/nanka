@@ -21,6 +21,7 @@ commandObjs["createmodifier"] = (function(){
 		var layer;
 		if(!this.undo_data){
 			layer = Layer.createModifier();
+			Vec2.set(layer.size,param.width,param.height);
 
 			this.undo_data={"layer":layer};
 		}else{

@@ -11,10 +11,12 @@ var Layer=(function(){
 		this.power=0.0;
 		this.alpha=1.0;
 		this.blendfunc="normal";
+		this.modifier="grayscale";
 		this.div=null;
 		this.img=null;
 		this.mask_alpha=0;
 		this.position =new Vec2();
+		this.size=new Vec2();
 
 		this.type=0; //1なら階層レイヤ
 		this.children=[]; //子供レイヤ
@@ -60,7 +62,7 @@ var Layer=(function(){
 			if(f(layer)){
 				return true;
 			}
-			if(layer.type !== 1){
+			if(layer.type === 0){
 				return false;
 			}
 			var layers = layer.children;
@@ -183,7 +185,7 @@ var Layer=(function(){
 		var parent_layer= getLayerFromDiv(event.currentTarget.parentNode);
 
 
-		if(drag_layer.type ===1){
+		if(drag_layer.type !==0){
 			//グループレイヤドラッグ時は、自身の子になるかチェックし、その場合は無視
 			var flg = false;
 			Layer.bubble_func(parent_layer,
@@ -321,11 +323,14 @@ var Layer=(function(){
 			
 			var span = layer.div.getElementsByClassName("layer_attributes")[0];
 			var txt="";
-			txt += "func:"+layer.blendfunc +"<br>";
-			if(layer.img){
-				txt += "offset:["+layer.position[0]+","+layer.position[1] +"]"
-					+ "size:[" + layer.img.width + "," + layer.img.height +"]<br>";
+			if(layer.type === 2){
+				txt += "modifier:"+layer.modifier_func +"<br>";
+			}else{
+				txt += "func:"+layer.blendfunc +"<br>";
 			}
+			txt += "offset:["+layer.position[0]+","+layer.position[1] +"]"
+				+ "size:[" + layer.size[0]+ "," + layer.size[1]+"]<br>";
+			
 			layer.power=parseFloat(layer.power);
 			txt += "pow:"+layer.power.toFixed(2)+"";
 			layer.alpha=parseFloat(layer.alpha);
@@ -337,6 +342,7 @@ var Layer=(function(){
 			layers_container = layer.div.getElementsByClassName("children")[0];
 
 		}
+
 
 		//子レイヤ設定
 		while (layers_container.firstChild) layers_container.removeChild(layers_container.firstChild);
@@ -451,6 +457,14 @@ var Layer=(function(){
 			}else{
 				inputs["join_layer"].value="下のレイヤと結合";
 			}
+
+			if(selected_layer.type ===2){
+				document.getElementById("div_blendfunc").style.display="none";
+				document.getElementById("div_modifier").style.display="inline";
+			}else{
+				document.getElementById("div_blendfunc").style.display="inline";
+				document.getElementById("div_modifier").style.display="none";
+			}
 		}
 
 
@@ -489,6 +503,9 @@ var Layer=(function(){
 		layer.div=layer_div;
 
 		layer.img=img;
+		if(img){
+			Vec2.set(layer.size,img.width,img.height);
+		}
 
 		layer.id=this.layer_id_count;
 		this.layer_id_count++;
@@ -587,7 +604,7 @@ var Layer=(function(){
 			}
 
 			if(layer.type ===2){
-				Hdrpaint.modifier["grayscale"](this,left,top,right-left+1,bottom-top+1);
+				Hdrpaint.modifier[layer.modifier](this,layer,left,top,right-left+1,bottom-top+1);
 				continue;
 			}
 			if(!layer.img){

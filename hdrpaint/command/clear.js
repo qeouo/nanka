@@ -16,8 +16,8 @@ Command["clear"] = (function(){
 			log.undo_data.difs=[];
 			log.undo_data.difs.push(dif);
 		}
-
-		layer.img.clear();
+		//layer.img.clear();
+		layer.img.data.fill(0);
 		layer.refreshImg();
 	}
 })();

@@ -24,6 +24,8 @@ Command["resizeCanvas"] = (function(){
 
 		root_layer.img=new Img(width,height);
 
+		Vec2.set(root_layer.size,width,height);
+
 		inputs["canvas_width"].value = root_layer.img.width;
 		inputs["canvas_height"].value = root_layer.img.height;
 

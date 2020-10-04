@@ -1,5 +1,5 @@
 Hdrpaint.modifier["grayscale"] = (function(){
-	var GrayScale = function(dst,x,y,w,h){
+	var GrayScale = function(dst,src,x,y,w,h){
 		var img_data = dst.img.data;
 		for(var yi=0;yi<h;yi++){
 			idx = dst.img.getIndex(x,yi+y)<<2;

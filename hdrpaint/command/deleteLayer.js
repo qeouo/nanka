@@ -27,13 +27,13 @@ Command["deleteLayer"] = (function(){
 			//ƒŒƒCƒ„íœ
 			Hdrpaint.removeLayer(layer);
 			if(layer === selected_layer){
-				if(index<layers.length){
-					layers[index].select();
+				if(layers.length===0){
+					parent_layer.select();
 				}else{
-					if(index===0){
+					if(index<layers.length){
 						layers[index].select();
 					}else{
-						layers[index-1].select();
+						layers[layers.length-1].select();
 					}
 				}
 			}
