@@ -744,67 +744,65 @@ var Layer=(function(){
 	
 
 	//レイヤパラメータコントロール変更時反映
-	var layer_inputs = Array.prototype.slice.call(document.getElementById("layer_param").getElementsByTagName("input"));
-	layer_inputs = layer_inputs.concat(Array.prototype.slice.call(document.getElementById("layer_param").getElementsByTagName("select")));
-	for(var i=0;i<layer_inputs.length;i++){
-		var input = layer_inputs[i];
-		var f = function(e){
-			if(!selected_layer){
-	  			return;
-	  		}
-			var layer = selected_layer;
-			var member = e.target.id.replace("layer_","");
-			if(e.target.getAttribute("type")==="checkbox"){
-				Hdrpaint.executeCommand("changeLayerAttribute",{"layer_id":layer.id,"name":member,"value":e.target.checked});
-			  }else{
-				Hdrpaint.executeCommand("changeLayerAttribute",{"layer_id":layer.id,"name":member,"value":e.target.value});
-			}
-		}
+
+	document.querySelector("#layer_param").addEventListener("change"
+		,function(e){
+
+		var input = e.target;
+		if(!selected_layer){ return; }
+		if(!input){return;}
+
+		var layer = selected_layer;
+		var member = e.target.id.replace("layer_","");
+
 		if(input.id==="layer_width"  || input.id==="layer_height"){
-			f=function(e){
-				var layer = selected_layer;
-				var width = parseInt(inputs["layer_width"].value);
-				var height= parseInt(inputs["layer_height"].value);
-				Hdrpaint.executeCommand("resizeLayer",{"layer_id":layer.id,"width":width,"height":height});
-			}
+			var layer = selected_layer;
+			var width = parseInt(inputs["layer_width"].value);
+			var height= parseInt(inputs["layer_height"].value);
+			Hdrpaint.executeCommand("resizeLayer",{"layer_id":layer.id,"width":width,"height":height});
+			return;
 		}
 		if(input.id==="layer_x"  || input.id==="layer_y"){
-			f=function(e){
-				var layer = selected_layer;
-				var x= parseInt(inputs["layer_x"].value);
-				var y= parseInt(inputs["layer_y"].value);
-				x-=layer.position[0];
-				y-=layer.position[1];
-				Hdrpaint.executeCommand("translateLayer",{"layer_id":layer.id,"x":x,"y":y});
-			}
+			var layer = selected_layer;
+			var x= parseInt(inputs["layer_x"].value);
+			var y= parseInt(inputs["layer_y"].value);
+			x-=layer.position[0];
+			y-=layer.position[1];
+			Hdrpaint.executeCommand("translateLayer",{"layer_id":layer.id,"x":x,"y":y});
+			return;
 		}
+		if(e.target.getAttribute("type")==="checkbox"){
+			Hdrpaint.executeCommand("changeLayerAttribute",{"layer_id":layer.id,"name":member,"value":e.target.checked});
+		  }else{
+			Hdrpaint.executeCommand("changeLayerAttribute",{"layer_id":layer.id,"name":member,"value":e.target.value});
+		}
+		
+		
+		
+	});
 
-		input.addEventListener("change",f);
-	}
 
 	//モディファイアパラメータコントロール変更時反映
-	var div_param = document.querySelector("#modifier_param");
-	var modifier_inputs = Array.prototype.slice.call(div_param.getElementsByTagName("input"));
-	modifier_inputs = modifier_inputs.concat(Array.prototype.slice.call(div_param.getElementsByTagName("select")));
-	for(var i=0;i<modifier_inputs.length;i++){
-		var input = modifier_inputs[i];
-		var f = function(e){
-			if(!selected_layer){
-	  			return;
-	  		}
-			var layer = selected_layer;
-			var member = e.target.className.replace("modifier_","");
-			var val;
-			if(e.target.getAttribute("type")==="checkbox"){
-				val = e.target.checked;
-			}else{
-				val=e.target.value;
-			}
-			Hdrpaint.executeCommand("changeModifierAttribute",{"layer_id":layer.id,"name":member,"value":value});
-		}
+	document.querySelector("#layer_param").addEventListener("change"
+	,function(e){
 
-		input.addEventListener("change",f);
-	}
+		var input = e.target;
+		if(!selected_layer){ return; }
+		if(!input){return;}
+		if(!selected_layer){
+	  		return;
+	  	}
+		var layer = selected_layer;
+		var member = e.target.className.replace("modifier_","");
+		var val;
+		if(e.target.getAttribute("type")==="checkbox"){
+			val = e.target.checked;
+		}else{
+			val=e.target.value;
+		}
+		Hdrpaint.executeCommand("changeModifierAttribute",{"layer_id":layer.id,"name":member,"value":value});
+		
+	});
 	return ret;
 })();
 
