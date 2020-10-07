@@ -30,7 +30,10 @@ Hdrpaint.modifier["noise"] = (function(){
 				r = 0;
 				for(var i=0;i<octave;i++){
 					scale2 =(1<<i)*scale;
-					r += Noise.perlinnoise(x*scale2+i*0.123+n*0.345
+					//r += Noise.perlinnoise(x*scale2+i*0.123+n*0.345
+					//		,y*scale2+i*0.123+n*0.345
+					//		,z*scale2+i*0.123+n*0.345+ n*5) / (2<<i);
+					r += Noise.simplenoise(x*scale2+i*0.123+n*0.345
 							,y*scale2+i*0.123+n*0.345
 							,z*scale2+i*0.123+n*0.345+ n*5) / (2<<i);
 				}
@@ -41,8 +44,9 @@ Hdrpaint.modifier["noise"] = (function(){
 		}else{
 			for(var i=0;i<this.octave;i++){
 				scale2 =(1<<i)*scale;
-				r += Noise.perlinnoise(x*scale2+i*0.123
-						,y*scale2+i*0.123,z*scale2+i*0.123) / (2<<i);
+				r += Noise.simplenoise(x*scale2+i*0.123
+						,y*scale2+i*0.123
+						,z*scale2+i*0.123 ) / (2<<i);
 			}
 			r *=_total;
 
