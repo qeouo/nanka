@@ -3,6 +3,7 @@ Hdrpaint.modifier["noise"] = (function(){
 		Layer.apply(this);
 		this.scale=32;
 		this.octave=1;
+		this.betsu=true;
 	};
 	var ret = Noisegen;
 	inherits(ret,Layer);
@@ -19,6 +20,7 @@ Hdrpaint.modifier["noise"] = (function(){
 		scale = 1/this.scale;
 		octave = this.octave;
 		_total = 1.0/(1.0 - 1.0/(1<<octave));
+		betsu = this.betsu;
 	}
 	ret.prototype.getPixel = function(ret,x,y){
 		var r=0;
@@ -53,10 +55,10 @@ Hdrpaint.modifier["noise"] = (function(){
 	}
 
 
-	var html = `			スケール:<input type="text" class="modifier_scale" title="scale" value="32"><br>
+	var html = `スケール:<input type="text" class="modifier_scale" title="scale" value="32"><br>
 			オクターブ数:<input type="text" class="modifier_octabe" title="octave" value="2"><br>
 			Z(seed):<input type="text" class="modifier_z" value="0"><br>
-			rgb別:<input type="checkbox" class="modifier_betsu"><br>
+			rgb別:<input type="checkbox" class="modifier_betsu" title="betsu"><br>
 		`;
 	Hdrpaint.addModifierControl("noise",html);
 

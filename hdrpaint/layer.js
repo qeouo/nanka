@@ -510,9 +510,21 @@ var Layer=(function(){
 		if(selected_layer.type ===2){
 //			document.getElementById("div_blendfunc").style.display="none";
 //			document.getElementById("div_modifier").style.display="inline";
-			var elem = document.querySelector("#div_" + selected_layer.typename);
+			var elem = document.querySelector("#div_" + selected_layer.typename +".modifier_area");
 			if(elem){
 				elem.style.display="inline";
+
+				var elems = elem.querySelectorAll("input,select");
+				for(var i=0;i<elems.length;i++){
+					var name = elems[i].title;
+					if(name in layer){
+						if(elems[i].type==="checkbox"){
+							elems[i].checked=Boolean(layer[name]);
+						}else{
+							elems[i].value=layer[name];
+						}
+					}
+				}
 			}
 		}else{
 //			document.getElementById("div_blendfunc").style.display="inline";
