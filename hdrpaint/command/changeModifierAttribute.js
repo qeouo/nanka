@@ -12,7 +12,7 @@ Command["changeModifierAttribute"] = (function(){
 		if(!log.undo_data){
 			log.undo_data = {"value" :layer[name]};
 		}
-		layer.modifier_param[name] = value;
+		layer[name] = value;
 
 		layer.refreshDiv();
 		layer.parent.bubbleComposite();

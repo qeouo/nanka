@@ -24,6 +24,8 @@ var Layer=(function(){
 	};
 	var ret = Layer;
 
+	ret.prototype.typename="normal_layer";
+
 	ret.enableRefreshThumbnail=true;
 
 
@@ -244,21 +246,14 @@ var Layer=(function(){
 		this.registRefreshThumbnail();
 	}
 	ret.prototype.bubbleComposite=function(x,y,w,h){
-		if(this.type===2){
-			if(this.parent){
-				this.parent.bubbleComposite(left+this.position[0]
-					,top + this.position[1]
-					,right-left+1
-					,bottom-top+1);
-			}
-			return;
-		}
+
 		if(typeof x === 'undefined'){
 			x = 0;
 			y = 0;
-			w = this.img.width;
-			h = this.img.height;
+			w = this.size[0];
+			h = this.size[1];
 		}
+
 		var left = Math.max(0,x);
 		var top = Math.max(0,y);
 		var right = Math.min(this.img.width-1,x+w-1);
@@ -272,6 +267,15 @@ var Layer=(function(){
 			return;
 		}
 
+		if(this.type===2){
+			if(this.parent){
+				this.parent.bubbleComposite(left+this.position[0]
+					,top + this.position[1]
+					,right-left+1
+					,bottom-top+1);
+			}
+			return;
+		}
 		if(typeof x === 'undefined'){
 			this.composite();
 		}else{
@@ -504,15 +508,15 @@ var Layer=(function(){
 			elems[i].style.display="none";
 		}
 		if(selected_layer.type ===2){
-			document.getElementById("div_blendfunc").style.display="none";
-			document.getElementById("div_modifier").style.display="inline";
-			var elem = document.querySelector("#div_" + selected_layer.modifier);
+//			document.getElementById("div_blendfunc").style.display="none";
+//			document.getElementById("div_modifier").style.display="inline";
+			var elem = document.querySelector("#div_" + selected_layer.typename);
 			if(elem){
 				elem.style.display="inline";
 			}
 		}else{
-			document.getElementById("div_blendfunc").style.display="inline";
-			document.getElementById("div_modifier").style.display="none";
+//			document.getElementById("div_blendfunc").style.display="inline";
+//			document.getElementById("div_modifier").style.display="none";
 		}
 		
 	}
@@ -565,7 +569,8 @@ var Layer=(function(){
 	}
 	ret.createModifier=function(){
 		var layer_template= document.getElementById("layer_template");
-		var layer = new Layer();
+	//	var layer = new Layer();
+		var layer = new Hdrpaint.modifier["noise"]();
 
 		layer.type=2;
 		layer.children=[];
@@ -650,17 +655,28 @@ var Layer=(function(){
 			}
 
 			if(layer.type ===2){
-				var mod = Hdrpaint.modifier[layer.modifier];
-				if(mod.init){
-					if(mod.init(this,layer,left,top,right-left+1,bottom-top+1)){
-						continue;
-					}
-				}
-				if(mod.getPixel){
-					img.scan(mod.getPixel,left,top,right-left+1,bottom-top+1);
-				}else{
-					mod(this,layer,left,top,right-left+1,bottom-top+1);
-				}
+				layer.init();
+				//var mod = Hdrpaint.modifier[layer.modifier];
+				//if(mod.init){
+				//	if(mod.init(this,layer,left,top,right-left+1,bottom-top+1)){
+				//		continue;
+				//	}
+				//}else if(mod.prototype.init){
+				//	if(mod.prototype.init.call(layer,left,top,right-left+1,bottom-top+1)){
+				//		continue;
+				//	}
+				//}
+				
+				img.scan(function(r,x,y){
+					layer.getPixel(r,x,y);
+				},left,top,right-left+1,bottom-top+1);
+				//if(mod.prototype.getPixel){
+				//	img.scan(function(r,x,y){
+				//		layer.getPixel(r,x,y);
+				//	},left,top,right-left+1,bottom-top+1);
+				//}else{
+				//	mod(this,layer,left,top,right-left+1,bottom-top+1);
+				//}
 				continue;
 			}
 			if(!layer.img){
@@ -712,15 +728,17 @@ var Layer=(function(){
 		}
 	}
 
+	ret.prototype.init = function(){
+	}
 	ret.prototype.getPixel = function(ret,x,y){
 		ret.fill(0);
-		if(this.type===2){
-			var mod = Hdrpaint.modifier[this.modifier];
-			if(mod.getPixel){
-				mod.getPixel(ret,x,y);
-			}
-			return;
-		}
+		//if(this.type===2){
+		//	var mod = Hdrpaint.modifier[this.modifier];
+		//	if(mod.prototype.getPixel){
+		//		mod.prototype.getPixel.call(this,ret,x,y);
+		//	}
+		//	return;
+		//}
 
 		if(x<0 || y<0 || x>=this.img.width || y>=this.img.height){
 			return ret;
@@ -783,7 +801,7 @@ var Layer=(function(){
 
 
 	//モディファイアパラメータコントロール変更時反映
-	document.querySelector("#layer_param").addEventListener("change"
+	document.querySelector("#modifier_param").addEventListener("change"
 	,function(e){
 
 		var input = e.target;
@@ -793,14 +811,17 @@ var Layer=(function(){
 	  		return;
 	  	}
 		var layer = selected_layer;
-		var member = e.target.className.replace("modifier_","");
+		var member = e.target.title;
+		if(member ==="null"){
+			return;
+		}
 		var val;
 		if(e.target.getAttribute("type")==="checkbox"){
 			val = e.target.checked;
 		}else{
 			val=e.target.value;
 		}
-		Hdrpaint.executeCommand("changeModifierAttribute",{"layer_id":layer.id,"name":member,"value":value});
+		Hdrpaint.executeCommand("changeModifierAttribute",{"layer_id":layer.id,"name":member,"value":val});
 		
 	});
 	return ret;

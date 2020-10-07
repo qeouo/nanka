@@ -1,14 +1,26 @@
 Hdrpaint.modifier["noise"] = (function(){
-		var ret = new Vec4();
-	var Noisegen= function(){};
+	var Noisegen= function(){
+		Layer.apply(this);
+		this.scale=32;
+		this.octave=1;
+	};
 	var ret = Noisegen;
+	inherits(ret,Layer);
+
+	ret.prototype.typename="noise";
 
 	var scale = 1/8;
 	var octave = 1;
 	var _total = 1.0/(1.0 - 1.0/(1<<octave));
 	var betsu = true;
 	var z = 0;
-	ret.getPixel = function(ret,x,y){
+
+	ret.prototype.init=function(x,y,w,h){
+		scale = 1/this.scale;
+		octave = this.octave;
+		_total = 1.0/(1.0 - 1.0/(1<<octave));
+	}
+	ret.prototype.getPixel = function(ret,x,y){
 		var r=0;
 		var scale2 = scale;
 		if(betsu){
@@ -25,7 +37,7 @@ Hdrpaint.modifier["noise"] = (function(){
 				ret[n] = r;
 			}
 		}else{
-			for(var i=0;i<octave;i++){
+			for(var i=0;i<this.octave;i++){
 				scale2 =(1<<i)*scale;
 				r += Noise.perlinnoise(x*scale2+i*0.123
 						,y*scale2+i*0.123,z*scale2+i*0.123) / (2<<i);
@@ -41,8 +53,8 @@ Hdrpaint.modifier["noise"] = (function(){
 	}
 
 
-	var html = `			スケール:<input type="text" class="modifier_scale" value="32"><br>
-			オクターブ数:<input type="text" class="modifier_octabe" value="2"><br>
+	var html = `			スケール:<input type="text" class="modifier_scale" title="scale" value="32"><br>
+			オクターブ数:<input type="text" class="modifier_octabe" title="octave" value="2"><br>
 			Z(seed):<input type="text" class="modifier_z" value="0"><br>
 			rgb別:<input type="checkbox" class="modifier_betsu"><br>
 		`;
