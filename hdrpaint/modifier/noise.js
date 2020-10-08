@@ -3,7 +3,7 @@ Hdrpaint.modifier["noise"] = (function(){
 		Layer.apply(this);
 		this.scale=32;
 		this.octave=1;
-		this.betsu=true;
+		this.betsu=false;
 	};
 	var ret = Noisegen;
 	inherits(ret,Layer);
@@ -13,7 +13,7 @@ Hdrpaint.modifier["noise"] = (function(){
 	var scale = 1/8;
 	var octave = 1;
 	var _total = 1.0/(1.0 - 1.0/(1<<octave));
-	var betsu = true;
+	var betsu = false;
 	var z = 0;
 
 	ret.prototype.init=function(x,y,w,h){
