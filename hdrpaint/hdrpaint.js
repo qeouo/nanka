@@ -10,14 +10,14 @@ Hdrpaint=(function(){
 			data.parent_layer = root_layer;
 			data.position = root_layer.length;
 		}else{
-			if(selected_layer.type===0){
-				data.parent_layer_id = selected_layer.parent.id;
-				data.parent_layer = selected_layer.parent;
-				data.position = selected_layer.parent.children.indexOf(selected_layer)+1;
-			}else{
+			if(selected_layer.children && selected_layer.div.classList.contains("open")){
 				data.parent_layer_id = selected_layer.id;
 				data.parent_layer = selected_layer;
 				data.position = selected_layer.length;
+			}else{
+				data.parent_layer_id = selected_layer.parent.id;
+				data.parent_layer = selected_layer.parent;
+				data.position = selected_layer.parent.children.indexOf(selected_layer)+1;
 			}
 		}
 		return data;
@@ -137,9 +137,18 @@ Hdrpaint=(function(){
 		,"noise"
 	];
 
+
+	var area = document.querySelector("#modifier_area");
 	for(var i=0;i<ret.modifiername.length;i++){
 		var name  = ret.modifiername[i];
 		Util.loadJs("./modifier/" + name +".js");
+
+		document.create
+		var input= document.createElement("input");
+		input.type="button";
+		input.title=name;
+		input.value=name;
+		area.appendChild(input);
 	}
 
 	ret.addFilter = function(id,name){

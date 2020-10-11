@@ -63,14 +63,14 @@
 .layer .openclosebutton{
 	float:left;
 	margin-right:4px;
-	display:none;
+	visibility:hidden;
 	color:inherit;
 }
 .layer.group{
 	border-radius:10px;
 }
 .layer.group>.openclosebutton{
-	display:inherit;
+	visibility:inherit;
 }
 .layer .openclosebutton:after{
 	text-decoration:underline;

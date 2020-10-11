@@ -140,9 +140,23 @@
 		</div>
 		A<input class="slider" id="color_A" max="1" value="1"/>
 	</div>
-	<div id="additional" class="area">
+
+	<div id="additional" class="area" style="display:none;">
 		<div class="label">フィルタとか</div>
 	</div>
+<div class="area">
+	<div class="label">操作履歴</div>
+	<div>
+	<select size=5 id="history" >
+	</select>
+	</div>
+	<ul class="yoko">
+	<li><input type="button" id="button_undo" value="[ctrl+z]アンドゥ" onclick="undo()"></li>
+	<li><input type="button" id="button_redo" value="[ctrl+shift+z]リドゥ" onclick="redo()"></li>
+	</ul>
+	<span class="comment">リストを直接選択でそこまで戻る。最大10こ前まで</span>
+</div>
+
 </div>
 
 <div class="center">
@@ -173,8 +187,8 @@
 
 <div class="right">
 	<div class="area">
-		<div class="label" >レイヤ</div>
-		<div id="layer_param" >
+		<div class="label" >レイヤ/モディファイア</div>
+		<div id="layer_param" style="height:300px";>
 			<div style="width:100%;">
 				名前<input type="text" id="layer_name" style="width:100px;" >
 				<label><input type="checkbox" id="layer_display"/>表示</label>
@@ -186,11 +200,12 @@
 			<input type="text" id="layer_height" value="" class="size"><br>
 			<div id="div_blendfunc">合成func<select type="text" id="layer_blendfunc">
 			</select></div>
-			<div id="div_modifier">モデファイア<select type="text" id="layer_modifier">
-			</select></div><br>
 			α<input class="slider" id="layer_alpha" max="1"/>
 			<label><input type="checkbox" id="layer_mask_alpha"/>αロック</label><br>
 			明るさ<input class="slider" id="layer_power" min="-10" max="10"/><br>
+
+			<div id="modifier_param" >
+			</div>
 		</div>
 
 		<div>
@@ -227,15 +242,14 @@
 			<input type="button" id="new" onclick="createNewLayer(event);" value="新規">
 			<input type="button" id="copylayer" onclick="copylayer(event);" value="複製">
 			<input type="button" id="new_composite_layer" onclick="createNewCompositeLayer(event);" value="新規グループレイヤ"><br>
-			<input type="button" id="new_modifier" onclick="createModifier(event);" value="モディファイア"><br>
 			<ul>
 			<li><a id="" href="#" onclick="inputs['open_layer'].click();return false;">画像ファイルを新規レイヤで開く</a></li>
 			</ul>
 			<input style="display:none;"type="file" id="open_layer" accept="image/*,.hdr,.exr" >
+			<div id="modifier_area" onclick="createModifier(event);">
+			モディファイア<br>
+			</div>
 		</div>
-	</div>
-	<div id="modifier_param" class="area">
-		<div class="label">モデファイア</div>
 	</div>
 
 	<div id="post_effect" class="area">
@@ -246,18 +260,6 @@
 		拡散率<input class="slider" id="bloom_power" max="1" value="0.1"/><br>
 		拡散範囲<input class="slider" id="bloom_size" max="100" value="10"/><br>
 	</div>
-<div class="area">
-	<div class="label">操作履歴</div>
-	<div>
-	<select size=10 id="history" >
-	</select>
-	</div>
-	<ul class="yoko">
-	<li><input type="button" id="button_undo" value="[ctrl+z]アンドゥ" onclick="undo()"></li>
-	<li><input type="button" id="button_redo" value="[ctrl+shift+z]リドゥ" onclick="redo()"></li>
-	</ul>
-	<span class="comment">リストを直接選択でそこまで戻る。最大10こ前まで</span>
-</div>
 </div>
 
 
@@ -270,6 +272,7 @@
 <script type="text/javascript" src="../lib/inherits.js"></script>
 <script type="text/javascript" src="../lib/util.js"></script>
 <script type="text/javascript" src="../lib/datastream.js"></script>
+<script type="text/javascript" src="../lib/noise2.js"></script>
 <script type="text/javascript" src="../lib/noise.js"></script>
 <script type="text/javascript" src="../lib/vector.js"></script>
 <script type="text/javascript" src="../lib/openexr.js"></script>
@@ -357,17 +360,17 @@ var onloadfunc=function(e){
 	}
 
 	//modifierセット
-	var modifier_func = document.querySelector("#layer_modifier");
-	 while(modifier_func.firstChild){
-	 	modifier_func.removeChild(modifier_func.firstChild);
-	 }
-	for(var i=0;i<Hdrpaint.modifiername.length;i++){
-		var name = Hdrpaint.modifiername[i];
-		var option = document.createElement("option");
-		option.value = name;
-		Util.setText(option,name);
-		modifier_func.appendChild(option);
-	}
+//	var modifier_func = document.querySelector("#layer_modifier");
+//	 while(modifier_func.firstChild){
+//	 	modifier_func.removeChild(modifier_func.firstChild);
+//	 }
+//	for(var i=0;i<Hdrpaint.modifiername.length;i++){
+//		var name = Hdrpaint.modifiername[i];
+//		var option = document.createElement("option");
+//		option.value = name;
+//		Util.setText(option,name);
+//		modifier_func.appendChild(option);
+//	}
 		
 
 	//ダイアログ閉じる処理
@@ -1099,10 +1102,12 @@ var createNewCompositeLayer=function(e){
 
 }
 var createModifier=function(e){
+	if(e.target.value ===""){return;}
+	var modifier = e.target.value;
 	//新規モディファイア
 	var data = Hdrpaint.getPosition();
 	
-	Hdrpaint.executeCommand("createmodifier",{"parent_layer_id":data.parent_layer.id,"position":data.position
+	Hdrpaint.executeCommand("createmodifier",{"modifier":modifier,"parent_layer_id":data.parent_layer.id,"position":data.position
 		,"width":data.parent_layer.size[0],"height":data.parent_layer.size[1]});
 }
 

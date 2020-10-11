@@ -20,7 +20,7 @@ var Layer=(function(){
 		this.modifier_param={};
 
 		this.type=0; //1なら階層レイヤ
-		this.children=[]; //子供レイヤ
+		this.children=null; //子供レイヤ
 	};
 	var ret = Layer;
 
@@ -69,9 +69,11 @@ var Layer=(function(){
 				return false;
 			}
 			var layers = layer.children;
-			for(var i=0;i<layers.length;i++){
-				if(cb(layers[i])){
-					return true;
+			if(layers){
+				for(var i=0;i<layers.length;i++){
+					if(cb(layers[i])){
+						return true;
+					}
 				}
 			}
 			return false;
@@ -302,7 +304,7 @@ var Layer=(function(){
 				layer.div.classList.remove("active");
 			}
 
-			if(layer.type===0){
+			if(layer.type===0 || !layer.children){
 				layer.div.classList.remove("group");
 			}else{
 				layer.div.classList.add("group");
@@ -351,8 +353,10 @@ var Layer=(function(){
 
 		//子レイヤ設定
 		while (layers_container.firstChild) layers_container.removeChild(layers_container.firstChild);
-		for(var li=layer.children.length;li--;){
-			layers_container.appendChild(layer.children[li].div);
+		if(layer.children){
+			for(var li=layer.children.length;li--;){
+				layers_container.appendChild(layer.children[li].div);
+			}
 		}
 
 
@@ -579,16 +583,17 @@ var Layer=(function(){
 		return layer;
 
 	}
-	ret.createModifier=function(){
+	ret.createModifier=function(modifier_name){
 		var layer_template= document.getElementById("layer_template");
 	//	var layer = new Layer();
-		var layer = new Hdrpaint.modifier["noise"]();
+		var layer = new Hdrpaint.modifier[modifier_name]();
 
 		layer.type=2;
-		layer.children=[];
 
 		var layer_div = layer_template.children[0].cloneNode(true);
-		layer_div.classList.add("group");
+		if(layer.children){
+			layer_div.classList.add("group");
+		}
 		layer_div.classList.add("modifier");
 
 		layer.div=layer_div;
@@ -667,28 +672,11 @@ var Layer=(function(){
 			}
 
 			if(layer.type ===2){
-				layer.init();
-				//var mod = Hdrpaint.modifier[layer.modifier];
-				//if(mod.init){
-				//	if(mod.init(this,layer,left,top,right-left+1,bottom-top+1)){
-				//		continue;
-				//	}
-				//}else if(mod.prototype.init){
-				//	if(mod.prototype.init.call(layer,left,top,right-left+1,bottom-top+1)){
-				//		continue;
-				//	}
-				//}
+				layer.init(left,top,right-left+1,bottom-top+1);
 				
 				img.scan(function(r,x,y){
 					layer.getPixel(r,x,y);
 				},left,top,right-left+1,bottom-top+1);
-				//if(mod.prototype.getPixel){
-				//	img.scan(function(r,x,y){
-				//		layer.getPixel(r,x,y);
-				//	},left,top,right-left+1,bottom-top+1);
-				//}else{
-				//	mod(this,layer,left,top,right-left+1,bottom-top+1);
-				//}
 				continue;
 			}
 			if(!layer.img){
@@ -784,6 +772,9 @@ var Layer=(function(){
 
 		var layer = selected_layer;
 		var member = e.target.id.replace("layer_","");
+		if(member===""){
+			member = e.target.title;
+		}
 
 		if(input.id==="layer_width"  || input.id==="layer_height"){
 			var layer = selected_layer;
