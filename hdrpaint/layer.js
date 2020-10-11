@@ -732,13 +732,6 @@ var Layer=(function(){
 	}
 	ret.prototype.getPixel = function(ret,x,y){
 		ret.fill(0);
-		//if(this.type===2){
-		//	var mod = Hdrpaint.modifier[this.modifier];
-		//	if(mod.prototype.getPixel){
-		//		mod.prototype.getPixel.call(this,ret,x,y);
-		//	}
-		//	return;
-		//}
 
 		if(x<0 || y<0 || x>=this.img.width || y>=this.img.height){
 			return ret;
@@ -802,31 +795,6 @@ var Layer=(function(){
 		
 	});
 
-
-	//モディファイアパラメータコントロール変更時反映
-	document.querySelector("#modifier_param").addEventListener("change"
-	,function(e){
-
-		var input = e.target;
-		if(!selected_layer){ return; }
-		if(!input){return;}
-		if(!selected_layer){
-	  		return;
-	  	}
-		var layer = selected_layer;
-		var member = e.target.title;
-		if(member ==="null"){
-			return;
-		}
-		var val;
-		if(e.target.getAttribute("type")==="checkbox"){
-			val = e.target.checked;
-		}else{
-			val=e.target.value;
-		}
-		Hdrpaint.executeCommand("changeModifierAttribute",{"layer_id":layer.id,"name":member,"value":val});
-		
-	});
 	return ret;
 })();
 
