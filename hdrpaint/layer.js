@@ -104,18 +104,18 @@ var Layer=(function(){
 
 	}
 
-	ret.findParent = function(target_layer){
-		var result_layer = null;
-		Layer.eachLayers(function(layer){
-			for(var li=0;li<layer.children.length;li++){
-				if(target_layer === layer.children[li]){
-					result_layer = layer;
-					return true;
-				}
-			}
-		});
-		return result_layer;
-	}
+//	ret.findParent = function(target_layer){
+//		var result_layer = null;
+//		Layer.eachLayers(function(layer){
+//			for(var li=0;li<layer.children.length;li++){
+//				if(target_layer === layer.children[li]){
+//					result_layer = layer;
+//					return true;
+//				}
+//			}
+//		});
+//		return result_layer;
+//	}
 
 	ret.click = function(e){
 	//レイヤー一覧クリック時、クリックされたものをアクティブ化する
@@ -169,7 +169,7 @@ var Layer=(function(){
 			}
 		}
 
-		var parent_layer = Layer.findParent(drop_layer);
+		var parent_layer = drop_layer.parent;//Layer.findParent(drop_layer);
 		var position= parent_layer.children.indexOf(drop_layer);
 		var now_position= parent_layer.children.indexOf(drag_layer);
 		if(now_position <0){

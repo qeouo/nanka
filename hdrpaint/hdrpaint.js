@@ -48,7 +48,7 @@ Hdrpaint=(function(){
 	}
 
 	ret.removeLayer=function(layer){
-		var parent_layer = Layer.findParent(layer);
+		var parent_layer = layer.parent;
 		var layers = parent_layer.children;
 		var idx = layers.indexOf(layer);
 
