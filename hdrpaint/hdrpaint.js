@@ -131,9 +131,9 @@ Hdrpaint=(function(){
 	ret.modifier={};
 	ret.modifiername= [ "grayscale"
 		,"shift"
-		,"gradient"
-		,"repeat"
-		,"mirror"
+		//,"gradient"
+		//,"repeat"
+		//,"mirror"
 		,"noise"
 	];
 
@@ -187,10 +187,10 @@ Hdrpaint=(function(){
 	ret.addModifierControl= function(id,html){
 		var div= document.createElement("div");
 		div.id="div_"+id;
-		div.classList.add("modifier_area");
+		div.classList.add("modifier_param");
 		div.insertAdjacentHTML('beforeend',html);
 
-		var dialog_parent= document.querySelector("#modifier_param");
+		var dialog_parent= document.querySelector("#modifier_param_area");
 		dialog_parent.appendChild(div);
 	}
 

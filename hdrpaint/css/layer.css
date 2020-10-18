@@ -118,3 +118,14 @@
 background-color:#FFBF00;
 color:#000;
 }
+
+div#modifier_param_area{
+position:relative;
+margin:8px;
+min-height:120px;
+}
+div.modifier_param{
+left:0px;
+top:0px;
+display:none;
+}

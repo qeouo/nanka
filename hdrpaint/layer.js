@@ -11,7 +11,7 @@ var Layer=(function(){
 		this.power=0.0;
 		this.alpha=1.0;
 		this.blendfunc="normal";
-		this.modifier="grayscale";
+		this.modifier="layer";
 		this.div=null;
 		this.img=null;
 		this.mask_alpha=0;
@@ -256,10 +256,17 @@ var Layer=(function(){
 			h = this.size[1];
 		}
 
-		var left = Math.max(0,x);
-		var top = Math.max(0,y);
-		var right = Math.min(this.img.width-1,x+w-1);
-		var bottom = Math.min(this.img.height-1,y+h-1);
+		var left = x;
+		var top= y;
+		var right = x+w-1;
+		var bottom = y+h-1;
+
+		left = Math.max(0,left);
+		top = Math.max(0,top);
+		if(this.img){
+			right = Math.min(this.img.width-1,right);
+			bottom = Math.min(this.img.height-1,bottom);
+		}
 		left=Math.floor(left);
 		right=Math.ceil(right);
 		top=Math.floor(top);
@@ -511,32 +518,25 @@ var Layer=(function(){
 			inputs["join_layer"].value="下のレイヤと結合";
 		}
 
-		var elems = document.querySelectorAll(".modifier_area");
+		var elems = document.querySelector("#modifier_param_area").children;
 		for(var i=0;i<elems.length;i++){
 			elems[i].style.display="none";
 		}
-		if(selected_layer.type ===2){
-//			document.getElementById("div_blendfunc").style.display="none";
-//			document.getElementById("div_modifier").style.display="inline";
-			var elem = document.querySelector("#div_" + selected_layer.typename +".modifier_area");
-			if(elem){
-				elem.style.display="inline";
+		var elem = document.querySelector("#div_" + selected_layer.modifier);
+		if(elem){
+			elem.style.display="inline";
 
-				var elems = elem.querySelectorAll("input,select");
-				for(var i=0;i<elems.length;i++){
-					var name = elems[i].title;
-					if(name in layer){
-						if(elems[i].type==="checkbox"){
-							elems[i].checked=Boolean(layer[name]);
-						}else{
-							elems[i].value=layer[name];
-						}
+			var elems = elem.querySelectorAll("input,select");
+			for(var i=0;i<elems.length;i++){
+				var name = elems[i].title;
+				if(name in layer){
+					if(elems[i].type==="checkbox"){
+						elems[i].checked=Boolean(layer[name]);
+					}else{
+						elems[i].value=layer[name];
 					}
 				}
 			}
-		}else{
-//			document.getElementById("div_blendfunc").style.display="inline";
-//			document.getElementById("div_modifier").style.display="none";
 		}
 		
 	}
@@ -606,7 +606,8 @@ var Layer=(function(){
 
 		layer.id=this.layer_id_count;
 		this.layer_id_count++;
-		layer.name ="modifier"+("0000"+layer.id).slice(-4);
+		layer.modifier=modifier_name;
+		layer.name =modifier_name+("0000"+layer.id).slice(-4);
 
 		layer.refreshDiv();
 

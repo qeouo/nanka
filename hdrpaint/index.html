@@ -166,8 +166,8 @@
 		<div class="canvas_status2">
 			キャンバスサイズ<input type="text" id="canvas_width" value="256" class="size">x
 			<input type="text" id="canvas_height" value="256" class="size">
-			<input type="button" id="btn_resize_layer" value="アクティブレイヤーをキャンバスに合わせる" >
-			<input type="button" id="btn_resize_layers" value="全レイヤーをキャンバスに合わせる" >
+			<input type="button" id="btn_resize_layer" value="アクティブレイヤをキャンバスに合わせる" >
+			<input type="button" id="btn_resize_layers" value="全レイヤをキャンバスに合わせる" >
 		</div>
 		<div id="canvas_field" style="clear:both;" class="canvas_field">
 			<div id="spacer" class="spacer">
@@ -188,7 +188,7 @@
 		</div>
 
 		<div style="display:inline;position:absolute;right:0px;bottom:0px;">
-			<label><input type="checkbox" id="selected_layer_only" onchange="{refreshPreview(1);}">(w)選択レイヤーのみ表示</label>
+			<label><input type="checkbox" id="selected_layer_only" onchange="{refreshPreview(1);}">(w)選択レイヤのみ表示</label>
 		</div>
 	</div>
 
@@ -197,23 +197,25 @@
 <div class="right">
 	<div class="area">
 		<div class="label" >レイヤ/モディファイア</div>
-		<div id="layer_param" style="height:300px";>
+		<div id="layer_param" >
 			<div style="width:100%;">
 				名前<input type="text" id="layer_name" style="width:100px;" >
 				<label><input type="checkbox" id="layer_display"/>表示</label>
 				<label><input type="checkbox" id="layer_lock"/>ロック</label>
 			</div>
-			位置<input type="text" id="layer_x" value="" class="size">
-			<input type="text" id="layer_y" value="" class="size">
-			サイズ<input type="text" id="layer_width" value="" class="size">
-			<input type="text" id="layer_height" value="" class="size"><br>
-			<div id="div_blendfunc">合成func<select type="text" id="layer_blendfunc">
-			</select></div>
-			α<input class="slider" id="layer_alpha" max="1"/>
-			<label><input type="checkbox" id="layer_mask_alpha"/>αロック</label><br>
-			明るさ<input class="slider" id="layer_power" min="-10" max="10"/><br>
 
-			<div id="modifier_param" >
+			<div id="modifier_param_area" >
+				<div id="div_layer" class="modifier_param">
+					位置<input type="text" id="layer_x" value="" class="size">
+					<input type="text" id="layer_y" value="" class="size">
+					サイズ<input type="text" id="layer_width" value="" class="size">
+					<input type="text" id="layer_height" value="" class="size"><br>
+					<div id="div_blendfunc">合成func<select type="text" id="layer_blendfunc">
+					</select></div>
+					α<input class="slider" id="layer_alpha" max="1"/>
+					<label><input type="checkbox" id="layer_mask_alpha"/>αロック</label><br>
+					明るさ<input class="slider" id="layer_power" min="-10" max="10"/><br>
+				</div>
 			</div>
 		</div>
 
@@ -1113,7 +1115,7 @@ var copylayer=function(e){
 	Hdrpaint.executeCommand("copylayer",{"position":data.position,"parent":data.parent_layer.id,"src_layer_id":selected_layer.id});
 }
 var createNewLayer=function(e){
-	//新規レイヤーを作成
+	//新規レイヤを作成
 
 	var data = Hdrpaint.getPosition();
 
@@ -1123,7 +1125,7 @@ var createNewLayer=function(e){
 	Hdrpaint.executeCommand("createNewLayer",{"position":data.position,"parent":data.parent_layer.id,"width":width,"height":height});
 }
 var createNewCompositeLayer=function(e){
-	//新規コンポジットレイヤーを作成
+	//新規コンポジットレイヤを作成
 	var width= preview.width;
 	var height= preview.height;
 	

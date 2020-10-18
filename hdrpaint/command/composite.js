@@ -20,7 +20,7 @@ Command["composite"] = (function(){
 			log.undo_data={"layer":layer,"children":layer.children};
 		}
 		layer.type=0;
-		layer.children=[];
+		layer.children=null;
 
 		layer.refreshDiv();
 	}
