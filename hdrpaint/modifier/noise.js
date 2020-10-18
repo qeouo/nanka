@@ -4,7 +4,7 @@ Hdrpaint.modifier["noise"] = (function(){
 		this.scale=128;
 		this.octave=1;
 		this.betsu=false;
-		this.func="perlin";
+		this.func="simplex";
 		this.children=null;
 	};
 	var ret = Noisegen;

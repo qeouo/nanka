@@ -461,6 +461,10 @@ var Layer=(function(){
 		refreshActiveLayerParam();
 
 
+		if(inputs["selected_layer_only"].checked){
+			refreshPreview(1);
+		}
+
 	}
 	var refreshActiveLayerParam = function(){
 		//アクティブレイヤパラメータ更新

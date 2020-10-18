@@ -98,8 +98,8 @@ div.canvas_status{
 div.canvas_field{
 	overflow:scroll;
 	position:absolute;
-	top:24px;
-	bottom:36px;
+	top:36px;
+	bottom:24px;
 	left:0px;
 	right:0px;
 	

@@ -1,5 +1,4 @@
 
-var flg_active_layer_only=false;
 var horizon_img=null;
 var bloomed_img=null;
 var bloom_img=null;
@@ -127,6 +126,7 @@ var refreshMain_sub=function(step,x,y,w,h){
 	var width=right-left;
 	var height=bottom-top;
 
+	var flg_active_layer_only = inputs["selected_layer_only"].checked;
 	if(flg_active_layer_only){
 		//選択レイヤのみ表示
 		var img = bloom_img;

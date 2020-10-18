@@ -39,9 +39,10 @@
 		<div id="tools">
 			<ul>
 				<li><label><input type="radio" id="pen" name="tool" checked>ブラシ</label>
-					<br><span class="comment">(ブラシ毎にショートカット設定可)</span></li>
+					<span class="comment">(ブラシ毎にショートカット設定可)</span></li>
 				<li><label><input type="radio" id="translate" name="tool">[t]移動</label></li>
 				<li><label><input type="radio" id="fill" name="tool">[f]塗り潰し</label></li>
+				<li><label><input type="radio" id="color_picker" name="tool">(q)カラーピッカー</label></li>
 			</ul>
 		</div>
 		<div id="tool_status">
@@ -109,7 +110,7 @@
 			<ul>
 			<li><a id="add_brush" href="#" >ブラシインポート</a></li>
 			</ul>
-			<input style="display:none;"type="file" id="open_brush" accept="image/*,.hdr,.exr" >
+			<input style="display:none;" type="file" id="open_brush" accept="image/*,.hdr,.exr" >
 		</div>
 	</div>
 
@@ -144,42 +145,50 @@
 	<div id="additional" class="area" style="display:none;">
 		<div class="label">フィルタとか</div>
 	</div>
-<div class="area">
-	<div class="label">操作履歴</div>
-	<div>
-	<select size=5 id="history" >
-	</select>
+	<div class="area">
+		<div class="label">操作履歴</div>
+		<div>
+			<select size=5 id="history" >
+			</select>
+		</div>
+		<ul class="yoko">
+			<li><input type="button" id="button_undo" value="[ctrl+z]アンドゥ" onclick="undo()"></li>
+			<li><input type="button" id="button_redo" value="[ctrl+shift+z]リドゥ" onclick="redo()"></li>
+		</ul>
+		<span class="comment">リストを直接選択でそこまで戻る。最大10こ前まで</span>
 	</div>
-	<ul class="yoko">
-	<li><input type="button" id="button_undo" value="[ctrl+z]アンドゥ" onclick="undo()"></li>
-	<li><input type="button" id="button_redo" value="[ctrl+shift+z]リドゥ" onclick="redo()"></li>
-	</ul>
-	<span class="comment">リストを直接選択でそこまで戻る。最大10こ前まで</span>
-</div>
 
 </div>
 
 <div class="center">
 	<div class="area canvas_area" id="canvas_area">
 		<div class="label">ビュー</div>
+		<div class="canvas_status2">
+			キャンバスサイズ<input type="text" id="canvas_width" value="256" class="size">x
+			<input type="text" id="canvas_height" value="256" class="size">
+			<input type="button" id="btn_resize_layer" value="アクティブレイヤーをキャンバスに合わせる" >
+			<input type="button" id="btn_resize_layers" value="全レイヤーをキャンバスに合わせる" >
+		</div>
 		<div id="canvas_field" style="clear:both;" class="canvas_field">
 			<div id="spacer" class="spacer">
 				<canvas width="256" height="256" id="preview" ></canvas>
 			</div>
 		</div>
 		<div class="canvas_status">
-			サイズ<input type="text" id="canvas_width" value="256" class="size">x
-			<input type="text" id="canvas_height" value="256" class="size">
-			<input type="button" id="btn_resize_layer" value="アクティブレイヤーをキャンバスに合わせる" >
-			<input type="button" id="btn_resize_layers" value="全レイヤーをキャンバスに合わせる" ><br>
 			<span id="status2">
 			</span>
 			<div class="color_status color_monitor" style="display:inline-block;">
+				<ul>
 					<li class="red">R:<span id="pos_R"></span></li>
 					<li class="green">G:<span id="pos_G"></span></li>
 					<li class="blue">B:<span id="pos_B"></span></li>
 					<li class="alpha">A:<span id="pos_A"></span></li>
+				</ul>
 			</div>
+		</div>
+
+		<div style="display:inline;position:absolute;right:0px;bottom:0px;">
+			<label><input type="checkbox" id="selected_layer_only" onchange="{refreshPreview(1);}">(w)選択レイヤーのみ表示</label>
 		</div>
 	</div>
 
@@ -397,6 +406,30 @@ var onloadfunc=function(e){
 		var x =doc.cursor_pos[0];
 		var y = doc.cursor_pos[1];
 
+		if((e.buttons & 2) || (inputs["color_picker"].checked)){
+			//カラーピッカー
+			var img= root_layer.img;
+			if(inputs["selected_layer_only"].checked){
+				img= selected_layer.img;
+			}
+			if(x<0 || x>=img.width || y<0 || y>img.height){
+			}else{
+				var data = img.data;
+
+				var idx=((y|0)*img.width+(x|0))*4;
+
+
+				inputs["color_R"].value=data[idx];
+				inputs["color_G"].value=data[idx+1];
+				inputs["color_B"].value=data[idx+2];
+				inputs["color_A"].value=data[idx+3];
+				Util.fireEvent(inputs["color_A"],"input");
+
+				changeColor(null);
+			}
+			return;
+		}
+
 		if(!pen_log){
 			return;
 		}
@@ -501,10 +534,10 @@ var onloadfunc=function(e){
 
 		Layer.enableRefreshThumbnail = true;
 	});
-	window.addEventListener("pointermove",function(e){
+	document.querySelector("#canvas_field").addEventListener("pointermove",function(e){
 		getPos(e);
 		refreshPreviewStatus(e);
-		if(pen_log){
+		if(e.buttons){
 			drawfunc(e);
 			e.preventDefault();
 		}
@@ -528,6 +561,8 @@ var onloadfunc=function(e){
 		if(selected_layer===null){
 			return;
 		}
+
+
 
 		if(inputs["fill"].checked && (e.buttons &1)){
 			if(selected_layer.type === 1){
@@ -553,6 +588,7 @@ var onloadfunc=function(e){
 			color[1] = inputs["color_G"].value;
 			color[2] = inputs["color_B"].value;
 			color[3] = inputs["color_A"].value;
+			var flg_active_layer_only = inputs["selected_layer_only"].checked;
 			Hdrpaint.executeCommand("fill",{"layer_id":selected_layer.id,"x":x,"y":y,"color":color,"is_layer":flg_active_layer_only});
 
 		}else if(inputs["translate"].checked && (e.buttons &1) ){
@@ -575,7 +611,7 @@ var onloadfunc=function(e){
 				return;
 			}
 
-			if(selected_layer.mask_alpha!== 0
+			if(selected_layer.mask_alpha
 			&& inputs["eraser"].checked){
 				//アルファマスクありで消しゴムの場合無視
 				return;
@@ -605,30 +641,6 @@ var onloadfunc=function(e){
 
 		drawfunc(e);
 
-		if(e.buttons & 2){
-			//スポイト
-			var img= root_layer.img;
-			if(event.ctrlKey){
-				img= selected_layer.img;
-			}
-			if(x<0 || x>=img.width || y<0 || y>img.height){
-			}else{
-				var data = img.data;
-				if( flg_active_layer_only){
-					data = selected_layer.img.data;
-				}
-
-				var idx=((y|0)*img.width+(x|0))*4;
-
-
-				inputs["color_R"].value=data[idx];
-				inputs["color_G"].value=data[idx+1];
-				inputs["color_B"].value=data[idx+2];
-				inputs["color_A"].value=data[idx+3];
-
-				changeColor(null);
-			}
-		}
 
 	},false);
 
@@ -638,14 +650,33 @@ var onloadfunc=function(e){
 		CommandLog.moveLog(parseInt(option.value));
 	});
 
+	var ctrlkey;
 	document.addEventListener('keyup',function(event){
-		if(event.keyCode===32){
-			flg_active_layer_only=false;
+		if(event.keyCode ==17){
+			ctrlkey = false;
+		}
+		switch(event.keyCode){
+		case 81://q
+			if(old_tool){
+				old_tool.checked=true;
+				old_tool=null;
+			}
+			break;
+		//case 32://space
+		case 87://w
+			//flg_active_layer_only=false;
+			inputs["selected_layer_only"].checked=false;
 			refreshPreview(1);
 		}
 	});
 
+	var old_tool=null;
 	document.addEventListener('keydown', function(event){
+
+		if(event.ctrlKey){
+			ctrlkey = true;
+		}
+
 		//キーショートカット
 		if(event.target.tagName==="INPUT"){
 			if(event.target.type==="text"){
@@ -672,8 +703,10 @@ var onloadfunc=function(e){
 			refreshTab("tools");
 			break;
 		case 81://q
-			break;
-		case 87://w
+			if(!old_tool){
+				old_tool  = document.querySelector("input[name='tool']:checked");
+			}
+			inputs["color_picker"].checked=true;
 			break;
 		case 69://e
 			inputs["weight"].value=parseFloat(inputs["weight"].value)-1;
@@ -702,15 +735,19 @@ var onloadfunc=function(e){
 			}
 			Hdrpaint.executeCommand("clear",{"layer_id":selected_layer.id});
 			break;
-		case 32://space
-			if(!flg_active_layer_only){
-				flg_active_layer_only=true;
-				event.preventDefault();
-				refreshPreview(1);
-			}
+		//case 32://space
+		case 87://w
+			//if(!flg_active_layer_only){
+			//	flg_active_layer_only=true;
+			//	event.preventDefault();
+			//	refreshPreview(1);
+			//}
+			inputs["selected_layer_only"].checked=true;
+			refreshPreview(1);
 			break;
 		}
     });
+
 
 
 	inputs["color_A"].addEventListener("change",function(){
@@ -854,8 +891,6 @@ var onloadfunc=function(e){
 			oldpos[1]=e.pageY;
 			e.preventDefault();
 		}
-	});
-	window.addEventListener( "pointermove", function(e){
 	});
 	document.getElementById("canvas_field").addEventListener( "pointermove", function(e){
 		if(e.buttons&4){
@@ -1134,7 +1169,6 @@ var createModifier=function(e){
 	}
 
 </script>
-
 <script type="text/javascript">
 </script>
 </body>
