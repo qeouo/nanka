@@ -2,7 +2,8 @@ Hdrpaint.modifier["noise"] = (function(){
 	var Noisegen= function(){
 		Layer.apply(this);
 		this.scale=128;
-		this.octave=1;
+		this.zoffset=0;
+		this.octave=0;
 		this.betsu=false;
 		this.func="simplex";
 		this.children=null;
@@ -25,10 +26,11 @@ Hdrpaint.modifier["noise"] = (function(){
 	};
 	ret.prototype.init=function(x,y,w,h){
 		scale = 1/this.scale;
-		octave = this.octave;
+		octave = Number(this.octave)+1;
 		_total = 1.0/(1.0 - 1.0/(1<<octave));
 		betsu = this.betsu;
 		func = funcs[this.func];
+		z = this.zoffset;
 		
 	}
 	ret.prototype.getPixel = function(ret,x,y){
@@ -48,7 +50,7 @@ Hdrpaint.modifier["noise"] = (function(){
 				ret[n] = r;
 			}
 		}else{
-			for(var i=0;i<this.octave;i++){
+			for(var i=0;i<octave;i++){
 				scale2 =(1<<i)*scale;
 				r += func(x*scale2+i*0.123
 						,y*scale2+i*0.123
@@ -71,12 +73,13 @@ Hdrpaint.modifier["noise"] = (function(){
 				<option value="simplex">Simplex</option>
 				<option value="value">Value</option>
 				</select><br>
-			スケール:<input type="text" class="modifier_scale" title="scale" value="32"><br>
-			オクターブ数:<input type="text" class="modifier_octabe" title="octave" value="2"><br>
-			Z(seed):<input type="text" class="modifier_z" value="0"><br>
+			スケール:<input class="slider modifier_scale" title="scale" value="32" min="1" max="256"><br>
+			オクターブ数:<input class="slider modifier_octabe" title="octave" value="0" min="0" max="10"><br>
+			Z(seed):<input class="slider modifier_z" title="zoffset" max="255"><br>
 			rgb別:<input type="checkbox" class="modifier_betsu" title="betsu"><br>
 		`;
 	Hdrpaint.addModifierControl("noise",html);
+	Slider.init();
 
 	return ret;
 })();

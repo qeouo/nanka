@@ -1027,6 +1027,16 @@ var onloadfunc=function(e){
 
 		Hdrpaint.executeCommand("resizeCanvas",{"width":512,"height":512});
 		Hdrpaint.executeCommand("createNewLayer",{"position":0,"parent":root_layer.id,"width":preview.width,"height":preview.height});
+
+		var canvas_area=document.querySelector("#canvas_area");
+		var canvas_field=document.querySelector("#canvas_field");
+
+		doc.canvas_pos[0]=(canvas_field.clientWidth-512)>>1;
+		doc.canvas_pos[1]=(canvas_field.clientHeight-512)>>1;
+		
+		preview.style.left = doc.canvas_pos[0] + "px";
+		preview.style.top = doc.canvas_pos[1] + "px";
+
 		var layer = root_layer.children[0];
 		var img_data = layer.img.data;
 		for(var i=0;i<img_data.length;i++){

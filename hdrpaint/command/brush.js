@@ -220,6 +220,7 @@ Command.drawHermitian = (function(){
 		var param = pen_log.param;
 
 
+		var offset=0;
 		//補間するための係数を求める
 		if(n>=2 ){
 			Vec2.sub(A,p0,points[n-2].pos);
@@ -245,6 +246,7 @@ Command.drawHermitian = (function(){
 			}
 
 		}else{
+
 			Vec2.sub(q1,p1,p0);
 			Vec2.madd(q1,q1,q0,-0.5);
 		}
@@ -284,7 +286,7 @@ Command.drawHermitian = (function(){
 		for(var i=0;i<devide+1;i++){
 			var p=_p[i];
 
-			var dt = i*_devide;
+			var dt = i*_devide+offset;
 			Vec2.mul (p.pos,  A,dt*dt*dt);
 			Vec2.madd(p.pos,p.pos,B,dt*dt);
 			Vec2.madd(p.pos,p.pos,C,dt);
