@@ -1,10 +1,7 @@
 Hdrpaint.modifier["shift"] = (function(){
 	var Shift= function(){
 		Layer.apply(this);
-		this.scale=128;
-		this.octave=1;
-		this.betsu=false;
-		this.func="simplex";
+		this.effect=0;
 		this.children=[];
 	};
 	var ret = Shift;
@@ -13,6 +10,8 @@ Hdrpaint.modifier["shift"] = (function(){
 	var ret_pixel = new Vec4();
 	var bufimg = new Img(1024,1024);
 	var layer;
+	var xmod=1;
+var ymod=1;
 	ret.prototype.init  = function(x,y,w,h){
 		dst = this.parent;
 		var img = dst.img;
@@ -25,6 +24,9 @@ Hdrpaint.modifier["shift"] = (function(){
 			this.children[0].init();
 		}
 
+
+		xmod = (1<<Math.ceil(Math.log2(img.width)))-1;
+		ymod = (1<<Math.ceil(Math.log2(img.height)))-1;
 	}
 
 	ret.prototype.getPixel = function(ret_pixel,x,y){
@@ -38,13 +40,13 @@ Hdrpaint.modifier["shift"] = (function(){
 			sy = ret_pixel[1]-0.5;
 			//sz = ret_pixel[2]-0.5;
 
-			var pow = this.power*10;
+			var pow = this.effect;
 			sx = sx* pow|0;
 			sy = sy* pow|0;
 			//sz = sz* pow|0;
 		}
 
-		var d_idx2 = img.getIndexLoop(x+sx,y+sy)<<2;
+		var d_idx2 = img.getIndex(x+sx&xmod,y+sy&ymod)<<2;
 
 		ret_pixel[0]=img.data[d_idx2+0] ;
 		ret_pixel[1]=img.data[d_idx2+1] ;
@@ -53,7 +55,7 @@ Hdrpaint.modifier["shift"] = (function(){
 	}
 
 	var html = `
-			スケール:<input type="text" class="modifier_power" title="power" value="1">
+			影響度:<input type="text" class="slider modifier_effect" title="effect" value="0.5" min="0" max="100">
 		`;
 	Hdrpaint.addModifierControl("shift",html);
 	return ret;
