@@ -42,20 +42,20 @@ Hdrpaint.modifier["noise"] = (function(){
 				r = 0;
 				for(var i=0;i<octave+1;i++){
 					scale2 =(1<<i)*scale;
-					r += func(x*scale2+i*0.123+n*0.345
-							,y*scale2+i*0.123+n*0.345
-							,z*scale2+i*0.123+n*0.345+ n*5) * (1<<(octave-i));
+					r += func(x*scale2+i*0.123+n*0.321
+							,y*scale2+i*0.123+n*0.321
+							,z*scale2+i*0.123+n) * (1<<(octave-i));
 				}
 				r *=_total;
 
 				ret[n] = r;
 			}
 		}else{
-			for(var i=0;i<octave;i++){
+			for(var i=0;i<octave+1;i++){
 				scale2 =(1<<i)*scale;
 				r += func(x*scale2+i*0.123
 						,y*scale2+i*0.123
-						,z*scale2+i ) * (1<<(octave-i-1));
+						,z*scale2+i*0.123 ) * (1<<(octave-i));
 			}
 			r *=_total;
 
