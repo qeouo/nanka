@@ -26,8 +26,8 @@ Hdrpaint.modifier["noise"] = (function(){
 	};
 	ret.prototype.init=function(x,y,w,h){
 		scale = 1/this.scale;
-		octave = Number(this.octave)+1;
-		_total = 1.0/(1.0 - 1.0/(1<<octave));
+		octave = Number(this.octave);
+		_total = 1/((1<<(octave+1))-1);
 		betsu = this.betsu;
 		func = funcs[this.func];
 		z = this.zoffset;
@@ -36,14 +36,15 @@ Hdrpaint.modifier["noise"] = (function(){
 	ret.prototype.getPixel = function(ret,x,y){
 		var r=0;
 		var scale2 = scale;
+		var pow = 1<<octave;
 		if(betsu){
 			for(var n=0;n<3;n++){
 				r = 0;
-				for(var i=0;i<octave;i++){
+				for(var i=0;i<octave+1;i++){
 					scale2 =(1<<i)*scale;
 					r += func(x*scale2+i*0.123+n*0.345
 							,y*scale2+i*0.123+n*0.345
-							,z*scale2+i*0.123+n*0.345+ n*5) / (2<<i);
+							,z*scale2+i*0.123+n*0.345+ n*5) * (1<<(octave-i));
 				}
 				r *=_total;
 
@@ -54,7 +55,7 @@ Hdrpaint.modifier["noise"] = (function(){
 				scale2 =(1<<i)*scale;
 				r += func(x*scale2+i*0.123
 						,y*scale2+i*0.123
-						,z*scale2+i*0.123 ) / (2<<i);
+						,z*scale2+i ) * (1<<(octave-i-1));
 			}
 			r *=_total;
 
@@ -74,7 +75,7 @@ Hdrpaint.modifier["noise"] = (function(){
 				<option value="value">Value</option>
 				</select><br>
 			スケール:<input class="slider modifier_scale" title="scale" value="32" min="1" max="256"><br>
-			オクターブ数:<input class="slider modifier_octabe" title="octave" value="0" min="0" max="10"><br>
+			オクターブ数:<input class="slider modifier_octabe" title="octave" value="0" min="0" max="10" step="1"><br>
 			Z(seed):<input class="slider modifier_z" title="zoffset" max="255"><br>
 			rgb別:<input type="checkbox" class="modifier_betsu" title="betsu"><br>
 		`;
