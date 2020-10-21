@@ -145,9 +145,15 @@ div.spacer{
 }
 
 /*----------------------------------------------------------*/
+div.history{
+	margin-right:4px;
+	margin-left:4px;
+}
 #history{
 	overflow:auto;
-	width:256px;
+	width:200px;
+}
+#history option{
 }
 .js-output{
 	text-align:right;

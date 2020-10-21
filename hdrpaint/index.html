@@ -25,12 +25,12 @@
 		<div class="label">ファイル</div>
 		<input style="display:none;" type="file" value="" id="file_hpd" accept="application/octet-stream/,.hpd">
 		<ul>
-			<li><a id="open_hpd" href="#" onclick="">ドキュメントファイルを開く(*.hpd)</a></li>
+			<li><a id="open_hpd" href="#" onclick="">ドキュメント開く(*.hpd)</a></li>
 		</ul>
 		<ul>
-			<li><a id="save_hpd" href="#">ドキュメントファイルを保存(*.hpd)</a></li>
+			<li><a id="save_hpd" href="#">ドキュメント保存(*.hpd)</a></li>
 			<li><a id="save_hdr" href="#">結合データをHDRで保存(*.exr)</a></li>
-			<li><a id="save_ldr" href="#">プレビュー画像をLDRで保存(*.png)</a></li>
+			<li><a id="save_ldr" href="#">結合データをLDRで保存(*.png)</a></li>
 		</ul>
 	</div>
 
@@ -39,7 +39,6 @@
 		<div id="tools">
 			<ul>
 				<li><label><input type="radio" id="pen" name="tool" checked>ブラシ</label>
-					<span class="comment">(ブラシ毎にショートカット設定可)</span></li>
 				<li><label><input type="radio" id="translate" name="tool">[t]移動</label></li>
 				<li><label><input type="radio" id="fill" name="tool">[f]塗り潰し</label></li>
 				<li><label><input type="radio" id="color_picker" name="tool">(q)カラーピッカー</label></li>
@@ -147,7 +146,7 @@
 	</div>
 	<div class="area">
 		<div class="label">操作履歴</div>
-		<div>
+		<div class="history">
 			<select size=5 id="history" >
 			</select>
 		</div>
@@ -155,7 +154,6 @@
 			<li><input type="button" id="button_undo" value="[ctrl+z]アンドゥ" onclick="undo()"></li>
 			<li><input type="button" id="button_redo" value="[ctrl+shift+z]リドゥ" onclick="redo()"></li>
 		</ul>
-		<span class="comment">リストを直接選択でそこまで戻る。最大10こ前まで</span>
 	</div>
 
 </div>
