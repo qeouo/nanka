@@ -131,6 +131,7 @@ Hdrpaint=(function(){
 	ret.modifier={};
 	ret.modifiername= [ "grayscale"
 		,"shift"
+		,"gauss"
 		//,"gradient"
 		//,"repeat"
 		//,"mirror"
