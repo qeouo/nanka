@@ -22,6 +22,8 @@ Command["resizeCanvas"] = (function(){
 		bloomed_img = new Img(width,height);
 		bloom_img = new Img(width,height);
 
+		root_layer.width=width;
+		root_layer.height=height;
 		root_layer.img=new Img(width,height);
 
 		Vec2.set(root_layer.size,width,height);

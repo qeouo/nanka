@@ -14,13 +14,15 @@ var saveHpd= function(e){
 
 		//レイヤをopneExrファイル化
 		if(layer.type===0){
+			//通常レイヤ
 			var file={};
 			files.push(file);
 			file.data= new Uint8Array(layer.img.createExr(3));
 			file.name = layer.id+".exr";
 		}else{
-			layer2.width=layer.img.width;
-			layer2.height=layer.img.height;
+			//グループレイヤ
+			//モディファイア
+			Vec2.copy(layer2.size,layer.size);
 
 		}
 
@@ -30,9 +32,11 @@ var saveHpd= function(e){
 			layer2[keys[ki]]=layer[keys[ki]];
 		}
 		//親子関係をid化
-		layer2.children=[];
-		for(var ki=0;ki<layer.children.length;ki++){
-			layer2.children.push(layer.children[ki].id);
+		if(layer.children){
+			layer2.children=[];
+			for(var ki=0;ki<layer.children.length;ki++){
+				layer2.children.push(layer.children[ki].id);
+			}
 		}
 		//不要なデータを削除
 		delete layer2.img;
@@ -161,18 +165,28 @@ var loadHpd=function(buffer){
 
 	var layers=[];
 	for(var li=0;li<doc_data.layers.length;li++){
-		//レイヤ画像読み込み
+		//レイヤ読み込み
+		var layer;
 		var doc_layer=doc_data.layers[li];
-		var img_file_name = doc_data.layers[li].id + ".exr";
-		var img_file = files.find(function(f){return f.name===img_file_name;});
-		var img ;
-		if(doc_layer.type){
-			img = new Img(doc_layer.width,doc_layer.height);
-		}else{
-			img = Img.loadExr(img_file.data);
+		switch(parseInt(doc_layer.type)){
+		case 0:
+			//通常レイヤ
+			var img_file_name = doc_data.layers[li].id + ".exr";
+			var img_file = files.find(function(f){return f.name===img_file_name;});
+			var img = Img.loadExr(img_file.data);
+			layer =Layer.create(img,0);
+			break;
+		case 1:
+			//グループレイヤ
+			img = new Img(doc_layer.size[0],doc_layer.size[1]);
+			layer =Layer.create(img,1);
+			break;
+		case 2:
+			//モディファイア
+			layer = Layer.createModifier(doc_layer.modifier);
+
 		}
 
-		var layer =Layer.create(img,parseInt(doc_layer.type));
 		layers.push(layer);
 
 		//レイヤパラメータ設定
@@ -187,19 +201,25 @@ var loadHpd=function(buffer){
 		
 	}
 	root_layer=layers[0];
-	Command.onlyExecute("resizeCanvas",{"width":root_layer.img.width,"height":root_layer.img.height});
-	for(var li=0;li<layers.length;li++){
+	Hdrpaint.onlyExecute("resizeCanvas",{"width":root_layer.img.width,"height":root_layer.img.height});
+	for(var li=layers.length;li--;){
 		//レイヤ親子復元
 		var layer = layers[li];
 		var doc_layer=doc_data.layers[li];
-		layer.children=[];
-		for(var ki=0;ki<doc_layer.children.length;ki++){
-			var child_id = doc_layer.children[ki];
-			var child = layers.find(
-				function(a){return a.id===child_id;});
-			layer.append(ki,child);
-			//layer.children[ki]=layers.find(
+		if(doc_layer.children){
+			layer.children=[];
+			for(var ki=0;ki<doc_layer.children.length;ki++){
+				var child_id = doc_layer.children[ki];
+				var child = layers.find(
+					function(a){return a.id===child_id;});
+				layer.append(ki,child);
+				//layer.children[ki]=layers.find(
+			}
 		}
+	}
+	for(var li=0;li<layers.length;li++){
+		var layer = layers[li];
+		layer.refreshDiv();
 	}
 	enableRefresh();
 

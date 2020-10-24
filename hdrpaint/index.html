@@ -25,12 +25,12 @@
 		<div class="label">ファイル</div>
 		<input style="display:none;" type="file" value="" id="file_hpd" accept="application/octet-stream/,.hpd">
 		<ul>
-			<li><a id="open_hpd" href="#" onclick="">ドキュメント開く(*.hpd)</a></li>
+			<li><a id="open_hpd" href="#" onclick="">作業ファイル開く(*.hpd)</a></li>
 		</ul>
 		<ul>
-			<li><a id="save_hpd" href="#">ドキュメント保存(*.hpd)</a></li>
-			<li><a id="save_hdr" href="#">結合データをHDRで保存(*.exr)</a></li>
-			<li><a id="save_ldr" href="#">結合データをLDRで保存(*.png)</a></li>
+			<li><a id="save_hpd" href="#">作業ファイル保存(*.hpd)</a></li>
+			<li><a id="save_hdr" href="#">結合データをHDR保存(*.exr)</a></li>
+			<li><a id="save_ldr" href="#">結合データをLDR保存(*.png)</a></li>
 		</ul>
 	</div>
 
@@ -438,9 +438,11 @@ var onloadfunc=function(e){
 			if(!pen_log)return;
 
 			var point=new PenPoint();
-			selected_layer.getAbsolutePosition(absolute);
-			point.pos[0]= x - absolute[0];
-			point.pos[1]= y - absolute[1];
+			//selected_layer.getAbsolutePosition(absolute);
+			//point.pos[0]= x - absolute[0];
+			//point.pos[1]= y - absolute[1];
+			point.pos[0]= x;
+			point.pos[1]= y;
 			if(e.buttons&1){
 				if(e.pointerType === "mouse"){
 					point.pressure=1;
@@ -575,9 +577,9 @@ var onloadfunc=function(e){
 				return;
 			}
 			var layer = selected_layer;
-			selected_layer.getAbsolutePosition(absolute);
-			x -= absolute[0];
-			y -= absolute[1];
+			//selected_layer.getAbsolutePosition(absolute);
+			//x -= absolute[0];
+			//y -= absolute[1];
 			if(x<0 || x>=layer.img.width || y<0 || y>=layer.img.height){
 				//範囲外は無視
 				return;
@@ -842,14 +844,14 @@ var onloadfunc=function(e){
 		if(!selected_layer){
 			return;
 		}
-		var parent_layer =  Layer.findParent(selected_layer);
+		var parent_layer =  selected_layer.parent;
 		var layers = parent_layer.children;
 		var position = layers.indexOf(selected_layer);
 		if(position<=0){return;}
 		Hdrpaint.executeCommand("moveLayer",{"layer_id":selected_layer.id,"parent_layer_id":parent_layer.id,"position":position-1});
 	});
 	inputs["up_layer"].addEventListener("click",function(e){
-		var parent_layer =  Layer.findParent(selected_layer);
+		var parent_layer =  selected_layer.parent;
 		var layers = parent_layer.children;
 		var position = layers.indexOf(selected_layer);
 		if(position+1>=layers.length){return;}
@@ -863,7 +865,7 @@ var onloadfunc=function(e){
 				,{"layer_id":selected_layer.id});
 			return;
 		}
-		var parent_layer = Layer.findParent(selected_layer);
+		var parent_layer = selected_layer.parent;
 		var position = parent_layer.children.indexOf(selected_layer);
 
 		if(position===0){

@@ -1,7 +1,7 @@
 Hdrpaint.modifier["gauss"] = (function(){
 	var gaussgen= function(){
 		Layer.apply(this);
-		this.scale=10;
+		this.scale=16;
 	};
 	var ret = gaussgen;
 	inherits(ret,Layer);
@@ -15,6 +15,13 @@ Hdrpaint.modifier["gauss"] = (function(){
 	ret.prototype.init=function(x,y,w,h){
 		src = this.parent.img;
 		var scale = this.scale;
+		if(horizon_img.data.width*horizon_img.data.height
+			< src.data.width * src.data.height){
+			horizon_img = new Img(src.data.width,src.data.height);
+			
+		}
+		horizon_img.width=src.width;
+		horizon_img.height=src.height;
 		gauss(scale,scale,x,x+w-1,y,y+h-1);
 		
 	}
@@ -27,6 +34,24 @@ Hdrpaint.modifier["gauss"] = (function(){
 		
 	}
 
+	var add=function(dst,src,idx,idx2,idx3,r){
+		var a2 = src[idx2+3];
+		var a3 = src[idx3+3];
+		dst[idx+0]+=(src[idx2+0]*a2 +src[idx3+0]*a3)*r;
+		dst[idx+1]+=(src[idx2+1]*a2 +src[idx3+1]*a3)*r;
+		dst[idx+2]+=(src[idx2+2]*a2 +src[idx3+2]*a3)*r;
+		dst[idx+3]+=(a2 +a3)*r;
+	}
+	var mul=function(dst,idx){
+		var a = dst[idx+3];
+		if(a===0 || a===1){
+			return;
+		}
+		a=1/a;
+		dst[idx+0]*=a;
+		dst[idx+1]*=a;
+		dst[idx+2]*=a;
+	}
 var gauss=function(d,size,left,right,top,bottom){
 	var MAX = size|0;
 	var dst= horizon_img;
@@ -52,50 +77,52 @@ var gauss=function(d,size,left,right,top,bottom){
 	var data = src.data;
 	var dstdata = dst.data;
 	//横ぼかし
-	for(var y=top;y<bottom;y++){
+	for(var y=top;y<bottom+1;y++){
 		var yidx= y * width;
 		var x = left;
 		var idx = yidx + left <<2;
-		var max = yidx + right <<2;
+		var max = yidx + right+1 <<2;
 		var r = weight[0];
 		for(;idx<max;idx+=4){
-			dstdata[idx+0]=data[idx+0]*r;
-			dstdata[idx+1]=data[idx+1]*r;
-			dstdata[idx+2]=data[idx+2]*r;
+			var a =data[idx+3]*r;
+			dstdata[idx+0]=data[idx+0]*a;
+			dstdata[idx+1]=data[idx+1]*a;
+			dstdata[idx+2]=data[idx+2]*a;
+			dstdata[idx+3]=a;
 		}
-		max = Math.min(MAX,right);
+		max = Math.min(MAX,right+1);
 		for(;x<max;x++){
 	 		var idx= yidx + x <<2;
 			for(var i=1;i<MAX;i++){
 	 			var idx2= yidx + Math.max(x -i,0) <<2;
 	 			var idx3= yidx + Math.min(x +i,width-1) <<2;
 				var r = weight[i];
-				dstdata[idx+0]+=(data[idx2+0] +data[idx3+0])*r;
-				dstdata[idx+1]+=(data[idx2+1] +data[idx3+1])*r;
-				dstdata[idx+2]+=(data[idx2+2] +data[idx3+2])*r;
+				add(dstdata,data,idx,idx2,idx3,r);
 			}
 		}
 
-		max = Math.min(width-MAX,right);
+		max = Math.min(width-MAX,right+1);
 		for(;x<max;x++){
 	 		var idx= yidx + x <<2;
 	  		for(var i=1;i<MAX;i++){
-				dstdata[idx+0]+=(data[idx+0+(i<<2)] + data[idx+0-(i<<2)])*weight[i];
-				dstdata[idx+1]+=(data[idx+1+(i<<2)] + data[idx+1-(i<<2)])*weight[i];
-				dstdata[idx+2]+=(data[idx+2+(i<<2)] + data[idx+2-(i<<2)])*weight[i];
+				add(dstdata,data,idx,idx+(i<<2),idx-(i<<2),weight[i]);
 			}
 		}
-		var max = Math.min(right,width);
+		var max = Math.min(right+1,width);
 		for(;x<max;x++){
 	 		var idx= yidx + x <<2;
 			for(var i=1;i<MAX;i++){
 	 			var idx2= yidx + Math.max(x -i,0) <<2;
 	 			var idx3= yidx + Math.min(x +i,width-1) <<2;
 				var r = weight[i];
-				dstdata[idx+0]+=(data[idx2+0] +data[idx3+0])*r;
-				dstdata[idx+1]+=(data[idx2+1] +data[idx3+1])*r;
-				dstdata[idx+2]+=(data[idx2+2] +data[idx3+2])*r;
+				add(dstdata,data,idx,idx2,idx3,r);
 			}
+		}
+
+		idx = yidx + left <<2;
+		max = yidx + right+1 <<2;
+		for(;idx<max;idx+=4){
+			mul(dstdata,idx);
 		}
 	}
 
@@ -103,20 +130,21 @@ var gauss=function(d,size,left,right,top,bottom){
 	data = dst.data;
 	dstdata = src.data;
 
-	for(var x=left;x<right;x++){
-		var max = Math.min(MAX,bottom);
+	for(var x=left;x<right+1;x++){
 
 		var idx = top*width + x<<2;
-		var max = bottom*width+ x<<2;
+		var max = (bottom+1)*width+ x<<2;
 		var r = weight[0];
 		for(;idx<max;idx+=width*4){
-			dstdata[idx+0]=data[idx+0]*r;
-			dstdata[idx+1]=data[idx+1]*r;
-			dstdata[idx+2]=data[idx+2]*r;
+			var a =data[idx+3]*r;
+			dstdata[idx+0]=data[idx+0]*a;
+			dstdata[idx+1]=data[idx+1]*a;
+			dstdata[idx+2]=data[idx+2]*a;
+			dstdata[idx+3]=a;
 		}
 	
 		y=top
-		max = Math.min(MAX,bottom);
+		max = Math.min(MAX,bottom+1);
 		for(;y<max;y++){
 	 		idx= y * width + x <<2;
 
@@ -124,12 +152,10 @@ var gauss=function(d,size,left,right,top,bottom){
 	 			var idx2= Math.max(y-i,0) *width+ x  <<2;
 	 			var idx3= Math.min(y+i,height-1)*width+x <<2;
 				var r = weight[i];
-				dstdata[idx+0]+=(data[idx2+0] +data[idx3+0])*r;
-				dstdata[idx+1]+=(data[idx2+1] +data[idx3+1])*r;
-				dstdata[idx+2]+=(data[idx2+2] +data[idx3+2])*r;
+				add(dstdata,data,idx,idx2,idx3,r);
 			}
 		 }
-		max = Math.min(height-MAX,bottom);
+		max = Math.min(height-MAX,bottom+1);
 		for(;y<max;y++){
 	 		idx= y * width + x <<2;
 
@@ -137,13 +163,11 @@ var gauss=function(d,size,left,right,top,bottom){
 	 			var idx2= (y-i) *width+ x  <<2;
 	 			var idx3= (y+i)*width+x <<2;
 				var r = weight[i];
-				dstdata[idx+0]+=(data[idx2+0] +data[idx3+0])*r;
-				dstdata[idx+1]+=(data[idx2+1] +data[idx3+1])*r;
-				dstdata[idx+2]+=(data[idx2+2] +data[idx3+2])*r;
+				add(dstdata,data,idx,idx2,idx3,r);
 			}
 		}
 
-		max = Math.min(height,bottom);
+		max = Math.min(height,bottom+1);
 		for(;y<max;y++){
 	 		idx= y * width + x <<2;
 
@@ -151,17 +175,21 @@ var gauss=function(d,size,left,right,top,bottom){
 	 			var idx2= Math.max(y-i,0) *width+ x  <<2;
 	 			var idx3= Math.min(y+i,height-1)*width+x <<2;
 				var r = weight[i];
-				dstdata[idx+0]+=(data[idx2+0] +data[idx3+0])*r;
-				dstdata[idx+1]+=(data[idx2+1] +data[idx3+1])*r;
-				dstdata[idx+2]+=(data[idx2+2] +data[idx3+2])*r;
+				add(dstdata,data,idx,idx2,idx3,r);
 			}
+		}
+
+		var idx = top*width + x<<2;
+		var max = (bottom+1)*width+ x<<2;
+		for(;idx<max;idx+=width*4){
+			mul(dstdata,idx);
 		}
 	 }
 
 }
 
 	var html = `
-			スケール:<input class="slider modifier_scale" title="scale" value="32" min="1" max="256"><br>
+			ぼかし半径:<input class="slider modifier_scale" title="scale" value="32" min="1" max="128"><br>
 		`;
 	Hdrpaint.addModifierControl("gauss",html);
 	Slider.init();

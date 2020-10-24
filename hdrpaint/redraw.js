@@ -50,12 +50,14 @@ var refreshPreview=function(step,x,y,w,h){
 var compositeAll=function(){
 	//全レイヤ更新
 	var f = function(layer,left,top,right,bottom){
-		var lower_layers = layer.children;
-		for(var li=0;li<lower_layers.length;li++){
-			lower_layer = lower_layers[li];
-			f(lower_layer,left,top,right,bottom);
+		if(layer.type==1){
+			var lower_layers = layer.children;
+			for(var li=0;li<lower_layers.length;li++){
+				lower_layer = lower_layers[li];
+				f(lower_layer,left,top,right,bottom);
+			}
+			layer.composite(left,top,right,bottom);
 		}
-		layer.composite(left,top,right,bottom);
 
 	}
 	f(root_layer);

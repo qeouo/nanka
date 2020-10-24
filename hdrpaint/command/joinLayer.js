@@ -29,8 +29,8 @@ commandObjs["joinLayer"] = (function(){
 			//２つのレイヤが収まるサイズのグループレイヤを作成
 			var x=Math.min(layerA.position[0] ,layerB.position[0]);
 			var y=Math.min(layerA.position[1] ,layerB.position[1]);
-			var right = Math.max(layerA.position[0]+layerA.img.width,layerB.position[0]+layerB.img.width);
-			var bottom = Math.max(layerA.position[1]+layerA.img.height,layerB.position[1]+layerB.img.height);
+			var right = Math.max(layerA.position[0]+layerA.size[0],layerB.position[0]+layerB.size[0]);
+			var bottom = Math.max(layerA.position[1]+layerA.size[1],layerB.position[1]+layerB.size[1]);
 			var width  = right-x;
 			var height= bottom-y;
 			var position = layers.indexOf(layerA);
@@ -42,8 +42,8 @@ commandObjs["joinLayer"] = (function(){
 			layer.name=layerA.name + "," + layerB.name;
 
 			//２つのレイヤを子レイヤとしてセット
-			layer.append(0,layerB);
-			layer.append(1,layerA);
+			layer.append(0,layerA);
+			layer.append(1,layerB);
 			Vec2.sub(layerB.position,layerB.position,layer.position);
 			Vec2.sub(layerA.position,layerA.position,layer.position);
 

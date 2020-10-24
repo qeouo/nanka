@@ -513,7 +513,7 @@ var Layer=(function(){
 			}
 		}
 		if(selected_layer.type ===1){
-			inputs["join_layer"].value="全ての子を結合";
+			inputs["join_layer"].value="子を結合";
 		}else{
 			inputs["join_layer"].value="下のレイヤと結合";
 		}

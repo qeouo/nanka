@@ -203,6 +203,7 @@ Command.drawHermitian = (function(){
 
 
 	}
+	var absolute=new Vec2();
 	return function(pen_log,n){
 		var param=pen_log.param;
 		var points = param.points;
@@ -212,6 +213,7 @@ Command.drawHermitian = (function(){
 		}
 		var img= layer.img;
 
+		selected_layer.getAbsolutePosition(absolute);
 
 		var point0=points[n-1];
 		var point1=points[n];
@@ -291,10 +293,12 @@ Command.drawHermitian = (function(){
 			Vec2.madd(p.pos,p.pos,B,dt*dt);
 			Vec2.madd(p.pos,p.pos,C,dt);
 			Vec2.add (p.pos,p.pos,D);
+			Vec2.sub(p.pos,p.pos,absolute);
+
 
 			p.pressure=point0.pressure + dp*dt;
 
-			Vec2.sub(p.pos,p.pos,layer.position);
+			//Vec2.sub(p.pos,p.pos,layer.position);
 
 			left   = Math.min(p.pos[0],left);
 			right  = Math.max(p.pos[0],right);

@@ -33,7 +33,8 @@ var PenFunc = (function(){
 				if(layers[i] === layer){
 					break;
 				}
-				if(layers[i].modifier === "shift"){
+				if(["shift","gauss"].indexOf(layers[i].modifier) >=0){
+	
 					layer.refreshImg();
 					break;
 				}
