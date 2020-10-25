@@ -165,6 +165,7 @@ Hdrpaint=(function(){
 	ret.addDialog= function(id,html){
 		var div= document.createElement("div");
 		div.id=id;
+		div.style.display="none";
 		div.classList.add("area");
 		div.classList.add("dialog");
 		div.insertAdjacentHTML('beforeend',html);
@@ -194,6 +195,8 @@ Hdrpaint=(function(){
 		var dialog_parent= document.querySelector("#modifier_param_area");
 		dialog_parent.appendChild(div);
 	}
+
+
 
 	return ret;
 })();

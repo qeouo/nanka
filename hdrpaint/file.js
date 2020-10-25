@@ -108,7 +108,24 @@ var setParam = function(dst,src){
 		}
 	}
 }
-var loadHpd=function(buffer){
+
+	Hdrpaint.addDialog("loading",
+		`
+		ファイル読み込み中...
+
+		`);
+
+var loadHpd=function(file){
+	Hdrpaint.showDialog("loading");
+
+	Util.loadBinary(file,function(buffer){
+		loadHpd_(buffer);
+		var log =CommandLog.createLog("loadDocumentFile",{"file":file.name});
+		CommandLog.appendOption(log);
+		Hdrpaint.closeDialog();
+	});
+}
+var loadHpd_=function(buffer){
 
 	var fu =function(img){
 		
@@ -233,6 +250,7 @@ var loadHpd=function(buffer){
 	changeColor(null);
 	
 	CommandLog.reset();
+
 
 	if(brushes.length>0){
 		brushes[0].select();

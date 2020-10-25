@@ -213,7 +213,7 @@ Command.drawHermitian = (function(){
 		}
 		var img= layer.img;
 
-		selected_layer.getAbsolutePosition(absolute);
+		layer.getAbsolutePosition(absolute);
 
 		var point0=points[n-1];
 		var point1=points[n];

@@ -367,25 +367,13 @@ var onloadfunc=function(e){
 		layer_blendfunc.appendChild(option);
 	}
 
-	//modifierセット
-//	var modifier_func = document.querySelector("#layer_modifier");
-//	 while(modifier_func.firstChild){
-//	 	modifier_func.removeChild(modifier_func.firstChild);
-//	 }
-//	for(var i=0;i<Hdrpaint.modifiername.length;i++){
-//		var name = Hdrpaint.modifiername[i];
-//		var option = document.createElement("option");
-//		option.value = name;
-//		Util.setText(option,name);
-//		modifier_func.appendChild(option);
-//	}
 		
 
 	//ダイアログ閉じる処理
-	document.querySelector(".dialog_parent").addEventListener("click",function(e){
-		if(this !== e.target)return false;
-		Hdrpaint.closeDialog();
-	});
+	//document.querySelector(".dialog_parent").addEventListener("click",function(e){
+	//	if(this !== e.target)return false;
+	//	Hdrpaint.closeDialog();
+	//});
 
 
 	var keys=Object.keys(inputs);
@@ -813,11 +801,12 @@ var onloadfunc=function(e){
 		file_hpd.onchange=function(){
 			var file = file_hpd.files[0];
 
-			Util.loadBinary(file,function(buffer){
-				loadHpd(buffer);
-				var log =CommandLog.createLog("loadDocumentFile",{"file":file.name});
-				CommandLog.appendOption(log);
-			});
+			loadHpd(file);
+	//		Util.loadBinary(file,function(buffer){
+	//			loadHpd(buffer);
+	//			var log =CommandLog.createLog("loadDocumentFile",{"file":file.name});
+	//			CommandLog.appendOption(log);
+	//		});
 			file_hpd.value=null;
 		};
 		file_hpd.click();
@@ -1012,14 +1001,14 @@ var onloadfunc=function(e){
 //初期化
 	img_hsv.func();
 
-	if(globalParam.hasOwnProperty("load")){
+	if(globalParam.hasOwnProperty("file")){
 
 		//パラメタ渡されてる場合はそれ開く
-		Util.loadBinary(globalParam.load,function(buffer){
-			loadHpd(buffer);
-			var log =CommandLog.createLog("loadDocumentFile",{"file":globalParam.load});
-			CommandLog.appendOption(log);
-		});
+
+		loadHpd(globalParam.file);
+		//Util.loadBinary(globalParam.file,function(buffer){
+		//	loadHpd(buffer);
+		//});
 	}else{
 		root_layer = Layer.create(new Img(1,1),1);
 		//Hdrpaint.executeCommand("resizeLayer",{"layer_id":root_layer.id,"width":512,"height":512});

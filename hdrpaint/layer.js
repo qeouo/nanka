@@ -24,9 +24,13 @@ var Layer=(function(){
 	};
 	var ret = Layer;
 
+	ret.enableRefreshThumbnail=true;
+
 	ret.prototype.typename="normal_layer";
 
-	ret.enableRefreshThumbnail=true;
+
+	ret.before=function(area){}
+
 
 
 	ret.init=function(){

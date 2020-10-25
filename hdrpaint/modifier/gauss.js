@@ -2,27 +2,31 @@ Hdrpaint.modifier["gauss"] = (function(){
 	var gaussgen= function(){
 		Layer.apply(this);
 		this.scale=16;
+		this.cache={};
+		this.cache.horizon_img= new Img(1024,1024);
 	};
 	var ret = gaussgen;
 	inherits(ret,Layer);
 
 	ret.prototype.typename="gauss";
 
-	var horizon_img = new Img(1024,1024);
 	var src;
 
+	ret.prototype.before=function(area){
+	}
 
 	ret.prototype.init=function(x,y,w,h){
 		src = this.parent.img;
 		var scale = this.scale;
+		var horizon_img = this.cache.horizon_img;
 		if(horizon_img.data.width*horizon_img.data.height
 			< src.data.width * src.data.height){
-			horizon_img = new Img(src.data.width,src.data.height);
+			horizon_img = this.cache.horizon_img = new Img(src.data.width,src.data.height);
 			
 		}
 		horizon_img.width=src.width;
 		horizon_img.height=src.height;
-		gauss(scale,scale,x,x+w-1,y,y+h-1);
+		this.gauss(scale,scale,x,x+w-1,y,y+h-1);
 		
 	}
 	ret.prototype.getPixel = function(ret,x,y){
@@ -52,8 +56,9 @@ Hdrpaint.modifier["gauss"] = (function(){
 		dst[idx+1]*=a;
 		dst[idx+2]*=a;
 	}
-var gauss=function(d,size,left,right,top,bottom){
+ret.prototype.gauss=function(d,size,left,right,top,bottom){
 	var MAX = size|0;
+	var horizon_img = this.cache.horizon_img;
 	var dst= horizon_img;
 	var joined_img_data=src.data;
 	
