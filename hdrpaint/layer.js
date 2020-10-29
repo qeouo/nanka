@@ -24,17 +24,14 @@ var Layer=(function(){
 	};
 	var ret = Layer;
 
+	ret.init=function(){};
+
 	ret.enableRefreshThumbnail=true;
 
 	ret.prototype.typename="normal_layer";
 
 
-	ret.before=function(area){}
 
-
-
-	ret.init=function(){
-	}
 
 	ret.bubble_func=function(layer,f){
 		//親に伝搬する処理
@@ -646,9 +643,44 @@ var Layer=(function(){
 	}
 	
 
+	ret.prototype.init=function(x,y,w,h){
+		var layer = this;
+		var img= layer.parent.img;
+		var img_data = img.data;
+		var img_width = img.width;
+		var layer_img_data = layer.img.data;
+		var layer_alpha=layer.alpha;
+		var layer_power=Math.pow(2,layer.power);
+		var layer_img_width = layer.img.width;
+		var func = Hdrpaint.blendfuncs[layer.blendfunc];
+		var layer_position_x= layer.position[0];
+		var layer_position_y= layer.position[1];
+
+		//レイヤのクランプ
+		var left2 = Math.max(x,layer.position[0]);
+		var top2 = Math.max(y,layer.position[1]);
+		var right2 = Math.min(layer.img.width + layer_position_x ,x+w);
+		var bottom2 = Math.min(layer.img.height + layer_position_y ,y+h);
+
+		Vec4.set(composite_area,left2,top2,right2-left2+1,bottom2-top2+1);
+
+
+		for(var yi=top2;yi<=bottom2;yi++){
+			var idx = yi * img_width + left2 << 2;
+			var max = yi * img_width + right2 << 2;
+			var idx2 = (yi-layer_position_y) * layer_img_width + left2 - layer_position_x << 2;
+			var xi = left2;
+			for(;idx<=max;idx+=4){
+				func(img_data,idx,layer_img_data,idx2,layer_alpha,layer_power);
+				idx2+=4;
+				xi++;
+			}
+		}
+			
+	};
+
 	var composite_area = new Vec4();
 	ret.prototype.composite=function(left,top,right,bottom){
-		var funcs = Hdrpaint.blendfuncs;
 		var layers=this.children;
 
 		var pow=0;
@@ -659,86 +691,33 @@ var Layer=(function(){
 			bottom= this.img.height-1;
 		}
 
-
 		if(this.type !==1){
 			return;
 		}
-		var img = this.img;
-		var img_data = img.data;
-		var img_width = img.width;
-		
 
+		var img = this.img;
 
 		img.clear(left,top,right-left+1,bottom-top+1);
 
-
 		for(var li=0;li<layers.length;li++){
 			var layer = layers[li];
-
 			if(!layer.display ){
 				//非表示の場合スルー
 				continue;
 			}
-
-			if(layer.type ===2){
-				layer.init(left,top,right-left+1,bottom-top+1);
-				
-				img.scan(function(r,x,y){
-					layer.getPixel(r,x,y);
-				},left,top,right-left+1,bottom-top+1);
-				continue;
-			}
-			if(!layer.img){
-				continue;
-			}
-
-
-			var layer_img_data = layer.img.data;
-			var layer_alpha=layer.alpha;
-			var layer_power=Math.pow(2,layer.power);
-			var layer_img_width = layer.img.width;
-			var func = funcs[layer.blendfunc];
-			var layer_position_x= layer.position[0];
-			var layer_position_y= layer.position[1];
-
-			//レイヤごとのクランプ
-			var left2 = Math.max(left,layer.position[0]);
-			var top2 = Math.max(top,layer.position[1]);
-			var right2 = Math.min(layer.img.width + layer_position_x -1,right);
-			var bottom2 = Math.min(layer.img.height + layer_position_y-1 ,bottom);
-
-			Vec4.set(composite_area,left2,top2,right2-left2+1,bottom2-top2+1);
-			if(func.flg){
-				func(img,layer,left2,top2,right2,bottom2);
-
-				top+=pow;
-				left+=pow;
-				bottom-=pow;
-				right-=pow;
-			}else{
-				for(var yi=top2;yi<=bottom2;yi++){
-					var idx = yi * img_width + left2 << 2;
-					var max = yi * img_width + right2 << 2;
-					var idx2 = (yi-layer_position_y) * layer_img_width + left2 - layer_position_x << 2;
-					var xi = left2;
-					for(;idx<=max;idx+=4){
-						func(img_data,idx,layer_img_data,idx2,layer_alpha,layer_power);
-						idx2+=4;
-						xi++;
-					}
-				}
-			}
+			layer.init(left,top,right-left+1,bottom-top+1);
 			
 		}
 		if(this === root_layer){
+			//ルートレイヤの場合はプレビュー更新
 			refreshPreview(0,left,top,right-left+1,bottom-top+1);
 		}else{
+			//通常レイヤの場合はサムネ更新
 			this.registRefreshThumbnail();
 		}
 	}
 
-	ret.prototype.init = function(){
-	}
+
 	ret.prototype.getPixel = function(ret,x,y){
 		ret.fill(0);
 

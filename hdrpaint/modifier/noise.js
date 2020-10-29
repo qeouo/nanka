@@ -32,8 +32,16 @@ Hdrpaint.modifier["noise"] = (function(){
 		func = funcs[this.func];
 		z = this.zoffset;
 		
+
+		var img = this.parent.img;
+		var layer = this;
+		this.parent.img.scan(function(r,idx,x,y){layer.calcPixel(r,idx,x,y);} ,x,y,w,h);
 	}
+
 	ret.prototype.getPixel = function(ret,x,y){
+		this.calcPixel(ret,0,x,y);
+	}
+	ret.prototype.calcPixel = function(ret,idx,x,y){
 		var r=0;
 		var scale2 = scale;
 		var pow = 1<<octave;
@@ -48,7 +56,7 @@ Hdrpaint.modifier["noise"] = (function(){
 				}
 				r *=_total;
 
-				ret[n] = r;
+				ret[n+idx] = r;
 			}
 		}else{
 			for(var i=0;i<octave+1;i++){
@@ -59,12 +67,12 @@ Hdrpaint.modifier["noise"] = (function(){
 			}
 			r *=_total;
 
-			ret[0] = r;
-			ret[1] = r;
-			ret[2] = r;
+			ret[0+idx] = r;
+			ret[1+idx] = r;
+			ret[2+idx] = r;
 		}
 
-		ret[3] = 1;
+		ret[3+idx] = 1;
 	}
 
 
