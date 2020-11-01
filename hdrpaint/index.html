@@ -585,6 +585,7 @@ var onloadfunc=function(e){
 			drag_start[0]= x | 0;
 			drag_start[1]= y | 0;
 			var layer_id=-1;//全レイヤ移動
+			var flg_active_layer_only = inputs["selected_layer_only"].checked;
 			if(flg_active_layer_only){
 				//アクティブレイヤ
 				layer_id=selected_layer.id;

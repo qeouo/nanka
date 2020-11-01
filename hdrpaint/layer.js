@@ -665,12 +665,12 @@ var Layer=(function(){
 		Vec4.set(composite_area,left2,top2,right2-left2+1,bottom2-top2+1);
 
 
-		for(var yi=top2;yi<=bottom2;yi++){
+		for(var yi=top2;yi<bottom2;yi++){
 			var idx = yi * img_width + left2 << 2;
 			var max = yi * img_width + right2 << 2;
 			var idx2 = (yi-layer_position_y) * layer_img_width + left2 - layer_position_x << 2;
 			var xi = left2;
-			for(;idx<=max;idx+=4){
+			for(;idx<max;idx+=4){
 				func(img_data,idx,layer_img_data,idx2,layer_alpha,layer_power);
 				idx2+=4;
 				xi++;

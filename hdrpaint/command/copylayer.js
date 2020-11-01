@@ -32,8 +32,9 @@ commandObjs["copylayer"] = (function(){
 				if(["id","div","img","children"].indexOf(key)>=0)continue;
 				if(layer[key] instanceof Vec2){
 					Vec2.copy(layer[key],src_layer[key]);
+				}else{
+					layer[key] = src_layer[key];
 				}
-				layer[key] = src_layer[key];
 			}
 
 			layer.refreshDiv();
