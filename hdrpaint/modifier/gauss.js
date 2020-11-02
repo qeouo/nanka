@@ -13,10 +13,23 @@ Hdrpaint.modifier["gauss"] = (function(){
 	var src;
 
 	ret.prototype.before=function(area){
+		area[0]-=this.scale*2;
+		area[1]-=this.scale*2;
+		area[2]+=this.scale*4;
+		area[3]+=this.scale*4;
 	}
 
-	ret.prototype.init=function(x,y,w,h){
-		src = this.parent.img;
+	ret.prototype.init=function(img,composite_area){
+
+		composite_area[0]+=this.scale;
+		composite_area[1]+=this.scale;
+		composite_area[2]-=this.scale*2;
+		composite_area[3]-=this.scale*2;
+		var x = composite_area[0];
+		var y = composite_area[1];
+		var w = composite_area[2];
+		var h = composite_area[3];
+		src = img;
 		var scale = this.scale;
 		var horizon_img = this.cache.horizon_img;
 		if(horizon_img.data.width*horizon_img.data.height

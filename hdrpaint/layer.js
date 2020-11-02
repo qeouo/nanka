@@ -643,9 +643,13 @@ var Layer=(function(){
 	}
 	
 
-	ret.prototype.init=function(x,y,w,h){
+	ret.prototype.before=function(area){};
+	ret.prototype.init=function(img,x,y,w,h){
+		var x = composite_area[0];
+		var y = composite_area[1];
+		var w = composite_area[2];
+		var h = composite_area[3];
 		var layer = this;
-		var img= layer.parent.img;
 		var img_data = img.data;
 		var img_width = img.width;
 		var layer_img_data = layer.img.data;
@@ -666,8 +670,8 @@ var Layer=(function(){
 
 
 		for(var yi=top2;yi<bottom2;yi++){
-			var idx = yi * img_width + left2 << 2;
-			var max = yi * img_width + right2 << 2;
+			var idx = (yi-img.offsety) * img_width + left2  - img.offsetx << 2;
+			var max = (yi-img.offsety) * img_width + right2 - img.offsetx << 2;
 			var idx2 = (yi-layer_position_y) * layer_img_width + left2 - layer_position_x << 2;
 			var xi = left2;
 			for(;idx<max;idx+=4){
@@ -679,9 +683,11 @@ var Layer=(function(){
 			
 	};
 
+	var composite_img = new Img(512,512);
 	var composite_area = new Vec4();
 	ret.prototype.composite=function(left,top,right,bottom){
 		var layers=this.children;
+
 
 		var pow=0;
 		if(typeof left === 'undefined'){
@@ -695,22 +701,57 @@ var Layer=(function(){
 			return;
 		}
 
-		var img = this.img;
+		var width = right-left+1;
+		var height = bottom-top+1;
 
-		img.clear(left,top,right-left+1,bottom-top+1);
+		composite_img.clear(left,top,width,height);
 
+
+		Vec4.set(composite_area,left,top,width,height);
+		for(var li=layers.length;li--;){
+			var layer = layers[li];
+			if(!layer.display ){
+				//非表示の場合スルー
+				continue;
+			}
+			layer.before(composite_area);
+			
+		}
+
+		if(composite_img.data.length<(composite_area[2]*composite_area[3]<<2)){
+			composite_img = new Img(composite_area[2],composite_area[3]);
+		}
+		composite_img.offsetx= composite_area[0];
+		composite_img.offsety= composite_area[1];
+		composite_img.width= composite_area[2];
+		composite_img.height= composite_area[3];
+		
 		for(var li=0;li<layers.length;li++){
 			var layer = layers[li];
 			if(!layer.display ){
 				//非表示の場合スルー
 				continue;
 			}
-			layer.init(left,top,right-left+1,bottom-top+1);
+			layer.init(composite_img,composite_area);
 			
 		}
+		composite_area[0]=Math.max(0,composite_area[0]);
+		composite_area[1]=Math.max(0,composite_area[1]);
+		composite_area[2]=Math.min(this.img.width-composite_area[0],composite_area[2]);
+		composite_area[3]=Math.min(this.img.height-composite_area[1],composite_area[3]);
+		Img.copy(this.img
+			,composite_area[0] 
+			, composite_area[1]
+			,composite_img
+			, 0 
+			, 0 
+			, composite_area[2] 
+			, composite_area[3] 
+		);
+
 		if(this === root_layer){
 			//ルートレイヤの場合はプレビュー更新
-			refreshPreview(0,left,top,right-left+1,bottom-top+1);
+			refreshPreview(0,left,top,width,height);
 		}else{
 			//通常レイヤの場合はサムネ更新
 			this.registRefreshThumbnail();
