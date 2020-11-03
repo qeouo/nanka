@@ -39,7 +39,7 @@ Hdrpaint.modifier["gauss"] = (function(){
 		}
 		horizon_img.width=src.width;
 		horizon_img.height=src.height;
-		this.gauss(scale,scale,x,x+w-1,y,y+h-1);
+		this.gauss(scale,scale,-img.offsetx+x,-img.offsety+y,w,h);
 		
 	}
 	ret.prototype.getPixel = function(ret,x,y){
@@ -69,11 +69,12 @@ Hdrpaint.modifier["gauss"] = (function(){
 		dst[idx+1]*=a;
 		dst[idx+2]*=a;
 	}
-ret.prototype.gauss=function(d,size,left,right,top,bottom){
+ret.prototype.gauss=function(d,size,left,top,w,h){
 	var MAX = size|0;
 	var horizon_img = this.cache.horizon_img;
 	var dst= horizon_img;
-	var joined_img_data=src.data;
+	var right = left+w-1;
+	var bottom= top+h+1;
 	
 
 	//係数作成
@@ -95,7 +96,9 @@ ret.prototype.gauss=function(d,size,left,right,top,bottom){
 	var data = src.data;
 	var dstdata = dst.data;
 	//横ぼかし
-	for(var y=top;y<bottom+1;y++){
+	var top2 = Math.max(0,top-size);
+	var bottom2 = Math.min(src.height,bottom+size+1);
+	for(var y=top2;y<bottom2;y++){
 		var yidx= y * width;
 		var x = left;
 		var idx = yidx + left <<2;

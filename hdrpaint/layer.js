@@ -666,7 +666,7 @@ var Layer=(function(){
 		var right2 = Math.min(layer.img.width + layer_position_x ,x+w);
 		var bottom2 = Math.min(layer.img.height + layer_position_y ,y+h);
 
-		Vec4.set(composite_area,left2,top2,right2-left2+1,bottom2-top2+1);
+		//Vec4.set(composite_area,left2,top2,right2-left2+1,bottom2-top2+1);
 
 
 		for(var yi=top2;yi<bottom2;yi++){
@@ -735,16 +735,22 @@ var Layer=(function(){
 			layer.init(composite_img,composite_area);
 			
 		}
-		composite_area[0]=Math.max(0,composite_area[0]);
-		composite_area[1]=Math.max(0,composite_area[1]);
-		composite_area[2]=Math.min(this.img.width-composite_area[0],composite_area[2]);
-		composite_area[3]=Math.min(this.img.height-composite_area[1],composite_area[3]);
+
+		var x0 = composite_area[0];
+		var x1 = composite_area[0]+composite_area[2];
+		var y0 = composite_area[1];
+		var y1 = composite_area[1]+composite_area[3];
+		x0=Math.max(0,x0);
+		y0=Math.max(0,y0);
+		x1=Math.min(this.img.width,x1);
+		y1=Math.min(this.img.height,y1);
+		Vec4.set(composite_area,x0,y0,x1-x0,y1-y0);
 		Img.copy(this.img
 			,composite_area[0] 
 			, composite_area[1]
 			,composite_img
-			, 0 
-			, 0 
+			, -composite_img.offsetx +composite_area[0]
+			, -composite_img.offsety +composite_area[1]
 			, composite_area[2] 
 			, composite_area[3] 
 		);
