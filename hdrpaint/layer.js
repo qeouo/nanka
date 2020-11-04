@@ -666,9 +666,6 @@ var Layer=(function(){
 		var right2 = Math.min(layer.img.width + layer_position_x ,x+w);
 		var bottom2 = Math.min(layer.img.height + layer_position_y ,y+h);
 
-		//Vec4.set(composite_area,left2,top2,right2-left2+1,bottom2-top2+1);
-
-
 		for(var yi=top2;yi<bottom2;yi++){
 			var idx = (yi-img.offsety) * img_width + left2  - img.offsetx << 2;
 			var max = (yi-img.offsety) * img_width + right2 - img.offsetx << 2;
@@ -704,7 +701,6 @@ var Layer=(function(){
 		var width = right-left+1;
 		var height = bottom-top+1;
 
-		composite_img.clear(left,top,width,height);
 
 
 		Vec4.set(composite_area,left,top,width,height);
@@ -725,6 +721,8 @@ var Layer=(function(){
 		composite_img.offsety= composite_area[1];
 		composite_img.width= composite_area[2];
 		composite_img.height= composite_area[3];
+
+		composite_img.clear(0,0,composite_area[2],composite_area[3]);
 		
 		for(var li=0;li<layers.length;li++){
 			var layer = layers[li];
@@ -757,7 +755,7 @@ var Layer=(function(){
 
 		if(this === root_layer){
 			//ルートレイヤの場合はプレビュー更新
-			refreshPreview(0,left,top,width,height);
+			refreshPreview(0,composite_area[0],composite_area[1],composite_area[2],composite_area[3]);
 		}else{
 			//通常レイヤの場合はサムネ更新
 			this.registRefreshThumbnail();

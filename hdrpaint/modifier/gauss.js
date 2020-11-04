@@ -13,24 +13,25 @@ Hdrpaint.modifier["gauss"] = (function(){
 	var src;
 
 	ret.prototype.before=function(area){
-		area[0]-=this.scale*2;
-		area[1]-=this.scale*2;
-		area[2]+=this.scale*4;
-		area[3]+=this.scale*4;
+		var size = this.scale*2;
+		area[0]-=size;
+		area[1]-=size;
+		area[2]+=size<<1;
+		area[3]+=size<<1;
 	}
 
 	ret.prototype.init=function(img,composite_area){
+		var scale = this.scale;
 
-		composite_area[0]+=this.scale;
-		composite_area[1]+=this.scale;
-		composite_area[2]-=this.scale*2;
-		composite_area[3]-=this.scale*2;
+		composite_area[0]+=scale;
+		composite_area[1]+=scale;
+		composite_area[2]-=scale<<1;
+		composite_area[3]-=scale<<1;
 		var x = composite_area[0];
 		var y = composite_area[1];
 		var w = composite_area[2];
 		var h = composite_area[3];
 		src = img;
-		var scale = this.scale;
 		var horizon_img = this.cache.horizon_img;
 		if(horizon_img.data.width*horizon_img.data.height
 			< src.data.width * src.data.height){
@@ -74,7 +75,7 @@ ret.prototype.gauss=function(d,size,left,top,w,h){
 	var horizon_img = this.cache.horizon_img;
 	var dst= horizon_img;
 	var right = left+w-1;
-	var bottom= top+h+1;
+	var bottom= top+h-1;
 	
 
 	//係数作成
