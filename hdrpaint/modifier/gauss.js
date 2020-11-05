@@ -2,15 +2,12 @@ Hdrpaint.modifier["gauss"] = (function(){
 	var gaussgen= function(){
 		Layer.apply(this);
 		this.scale=16;
-		this.cache={};
-		this.cache.horizon_img= new Img(1024,1024);
 	};
 	var ret = gaussgen;
 	inherits(ret,Layer);
 
 	ret.prototype.typename="gauss";
 
-	var src;
 
 	ret.prototype.before=function(area){
 		var size = this.scale*2;
@@ -20,6 +17,7 @@ Hdrpaint.modifier["gauss"] = (function(){
 		area[3]+=size<<1;
 	}
 
+	var horizon_img = new Img(1024,1024);
 	ret.prototype.init=function(img,composite_area){
 		var scale = this.scale;
 
@@ -27,28 +25,20 @@ Hdrpaint.modifier["gauss"] = (function(){
 		composite_area[1]+=scale;
 		composite_area[2]-=scale<<1;
 		composite_area[3]-=scale<<1;
-		var x = composite_area[0];
-		var y = composite_area[1];
-		var w = composite_area[2];
-		var h = composite_area[3];
-		src = img;
-		var horizon_img = this.cache.horizon_img;
-		if(horizon_img.data.width*horizon_img.data.height
-			< src.data.width * src.data.height){
-			horizon_img = this.cache.horizon_img = new Img(src.data.width,src.data.height);
+		var x = Math.max(0,composite_area[0]-img.offsetx);
+		var y = Math.max(0,composite_area[1]-img.offsety);
+		var x1 = Math.min(img.width,composite_area[2]+x);
+		var y1 = Math.min(img.height,composite_area[3]+y);
+		if(horizon_img.data.length < img.data.length){
+			horizon_img = new Img(img.width,img.height);
 			
 		}
-		horizon_img.width=src.width;
-		horizon_img.height=src.height;
-		this.gauss(scale,scale,-img.offsetx+x,-img.offsety+y,w,h);
+		horizon_img.width=img.width;
+		horizon_img.height=img.height;
+		this.gauss(img,scale,scale,x,y,x1-x,y1-y);
 		
 	}
 	ret.prototype.getPixel = function(ret,x,y){
-		var a =src.getIndex(x,y)<<2;
-		ret[0] = src.data[a];
-		ret[1] = src.data[a+1];
-		ret[2] = src.data[a+2];
-		ret[3] = src.data[a+3];
 		
 	}
 
@@ -70,9 +60,8 @@ Hdrpaint.modifier["gauss"] = (function(){
 		dst[idx+1]*=a;
 		dst[idx+2]*=a;
 	}
-ret.prototype.gauss=function(d,size,left,top,w,h){
+ret.prototype.gauss=function(src,d,size,left,top,w,h){
 	var MAX = size|0;
-	var horizon_img = this.cache.horizon_img;
 	var dst= horizon_img;
 	var right = left+w-1;
 	var bottom= top+h-1;

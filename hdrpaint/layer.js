@@ -702,7 +702,6 @@ var Layer=(function(){
 		var height = bottom-top+1;
 
 
-
 		Vec4.set(composite_area,left,top,width,height);
 		for(var li=layers.length;li--;){
 			var layer = layers[li];
@@ -714,15 +713,20 @@ var Layer=(function(){
 			
 		}
 
-		if(composite_img.data.length<(composite_area[2]*composite_area[3]<<2)){
-			composite_img = new Img(composite_area[2],composite_area[3]);
-		}
-		composite_img.offsetx= composite_area[0];
-		composite_img.offsety= composite_area[1];
-		composite_img.width= composite_area[2];
-		composite_img.height= composite_area[3];
 
-		composite_img.clear(0,0,composite_area[2],composite_area[3]);
+		left = Math.max(0,composite_area[0]);
+		top= Math.max(0,composite_area[1]);
+		right= Math.min(this.img.width,composite_area[2]+ left);
+		bottom= Math.min(this.img.height,composite_area[3]+ top);
+		if(composite_img.data.length<((right-left)*(bottom-top)<<2)){
+			composite_img = new Img(right-left,bottom-top);
+		}
+		composite_img.offsetx= left;
+		composite_img.offsety= top;
+		composite_img.width= right-left;
+		composite_img.height= bottom-top;
+
+		composite_img.clear(0,0,composite_img.width,composite_img.height);
 		
 		for(var li=0;li<layers.length;li++){
 			var layer = layers[li];
