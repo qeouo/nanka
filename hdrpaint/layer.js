@@ -25,6 +25,7 @@ var Layer=(function(){
 	var ret = Layer;
 
 	ret.init=function(){};
+	ret.prototype.initbefore=function(){};
 
 	ret.enableRefreshThumbnail=true;
 
@@ -725,6 +726,7 @@ var Layer=(function(){
 		composite_img.offsety= top;
 		composite_img.width= right-left;
 		composite_img.height= bottom-top;
+
 
 		composite_img.clear(0,0,composite_img.width,composite_img.height);
 		
