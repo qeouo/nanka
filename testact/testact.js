@@ -7,7 +7,7 @@ var MainScene=(function(){
 		var objMan = this.objMan;
 		Engine.go.main= objMan.createObj(Engine.goClass.main);
 
-		shadowdecShader=Ono3d.loadShader("../lib/shader/shadow_dec.shader");
+		//shadowdecShader=Ono3d.loadShader("../lib/shader/shadow_dec.shader");
 	};
 	inherits(ret,Engine.Scene);
 

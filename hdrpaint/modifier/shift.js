@@ -48,8 +48,8 @@ var offy;
 
 		var x = Math.max(0,composite_area[0]);
 		var y = Math.max(0,composite_area[1]);
-		var x1 = Math.min(img.width,composite_area[2]+x);
-		var y1 = Math.min(img.height,composite_area[3]+y);
+		var x1 = composite_area[2]+x;
+		var y1 = composite_area[3]+y;
 
 		var imgdata = img.data;
 

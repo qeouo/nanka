@@ -18,15 +18,13 @@ void main(void){
 	highp vec2 col=vec2(0.);
 	lowp vec2 fc = vUv ;
 	lowp vec2 scale = uAxis;
-	col += decodeFull_(texture2D(uSampler,(fc+scale*-4.)*uUvScale+uUvOffset))*weight[4];
-	col += decodeFull_(texture2D(uSampler,(fc+scale*-3.)*uUvScale+uUvOffset))*weight[3];
-	col += decodeFull_(texture2D(uSampler,(fc+scale*-2.)*uUvScale+uUvOffset))*weight[2];
-	col += decodeFull_(texture2D(uSampler,(fc+scale*-1.)*uUvScale+uUvOffset))*weight[1];
-	col += decodeFull_(texture2D(uSampler,(fc+scale*-0.)*uUvScale+uUvOffset))*weight[0];
-	col += decodeFull_(texture2D(uSampler,(fc+scale*1.)*uUvScale+uUvOffset))*weight[1];
-	col += decodeFull_(texture2D(uSampler,(fc+scale*2.)*uUvScale+uUvOffset))*weight[2];
-	col += decodeFull_(texture2D(uSampler,(fc+scale*3.)*uUvScale+uUvOffset))*weight[3];
-	col += decodeFull_(texture2D(uSampler,(fc+scale*4.)*uUvScale+uUvOffset))*weight[4];
+	col += decodeFull_(texture2D(uSampler,(fc+scale*-3.)*uUvScale+uUvOffset));
+	col += decodeFull_(texture2D(uSampler,(fc+scale*-2.)*uUvScale+uUvOffset));
+	col += decodeFull_(texture2D(uSampler,(fc+scale*-1.)*uUvScale+uUvOffset));
+	col += decodeFull_(texture2D(uSampler,(fc+scale*-0.)*uUvScale+uUvOffset));
+	col += decodeFull_(texture2D(uSampler,(fc+scale*1.)*uUvScale+uUvOffset));
+	col += decodeFull_(texture2D(uSampler,(fc+scale*2.)*uUvScale+uUvOffset));
+	col += decodeFull_(texture2D(uSampler,(fc+scale*3.)*uUvScale+uUvOffset));
+	col/=7.0;
 	gl_FragColor= vec4(packUFP16(col.r),packUFP16(col.g));
-	//gl_FragColor= vec4(texture2D(uSampler,fc).rg,vec2(encodeShadow(col.g)));
 }

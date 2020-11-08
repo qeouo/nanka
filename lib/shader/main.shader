@@ -167,25 +167,30 @@ void main(void){
 	vec4 lightPos=  vec4(vPos + depth*(eye_v2),1.0); 
 	lightPos= lightMat* lightPos;
 	lightPos.xy/=lightPos.w;
-	highp float shadowmap=decodeShadow(uShadowmap,vec2(1024.0),(lightPos.xy+1.0)*0.5); 
-	highp float nowz = (lightPos.z+1.0)*0.5;
-	if(nowz   < shadowmap){
-		shadowmap=1.0;
-	}else{
-		float offset= (nowz -shadowmap)*0.1;
-		vec2 current = (lightPos.xy+1.0)*0.5;
-		shadowmap=checkShadow(uShadowmap,current+vec2(1.0,0.0)*offset, nowz)
-			+checkShadow(uShadowmap,current+vec2(-1.0,0.0)*offset, nowz)
-			+checkShadow(uShadowmap,current+vec2(0.0,1.0)*offset, nowz) 
-			+checkShadow(uShadowmap,current+vec2(0.0,-1.0)*offset, nowz)
+	highp vec2 smap=decodeVec2(uShadowmap,vec2(1024.0),(lightPos.xy+1.0)*0.5); 
 
-			+checkShadow(uShadowmap,current+vec2(0.7,-0.7)*offset, nowz)
-			+checkShadow(uShadowmap,current+vec2(-0.7,-0.7)*offset, nowz)
-			+checkShadow(uShadowmap,current+vec2(0.7,0.7)*offset, nowz) 
-			+checkShadow(uShadowmap,current+vec2(-0.7,0.7)*offset, nowz); 
-		shadowmap=min(1.0,shadowmap*2.0/9.0);
+	highp float shadow_a = 1.0;
+	highp float nowz = (lightPos.z+1.0)*0.5;
+	//nowz = exp(nowz);
+	if(nowz   > smap.r+0.0003){
+		//float offset=5.0/1024.0;
+		float offset=(nowz -smap.r)*0.05;
+		vec2 current = (lightPos.xy+1.0)*0.5;
+		float c = 
+			checkShadow(uShadowmap,current+vec2(-1.0,0.0)*offset,nowz)
+			+checkShadow(uShadowmap,current+vec2(1.0,0.0)*offset,nowz)
+			+checkShadow(uShadowmap,current+vec2(0.0,-1.0)*offset,nowz)
+			+checkShadow(uShadowmap,current+vec2(0.0,1.0)*offset,nowz);
+		if(c>0.0){
+			highp float sq = smap.r * smap.r;
+			highp float v = max(smap.g - sq-0.003,0.0);
+			shadow_a = max(0.0,min(1.0,v/(v+pow(nowz-smap.r-0.005,2.0))));
+		}else{
+			shadow_a=0.0;
+		}
+		shadow_a=c/4.0;
 	}
-	diffuse *= shadowmap;
+	diffuse = shadow_a * diffuse; 
 
 	/*拡散反射+環境光+自己発光*/ 
 	vec3 vColor2 = diffuse*uLightColor + uEmi;

@@ -16,7 +16,8 @@ varying highp float aW;
 void main(void){
 	float z=aZ;
 	z=(z+1.0)*0.5;
-	gl_FragColor= vec4(packUFP16(z),0.0,0.0);
+	//z = exp(z);
+	gl_FragColor= vec4(packUFP16(z),packUFP16(z*z));
 	
 	if(abs(gl_FragCoord.x-512.)>510. || abs(gl_FragCoord.y-512.)>510.){
 		gl_FragColor= vec4(1.,1.,1.,1.);
