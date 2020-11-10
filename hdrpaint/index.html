@@ -698,14 +698,17 @@ var onloadfunc=function(e){
 			}
 			inputs["color_picker"].checked=true;
 			break;
-		case 69://e
-			inputs["weight"].value=parseFloat(inputs["weight"].value)-1;
-			Util.fireEvent(inputs["weight"],"change");
-			break;
 		case 82://r
-			inputs["weight"].value=parseFloat(inputs["weight"].value)+1;
-			Util.fireEvent(inputs["weight"],"change");
+			compositeAll();
 			break;
+		//case 69://e
+		//	inputs["weight"].value=parseFloat(inputs["weight"].value)-1;
+		//	Util.fireEvent(inputs["weight"],"change");
+		//	break;
+		//case 82://r
+		//	inputs["weight"].value=parseFloat(inputs["weight"].value)+1;
+		//	Util.fireEvent(inputs["weight"],"change");
+		//	break;
 		case 90:
 			if(event.ctrlKey){
 				if (event.shiftKey) {

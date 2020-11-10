@@ -13,11 +13,11 @@ Hdrpaint.modifier["noise"] = (function(){
 
 	ret.prototype.typename="noise";
 
-	var scale = 1/8;
-	var octave = 1;
-	var _total = 1.0/(1.0 - 1.0/(1<<octave));
-	var betsu = false;
-	var z = 0;
+	var scale;
+	var octave;
+	var _total;
+	var betsu;
+	var z;
 	var func;
 
 	var funcs={"perlin":Noise.perlinnoise
@@ -38,7 +38,6 @@ Hdrpaint.modifier["noise"] = (function(){
 		var w = composite_area[2];
 		var h = composite_area[3];
 		
-
 		this.initbefore();
 
 		var layer = this;
@@ -54,31 +53,23 @@ Hdrpaint.modifier["noise"] = (function(){
 		var r=0;
 		var scale2 = scale;
 		var pow = 1<<octave;
+		var nmax = 1;
 		if(betsu){
-			for(var n=0;n<3;n++){
-				r = 0;
-				for(var i=0;i<octave+1;i++){
-					scale2 =(1<<i)*scale;
-					r += func(x*scale2+i*0.123+n*0.321
-							,y*scale2+i*0.123+n*0.321
-							,z*scale2+i*0.123+n) * (1<<(octave-i));
-				}
-				r *=_total;
-
-				ret[n+idx] = r;
-			}
-		}else{
+			nmax=3;
+		}
+		for(var n=0;n<nmax;n++){
+			r = 0;
 			for(var i=0;i<octave+1;i++){
 				scale2 =(1<<i)*scale;
-				r += func(x*scale2+i*0.123
-						,y*scale2+i*0.123
-						,z*scale2+i*0.123 ) * (1<<(octave-i));
+				r += func(x*scale2+i*0.123+n*0.321
+						,y*scale2+i*0.123+n*0.321
+						,z*scale2+i*0.123+n) * (1<<(octave-i));
 			}
-			r *=_total;
-
-			ret[0+idx] = r;
-			ret[1+idx] = r;
-			ret[2+idx] = r;
+			ret[n+idx] = r * _total;
+		}
+		if(!betsu){
+			ret[1+idx] = ret[0+idx];
+			ret[2+idx] = ret[0+idx];
 		}
 
 		ret[3+idx] = 1;

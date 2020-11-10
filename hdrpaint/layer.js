@@ -646,10 +646,10 @@ var Layer=(function(){
 
 	ret.prototype.before=function(area){};
 	ret.prototype.init=function(img,x,y,w,h){
-		var x = composite_area[0];
-		var y = composite_area[1];
-		var w = composite_area[2];
-		var h = composite_area[3];
+		var x = Math.max(img.offsetx,composite_area[0]);
+		var y = Math.max(img.offsety,composite_area[1]);
+		var x1 = Math.min(img.width+img.offsetx,composite_area[2]+composite_area[0]);
+		var y1 = Math.min(img.height+img.offsety,composite_area[3]+composite_area[1]);
 		var layer = this;
 		var img_data = img.data;
 		var img_width = img.width;
@@ -664,8 +664,8 @@ var Layer=(function(){
 		//レイヤのクランプ
 		var left2 = Math.max(x,layer.position[0]);
 		var top2 = Math.max(y,layer.position[1]);
-		var right2 = Math.min(layer.img.width + layer_position_x ,x+w);
-		var bottom2 = Math.min(layer.img.height + layer_position_y ,y+h);
+		var right2 = Math.min(layer.img.width + layer_position_x ,x1);
+		var bottom2 = Math.min(layer.img.height + layer_position_y ,y1);
 
 		for(var yi=top2;yi<bottom2;yi++){
 			var idx = (yi-img.offsety) * img_width + left2  - img.offsetx << 2;

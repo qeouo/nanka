@@ -28,17 +28,6 @@ var PenFunc = (function(){
 			var layer = Layer.findById(log.param.layer_id);
 		var funcs = Hdrpaint.blendfuncs;
 
-			var layers = layer.parent.children;
-			for(var i=layers.length;i--;){
-				if(layers[i] === layer){
-					break;
-				}
-				if(["shift","gauss"].indexOf(layers[i].modifier) >=0){
-	
-					layer.refreshImg();
-					break;
-				}
-			}
 
 			painted_mask.fill(0);
 			return;

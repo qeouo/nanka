@@ -127,13 +127,13 @@ var loadHpd=function(file){
 }
 var loadHpd_=function(buffer){
 
-	var fu =function(img){
-		
-		refreshLayerThumbnail(layer);
-		refreshLayer(layer);
-		refreshMain(0);
-
-	}
+//	var fu =function(img){
+//		
+//		refreshLayerThumbnail(layer);
+//		refreshLayer(layer);
+//		refreshMain(0);
+//
+//	}
 	var files=Zip.read(buffer);
 
 	var doc_file = files.find(function(f){return f.name==="doc.txt";});
