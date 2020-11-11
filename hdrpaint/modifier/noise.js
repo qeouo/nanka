@@ -24,7 +24,7 @@ Hdrpaint.modifier["noise"] = (function(){
 		,"simplex":Noise.simplexnoise
 		,"value":Noise.valuenoise
 	};
-	ret.prototype.initbefore=function(){
+	ret.prototype.beforeReflect=function(){
 		scale = 1/this.scale;
 		octave = Number(this.octave);
 		_total = 1/((1<<(octave+1))-1);
@@ -32,13 +32,13 @@ Hdrpaint.modifier["noise"] = (function(){
 		func = funcs[this.func];
 		z = this.zoffset;
 	}
-	ret.prototype.init=function(img,composite_area){
+	ret.prototype.reflect=function(img,composite_area){
 		var x = composite_area[0];
 		var y = composite_area[1];
 		var w = composite_area[2];
 		var h = composite_area[3];
 		
-		this.initbefore();
+		this.beforeReflect();
 
 		var layer = this;
 		var offx = -this.position[0] + img.offsetx;

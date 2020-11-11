@@ -86,20 +86,21 @@ var CommandLog = (function(){
 					var layer_id= param.layer_id;
 					var layer = Layer.findById(layer_id);
 
+					var x0=0,x1=0,y0=0,y1=0;
 					for(var di=difs.length;di--;){
 						var dif = difs[di];
 						Img.copy(layer.img,dif.x,dif.y,dif.img,0,0,dif.img.width,dif.img.height);
+
+						x0 = Math.min(x0,dif.x);
+						x1 = Math.max(x1,dif.img.width+dif.x);
+						y0 = Math.min(y0,dif.y);
+						y1 = Math.max(y1,dif.img.height+dif.y);
 					}
-					layer.refreshImg();
+					layer.refreshImg(x0,y0,x1-x0,y1-y0);
 				}
 			}
-
-
 			command_log_cursor--;
 		}
-		
-		//compositeAll();
-
 	}
 
 	ret.createLog=function(command,param,flg){

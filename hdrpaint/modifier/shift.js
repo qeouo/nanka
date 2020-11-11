@@ -23,19 +23,19 @@ Hdrpaint.modifier["shift"] = (function(){
 		area[3]+=size<<1;
 	}
 
-	ret.prototype.initbefore = function(){
+	ret.prototype.beforeReflect= function(){
 		offx = 0;
 		offy = 0;
 		if(this.children.length>=1){
 			var child = this.children[0];
-			child.initbefore();
+			child.beforeReflect();
 
 			offx = -this.position[0] - child.position[0];
 			offy = -this.position[1] - child.position[1];
 		}
 	}
 
-	ret.prototype.init=function(img,composite_area){
+	ret.prototype.reflect=function(img,composite_area){
 
 		var scale=this.effect>>1;
 
@@ -54,7 +54,7 @@ Hdrpaint.modifier["shift"] = (function(){
 		Img.copy(bufimg,0,0,img,0,0,img.width,img.height);
 
 
-		this.initbefore();
+		this.beforeReflect();
 
 
 		var x = Math.max(0,composite_area[0]);

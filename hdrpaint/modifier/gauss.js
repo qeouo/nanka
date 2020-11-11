@@ -2,6 +2,7 @@ Hdrpaint.modifier["gauss"] = (function(){
 	var gaussgen= function(){
 		Layer.apply(this);
 		this.scale=16;
+		this.aaa=1;
 	};
 	var ret = gaussgen;
 	inherits(ret,Layer);
@@ -10,7 +11,7 @@ Hdrpaint.modifier["gauss"] = (function(){
 
 
 	ret.prototype.before=function(area){
-		var size = this.scale*2;
+		var size = Math.ceil(this.scale)*2;
 		area[0]-=size;
 		area[1]-=size;
 		area[2]+=size<<1;
@@ -18,8 +19,8 @@ Hdrpaint.modifier["gauss"] = (function(){
 	}
 
 	var horizon_img = new Img(1024,1024);
-	ret.prototype.init=function(img,composite_area){
-		var scale = this.scale;
+	ret.prototype.reflect=function(img,composite_area){
+		var scale = Math.ceil(this.scale);
 
 		composite_area[0]+=scale;
 		composite_area[1]+=scale;
@@ -35,10 +36,7 @@ Hdrpaint.modifier["gauss"] = (function(){
 		}
 		horizon_img.width=img.width;
 		horizon_img.height=img.height;
-		this.gauss(img,scale,scale,x,y,x1-x,y1-y);
-		
-	}
-	ret.prototype.getPixel = function(ret,x,y){
+		this.gauss(img,this.aaa,scale,x,y,x1-x,y1-y);
 		
 	}
 
@@ -71,8 +69,8 @@ ret.prototype.gauss=function(src,d,size,left,top,w,h){
 	var weight = new Array(MAX);
 	var t = 0.0;
 	for(var i = 0; i < weight.length; i++){
-		var r = 1.0 +  i;
-		var we = Math.exp(- (r * r) / (2*d*10.0));
+		var r =   i;
+		var we = Math.exp(- (r * r) / (4*size*size));
 		weight[i] = we;
 		if(i > 0){we *= 2.0;}
 		t += we;
@@ -200,7 +198,8 @@ ret.prototype.gauss=function(src,d,size,left,top,w,h){
 }
 
 	var html = `
-			ぼかし半径:<input class="slider modifier_scale" title="scale" value="32" min="1" max="128"><br>
+			ぼかし係数:<input class="slider modifier_aaa" title="aaa"  min="1" max="128"><br>
+			ぼかし半径:<input class="slider modifier_scale" title="scale" step="1" min="1" max="128"><br>
 		`;
 	Hdrpaint.addModifierControl("gauss",html);
 	Slider.init();

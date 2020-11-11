@@ -24,15 +24,158 @@ var Layer=(function(){
 	};
 	var ret = Layer;
 
-	ret.init=function(){};
-	ret.prototype.initbefore=function(){};
 
 	ret.enableRefreshThumbnail=true;
 
 	ret.prototype.typename="normal_layer";
 
+	ret.prototype.before=function(area){};
+	ret.prototype.beforeReflect=function(){};
+	ret.prototype.reflect =function(img,x,y,w,h){
+		var x = Math.max(img.offsetx,composite_area[0]);
+		var y = Math.max(img.offsety,composite_area[1]);
+		var x1 = Math.min(img.width+img.offsetx,composite_area[2]+composite_area[0]);
+		var y1 = Math.min(img.height+img.offsety,composite_area[3]+composite_area[1]);
+		var layer = this;
+		var img_data = img.data;
+		var img_width = img.width;
+		var layer_img_data = layer.img.data;
+		var layer_alpha=layer.alpha;
+		var layer_power=Math.pow(2,layer.power);
+		var layer_img_width = layer.img.width;
+		var func = Hdrpaint.blendfuncs[layer.blendfunc];
+		var layer_position_x= layer.position[0];
+		var layer_position_y= layer.position[1];
+
+		//レイヤのクランプ
+		var left2 = Math.max(x,layer.position[0]);
+		var top2 = Math.max(y,layer.position[1]);
+		var right2 = Math.min(layer.img.width + layer_position_x ,x1);
+		var bottom2 = Math.min(layer.img.height + layer_position_y ,y1);
+
+		for(var yi=top2;yi<bottom2;yi++){
+			var idx = (yi-img.offsety) * img_width + left2  - img.offsetx << 2;
+			var max = (yi-img.offsety) * img_width + right2 - img.offsetx << 2;
+			var idx2 = (yi-layer_position_y) * layer_img_width + left2 - layer_position_x << 2;
+			var xi = left2;
+			for(;idx<max;idx+=4){
+				func(img_data,idx,layer_img_data,idx2,layer_alpha,layer_power);
+				idx2+=4;
+				xi++;
+			}
+		}
+			
+	};
+
+	var composite_img = new Img(512,512);
+	var composite_area = new Vec4();
+	ret.prototype.composite=function(left,top,right,bottom){
+		var layers=this.children;
 
 
+		var pow=0;
+		if(typeof left === 'undefined'){
+			left=0;
+			top=0;
+			right = this.img.width-1;
+			bottom= this.img.height-1;
+		}
+
+		if(this.type !==1){
+			return;
+		}
+
+		var width = right-left+1;
+		var height = bottom-top+1;
+
+
+		Vec4.set(composite_area,left,top,width,height);
+		for(var li=layers.length;li--;){
+			var layer = layers[li];
+			if(!layer.display ){
+				//非表示の場合スルー
+				continue;
+			}
+			layer.before(composite_area);
+			
+		}
+
+
+		left = Math.max(0,composite_area[0]);
+		top= Math.max(0,composite_area[1]);
+		right= Math.min(this.img.width,composite_area[2]+ left);
+		bottom= Math.min(this.img.height,composite_area[3]+ top);
+		if(composite_img.data.length<((right-left)*(bottom-top)<<2)){
+			composite_img = new Img(right-left,bottom-top);
+		}
+		composite_img.offsetx= left;
+		composite_img.offsety= top;
+		composite_img.width= right-left;
+		composite_img.height= bottom-top;
+
+
+		composite_img.clear(0,0,composite_img.width,composite_img.height);
+		
+		for(var li=0;li<layers.length;li++){
+			var layer = layers[li];
+			if(!layer.display ){
+				//非表示の場合スルー
+				continue;
+			}
+			layer.reflect(composite_img,composite_area);
+			
+		}
+
+		var x0 = composite_area[0];
+		var x1 = composite_area[0]+composite_area[2];
+		var y0 = composite_area[1];
+		var y1 = composite_area[1]+composite_area[3];
+		x0=Math.max(0,x0);
+		y0=Math.max(0,y0);
+		x1=Math.min(this.img.width,x1);
+		y1=Math.min(this.img.height,y1);
+		Vec4.set(composite_area,x0,y0,x1-x0,y1-y0);
+		Img.copy(this.img
+			,composite_area[0] 
+			, composite_area[1]
+			,composite_img
+			, -composite_img.offsetx +composite_area[0]
+			, -composite_img.offsety +composite_area[1]
+			, composite_area[2] 
+			, composite_area[3] 
+		);
+
+		if(this === root_layer){
+			//ルートレイヤの場合はプレビュー更新
+			refreshPreview(0,composite_area[0],composite_area[1],composite_area[2],composite_area[3]);
+		}else{
+			//通常レイヤの場合はサムネ更新
+			this.registRefreshThumbnail();
+		}
+	}
+
+
+	ret.prototype.getPixel = function(ret,x,y){
+		ret.fill(0);
+
+		if(x<0 || y<0 || x>=this.img.width || y>=this.img.height){
+			return ret;
+		}
+		if(this.img){
+			if(this.img.data){
+				var data = this.img.data;
+				var idx = this.img.getIndex(x,y)<<2;
+				ret[0] = data[idx];
+				ret[1] = data[idx+1];
+				ret[2] = data[idx+2];
+				ret[3] = data[idx+3];
+			}
+		}
+		return ret;
+	}
+
+
+	ret.init=function(){};
 
 	ret.bubble_func=function(layer,f){
 		//親に伝搬する処理
@@ -105,19 +248,6 @@ var Layer=(function(){
 		return layers;
 
 	}
-
-//	ret.findParent = function(target_layer){
-//		var result_layer = null;
-//		Layer.eachLayers(function(layer){
-//			for(var li=0;li<layer.children.length;li++){
-//				if(target_layer === layer.children[li]){
-//					result_layer = layer;
-//					return true;
-//				}
-//			}
-//		});
-//		return result_layer;
-//	}
 
 	ret.click = function(e){
 	//レイヤー一覧クリック時、クリックされたものをアクティブ化する
@@ -644,147 +774,6 @@ var Layer=(function(){
 	}
 	
 
-	ret.prototype.before=function(area){};
-	ret.prototype.init=function(img,x,y,w,h){
-		var x = Math.max(img.offsetx,composite_area[0]);
-		var y = Math.max(img.offsety,composite_area[1]);
-		var x1 = Math.min(img.width+img.offsetx,composite_area[2]+composite_area[0]);
-		var y1 = Math.min(img.height+img.offsety,composite_area[3]+composite_area[1]);
-		var layer = this;
-		var img_data = img.data;
-		var img_width = img.width;
-		var layer_img_data = layer.img.data;
-		var layer_alpha=layer.alpha;
-		var layer_power=Math.pow(2,layer.power);
-		var layer_img_width = layer.img.width;
-		var func = Hdrpaint.blendfuncs[layer.blendfunc];
-		var layer_position_x= layer.position[0];
-		var layer_position_y= layer.position[1];
-
-		//レイヤのクランプ
-		var left2 = Math.max(x,layer.position[0]);
-		var top2 = Math.max(y,layer.position[1]);
-		var right2 = Math.min(layer.img.width + layer_position_x ,x1);
-		var bottom2 = Math.min(layer.img.height + layer_position_y ,y1);
-
-		for(var yi=top2;yi<bottom2;yi++){
-			var idx = (yi-img.offsety) * img_width + left2  - img.offsetx << 2;
-			var max = (yi-img.offsety) * img_width + right2 - img.offsetx << 2;
-			var idx2 = (yi-layer_position_y) * layer_img_width + left2 - layer_position_x << 2;
-			var xi = left2;
-			for(;idx<max;idx+=4){
-				func(img_data,idx,layer_img_data,idx2,layer_alpha,layer_power);
-				idx2+=4;
-				xi++;
-			}
-		}
-			
-	};
-
-	var composite_img = new Img(512,512);
-	var composite_area = new Vec4();
-	ret.prototype.composite=function(left,top,right,bottom){
-		var layers=this.children;
-
-
-		var pow=0;
-		if(typeof left === 'undefined'){
-			left=0;
-			top=0;
-			right = this.img.width-1;
-			bottom= this.img.height-1;
-		}
-
-		if(this.type !==1){
-			return;
-		}
-
-		var width = right-left+1;
-		var height = bottom-top+1;
-
-
-		Vec4.set(composite_area,left,top,width,height);
-		for(var li=layers.length;li--;){
-			var layer = layers[li];
-			if(!layer.display ){
-				//非表示の場合スルー
-				continue;
-			}
-			layer.before(composite_area);
-			
-		}
-
-
-		left = Math.max(0,composite_area[0]);
-		top= Math.max(0,composite_area[1]);
-		right= Math.min(this.img.width,composite_area[2]+ left);
-		bottom= Math.min(this.img.height,composite_area[3]+ top);
-		if(composite_img.data.length<((right-left)*(bottom-top)<<2)){
-			composite_img = new Img(right-left,bottom-top);
-		}
-		composite_img.offsetx= left;
-		composite_img.offsety= top;
-		composite_img.width= right-left;
-		composite_img.height= bottom-top;
-
-
-		composite_img.clear(0,0,composite_img.width,composite_img.height);
-		
-		for(var li=0;li<layers.length;li++){
-			var layer = layers[li];
-			if(!layer.display ){
-				//非表示の場合スルー
-				continue;
-			}
-			layer.init(composite_img,composite_area);
-			
-		}
-
-		var x0 = composite_area[0];
-		var x1 = composite_area[0]+composite_area[2];
-		var y0 = composite_area[1];
-		var y1 = composite_area[1]+composite_area[3];
-		x0=Math.max(0,x0);
-		y0=Math.max(0,y0);
-		x1=Math.min(this.img.width,x1);
-		y1=Math.min(this.img.height,y1);
-		Vec4.set(composite_area,x0,y0,x1-x0,y1-y0);
-		Img.copy(this.img
-			,composite_area[0] 
-			, composite_area[1]
-			,composite_img
-			, -composite_img.offsetx +composite_area[0]
-			, -composite_img.offsety +composite_area[1]
-			, composite_area[2] 
-			, composite_area[3] 
-		);
-
-		if(this === root_layer){
-			//ルートレイヤの場合はプレビュー更新
-			refreshPreview(0,composite_area[0],composite_area[1],composite_area[2],composite_area[3]);
-		}else{
-			//通常レイヤの場合はサムネ更新
-			this.registRefreshThumbnail();
-		}
-	}
-
-
-	ret.prototype.getPixel = function(ret,x,y){
-		ret.fill(0);
-
-		if(x<0 || y<0 || x>=this.img.width || y>=this.img.height){
-			return ret;
-		}
-		if(this.img.data){
-			var data = this.img.data;
-			var idx = this.img.getIndex(x,y)<<2;
-			ret[0] = data[idx];
-			ret[1] = data[idx+1];
-			ret[2] = data[idx+2];
-			ret[3] = data[idx+3];
-		}
-		return ret;
-	}
 	ret.opencloseClick = function(e){
 		var layer= getLayerFromDiv(event.target.parentNode);
 		layer.div.classList.toggle("open");
