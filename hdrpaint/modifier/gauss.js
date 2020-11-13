@@ -36,7 +36,7 @@ Hdrpaint.modifier["gauss"] = (function(){
 		}
 		horizon_img.width=img.width;
 		horizon_img.height=img.height;
-		this.gauss(img,this.aaa,scale,x,y,x1-x,y1-y);
+		this.gauss(img,scale>>1,scale,x,y,x1-x,y1-y);
 		
 	}
 
@@ -59,6 +59,7 @@ Hdrpaint.modifier["gauss"] = (function(){
 		dst[idx+2]*=a;
 	}
 ret.prototype.gauss=function(src,d,size,left,top,w,h){
+	d = Math.max(1,0);
 	var MAX = size|0;
 	var dst= horizon_img;
 	var right = left+w-1;
@@ -70,7 +71,7 @@ ret.prototype.gauss=function(src,d,size,left,top,w,h){
 	var t = 0.0;
 	for(var i = 0; i < weight.length; i++){
 		var r =   i;
-		var we = Math.exp(- (r * r) / (4*size*size));
+		var we = Math.exp(- (r * r) / (2*d*d));
 		weight[i] = we;
 		if(i > 0){we *= 2.0;}
 		t += we;
