@@ -7,8 +7,12 @@ Hdrpaint.modifier["gradient"] = (function(){
 			this[nam+"g"]=0;
 			this[nam+"b"]=0;
 			this[nam+"a"]=1;
-			this[nam+"pos"]=0;
+			this[nam+"pos"]=1;
 		}
+		this.col0pos=0;
+		this.col1r=1;
+		this.col1g=1;
+		this.col1b=1;
 
 	};
 	var ret = Gradient;
