@@ -130,3 +130,8 @@ left:0px;
 top:0px;
 display:none;
 }
+
+div.modifier_gradient input{
+width:30px;
+	 text-align:right;
+}
