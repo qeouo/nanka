@@ -18,13 +18,11 @@ void main(void){
 	highp vec2 col=vec2(0.);
 	lowp vec2 fc = vUv ;
 	lowp vec2 scale = uAxis;
-	col += decodeFull_(texture2D(uSampler,(fc+scale*-3.)*uUvScale+uUvOffset));
-	col += decodeFull_(texture2D(uSampler,(fc+scale*-2.)*uUvScale+uUvOffset));
-	col += decodeFull_(texture2D(uSampler,(fc+scale*-1.)*uUvScale+uUvOffset));
 	col += decodeFull_(texture2D(uSampler,(fc+scale*-0.)*uUvScale+uUvOffset));
-	col += decodeFull_(texture2D(uSampler,(fc+scale*1.)*uUvScale+uUvOffset));
-	col += decodeFull_(texture2D(uSampler,(fc+scale*2.)*uUvScale+uUvOffset));
-	col += decodeFull_(texture2D(uSampler,(fc+scale*3.)*uUvScale+uUvOffset));
-	col/=7.0;
+	for(int i=0;i<2;i++){
+		col += decodeFull_(texture2D(uSampler,(fc+scale*float(i))*uUvScale+uUvOffset));
+		col += decodeFull_(texture2D(uSampler,(fc-scale*float(i))*uUvScale+uUvOffset));
+	}
+	col/=5.0;
 	gl_FragColor= vec4(packUFP16(col.r),packUFP16(col.g));
 }

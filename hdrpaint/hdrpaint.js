@@ -132,7 +132,7 @@ Hdrpaint=(function(){
 	ret.modifiername= [ "grayscale"
 		,"shift"
 		,"gauss"
-		//,"gradient"
+		,"gradient"
 		//,"repeat"
 		//,"mirror"
 		,"noise"
@@ -221,7 +221,6 @@ var Command = {};
 		,"resizeCanvas"
 		,"resizeLayer"
 		,"translate"
-		,"noise"
 	];
 
 var commandObjs={};

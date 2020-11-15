@@ -45,6 +45,11 @@
 			</ul>
 		</div>
 		<div id="tool_status">
+			<div id="tab_fill">
+				<label><input type="checkbox" id="fill_alpha"/>α=1境界</label><br>
+				
+			
+			</div>
 		</div>
 	</div>
 
@@ -760,7 +765,8 @@ var onloadfunc=function(e){
 		if(e.target.id==="ch_gamma" || e.target.id==="gamma" || e.target.id==="ev"){
 			refreshPreview(2);
 			Layer.eachLayers(function(layer){
-				refresh_thumbnail.push(layer);
+				//refresh_thumbnail.push(layer);
+				layer.registRefreshThumbnail();
 			});
 		}
 		

@@ -18,7 +18,6 @@ Command["resizeCanvas"] = (function(){
 		preview.height=height
 
 		preview_ctx_imagedata=preview_ctx.createImageData(width,height);
-		horizon_img = new Img(width,height);
 		bloomed_img = new Img(width,height);
 		bloom_img = new Img(width,height);
 

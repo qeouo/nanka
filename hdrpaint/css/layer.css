@@ -26,11 +26,12 @@
 	min-height:34px;
 }
 .layer.modifier{
-	background-color:#131;
-	border-radius:10px;
+	background-color:#252;
+	border-top-right-radius:10px;
+	border-top-left-radius:10px;
 }
 .layer.modifier.active{
-	background-color:#393;
+	background-color:#3C3;
 }
 
 .layer .thumbnail{

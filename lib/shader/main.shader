@@ -172,9 +172,9 @@ void main(void){
 	highp float shadow_a = 1.0;
 	highp float nowz = (lightPos.z+1.0)*0.5;
 	//nowz = exp(nowz);
-	if(nowz   > smap.r+0.0003){
-		//float offset=5.0/1024.0;
-		float offset=(nowz -smap.r)*0.05;
+	if(nowz   > smap.r+0.00001){
+		float offset=3.0/1024.0;
+		//float offset=(nowz -smap.r)*0.05;
 		vec2 current = (lightPos.xy+1.0)*0.5;
 		float c = 
 			checkShadow(uShadowmap,current+vec2(-1.0,0.0)*offset,nowz)
@@ -183,12 +183,12 @@ void main(void){
 			+checkShadow(uShadowmap,current+vec2(0.0,1.0)*offset,nowz);
 		if(c>0.0){
 			highp float sq = smap.r * smap.r;
-			highp float v = max(smap.g - sq-0.003,0.0);
+			highp float v = max(smap.g - sq-0.0,0.0);
 			shadow_a = max(0.0,min(1.0,v/(v+pow(nowz-smap.r-0.005,2.0))));
 		}else{
 			shadow_a=0.0;
 		}
-		shadow_a=c/4.0;
+		//shadow_a=c/4.0;
 	}
 	diffuse = shadow_a * diffuse; 
 

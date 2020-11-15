@@ -122,6 +122,7 @@ var Layer=(function(){
 				//非表示の場合スルー
 				continue;
 			}
+			layer.beforeReflect();
 			layer.reflect(composite_img,composite_area);
 			
 		}

@@ -34,12 +34,23 @@ Command["fill"] = (function(){
 		&& target_b===target_data[idx+2]
 		&& target_a===target_data[idx+3]);
 	}
-	var fillSub=function(layer,y,left,right,is_layer){
-		var target = layer.img;
-		var fillCheck=fillCheckAll;
-		if(is_layer){
-			fillCheck=fillCheckLayer;
+	var fillCheckAlpha= function(layer,joined,x,y){
+		var x2 = x+offset[0];
+		var y2 = y+offset[1];
+		if(joined.width<=x2 || x2<0 || y2<0 || joined.height<=y2){
+			return false;
 		}
+		var target = layer.img;
+		var idx  = target.getIndex(x,y) <<2;
+		var idx2 = joined.getIndex(x2,y2) <<2;
+		var joined_data = joined.data;
+		var target_data = target.data;
+		return (target_data[idx+3]!== 1
+			   	&& joined_data[idx2+3]!==1);
+	}
+	var fillCheck=fillCheckAll;
+	var fillSub=function(layer,y,left,right){
+		var target = layer.img;
 		var joined_img = root_layer.img;
 
 		var mode=0;
@@ -109,8 +120,15 @@ Command["fill"] = (function(){
 		layer.getAbsolutePosition(offset);
 		point_x = param.x;
 		point_y = param.y;
-		is_layer = param.is_layer;
 		col = param.color;
+
+		fillCheck=fillCheckAll;
+		if(param.is_layer){
+			fillCheck=fillCheckLayer;
+		}
+		if(inputs['fill_alpha'].checked){
+			fillCheck=fillCheckAlpha;
+		}
 
 		//アルファマスク保護設定
 		var mask_alpha= layer.mask_alpha;
@@ -179,11 +197,11 @@ Command["fill"] = (function(){
 
 			if(yi>0){
 				//上端に到達していない場合、ひとつ上の行を探索
-				fillSub(layer,yi-1,left,right,is_layer);
+				fillSub(layer,yi-1,left,right);
 			}
 			if(yi<target.height-1){
 				//下端に到達していない場合、ひとつ下の行を探索
-				fillSub(layer,yi+1,left,right,is_layer);
+				fillSub(layer,yi+1,left,right);
 			}
 
 			//更新領域を求める
