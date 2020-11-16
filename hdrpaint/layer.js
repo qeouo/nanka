@@ -156,22 +156,28 @@ var Layer=(function(){
 	}
 
 
-	ret.prototype.getPixel = function(ret,x,y){
-		ret.fill(0);
+	ret.prototype.getPixel = function(ret,idx,x,y){
+		if(!this.img){
+			return;
+		}
 
 		if(x<0 || y<0 || x>=this.img.width || y>=this.img.height){
 			return ret;
 		}
-		if(this.img){
-			if(this.img.data){
-				var data = this.img.data;
-				var idx = this.img.getIndex(x,y)<<2;
-				ret[0] = data[idx];
-				ret[1] = data[idx+1];
-				ret[2] = data[idx+2];
-				ret[3] = data[idx+3];
-			}
+		if(y === undefined){
+			y= x;
+			x = idx;
+			idx = 0;
 		}
+		if(this.img.data){
+			var data = this.img.data;
+			var idx2 = this.img.getIndex(x,y)<<2;
+			ret[idx+0] = data[idx2];
+			ret[idx+1] = data[idx2+1];
+			ret[idx+2] = data[idx2+2];
+			ret[idx+3] = data[idx2+3];
+		}
+		
 		return ret;
 	}
 
