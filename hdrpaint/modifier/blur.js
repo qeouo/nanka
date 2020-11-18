@@ -1,14 +1,16 @@
-Hdrpaint.modifier["gauss"] = (function(){
-	var gaussgen= function(){
+Hdrpaint.modifier["blur"] = (function(){
+	var blurgen= function(){
 		Layer.apply(this);
 		this.scale=16;
-		this.aaa=1;
 	};
-	var ret = gaussgen;
+	var ret = blurgen;
 	inherits(ret,Layer);
 
-	ret.prototype.typename="gauss";
+	ret.prototype.typename="blur";
 
+	ret.prototype.showDivParam= function(){
+		return "blursize:"+this.scale;
+	}
 
 	ret.prototype.before=function(area){
 		var size = Math.ceil(this.scale)*2;
@@ -35,10 +37,9 @@ Hdrpaint.modifier["gauss"] = (function(){
 
 
 	var html = `
-			ぼかし係数:<input class="slider modifier_aaa" title="aaa"  min="1" max="128"><br>
 			ぼかし半径:<input class="slider modifier_scale" title="scale" step="1" min="1" max="128"><br>
 		`;
-	Hdrpaint.addModifierControl("gauss",html);
+	Hdrpaint.addModifierControl("blur",html);
 	Slider.init();
 
 	return ret;

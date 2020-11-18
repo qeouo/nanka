@@ -31,7 +31,6 @@ Hdrpaint.modifier["gradient"] = (function(){
 	var mat33 = new Mat33();
 	var _mat33 = new Mat33();
 	ret.prototype.beforeReflect=function(){
-		//_width = 1/this.size[0];
 
 		for(var i=0;i<3;i++){
 			var nam = "col"+i;

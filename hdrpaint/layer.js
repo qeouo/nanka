@@ -436,6 +436,20 @@ var Layer=(function(){
 				,bottom-top+1);
 		}
 	}
+	ret.prototype.showDivParam= function(){
+		var layer = this;
+		var txt="";
+		txt += "offset:["+layer.position[0]+","+layer.position[1] +"]"
+			+ "size:[" + layer.size[0]+ "," + layer.size[1]+"]<br>";
+		
+		layer.power=parseFloat(layer.power);
+		txt += "pow:"+layer.power.toFixed(2)+"";
+		layer.alpha=parseFloat(layer.alpha);
+		txt += "α:"+layer.alpha.toFixed(2)+"<br>";
+			
+		return txt;
+
+	}
 	ret.prototype.refreshDiv= function(){
 		var layer = this;
 		var layers_container = null;
@@ -481,13 +495,7 @@ var Layer=(function(){
 			}else{
 				txt += "func:"+layer.blendfunc +"<br>";
 			}
-			txt += "offset:["+layer.position[0]+","+layer.position[1] +"]"
-				+ "size:[" + layer.size[0]+ "," + layer.size[1]+"]<br>";
-			
-			layer.power=parseFloat(layer.power);
-			txt += "pow:"+layer.power.toFixed(2)+"";
-			layer.alpha=parseFloat(layer.alpha);
-			txt += "α:"+layer.alpha.toFixed(2)+"<br>";
+			txt+=layer.showDivParam();
 			
 
 			span.innerHTML = txt;
