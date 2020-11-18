@@ -131,7 +131,10 @@ top:0px;
 display:none;
 }
 
-div.modifier_gradient input{
-width:30px;
+div.modifier_gradient input.pos{
 	 text-align:right;
+	width:30px;
+}
+div.modifier_gradient input.col{
+	width:120px;
 }

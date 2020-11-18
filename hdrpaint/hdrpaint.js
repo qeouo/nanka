@@ -133,7 +133,7 @@ Hdrpaint=(function(){
 		,"shift"
 		,"blur"
 		,"gradient"
-		//,"repeat"
+		,"gradientmap"
 		//,"mirror"
 		,"noise"
 	];
