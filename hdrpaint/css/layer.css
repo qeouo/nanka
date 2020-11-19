@@ -27,11 +27,22 @@
 }
 .layer.modifier{
 	background-color:#252;
+	border-radius:0px;
 	border-top-right-radius:10px;
 	border-top-left-radius:10px;
+	background-size:contain,auto;
+
+	text-shadow:1px 0px #000
+	,-1px 0px #000
+	,0px 1px #000
+	,0px -1px #000
+	;
+	
+	color:#fff;
 }
 .layer.modifier.active{
 	background-color:#3C3;
+	border-color:#fc0;
 }
 
 .layer .thumbnail{

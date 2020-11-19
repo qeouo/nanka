@@ -17,6 +17,20 @@ Hdrpaint.modifier["gradient"] = (function(){
 
 	ret.prototype.typename="gradient";
 
+	var backimg = new Img(128,1);
+	ret.prototype.showDivParam= function(){
+
+		var layer = this;
+		layer.beforeReflect();
+		mat33[0]=1/128;
+		mat33[1]=1;
+		width=64;
+		height=0;
+		backimg.scan(function(ret,idx,x,y){layer.getPixel(ret,idx,x,y);});
+		layer.div.style.backgroundImage = "url(" + backimg.toDataURL() + "),url(./back.png)";
+
+		return "";
+	}
 
 	var points=new Array();
 	for(var i=0;i<4;i++){
@@ -51,13 +65,16 @@ Hdrpaint.modifier["gradient"] = (function(){
 				points[i]._r=1.0/points[i]._r;
 			}
 		}
-		var parent= this.parent;
-		width=parent.size[0]>>1;
-		height=parent.size[1]>>1;
 
-		Mat33.rotate(mat33,this.radius*Math.PI/180,0,0,1);
-		Mat33.set(_mat33,1/parent.size[0],0,0,0,1/parent.size[1],0,0,0,1);
-		Mat33.dot(mat33,mat33,_mat33);
+		var parent= this.parent;
+		if(parent){
+			width=parent.size[0]>>1;
+			height=parent.size[1]>>1;
+
+			Mat33.rotate(mat33,this.radius*Math.PI/180,0,0,1);
+			Mat33.set(_mat33,1/parent.size[0],0,0,0,1/parent.size[1],0,0,0,1);
+			Mat33.dot(mat33,mat33,_mat33);
+		}
 		
 	}
 	ret.prototype.reflect=function(img,area){

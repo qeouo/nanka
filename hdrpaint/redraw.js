@@ -137,8 +137,15 @@ var refreshMain_sub=function(step,x,y,w,h){
 		
 		bloom_img.clear(left,top,width,height);
 		layer.getAbsolutePosition(absolute);
-		bloom_img.copy(left,top,layer.img,left-absolute[0]
-			,top-absolute[1],width,height);
+		if(layer.type==="normal_layer"){
+			bloom_img.copy(left,top,layer.img,left-absolute[0]
+				,top-absolute[1],width,height);
+		}else{
+			layer.beforeRefrect();
+			bloom_img.scan(function(ret,idx,x,y){layer.getPixel(ret,idx,x-absolute[0],y-absolute[1]);}
+			,left,top,width,height);
+		}
+
 
 	}else{
 
