@@ -120,7 +120,7 @@ Hdrpaint.modifier["gradient"] = (function(){
 		R,G,B,A pos<br>
 		<ul>
 		<li>
-		<input type="text" class="col" title="col0">
+		<input type="text" class="col colorpickerhdr" title="col0">
 		<input type="text" class="pos" title="col0pos">
 		</li>
 
