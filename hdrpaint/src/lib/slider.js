@@ -1,6 +1,5 @@
-var Slider=(function(){
-	//スライダーコントロール
-	var Slider={};
+import Util from "./util.js"
+
 	var replace= function(node){
 		//対象のノードオブジェクトをスライダに置き換える
 		var id=node.id;
@@ -144,7 +143,11 @@ stylesheet.insertRule(" \
 	  touch-action:none; \
 	} ", stylesheet.cssRules.length);
 
-	Slider.init=function(dom){
+export default class Slider{
+	//スライダーコントロール
+	constructor(){}
+
+	static init=function(dom){
 		if(!dom){
 			dom = document;
 		}
@@ -156,6 +159,5 @@ stylesheet.insertRule(" \
 			
 		}
 	}
-	return Slider;
-})();
+}
 window.addEventListener("load",function(e){Slider.init();},false);
