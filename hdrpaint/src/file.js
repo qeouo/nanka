@@ -107,10 +107,13 @@ var loadHpd_=function(buffer){
 			}
 		}
 	}
+	var maxid=0;
 	for(var li=0;li<layers.length;li++){
 		var layer = layers[li];
 		layer.refreshDiv();
+		maxid=Math.max(maxid,layer.id);
 	}
+	Layer.setLayerIdCount(maxid+1);
 	Redraw.enableRefresh();
 
 

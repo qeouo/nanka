@@ -1,4 +1,4 @@
-
+import {Vec2} from "../lib/vector.js"
 import Layer from "../layer.js";
 import CommandBase from "./commandbase.js";
 import Hdrpaint from "../hdrpaint.js";

@@ -171,6 +171,11 @@ export default class Layer{
 			
 	};
 
+	static setLayerIdCount(id){
+		layer_id_count=id;
+
+	}
+
 	composite(left,top,right,bottom){
 		var layers=this.children;
 
