@@ -62,7 +62,7 @@
 		<label><input type="checkbox" id="brush_antialias"/>AA</label><br>
 		<label><input type="checkbox" id="eraser"/>消しゴム</label>
 		</div>
-		<div>直径<input class="slider" id="weight" max="30"  value="3"/></div>
+		<div>直径<input class="slider" id="weight" max="100"  value="3"/></div>
 		<div>縁ぼかし<input class="slider" id="softness" max="1"  value="0"/></div>
 		<div>不透明度<input class="slider" id="brush_alpha" max="1"  value="0"/></div>
 		<div>
@@ -191,7 +191,7 @@
 		</div>
 
 		<div style="display:inline;position:absolute;right:0px;bottom:0px;">
-			<label><input type="checkbox" id="selected_layer_only" onchange="{refreshPreview(1);}">(w)選択レイヤのみ表示</label>
+			<label><input type="checkbox" id="selected_layer_only" onchange="{Redraw.refreshPreview(1);}">(w)選択レイヤのみ表示</label>
 		</div>
 	</div>
 
@@ -279,7 +279,7 @@
 </div>
 
 <div class="dialog_parent"></div>
-<script type="module" src="./main.js"> </script>
+<script type="module" src="./index.js"> </script>
 </body>
 </html>
 
