@@ -1,4 +1,6 @@
 
+import Util from "./lib/util.js"
+import {Vec2} from "./lib/vector.js"
 import Hdrpaint from "./hdrpaint.js";
 import _Img from "./lib/img.js"
 import Brush from "./brush.js"
@@ -188,7 +190,7 @@ static saveHpd(e){
 			//通常レイヤ
 			var file={};
 			files.push(file);
-			file.data= new Uint8Array(layer.img.createExr(3));
+			file.data= new Uint8Array(layer.img.createExr(2));
 			file.name = layer.id+".exr";
 		}else{
 			//グループレイヤ

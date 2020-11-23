@@ -1,5 +1,6 @@
 "use strict" 
 
+import Util from "./util.js"
 import {Vec4} from "./vector.js"
 import OpenEXR from "./openexr.js";
 	let ctx,canvas,ctx_imagedata;

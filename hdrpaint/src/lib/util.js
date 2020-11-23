@@ -204,7 +204,7 @@ export default class Util{
 		}
 		if(flg){
 
-			var request = createXMLHttpRequest()
+			var request = Util.createXMLHttpRequest()
 			request.open("GET", url, true)
 			request.onload = function(e){
 				if(request.status == 200 || request.status ==304){
@@ -252,7 +252,7 @@ export default class Util{
 		console.log("loadbinary start");
 		loadingCount++;
 
-		var request = createXMLHttpRequest()
+		var request = Util.createXMLHttpRequest()
 		request.open("GET", url, true)
 		request.responseType="arraybuffer";
 		request.onload = function(e){

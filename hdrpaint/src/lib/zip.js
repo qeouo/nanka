@@ -1,4 +1,5 @@
 
+import Util from "./util.js"
 import DataStream from "./datastream.js";
 
 	var calcCrc32 = function(array) {

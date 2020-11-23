@@ -1,3 +1,5 @@
+import Util from "./util.js"
+
 export default class DataStream{
 	constructor(arraybuffer,offset,length){
 		if(typeof arraybuffer === "number"){

@@ -589,46 +589,41 @@ var formatHuffmans=function(huffmans){
 	var compressLZ77=function(u8a,offset,size){
 		//LZ77で圧縮する
 		var result=[];
-//		var output_str="";
-
 //		output_str+="LZ77符号化:"
+
 		for(var i=0;i<size;i++){
+			//先頭から走査
 			var dist=0;
 			var len_max=2;
-			var jmax = Math.min(i,32767);
-			var dst = offset+i;
-			//for(var j=1; j<=jmax && len_max<258; j++){
 			var j=1;
-			while(len_max<256 && j<=jmax){
-				var idx = u8a.lastIndexOf(dst,dst-j);
-				if(idx<0){
-					break;
-				}
-				j=dst-idx;
-				if(j>jmax){
-					break;
-				}
-
-				var src = dst-j;
-				var kmax = Math.min(258,size-i);
-				var k=1;
-				for(; k<kmax; k++){
-					if(u8a[src+k] !== u8a[dst+k]){
+			var offseti=offset+i;
+			var jmax = Math.min(32767,offseti);
+			//j = offseti-u8a.lastIndexOf(u8a[offseti],offseti-j);
+			for(;j<jmax;j++){
+				var offsetj=offseti-j;
+				var k=0;
+				for(; k<258;k++){
+					if(u8a[offseti+k] !== u8a[offsetj+k] ){
 						break;
 					}
 				}
 				if(k>len_max){
-					dist = j;
-					len_max = k;
+					dist=j
+					len_max=k;
+					if(len_max===258){
+						break;
+					}
 				}
+				
+			//	j = offseti-u8a.lastIndexOf(u8a[offseti],offsetj-1)-1;
 			}
-			if(dist){
+			if(len_max>2){
 				result.push({len:len_max,dist:dist});
-				i+=len_max-1; //for文でインクリメントされるので1引く
+				i+=len_max-1;
 
 				//output_str+="&lt;"+len_max+","+dist+"&gt;,"
 			}else{
-				result.push(u8a[dst]);
+				result.push(u8a[i]);
 
 //				output_str+=utf8array[i]+","
 			}
