@@ -193,7 +193,7 @@ static saveHpd(e){
 			//通常レイヤ
 			var file={};
 			files.push(file);
-			file.data= new Uint8Array(layer.img.createExr(2));
+			file.data= new Uint8Array(layer.img.createExr(3));
 			file.name = layer.id+".exr";
 		}else{
 			//グループレイヤ
@@ -289,7 +289,7 @@ static loadHpd(file){
 
 	static saveHdr(e){
 		var a = e.target;
-		var buffer = root_layer.img.createExr(2);
+		var buffer = root_layer.img.createExr(3);
 		var blob = new Blob([buffer], {type: "application/octet-stream"});
 
 		a.href =  window.URL.createObjectURL(blob);

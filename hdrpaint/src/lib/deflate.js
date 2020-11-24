@@ -598,11 +598,12 @@ var formatHuffmans=function(huffmans){
 			var j=1;
 			var offseti=offset+i;
 			var jmax = Math.min(32767,offseti);
+			var kmax = Math.min(size-i,258);
 			//j = offseti-u8a.lastIndexOf(u8a[offseti],offseti-j);
 			for(;j<jmax;j++){
 				var offsetj=offseti-j;
 				var k=0;
-				for(; k<258;k++){
+				for(; k<kmax;k++){
 					if(u8a[offseti+k] !== u8a[offsetj+k] ){
 						break;
 					}
@@ -610,7 +611,7 @@ var formatHuffmans=function(huffmans){
 				if(k>len_max){
 					dist=j
 					len_max=k;
-					if(len_max===258){
+					if(len_max===kmax){
 						break;
 					}
 				}
@@ -623,7 +624,7 @@ var formatHuffmans=function(huffmans){
 
 				//output_str+="&lt;"+len_max+","+dist+"&gt;,"
 			}else{
-				result.push(u8a[i]);
+				result.push(u8a[offseti]);
 
 //				output_str+=utf8array[i]+","
 			}
