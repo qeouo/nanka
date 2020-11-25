@@ -4,10 +4,16 @@ import DataStream from "./datastream.js";
 	var lit_huffmans=[]; //リテラル/長さ用ハフマン符号情報
 	var dist_huffmans=[];//距離用ハフマン符号情報
 	const MAX_BITS=15; //ハフマン符号に使う最大ビット長
+	var max_length=32768;
 
 export default class Deflate{
 	constructor(){};
 
+
+	static setQuality(qu){
+		qu = Math.max(0,Math.min(8,qu));
+		max_length = 32768>>qu;
+	}
 
 	static compress(arrayBuffer,comp_mode,block){
 		//deflate圧縮を行う
@@ -189,7 +195,8 @@ export default class Deflate{
 			var clen_list = []; //符号長用のハフマン符号リストを作成
 
 			//LZ77圧縮を行う
-			src = compressLZ77(src,offset,size);
+			var lz77= compressLZ77(src,offset,size);
+			 
 
 			if(comp_type===1){
 				//固定ハフマン符号圧縮
@@ -253,19 +260,19 @@ export default class Deflate{
 			dist_huffmans = createHuffmans(dist_list);
 
 			//LZ77で圧縮されたデータをハフマン符号化し出力
-			for(var i=0;i<src.length;i++){
+			for(var i=0;i<lz77.length;i++){
 				//if(!isNaN(src[i])){
-				if(src[i]>=0){
+				if(lz77[i]>=0){
 					//リテラルの場合、リテラル/長さ用ハフマン符号を使って出力
-					outputHuffman(ds,src[i],lit_huffmans);
+					outputHuffman(ds,lz77[i],lit_huffmans);
 				}else{
 					//繰り返し情報の場合、長さ、距離を符号+拡張情報の形に変えた後
 					//それぞれのハフマン符号を使って出力
 					
 					//長さを符号+拡張情報化
-					var len= -src[i] ;
+					var len= -lz77[i] ;
 					i++;
-					var dist = src[i] ;
+					var dist = lz77[i] ;
 					var extra_bits = 0;
 					var extra_data = 0;
 					var code=285;
@@ -499,112 +506,67 @@ export default class Deflate{
 			}
 	}
 
-//	var compressLZ77=function(u8a,offset,size){
-//		//LZ77で圧縮する
-//		var result=new Array(size*2);
-//		var idx=0;
-//
-//		for(var i=0;i<size;i++){
-//			//先頭から走査
-//			var dist=0;
-//			var len_max=2;
-//			var j=1;
-//			var offseti=offset+i;
-//			var jmax = Math.min(32767,offseti);
-//			var kmax = Math.min(size-i,258);
-//			for(;j<jmax;j++){
-//				var offsetj=offseti-j;
-//				var k=0;
-//				
-//				for(; k<kmax;k++){
-//					if(u8a[offseti+k] !== u8a[offsetj+k] ){
-//						break;
-//					}
-//				}
-//				if(k>len_max){
-//					dist=j
-//					len_max=k;
-//					if(len_max===kmax){
-//						break;
-//					}
-//				}
-//				
-//			}
-//			if(dist){
-//				//result.push({len:len_max,dist:dist});
-//				//result[idx]={len:len_max,dist:dist};
-//				result[idx]=-len_max;
-//				idx++;
-//				result[idx]=dist;
-//				i+=len_max-1;
-//
-//			}else{
-//				//result.push(u8a[offseti]);
-//				result[idx]=u8a[offseti];
-//			}
-//			idx++;
-//		}
-//		result.length=idx;
-//		return result;
-//	}
 	var compressLZ77=function(u8a,offset,size){
 		//LZ77で圧縮する
-		var result=new Array(size*2);
+		var result=new Array(size);
 		var idx=0;
+		var maps={};
+		var imax=offset+size-2;
 
-		var i = 0;
-		var imax = size-2; //繰り返し最低長は3なので
+		var i= Math.max(0,offset-32768);
 		for(;i<imax;i++){
+			var key = (u8a[i]<<16)
+				+ (u8a[i+1]<<8) 
+				+ (u8a[i+2]);
+			if(!maps[key]){
+				maps[key]=[];
+			}
+			
+			maps[key].push(i);
+		}
+		var imax=size-2;
+		for(var i=0;i<imax;i++){
 			//先頭から走査
 			var dist=0;
 			var len_max=2;
-			var j=1;
 			var offseti=offset+i;
-			var jmax = Math.min(32767,offseti);
 			var kmax = Math.min(size-i,258);
-			for(;j<jmax;j++){
-				var offsetj=offseti-j;
-				if(u8a[offseti] !== u8a[offsetj]
-				|| u8a[offseti+1] !== u8a[offsetj+1]){
-					continue;
-				}
 
-				var k=0;
-//番兵
-				var org = u8a[offseti+kmax-1];
-				u8a[offseti+kmax-1] = u8a[offsetj+kmax-1]+1;
-				offsetj+=2;
-				for(;u8a[offsetj+j] === u8a[offsetj];offsetj++);
-				k = offsetj - (offseti-j);
-				if(k === kmax-1 && org === u8a[offsetj]){
-					k++;
-				}
-				u8a[offseti+kmax-1] = org;
+			var key = (u8a[offseti]<<16)
+				+ (u8a[offseti+1]<<8) 
+				+ (u8a[offseti+2]);
+			var map = maps[key];
+			for(var m=map.length;m--;){
+				var j= offseti-map[m];
+				if(j<=0){continue;}
+				if(j>32768){continue};
+
+				var offsetj=offseti-j;
+
+				var k=3;
 				
-				//for(; k<kmax;k++){
-				//	if(u8a[offseti+k] !== u8a[offsetj+k] ){
-				//		break;
-				//	}
-				//}
-				if(k>len_max){
-					dist=j
-					len_max=k;
-					if(len_max===kmax){
+				for(; k<kmax;k++){
+					if(u8a[offseti+k] !== u8a[offsetj+k] ){
 						break;
 					}
+				}
+				if(k<=len_max){
+					continue;
+				}
+				dist=j
+				len_max=k;
+				if(len_max===kmax){
+					break;
 				}
 				
 			}
 			if(dist){
-				//result.push({len:len_max,dist:dist});
-				//result[idx]={len:len_max,dist:dist};
 				result[idx]=-len_max;
 				idx++;
 				result[idx]=dist;
 				i+=len_max-1;
 
 			}else{
-				//result.push(u8a[offseti]);
 				result[idx]=u8a[offseti];
 			}
 			idx++;

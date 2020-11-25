@@ -1,6 +1,7 @@
 
 import DataStream from "./datastream.js";
 import Zlib from "./zlib.js";
+import Deflate from "./deflate.js";
 
 export default class OpenEXR{
 	constructor(){}
@@ -160,6 +161,7 @@ export default class OpenEXR{
 					data2[di]=(data2[di]-data2[di-1]+128)&0xff;
 				}
 
+				Deflate.setQuality(2);
 				data = Zlib.compress(data2,1);
 
 			}
