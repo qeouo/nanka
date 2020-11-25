@@ -145,8 +145,8 @@ export default class DataStream{
 
 		this.setUint16(u,le);
 
-		this.idx-=16;
-		var val2= this.readFloat16(le);
+//		this.idx-=16;
+//		var val2= this.readFloat16(le);
 	}
 	readFloat16(le){
 		var dv = this.dv;
