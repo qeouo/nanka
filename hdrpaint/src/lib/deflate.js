@@ -578,17 +578,15 @@ var setmap = function(maps,u8a,i){
 	var key = (u8a[i]<<16)
 		+ (u8a[i+1]<<8) 
 		+ (u8a[i+2]);
-	if(!maps[key]){
+	if(!(key in maps)){
 		maps[key]=new Queue();
 	}
-	//console.log(key);
 	maps[key].push(i);
 }
 var removemap = function(maps,u8a,i){
-	var key = (u8a[i]<<16)
+	maps[(u8a[i]<<16)
 		+ (u8a[i+1]<<8) 
-		+ (u8a[i+2]);
-	maps[key].shift();
+		+ (u8a[i+2])].shift();
 	
 }
 	var compressLZ77=function(u8a,offset,size){
@@ -597,6 +595,18 @@ var removemap = function(maps,u8a,i){
 		var idx=0;
 		var maps={};
 		var imax=offset+size-2;
+		var compare_array = new Uint32Array(size+Math.max(32768,offset));
+
+		//4つぶん計算
+		var imax = compare_array.length-3;
+		compare_array[0]=u8a[0];
+		compare_array[0]=(compare_array[0]<<8)+u8a[1];
+		compare_array[0]=(compare_array[0]<<8)+u8a[2];
+		compare_array[0]=(compare_array[0]<<8)+u8a[3];
+		for(var i=1;i<imax;i++){
+			compare_array[i]=(compare_array[i-1]<<8)+u8a[i+3];
+			
+		}
 
 		var i= Math.max(0,offset-32768);
 		for(;i<offset;i++){
@@ -611,6 +621,8 @@ var removemap = function(maps,u8a,i){
 			var dist=0;
 			var len_max=2;
 			var kmax = Math.min(size-i,258);
+			var kmax2 = offseti+kmax;
+			var kmax3 = kmax2-3;
 
 			var key = (u8a[offseti]<<16)
 				+ (u8a[offseti+1]<<8) 
@@ -624,18 +636,23 @@ var removemap = function(maps,u8a,i){
 
 				var offsetj=offseti-j;
 
-				var k=3;
+				var k=offseti+3;
 				
-				for(; k<kmax;k++){
-					if(u8a[offseti+k] !== u8a[offsetj+k] ){
+				for(; k<kmax3;k+=4){
+					if(compare_array[k] !== compare_array[k-j] ){
 						break;
 					}
 				}
-				if(k<=len_max){
+				for(; k<kmax2;k++){
+					if(u8a[k] !== u8a[k-j] ){
+						break;
+					}
+				}
+				if(k-offseti<=len_max){
 					return false;
 				}
 				dist=j
-				len_max=k;
+				len_max=k-offseti;
 				if(len_max===kmax){
 					return true;
 				}
