@@ -506,7 +506,112 @@ export default class Deflate{
 			}
 	}
 
+
+var setmap = function(maps,u8a,i){
+	var key = (u8a[i]<<16)
+		+ (u8a[i+1]<<8) 
+		+ (u8a[i+2]);
+	if(!maps[key]){
+		maps[key]=[];
+	}
+	//console.log(key);
+	maps[key].push(i);
+}
+var removemap = function(maps,u8a,i){
+	var key = (u8a[i]<<16)
+		+ (u8a[i+1]<<8) 
+		+ (u8a[i+2]);
+	maps[key].shift();
+	
+}
 	var compressLZ77=function(u8a,offset,size){
+		//LZ77で圧縮する
+		var result=new Array(size);
+		var idx=0;
+		var maps={};
+		var imax=offset+size-2;
+
+		var i= Math.max(0,offset-32768);
+		for(;i<offset;i++){
+			setmap(maps,u8a,i);
+		}
+		var imax=size-2;
+		for(var i=0;i<imax;i++){
+			//先頭から走査
+			var offseti=offset+i;
+			
+			//マップ追加
+			setmap(maps,u8a,offseti);
+
+			var dist=0;
+			var len_max=2;
+			var kmax = Math.min(size-i,258);
+
+			var key = (u8a[offseti]<<16)
+				+ (u8a[offseti+1]<<8) 
+				+ (u8a[offseti+2]);
+//			key = u8a[i];
+			var map = maps[key];
+			for(var m=map.length-1;m--;){
+				var j= offseti-map[m];
+				//if(j<=0){continue;}
+				//if(j>32768){continue};
+
+				var offsetj=offseti-j;
+
+				var k=1;
+				
+				for(; k<kmax;k++){
+					if(u8a[offseti+k] !== u8a[offsetj+k] ){
+						break;
+					}
+				}
+				if(k<=len_max){
+					continue;
+				}
+				dist=j
+				len_max=k;
+				if(len_max===kmax){
+					break;
+				}
+				
+			}
+			if(dist){
+				result[idx]=-len_max;
+				idx++;
+				result[idx]=dist;
+				i+=len_max-1;
+
+				//マップ追加
+				for(j=1;j<len_max;j++){
+					setmap(maps,u8a,j+offseti);
+				}
+				//マップ削除
+				var jmax = offseti -32768 + len_max;
+				j = Math.max(0,offseti-32768)+1;
+				for(;j<jmax;j++){
+					removemap(maps,u8a,j);
+				}
+
+			}else{
+				result[idx]=u8a[offseti];
+			}
+			idx++;
+
+			//マップ削除
+			var j = offseti-32768
+			if(j>=0){
+				removemap(maps,u8a,j);
+			}
+		}
+		for(;i<size;i++){
+			result[idx]=u8a[offset+i];
+			idx++;
+		}
+		result.length=idx;
+		return result;
+	}
+	var compressLZ77_=function(u8a,offset,size){
 		//LZ77で圧縮する
 		var result=new Array(size);
 		var idx=0;
