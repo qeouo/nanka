@@ -507,12 +507,79 @@ export default class Deflate{
 	}
 
 
+	class Queue{
+		constructor(){
+			this.front = [];
+			this.behind = [];
+		}
+		push(value){
+			this.front.push(value);
+		}
+		shift(){
+			if(this.behind.length===0){
+				var buf = this.behind;
+				this.behind = this.front;
+				this.front = buf;
+
+				this.behind.reverse();
+			}
+			return this.behind.pop();
+		}
+		each(f){
+			for(var i=this.behind.length;i--;){
+				if(f(this.behind[i])){
+					return;
+				}
+			}
+			for(var i=0;i<this.front.length;i++){
+				if(f(this.front[i])){
+					return;
+				}
+			}
+		}
+
+		each_inv1(f){
+			var i=this.front.length;
+			if(i>0)i--;
+			for(;i--;){
+				if(f(this.front[i])){
+					return;
+				}
+					
+			}
+
+			i=0;
+			if(this.front.length===0){
+				i=1;
+			}
+			for(;i<this.behind.length;i++){
+				if(f(this.behind[i])){
+					return;
+				}
+			}
+		}
+		each_inv(f){
+			var flg = false;
+			for(var i=this.front.length;i--;){
+				if(f(this.front[i])){
+					return;
+				}
+					
+			}
+
+			for(var i=0;i<this.behind.length;i++){
+				if(f(this.behind[i])){
+					return;
+				}
+			}
+		}
+	}
 var setmap = function(maps,u8a,i){
 	var key = (u8a[i]<<16)
 		+ (u8a[i+1]<<8) 
 		+ (u8a[i+2]);
 	if(!maps[key]){
-		maps[key]=[];
+		maps[key]=new Queue();
 	}
 	//console.log(key);
 	maps[key].push(i);
@@ -540,8 +607,6 @@ var removemap = function(maps,u8a,i){
 			//先頭から走査
 			var offseti=offset+i;
 			
-			//マップ追加
-			setmap(maps,u8a,offseti);
 
 			var dist=0;
 			var len_max=2;
@@ -552,14 +617,14 @@ var removemap = function(maps,u8a,i){
 				+ (u8a[offseti+2]);
 //			key = u8a[i];
 			var map = maps[key];
-			for(var m=map.length-1;m--;){
-				var j= offseti-map[m];
-				//if(j<=0){continue;}
-				//if(j>32768){continue};
+			if(map)
+			map.each_inv(
+				function(f){
+				var j= offseti-f;
 
 				var offsetj=offseti-j;
 
-				var k=1;
+				var k=3;
 				
 				for(; k<kmax;k++){
 					if(u8a[offseti+k] !== u8a[offsetj+k] ){
@@ -567,15 +632,15 @@ var removemap = function(maps,u8a,i){
 					}
 				}
 				if(k<=len_max){
-					continue;
+					return false;
 				}
 				dist=j
 				len_max=k;
 				if(len_max===kmax){
-					break;
+					return true;
 				}
 				
-			}
+			});
 			if(dist){
 				result[idx]=-len_max;
 				idx++;
@@ -583,26 +648,30 @@ var removemap = function(maps,u8a,i){
 				i+=len_max-1;
 
 				//マップ追加
-				for(j=1;j<len_max;j++){
+				for(j=0;j<len_max;j++){
 					setmap(maps,u8a,j+offseti);
 				}
 				//マップ削除
 				var jmax = offseti -32768 + len_max;
-				j = Math.max(0,offseti-32768)+1;
+				j = Math.max(0,offseti-32768);
 				for(;j<jmax;j++){
 					removemap(maps,u8a,j);
 				}
 
 			}else{
 				result[idx]=u8a[offseti];
+
+				//マップ追加
+				setmap(maps,u8a,offseti);
+
+				//マップ削除
+				var j = offseti-32768
+				if(j>=0){
+					removemap(maps,u8a,j);
+				}
 			}
 			idx++;
 
-			//マップ削除
-			var j = offseti-32768
-			if(j>=0){
-				removemap(maps,u8a,j);
-			}
 		}
 		for(;i<size;i++){
 			result[idx]=u8a[offset+i];
