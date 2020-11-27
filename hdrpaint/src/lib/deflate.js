@@ -598,13 +598,13 @@ var removemap = function(maps,u8a,i){
 		var compare_array = new Uint32Array(size+Math.max(32768,offset));
 
 		//4つぶん計算
-		var imax = compare_array.length-3;
-		compare_array[0]=u8a[0];
-		compare_array[0]=(compare_array[0]<<8)+u8a[1];
-		compare_array[0]=(compare_array[0]<<8)+u8a[2];
-		compare_array[0]=(compare_array[0]<<8)+u8a[3];
-		for(var i=1;i<imax;i++){
-			compare_array[i]=(compare_array[i-1]<<8)+u8a[i+3];
+		var imax = compare_array.length;
+		compare_array[3]=u8a[0];
+		compare_array[3]=(compare_array[3]<<8)+u8a[1];
+		compare_array[3]=(compare_array[3]<<8)+u8a[2];
+		compare_array[3]=(compare_array[3]<<8)+u8a[3];
+		for(var i=4;i<imax;i++){
+			compare_array[i]=(compare_array[i-1]<<8)+u8a[i];
 			
 		}
 
@@ -622,7 +622,7 @@ var removemap = function(maps,u8a,i){
 			var len_max=2;
 			var kmax = Math.min(size-i,258);
 			var kmax2 = offseti+kmax;
-			var kmax3 = kmax2-3;
+			var kmax3 = kmax2-4;
 
 			var key = (u8a[offseti]<<16)
 				+ (u8a[offseti+1]<<8) 
@@ -636,15 +636,16 @@ var removemap = function(maps,u8a,i){
 
 				var offsetj=offseti-j;
 
-				var k=offseti+3;
+				var k=offseti+6;
 				
-				for(; k<kmax3;k+=4){
+				for(; k<kmax2;k+=4){
 					if(compare_array[k] !== compare_array[k-j] ){
 						break;
 					}
 				}
+				k-=3;
 				for(; k<kmax2;k++){
-					if(u8a[k] !== u8a[k-j] ){
+					if(compare_array[k] !== compare_array[k-j] ){
 						break;
 					}
 				}
