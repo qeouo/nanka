@@ -119,26 +119,26 @@ class Gradient extends Layer{
 	var html = `
 		角度:<input class="slider modifier_scale" title="radius" value="0" min="0" max="360"><br>
 
-		<div class="modifier_gradient">
+		<div class="modifier_gradient ">
 		R,G,B,A pos<br>
 		<ul>
 		<li>
-		<input type="text" class="col " title="col0">
+		<input type="text" class="col colorpickerhdr" title="col0">
 		<input class="slider pos" title="col0pos" min="0" max="1">
 		</li>
 
 		<li>
-		<input type="text" class="col" title="col1">
+		<input type="text" class="col colorpickerhdr" title="col1">
 		<input class="slider pos" title="col1pos" min="0" max="1">
 		</li>
 
 		<li>
-		<input type="text" class="col" title="col2">
+		<input type="text" class="col colorpickerhdr" title="col2">
 		<input class="slider pos" title="col2pos" min="0" max="1">
 		</li>
 
 		<li>
-		<input type="text" class="col" title="col3">
+		<input type="text" class="col colorpickerhdr" title="col3">
 		<input class="slider pos" title="col3pos" min="0" max="1">
 		</li>
 		</ul>

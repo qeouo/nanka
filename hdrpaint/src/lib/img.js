@@ -356,15 +356,21 @@ export default class Img{
 			}
 		}
 	}
-	toCanvas(p1,p2){
-		canvas.width=this.width;
-		canvas.height=this.height;
+	toCanvas(x,y,w,h){
+		if(x === undefined){
+			x=0;
+			y=0;
+			w=this.width;
+			h=this.height;
+		}
+		canvas.width=w;
+		canvas.height=h;
 		
-		ctx.putImageData(this.toImageData(),0,0);
+		ctx.putImageData(this.toImageData(),0,0,x,y,w,h);
 		return canvas;
 	}
-	toDataURL= function(p1,p2){
-		return this.toCanvas().toDataURL(p1,p2);
+	toDataURL= function(p1,p2,x,y,w,h){
+		return this.toCanvas(x,y,w,h).toDataURL(p1,p2);
 		
 	}
 	toBlob= function(f,p1,p2){

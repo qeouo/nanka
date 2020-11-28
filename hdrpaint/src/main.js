@@ -15,6 +15,7 @@ import Brush from "./brush.js";
 import PenPoint from "./penpoint.js"
 import Layer from "./layer.js";
 import Util from "./lib/util.js";
+import ColorPickerHDR from "./lib/colorpickerhdr.js";
 
 
 window.Img = Img;

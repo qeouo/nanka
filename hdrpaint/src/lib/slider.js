@@ -36,7 +36,7 @@ import Util from "./util.js"
 			slider.min=parseFloat(node.min);
 		}
 		if(node.step){
-			slider.step=parseInt(node.step);
+			slider.step=Number(node.step);
 		}
 		if(node.value){
 			output.value=node.value;
@@ -53,7 +53,7 @@ import Util from "./util.js"
 
 		var setValue = function (value){
 			if(slider.step){
-				value = Math.floor(value/slider.step)*slider.step;
+				value = Math.ceil(value/slider.step)*slider.step;
 			}
 			output.value = value;
 			value = (value - slider.min)/(slider.max-slider.min)
@@ -128,7 +128,6 @@ stylesheet.insertRule(" \
 stylesheet.insertRule(" \
 	.js-slider2{ \
 		display:inline-block; \
-		vertical-align: middle; \
 		width:100%; \
 		background:#ddd; \
 		height:3px; \

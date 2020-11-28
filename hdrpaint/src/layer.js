@@ -536,9 +536,9 @@ export default class Layer{
 		txt += "offset:["+layer.position[0]+","+layer.position[1] +"]"
 			+ "size:[" + layer.size[0]+ "," + layer.size[1]+"]<br>";
 		
-		layer.power=parseFloat(layer.power);
+		layer.power=Number(layer.power);
 		txt += "pow:"+layer.power.toFixed(2)+"";
-		layer.alpha=parseFloat(layer.alpha);
+		layer.alpha=Number(layer.alpha);
 		txt += "α:"+layer.alpha.toFixed(2)+"<br>";
 			
 		return txt;
@@ -659,7 +659,7 @@ export default class Layer{
 		var dst_data = thumbnail_img.data;
 		var sum=new Vec4();
 		var _255 = 1/255;
-		var ev = parseFloat(inputs["ev"].value);
+		var ev = Number(inputs["ev"].value);
 		var ev2  = Math.pow(2,-ev)*255;
 		var rr255 = 255/(r*r);
 		for(var yi=0;yi<newy;yi++){
