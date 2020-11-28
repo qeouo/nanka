@@ -210,7 +210,9 @@ var onloadfunc=function(e){
 	for(var i=0;i<keys.length;i++){
 		var key = keys[i];
 		var input = inputs[key];
-		input.setAttribute("title",key);
+		if(input.getAttribute("title") ===null){
+			input.setAttribute("title",key);
+		}
 	}
 
 	

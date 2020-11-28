@@ -595,18 +595,19 @@ var removemap = function(maps,u8a,i){
 		var idx=0;
 		var maps={};
 		var imax=offset+size-2;
-		var compare_array = new Uint32Array(size+Math.max(32768,offset));
+		//var compare_array = new Uint32Array(size+Math.max(32768,offset));
+		var dataview = new DataView(u8a.buffer);
 
 		//4つぶん計算
-		var imax = compare_array.length;
-		compare_array[3]=u8a[0];
-		compare_array[3]=(compare_array[3]<<8)+u8a[1];
-		compare_array[3]=(compare_array[3]<<8)+u8a[2];
-		compare_array[3]=(compare_array[3]<<8)+u8a[3];
-		for(var i=4;i<imax;i++){
-			compare_array[i]=(compare_array[i-1]<<8)+u8a[i];
-			
-		}
+//		var imax = compare_array.length;
+//		compare_array[3]=u8a[0];
+//		compare_array[3]=(compare_array[3]<<8)+u8a[1];
+//		compare_array[3]=(compare_array[3]<<8)+u8a[2];
+//		compare_array[3]=(compare_array[3]<<8)+u8a[3];
+//		for(var i=4;i<imax;i++){
+//			compare_array[i]=(compare_array[i-1]<<8)+u8a[i];
+//			
+//		}
 
 		var i= Math.max(0,offset-32768);
 		for(;i<offset;i++){
@@ -622,30 +623,29 @@ var removemap = function(maps,u8a,i){
 			var len_max=2;
 			var kmax = Math.min(size-i,258);
 			var kmax2 = offseti+kmax;
-			var kmax3 = kmax2-4;
+			var kmax3 = offseti+kmax-12;
 
 			var key = (u8a[offseti]<<16)
 				+ (u8a[offseti+1]<<8) 
 				+ (u8a[offseti+2]);
-//			key = u8a[i];
 			var map = maps[key];
 			if(map)
 			map.each_inv(
 				function(f){
 				var j= offseti-f;
 
-				var offsetj=offseti-j;
-
-				var k=offseti+6;
+				var k=offseti;
 				
-				for(; k<kmax2;k+=4){
-					if(compare_array[k] !== compare_array[k-j] ){
+				for(; k<kmax3;k+=4){
+					//if(compare_array[k] !== compare_array[k-j] ){
+					if(dataview.getUint32(k) !== dataview.getUint32(k-j) ){
 						break;
 					}
 				}
-				k-=3;
+//				k-=3;
 				for(; k<kmax2;k++){
-					if(compare_array[k] !== compare_array[k-j] ){
+					//if(compare_array[k] !== compare_array[k-j] ){
+					if(dataview.getUint8(k) !== dataview.getUint8(k-j) ){
 						break;
 					}
 				}
