@@ -21,12 +21,9 @@ window.commandObjs={};
 //全ブラシ
 window.brushes=[];
 
-var Hdrpaint=(function(){
-	var Hdrpaint = function(){
-	}
-	var ret = Hdrpaint;
+class Hdrpaint {
 
-	ret.getPosition=function(){
+	static getPosition(){
 		var data={};
 		if(!selected_layer){
 			data.parent_layer_id = root_layer.id;
@@ -46,7 +43,7 @@ var Hdrpaint=(function(){
 		return data;
 	}
 
-	ret.loadImageFile_=function(file){
+	static loadImageFile_(file){
 		var data = Hdrpaint.getPosition();
 		var fu =function(img){
 			var log =Hdrpaint.executeCommand("loadImage",{"img":img,"file":file.name
@@ -59,7 +56,7 @@ var Hdrpaint=(function(){
 	 	}
 	}
 
-	ret.createDif=function(layer,left,top,width,height){
+	static createDif(layer,left,top,width,height){
 		//更新領域の古い情報を保存
 		var img = new Img(width,height);
 		Img.copy(img,0,0,layer.img,left,top,width,height);
@@ -70,7 +67,7 @@ var Hdrpaint=(function(){
 		return dif;
 	}
 
-	ret.removeLayer=function(layer){
+	static removeLayer(layer){
 		var parent_layer = layer.parent;
 		var layers = parent_layer.children;
 		var idx = layers.indexOf(layer);
@@ -89,7 +86,7 @@ var Hdrpaint=(function(){
 		parent_layer.bubbleComposite();
 	}
 
-	ret.onlyExecute= function(command,param){
+	static onlyExecute= function(command,param){
 		if(param.layer_id && command !=="changeLayerAttribute"){
 			var layer = Layer.findById(param.layer_id);
 			if(layer){
@@ -108,7 +105,7 @@ var Hdrpaint=(function(){
 			command(log);
 		}
 	}
-	ret.executeCommand = function(command,param,flg){
+	static executeCommand(command,param,flg){
 
 		if(param.layer_id && command !=="changeLayerAttribute" && command!=="moveLayer"){
 			var layer = Layer.findById(param.layer_id);
@@ -137,23 +134,18 @@ var Hdrpaint=(function(){
 	}
 
 //ブレンドファンクション
-	ret.blendfuncs={};
+	static blendfuncs={};
 
-	ret.blendfuncsname= [ "normal"
+	static blendfuncsname= [ "normal"
 		,"mul"
 		,"add"
 		,"sub"
 		,"transmit"
 	];
-	for(var i=0;i<ret.blendfuncsname.length;i++){
-		var name  = ret.blendfuncsname[i];
-//		Util.loadJs("../blendfuncs/" + name +".js");
-//		import("./blendfuncs/"+name+".js");
-	}
 
 //モデファイア
-	ret.modifier={};
-	ret.modifiername= [ "grayscale",
+	static modifier={};
+	static modifiername= [ "grayscale",
 		"shift"
 		,"blur"
 		,"gradient"
@@ -162,9 +154,10 @@ var Hdrpaint=(function(){
 	];
 
 
+	static init(){
 	var area = document.querySelector("#modifier_area");
-	for(var i=0;i<ret.modifiername.length;i++){
-		var name  = ret.modifiername[i];
+	for(var i=0;i<this.modifiername.length;i++){
+		var name  = this.modifiername[i];
 		//Util.loadJs("../modifier/" + name +".js");
 
 		var input= document.createElement("input");
@@ -173,9 +166,10 @@ var Hdrpaint=(function(){
 		input.value=name;
 		area.appendChild(input);
 	}
+	}
 
 
-	ret.addFilter = function(id,name){
+	static addFilter(id,name){
 
 		var a= document.createElement("a");
 		a.id=id;
@@ -185,7 +179,7 @@ var Hdrpaint=(function(){
 		area.appendChild( a);
 		
 	}
-	ret.addDialog= function(id,html){
+	static addDialog= function(id,html){
 		var div= document.createElement("div");
 		div.id=id;
 		div.style.display="none";
@@ -196,11 +190,11 @@ var Hdrpaint=(function(){
 		var dialog_parent= document.querySelector(".dialog_parent");
 		dialog_parent.appendChild(div);
 	}
-	ret.showDialog=function(id){
+	static showDialog(id){
 		document.getElementById(id).style.display="inline";
 		document.querySelector(".dialog_parent").style.display="flex";
 	}
-	ret.closeDialog=function(){
+	static closeDialog(){
 		var parent= document.querySelector(".dialog_parent")
 		parent.style.display="none";
 		for(var i=0;i<parent.children.length;i++){
@@ -209,9 +203,15 @@ var Hdrpaint=(function(){
 	}
 
 
-	ret.addModifierControl= function(id,html){
+
+	static registModifier = (mod,name,html)=>{
+		mod.prototype.typename=name;
+
+		this.modifier[name] = mod;
+
+		
 		var div= document.createElement("div");
-		div.id="div_"+id;
+		div.id="div_"+name;
 		div.classList.add("modifier_param");
 		div.insertAdjacentHTML('beforeend',html);
 
@@ -220,9 +220,7 @@ var Hdrpaint=(function(){
 	}
 
 
-
-
-ret.undo=function(){
+static undo(){
 	//アンドゥ
 
 	var option_index = inputs["history"].selectedIndex;
@@ -242,44 +240,8 @@ ret.undo=function(){
 }
 
 
-	return ret;
-})();
-
-
-
-//	var commands= [ "brush"
-//		,"changeLayerAttribute"
-//		,"changeModifierAttribute"
-//		,"clear"
-//		,"composite"
-//		,"createNewLayer"
-//		,"copylayer"
-//		,"createmodifier"
-//		,"deleteLayer"
-//		,"fill"
-//		,"joinLayer"
-//		,"loadImage"
-//		,"moveLayer"
-//		,"multiCommand"
-//		,"resizeCanvas"
-//		,"resizeLayer"
-//		,"translate"
-//	];
-
-
-//	for(var i=0;i<commands.length;i++){
-//		var name = commands[i];
-//
-//		import("./command/"+name+".js");
-//	//	Util.loadJs("../command/" + commands[i] +".js",function(){
-//	//			if(!commandObjs[name])return;
-//	//		if(commandObjs[name].filter){
-//
-//	//		}
-//
-//	//	});
-//	}
-
+}
+Hdrpaint.init();
 
 export default Hdrpaint;
 

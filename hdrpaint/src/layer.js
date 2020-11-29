@@ -131,7 +131,6 @@ export default class Layer{
 
 
 	static enableRefreshThumbnail=true;
-	typename="normal_layer";
 
 	before(area){};
 	beforeReflect(){};
@@ -812,6 +811,7 @@ export default class Layer{
 
 };
 
+Layer.prototype.typename="normal_layer";
 	//レイヤパラメータコントロール変更時反映
 	document.querySelector("#layer_param").addEventListener("change"
 		,function(e){

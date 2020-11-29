@@ -2,13 +2,13 @@
 import Slider from "../lib/slider.js";
 import Hdrpaint from "../hdrpaint.js";
 import Layer from "../layer.js";
-class Blur extends Layer{
+
+Hdrpaint.registModifier(
+	class extends Layer{
 	constructor(){
 		super();
 		this.scale=16;
 	};
-
-	typename="blur";
 
 	showDivParam(){
 		return "blursize:"+this.scale;
@@ -38,11 +38,10 @@ class Blur extends Layer{
 	}
 
 }
+	,"blur"
+	,`ぼかし半径:<input class="slider modifier_scale" title="scale" step="1" min="1" max="128"><br>`
+);
 
-	var html = `
-			ぼかし半径:<input class="slider modifier_scale" title="scale" step="1" min="1" max="128"><br>
-		`;
-	Hdrpaint.addModifierControl(Blur.prototype.typename,html);
-	Slider.init();
+Slider.init();
 
-Hdrpaint.modifier["blur"] = Blur;
+

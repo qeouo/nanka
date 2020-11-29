@@ -16,6 +16,7 @@ import PenPoint from "./penpoint.js"
 import Layer from "./layer.js";
 import Util from "./lib/util.js";
 import ColorPickerHDR from "./lib/colorpickerhdr.js";
+import ColorSelector from "./lib/colorselector.js";
 
 
 window.Img = Img;

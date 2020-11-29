@@ -25,8 +25,6 @@ class _Noise extends Layer{
 		this.children=null;
 	};
 
-	typename="noise";
-
 
 	beforeReflect(){
 		scale = 1/this.scale;
@@ -94,7 +92,6 @@ class _Noise extends Layer{
 			Z(seed):<input class="slider modifier_z" title="zoffset" max="255"><br>
 			rgb別:<input type="checkbox" class="modifier_betsu" title="betsu"><br>
 		`;
-	Hdrpaint.addModifierControl("noise",html);
+	Hdrpaint.registModifier(_Noise,"noise",html);
 Slider.init();
 
-Hdrpaint.modifier["noise"] = _Noise;

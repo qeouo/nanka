@@ -30,8 +30,6 @@ class Gradient extends Layer{
 		this.radius=0;
 	};
 
-	typename="gradient";
-
 	showDivParam(){
 
 		var layer = this;
@@ -145,6 +143,5 @@ class Gradient extends Layer{
 
 		</div>
 		`;
-	Hdrpaint.addModifierControl("gradient",html);
+	Hdrpaint.registModifier(Gradient,"gradient",html);
 	Slider.init();
-Hdrpaint.modifier["gradient"] = Gradient; 

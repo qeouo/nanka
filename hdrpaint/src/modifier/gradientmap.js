@@ -58,10 +58,8 @@ class GradientMap extends Layer{
 		child.getPixel(ret_pixel,idx,total*(child.size[0]-1),0);
 	}
 };
-GradientMap.prototype.typename="gradientmap";
 var html = `
 		<input type="radio" name="gradtype" title="gradtype" value="0"/>明るさで判定
 		<input type="radio" name="gradtype" title="gradtype" value="1"/>アルファ値で判定
 	`;
-Hdrpaint.addModifierControl(GradientMap.prototype.typename,html);
-Hdrpaint.modifier["gradientmap"] = GradientMap;
+Hdrpaint.registModifier(GradientMap,"gradientmap",html);
