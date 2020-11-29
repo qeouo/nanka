@@ -171,10 +171,10 @@ export default class Brush{
 		static setParam(param){
 			//param.color = new Float32Array(doc.draw_col);
 			param.color = new Float32Array(4);
-			param.color[0] = inputs["color_R"].value;
-			param.color[1] = inputs["color_G"].value;
-			param.color[2] = inputs["color_B"].value;
-			param.color[3] = inputs["color_A"].value;
+			param.color[0] = Hdrpaint.color[0];
+			param.color[1] = Hdrpaint.color[1];
+			param.color[2] = Hdrpaint.color[2];
+			param.color[3] = Hdrpaint.color[3];
 			param.weight=Number(inputs["weight"].value);
 			param.softness=Number(inputs["softness"].value);
 			param.antialias=Number(inputs["brush_antialias"].checked);

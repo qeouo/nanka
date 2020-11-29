@@ -9,7 +9,6 @@ import Img from "./lib/img.js";
 import CommandLog from "./commandlog.js";
 import FileManager from "./file.js";
 import Redraw from "./redraw.js";
-import img_hsv from "./img_hsv.js";
 import PenFunc from "./penfunc.js";
 import Brush from "./brush.js";
 import PenPoint from "./penpoint.js"
@@ -17,7 +16,6 @@ import Layer from "./layer.js";
 import Util from "./lib/util.js";
 import ColorPickerHDR from "./lib/colorpickerhdr.js";
 import ColorSelector from "./lib/colorselector.js";
-
 
 window.Img = Img;
 window.CommandLog = CommandLog;
@@ -407,10 +405,7 @@ var onloadfunc=function(e){
 				return;
 			}
 			var color = new Float32Array(4);
-			color[0] = inputs["color_R"].value;
-			color[1] = inputs["color_G"].value;
-			color[2] = inputs["color_B"].value;
-			color[3] = inputs["color_A"].value;
+			Vec4.copy(color,Hdrpaint.color);
 			var flg_active_layer_only = inputs["selected_layer_only"].checked;
 			Hdrpaint.executeCommand("fill",{"layer_id":selected_layer.id,"x":x,"y":y,"color":color,"is_layer":flg_active_layer_only});
 
@@ -577,10 +572,6 @@ var onloadfunc=function(e){
 
 
 
-	inputs["color_A"].addEventListener("change",function(){
-		changeColor(null);
-
-	});
 
 	document.getElementById("post_effect").addEventListener("change",function(e){
 
@@ -810,7 +801,6 @@ var onloadfunc=function(e){
 	var args=url.split("&")
 
 	Vec4.set(doc.draw_col,0.8,0.2,0.2,1);
-	changeColor(null);
 
 	for(i=args.length;i--;){
 		var arg=args[i].split("=")
@@ -837,8 +827,6 @@ var onloadfunc=function(e){
 	}
 
 
-//初期化
-	img_hsv.func();
 
 	if(globalParam.hasOwnProperty("file")){
 
@@ -910,64 +898,24 @@ var onloadfunc=function(e){
 
 }
 
+	var selectorhdr = new ColorSelector();
+	document.querySelector("#color_selector").appendChild(selectorhdr.div);
+	selectorhdr.changeCallback= function(){
 
-	var changeColor=Hdrpaint.changeColor = function(target){
-		var color = new Float32Array(4);
-		color[0] = inputs["color_R"].value;
-		color[1] = inputs["color_G"].value;
-		color[2] = inputs["color_B"].value;
-		color[3] = inputs["color_A"].value;
-		var tabs=[
-			tab_cs_standard
-		];
-
-		for(var i=0;i<tabs.length;i++){
-			if(target === tabs[i]){
-				continue;
-			}
-			tabs[i].setRGB(color);
-		}
+		Hdrpaint.color[0]= Number(this.R_txt.value);
+		Hdrpaint.color[1]= Number(this.G_txt.value);
+		Hdrpaint.color[2]= Number(this.B_txt.value);
+		Hdrpaint.color[3]= Number(this.A_txt.value);
 
 		Brush.refreshPreview();
 	}
 
+	Vec4.set(Hdrpaint.color,1,0.5,0.5,1);
 
-img_hsv.redraw();
+	selectorhdr.setColor(Hdrpaint.color);
 
-var tab_cs_standard=(function(){
-	var obj={};
 
-	obj.setRGB=function(col){
-		var color=new Vec3();
-		
-		var max = Math.max(Math.max(col[0],Math.max(col[1],col[2])),1);
-		//var min= Math.min(col[0],Math.min(col[1],col[2]));
-		//if(max==0){max=1};
-		//if(max<=1 && min>=0.01){
-		//	max=1;
-		//}
-		Vec3.mul(color,col,1/max);
 
-		img_hsv.setRGB(color);
-
-		inputs["cs_default_lumi"].value=Math.log2(max);
-		Util.fireEvent(inputs["cs_default_lumi"],"input");
-
-	}
-
-	var change_default= function(){
-		var lumi = Math.pow(2,parseFloat(inputs["cs_default_lumi"].value));
-		inputs["color_R"].value=(img_hsv.color[0] * lumi).toFixed(4);
-		inputs["color_G"].value=(img_hsv.color[1] * lumi).toFixed(4);
-		inputs["color_B"].value=(img_hsv.color[2] * lumi).toFixed(4);
-
-		changeColor(tab_cs_standard);
-	}
-	img_hsv.func=change_default;
-	document.getElementById("cs_default_lumi").addEventListener("change",change_default);
-
-	return obj;
-})();
 var refreshTab = function(target_id){
 	var tool_radios = document.getElementById(target_id).getElementsByTagName("input");
 	for(var i=0;i<tool_radios.length;i++){

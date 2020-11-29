@@ -74,8 +74,6 @@ export default class ColorSelector{
 		this.A_txt= this.div.querySelector(".cphdr_A_txt");
 		Slider.init(this.div);
 
-		this.div.style.position="absolute";
-		this.div.style.display="none";
 		this.redrawSv(0);
 
 		var data = img.data;
@@ -103,20 +101,28 @@ export default class ColorSelector{
 		this.setRGB(col);
 
 	this.div.querySelector(".color_status").addEventListener("change",()=>{
-		changeColor();
-		parentUpdate();
-		}
+		this.changeColor();
+	if(this.changeCallback){
+		this.changeCallback();
+	}
+	}
 	);
 	this.A_txt.addEventListener("change",()=>{
 		this.changeColor();
+	if(this.changeCallback){
+		this.changeCallback();
+	}
 		}
 	);
-	this.Vi_txt.addEventListener("change",function(){
+	this.Vi_txt.addEventListener("change",()=>{
 		var vi = Math.pow(2,Number(this.Vi_txt.value));
 		Util.hsv2rgb(col,this.hsv);
 		this.R_txt.value=(col[0]*vi).toFixed(3);
 		this.G_txt.value=(col[1]*vi).toFixed(3);
 		this.B_txt.value=(col[2]*vi).toFixed(3);
+	if(this.changeCallback){
+		this.changeCallback();
+	}
 
 	});
 	this.sv_img.parentNode.addEventListener("pointerdown",(e)=>{
@@ -159,6 +165,15 @@ export default class ColorSelector{
 	}
 	this.sv_img.src = img.toDataURL();
 	
+}
+setColor(c){
+	this.R_txt.value = c[0];
+	this.G_txt.value = c[1];
+	this.B_txt.value = c[2];
+	this.A_txt.value = c[3];
+
+	this.changeColor();
+
 }
 changeColor(){
 	var rgb = this.rgb;

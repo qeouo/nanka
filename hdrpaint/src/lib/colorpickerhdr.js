@@ -41,6 +41,8 @@ var parentUpdate=()=>{
 var colorselector = new ColorSelector();
 var div = colorselector.div;
 div.classList.add("colorpickerhdr_form");
+div.style.position="absolute";
+div.style.display="none";
 
 colorselector.changeCallback=function(){
 	if(!parentInput){
@@ -90,13 +92,8 @@ export default class ColorpickerHDR{
 
 
 				var cols = evt.currentTarget.value.split(",");
+				colorselector.setColor(cols);
 
-				colorselector.R_txt.value = cols[0];
-				colorselector.G_txt.value = cols[1];
-				colorselector.B_txt.value = cols[2];
-				colorselector.A_txt.value = cols[3];
-
-				colorselector.changeColor();
 
 				safe=1;
 

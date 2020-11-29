@@ -1,6 +1,7 @@
 
 import Util from "./lib/util.js";
 import Layer from "./layer.js";
+import {Vec4} from "./lib/vector.js";
 
 window.inputs=[];
 window.doc ={};
@@ -22,6 +23,7 @@ window.commandObjs={};
 window.brushes=[];
 
 class Hdrpaint {
+	static color=new Vec4();
 
 	static getPosition(){
 		var data={};
