@@ -4,12 +4,36 @@ import Slider from "./slider.js";
 import Util from "./util.js";
 import Img from "./img.js";
 
-//カラーピッカーHDR
+//カラーセレクタHDR
 
 var img = new Img(128,128,Img.FORMAT_UINT8);
 
+
 let col = new Vec3();
 let col_org = new Vec3();
+
+//色相画像作成
+var img_h={};
+var data = img.data;
+var idx=0;
+for(var yi=0;yi<128;yi++){
+	col[0]=yi/128;
+	col[1]=1;
+	col[2]=1;
+	Util.hsv2rgb(col,col);
+	col[0]=(col[0]*255)|0;
+	col[1]=(col[1]*255)|0;
+	col[2]=(col[2]*255)|0;
+	idx = img.getIndex(0,yi)<<2;
+
+	data[idx]=col[0];
+	data[idx+1]=col[1];
+	data[idx+2]=col[2];
+	data[idx+3]=255;
+	
+}
+var h_img_dataurl= img.toDataURL("image/png",1.0,0,0,1,128);
+
 export default class ColorSelector{
 
 	constructor(){
@@ -34,25 +58,25 @@ export default class ColorSelector{
 		this.hsv = new Vec3();
 
 	var html = `
-				<div class="divMain">
-					<div style="position:relative;display:inline-block;">
-						<img class="cphdr_sv_img" width="128" height="128" draggable="false">
+				<div class="div_main">
+					<div class="sv_parent">
+						<img class="cphdr_sv_img" draggable="false">
 						<div class="cphdr_s_cursor cursor"></div>
 						<div class="cphdr_v_cursor cursor"></div>
 					</div>
-					<div style="position:relative;display:inline-block;">
-						<img class="cphdr_h_img" width="8" height="128" draggable="false">
+					<div class="sv_parent">
+						<img class="cphdr_h_img" draggable="false">
 						<div class="cphdr_h_cursor cursor" ></div>
 					</div>
 				</div>
-				<div class="color_status" style="float:left;">
+				<div class="color_status">
 					<ul>
 					<li class="red">R<input type="text" class="cphdr_R_txt" value="0.8" /></li>
 					<li class="green">G<input type="text" class="cphdr_G_txt" value="0.2"/></li>
 					<li class="blue">B<input type="text" class="cphdr_B_txt" value="0.2"/></li>
 					</ul>
 				</div>
-				<div style="clear:both;">
+				<div>
 					明るさ<input class="slider cphdr_Vi_txt" min="-10" max="10" value="0" step="0.01"/>
 				</div>
 				A<input class="slider cphdr_A_txt" max="1" value="1" step="0.001"/>
@@ -75,27 +99,7 @@ export default class ColorSelector{
 		Slider.init(this.div);
 
 		this.redrawSv(0);
-
-		var data = img.data;
-		var idx=0;
-		for(var yi=0;yi<128;yi++){
-			col[0]=yi/128;
-			col[1]=1;
-			col[2]=1;
-			Util.hsv2rgb(col,col);
-			col[0]=(col[0]*255)|0;
-			col[1]=(col[1]*255)|0;
-			col[2]=(col[2]*255)|0;
-			idx = img.getIndex(0,yi)<<2;
-			for(var xi=0;xi<8;xi++){
-				data[idx]=col[0];
-				data[idx+1]=col[1];
-				data[idx+2]=col[2];
-				data[idx+3]=255;
-				idx+=4;
-			}
-		}
-		this.h_img.src = img.toDataURL("image/png",1.0,0,0,8,128);
+this.h_img.src = h_img_dataurl;
 
 		Vec3.set(col,1,1,1);
 		this.setRGB(col);
@@ -139,33 +143,32 @@ export default class ColorSelector{
 	}
 
 	redrawSv(){
-	var idx=0;
+		var idx=0;
 
 
-	col[0]=this.hsv[0];
-	col[1]=1;
-	col[2]=1;
-	Util.hsv2rgb(col_org,col);
-	var data=img.data;
-	var alpha = Number(this.A_txt.value)*255;
-	for(var yi=0;yi<img.height;yi++){
-		var yf = yi/img.height;
-		col[0]=(1-col_org[0])*yf+col_org[0];
-		col[1]=(1-col_org[1])*yf+col_org[1];
-		col[2]=(1-col_org[2])*yf+col_org[2];
-		Vec3.mul(col,col,255/img.width);
-		for(var xi=0;xi<img.width;xi++){
-			data[idx]= col[0]*xi;
-			data[idx+1]=col[1]*xi;
-			data[idx+2]=col[2]*xi;
-			data[idx+3]=alpha;
-			
-			idx+=4;
+		col[0]=this.hsv[0];
+		col[1]=1;
+		col[2]=1;
+		Util.hsv2rgb(col_org,col);
+		var data=img.data;
+		var alpha = Number(this.A_txt.value)*255;
+		for(var yi=0;yi<img.height;yi++){
+			var yf = yi/img.height;
+			col[0]=(1-col_org[0])*yf+col_org[0];
+			col[1]=(1-col_org[1])*yf+col_org[1];
+			col[2]=(1-col_org[2])*yf+col_org[2];
+			Vec3.mul(col,col,255/img.width);
+			for(var xi=0;xi<img.width;xi++){
+				data[idx]= col[0]*xi;
+				data[idx+1]=col[1]*xi;
+				data[idx+2]=col[2]*xi;
+				data[idx+3]=alpha;
+				
+				idx+=4;
+			}
 		}
+		this.sv_img.src = img.toDataURL();
 	}
-	this.sv_img.src = img.toDataURL();
-	
-}
 setColor(c){
 	this.R_txt.value = c[0];
 	this.G_txt.value = c[1];

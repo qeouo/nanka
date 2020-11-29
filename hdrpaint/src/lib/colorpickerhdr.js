@@ -6,7 +6,7 @@ import ColorSelector from "./colorselector.js";
 
 //カラーピッカーHDR
 var safe=0;
-var rgb = new Vec3();
+var rgb = new Vec4();
 var parentInput=null;//カラーピッカーが表示されている親コントロール
 
 var updateTextArea=function(textArea){
@@ -16,12 +16,13 @@ var updateTextArea=function(textArea){
 	rgb[0]=Number(sp[0]);
 	rgb[1]=Number(sp[1]);
 	rgb[2]=Number(sp[2]);
+	rgb[3]=Number(sp[3]);
 
-//	var max = Math.max(Math.max(rgb[0],Math.max(rgb[1],rgb[2])),1);
-//
-//	Vec3.mul(rgb,rgb,1/max);
+	//textArea.style.backgroundColor= "rgb(" + rgb[0]*255+","+rgb[1]*255+"," + rgb[2]*255 +")"
+	var rgba = Util.rgba(rgb[0]*255,rgb[1]*255,rgb[2]*255,rgb[3]);
 
-	textArea.style.backgroundColor= "rgb(" + rgb[0]*255+","+rgb[1]*255+"," + rgb[2]*255 +")"
+	textArea.style.backgroundImage= "linear-gradient( 0," + rgba + "," + rgba + "),url(back.png)";
+
 	textArea.style.color=(0.3*rgb[0]+0.6*rgb[1]+0.1*rgb[2]<0.5)?"white":"black";
 }
 
@@ -39,10 +40,9 @@ var parentUpdate=()=>{
 
 
 var colorselector = new ColorSelector();
-var div = colorselector.div;
-div.classList.add("colorpickerhdr_form");
-div.style.position="absolute";
-div.style.display="none";
+var container = document.createElement("div");
+container.classList.add("colorpickerhdr_form");
+container.appendChild(colorselector.div);
 
 colorselector.changeCallback=function(){
 	if(!parentInput){
@@ -56,7 +56,7 @@ colorselector.changeCallback=function(){
 
 	updateTextArea(parentInput);
 }
-document.body.appendChild(div);
+document.body.appendChild(container);
 
 export default class ColorpickerHDR{
 
@@ -67,13 +67,13 @@ export default class ColorpickerHDR{
 		//カラーピッカーコントロール対応させる
 		var e = document.getElementsByClassName('colorpickerhdr');
 
-			div.addEventListener("pointerdown",function(evt){
+			container.addEventListener("pointerdown",function(evt){
 				safe=1;
 
 			});
 			window.addEventListener("pointerdown",function(evt){
 				if(!safe){
-					div.style.display="none";
+					container.style.display="none";
 				}
 				safe=0;
 			});
@@ -84,11 +84,11 @@ export default class ColorpickerHDR{
 
 				//クリック時、カラーピッカーを表示
 				parentInput=this;
-				div.style.display="block";
+				container.style.display="block";
 
 				var rect = this.getBoundingClientRect();
-				div.style.left=rect.left + window.pageXOffset+"px";
-				div.style.top=rect.top+rect.height  +window.pageYOffset +"px";
+				container.style.left=rect.left + window.pageXOffset+"px";
+				container.style.top=rect.top+rect.height  +window.pageYOffset +"px";
 
 
 				var cols = evt.currentTarget.value.split(",");
