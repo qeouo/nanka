@@ -5,65 +5,49 @@ var drag_target=null;
 //ドラッグ時処理
 var drag=function(evt){
 	if(!evt){ evt = window.event; }
-	if(!(e.buttons&1)){
+	if(!(evt.buttons&1)){
 		drag_target=null;
 	}
 	if(!drag_target){
 		return;
 	}
 
+	var input = drag_target;
+	var slider = input.parentNode.children[0];
 	var left = evt.clientX;
 	var rect = slider.getBoundingClientRect();
 	var width = input.offsetWidth / 2 * 0;
 	var value = Math.round(left - rect.left- width);
+	console.log(evt.clientX);
 	value/=slider.clientWidth;
 	value=Math.max(Math.min(value,1),0);
 	value=value * (slider.max-slider.min) + slider.min;
-	setValue(value);
+	slider.step=0.1;
+	slider.min=0;
+	slider.max=1;
+
+	setValue(value,slider,input);
 	//output.value = value;
-	Util.fireEvent(output,"change")
+	//Util.fireEvent(output,"change")
 	return false;
 };
-	down=(e)=>{
-		var hsv = this.hsv;
-		var rgb = this.rgb;
-		switch(this.drag_from){
-		case 1:
-			var rect = this.sv_img.getBoundingClientRect();
-			hsv[2]=e.clientX- rect.left;
-			hsv[1]=e.clientY- rect.top;
-			hsv[2]/=img.width;
-			hsv[1]/=img.height;
-			hsv[1]=1-hsv[1];
-			hsv[1]=Math.min(Math.max(hsv[1],0),1);
-			hsv[2]=Math.min(Math.max(hsv[2],0),1);
-			break;
-		case 2:
-			var rect = this.h_img.getBoundingClientRect();
-			hsv[0]=e.clientY- rect.top;
-			hsv[0]=hsv[0]/this.h_img.height;
-			hsv[0]=Math.min(Math.max(hsv[0],0),1);
 
-			this.redrawSv();
-			break;
-		default:
-			return;
+	var setValue = function (value,slider,input){
+		if(slider.step){
+			value = Math.ceil(value/slider.step)*slider.step;
 		}
-
-		this.setCursor(hsv);
-		var vi = Math.pow(2,Number(this.Vi_txt.value));
-
-		Util.hsv2rgb(rgb,hsv);
-
-		this.R_txt.value = (rgb[0]*vi).toFixed(3);
-		this.G_txt.value = (rgb[1]*vi).toFixed(3);
-		this.B_txt.value = (rgb[2]*vi).toFixed(3);
-
-		if(this.changeCallback){
-			this.changeCallback();
-		}
-	}
-
+		//output.value = value;
+		value = (value - slider.min)/(slider.max-slider.min)
+		var max=slider.offsetWidth;
+		var w = input.offsetWidth;
+		if(w==0)w=15;
+		if(max==0)max=100;
+		input.style.left = (value*max - w/2) + 'px';
+		//input.style.top = (-input.offsetHeight/2+2) + 'px';
+	};
+var down=function(evt){
+	drag_target=this;
+}
 
 var createDiv=function(slider){
 	//対象のノードオブジェクトをスライダに置き換える
@@ -71,8 +55,8 @@ var createDiv=function(slider){
 
 	var html =`
 		<input type="text"  class="js-text">
-		<div class="js-slider3">
-			<span class="js-slider2"></span>
+		<div class="js-slider3" style="width:100px;">
+			<span class="js-slider2" style="width:100px;display:block;height:2px;"></span>
 			<input type="button"  class="tumami">
 		</div>
 	`;
@@ -91,33 +75,20 @@ var createDiv=function(slider){
 	var mizo=div.querySelector('.js-slider2');
 
 	var input =div.querySelector('.tumami');
-	var setValue = function (value){
-		if(slider.step){
-			value = Math.ceil(value/slider.step)*slider.step;
-		}
-		output.value = value;
-		value = (value - slider.min)/(slider.max-slider.min)
-		var max=slider.offsetWidth;
-		var w = input.offsetWidth;
-		if(w==0)w=15;
-		if(max==0)max=100;
-		input.style.left = (value*max - w/2) + 'px';
-		//input.style.top = (-input.offsetHeight/2+2) + 'px';
-	};
 	
 	//ドラッグ開始
-	input.addEventListener("pointerdown",function(evt){drag_target=this;});
+	input.addEventListener("pointerdown",down);
 
 	//デフォルト処理無効
 	input.addEventListener("touchmove",function(evt){ evt.preventDefault();});
 
 	//クリック時ツマミ移動
-	mizo.addEventListener("click",drag,false);
+	mizo.addEventListener("click",drag);
 
 	//値直接変更時にツマミ反映
 	//mizo.addEventListener("input",function(evt){setValue(evt.target.value);});
 
-	setValue(output.value);
+	setValue(output.value,slider,input);
 
 	return div;
 }
@@ -159,4 +130,5 @@ export default class Slider{
 		}
 	}
 }
-window.addEventListener("load",function(e){Slider.init();},false);
+window.addEventListener("pointermove",drag);
+window.addEventListener("load",function(e){Slider.init();});
