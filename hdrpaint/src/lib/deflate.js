@@ -1,19 +1,12 @@
-
 import DataStream from "./datastream.js";
-	var clen_huffmans=[]; //データ長データ用ハフマン符号情報
-	var lit_huffmans=[]; //リテラル/長さ用ハフマン符号情報
-	var dist_huffmans=[];//距離用ハフマン符号情報
-	const MAX_BITS=15; //ハフマン符号に使う最大ビット長
-	var max_length=32768;
+
+var clen_huffmans=[]; //データ長データ用ハフマン符号情報
+var lit_huffmans=[]; //リテラル/長さ用ハフマン符号情報
+var dist_huffmans=[];//距離用ハフマン符号情報
+const MAX_BITS=15; //ハフマン符号に使う最大ビット長
 
 export default class Deflate{
 	constructor(){};
-
-
-	static setQuality(qu){
-		qu = Math.max(0,Math.min(8,qu));
-		max_length = 32768>>qu;
-	}
 
 	static compress(arrayBuffer,comp_mode,block){
 		//deflate圧縮を行う
