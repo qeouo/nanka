@@ -95,7 +95,7 @@ export default class ColorpickerHDR{
 				colorselector.setColor(cols);
 
 
-				safe=1;
+//				safe=1;
 
 			});
 			node.addEventListener("input",function(evt){
