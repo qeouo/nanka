@@ -11,100 +11,54 @@ var drag=function(evt){
 	if(!drag_target){
 		return;
 	}
+	var slider = drag_target ;
 
-	var input = drag_target;
-	var slider = input.parentNode.children[0];
+	var tumami = drag_target.tumami;
+	var mizo= slider.mizo;
 	var left = evt.clientX;
-	var rect = slider.getBoundingClientRect();
-	var width = input.offsetWidth / 2 * 0;
+	var rect = mizo.getBoundingClientRect();
+	var width = tumami.offsetWidth / 2 * 0;
 	var value = Math.round(left - rect.left- width);
-	console.log(evt.clientX);
-	value/=slider.clientWidth;
+	value/=mizo.clientWidth;
 	value=Math.max(Math.min(value,1),0);
 	value=value * (slider.max-slider.min) + slider.min;
-	slider.step=0.1;
-	slider.min=0;
-	slider.max=1;
+	if(slider.step){
+		value = Math.ceil(value/slider.step)*slider.step;
+	}
 
-	setValue(value,slider,input);
-	//output.value = value;
-	//Util.fireEvent(output,"change")
+	slider.input.value = value;
+	slider.setTumami();
+	Util.fireEvent(slider.input,"change")
 	return false;
 };
 
-	var setValue = function (value,slider,input){
-		if(slider.step){
-			value = Math.ceil(value/slider.step)*slider.step;
-		}
-		//output.value = value;
-		value = (value - slider.min)/(slider.max-slider.min)
-		var max=slider.offsetWidth;
-		var w = input.offsetWidth;
-		if(w==0)w=15;
-		if(max==0)max=100;
-		input.style.left = (value*max - w/2) + 'px';
-		//input.style.top = (-input.offsetHeight/2+2) + 'px';
-	};
-var down=function(evt){
-	drag_target=this;
-}
 
 var createDiv=function(slider){
-	//対象のノードオブジェクトをスライダに置き換える
-	var dragging = false; //ドラッグ状態
 
-	var html =`
-		<input type="text"  class="js-text">
-		<div class="js-slider3" style="width:100px;">
-			<span class="js-slider2" style="width:100px;display:block;height:2px;"></span>
-			<input type="button"  class="tumami">
-		</div>
-	`;
-
-	//テキストエリア+スライダー
-	var div=document.createElement("span");
-	div.setAttribute("class","js-slider");
-
-
-	div.insertAdjacentHTML('beforeend',html);
-
-	var output=div.querySelector('.js-text');
-	//溝
-	slider.max=1.;
-	slider.min=0.;
-	var mizo=div.querySelector('.js-slider2');
-
-	var input =div.querySelector('.tumami');
-	
-	//ドラッグ開始
-	input.addEventListener("pointerdown",down);
-
-	//デフォルト処理無効
-	input.addEventListener("touchmove",function(evt){ evt.preventDefault();});
-
-	//クリック時ツマミ移動
-	mizo.addEventListener("click",drag);
-
-	//値直接変更時にツマミ反映
-	//mizo.addEventListener("input",function(evt){setValue(evt.target.value);});
-
-	setValue(output.value,slider,input);
 
 	return div;
 }
 
-var replace= function(node,div){
+var replace= function(node,slider){
 	//対象のノードオブジェクトをスライダに置き換える
-	var id=node.id;
-	var dragging = false; //ドラッグ状態
 
-	//var div=createDiv();
-
-	node.parentNode.replaceChild(div,node);
-	var input = div.querySelector(".js-text");
-	node.setAttribute("class","js-text");
-	div.replaceChild(node,input);
+	node.parentNode.replaceChild(slider.node,node);
+	//node.setAttribute("class","js-text");
+	node.classList.remove("slider");
+	node.setAttribute("type","text");
+	slider.node.replaceChild(node,slider.input);
+	slider.input = node;
+	node.addEventListener("input",slider.changeValue);
 	//input.id=node.id;
+	
+	slider.min = Number(node.getAttribute("min"));
+	slider.max= Number(node.getAttribute("max"));
+	if(slider.min===slider.max){
+		slider.max = slider.min+1;
+	}
+	slider.step= Number(node.getAttribute("step"));
+
+	slider.setTumami();
 };
 
 
@@ -112,10 +66,67 @@ export default class Slider{
 	//スライダーコントロール
 	constructor(){
 		this.min=0;
-		this.max=0;
-		this.step=0;
-		this.node=createDiv(this);
+		this.max=1;
+		this.step=0.1;
+	
+
+		//テキストエリア+スライダー
+		var div=document.createElement("span");
+		div.setAttribute("class","js-slider");
+		div.insertAdjacentHTML('beforeend',
+			`<input type="text"  class="js-text">
+				<div class="js-slider3">
+					<span class="js-slider2" ></span>
+					<input type="button"  class="tumami">
+				</div> `
+		);
+
+		this.input=div.querySelector('.js-text');
+		//溝
+		this.mizo=div.querySelector('.js-slider3');
+		//クリック時ツマミ移動
+		this.mizo.addEventListener("pointerdown",(evt)=>{
+			drag_target=this;
+			drag(evt);
+			drag_target=null;
+		});
+
+		var tumami =div.querySelector('.tumami');
+		this.tumami = tumami;
+		
+		//ドラッグ開始
+		tumami.addEventListener("pointerdown", (evt)=>{
+			drag_target=this;
+			evt.stopPropagation();
+		});
+
+		//デフォルト処理無効
+		tumami.addEventListener("touchmove",function(evt){ evt.preventDefault();});
+
+
+		//値直接変更時にツマミ反映
+		this.node = div;
+		this.setTumami();
 	}
+
+	setTumami=()=>{
+		var slider = this;
+		var tumami = this.tumami;
+		var mizo = this.mizo;
+		var value = Number(this.input.value);
+
+		value = (value - slider.min)/(slider.max-slider.min)
+		var max=mizo.offsetWidth;
+		var w = tumami.offsetWidth;
+		if(w==0)w=15;
+		if(max==0)max=100;
+		tumami.style.left = (value*max - w/2) + 'px';
+	};
+	changeValue=()=>{
+		this.setTumami();
+	}
+
+
 	static init=function(dom){
 		if(!dom){
 			dom = document;
@@ -125,7 +136,7 @@ export default class Slider{
 		for(var i=0; i<e.length; i+=1) {
 			var node=e[i];
 			var slider = new Slider();
-			replace(node,slider.node);
+			replace(node,slider);
 			
 		}
 	}

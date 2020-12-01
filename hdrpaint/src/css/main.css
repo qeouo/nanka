@@ -60,8 +60,7 @@ div.right{
 	*/
 	max-width:280px;
 }
-input.js-text{
-	text-align:right;
+.js-slider input[type='text']{
 }
 span.js-slider2{
 background:#333;
@@ -229,7 +228,7 @@ padding:0px;
 #div_gradient .col{
 width:120px;
 }
-#div_gradient .js-text{
+#div_gradient .js-slider input[type='text']{
 width:24px;
 margin-left:0px;
 }
