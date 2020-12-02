@@ -51,6 +51,7 @@ import {} from "./modifier/gradient.js";
 import {} from "./modifier/gradientmap.js";
 import {} from "./modifier/noise.js";
 
+window.Layer = Layer;
 Hdrpaint.inputs=inputs;
 doc.draw_col=new Vec4();
 doc.scale=100;
