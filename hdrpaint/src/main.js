@@ -52,6 +52,7 @@ import {} from "./modifier/gradientmap.js";
 import {} from "./modifier/noise.js";
 
 window.Layer = Layer;
+window.Brush = Brush;
 Hdrpaint.inputs=inputs;
 doc.draw_col=new Vec4();
 doc.scale=100;
@@ -225,14 +226,24 @@ var onloadfunc=function(e){
 
 				var idx=((y|0)*img.width+(x|0))*4;
 
+				selectorhdr.R_txt.value = data[idx];
+				selectorhdr.G_txt.value = data[idx+1];
+				selectorhdr.B_txt.value = data[idx+2];
+				selectorhdr.A_txt.value = data[idx+3];
+				Util.fireEvent(selectorhdr.A_txt,"change");
 
-				inputs["color_R"].value=data[idx];
-				inputs["color_G"].value=data[idx+1];
-				inputs["color_B"].value=data[idx+2];
-				inputs["color_A"].value=data[idx+3];
-				Util.fireEvent(inputs["color_A"],"input");
+				//Brush.refreshPreview();
 
-				changeColor(null);
+				//Vec4.set(Hdrpaint.color,1,0.5,0.5,1);
+
+//				selectorhdr.setColor(Hdrpaint.color);
+
+//				inputs["color_R"].value=data[idx];
+//				inputs["color_G"].value=data[idx+1];
+//				inputs["color_B"].value=data[idx+2];
+//				inputs["color_A"].value=data[idx+3];
+//				Util.fireEvent(inputs["color_A"],"input");
+
 			}
 			return;
 		}

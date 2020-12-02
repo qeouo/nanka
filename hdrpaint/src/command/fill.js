@@ -2,6 +2,7 @@
 import {Vec2} from "../lib/vector.js";
 import Hdrpaint from "../hdrpaint.js";
 import Layer from "../layer.js";
+import Img from "../lib/img.js";
 
 Command["fill"] = (function(){
 	var fillStack=[];
