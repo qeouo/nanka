@@ -1,6 +1,7 @@
 import {Vec2} from "../lib/vector.js";
 import PenPoint from "../penpoint.js"
 import Hdrpaint from "../hdrpaint.js";
+import Img from "../lib/img.js";
 import Layer from "../layer.js";
 
 Command["eraser"]=(function(){

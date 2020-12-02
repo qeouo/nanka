@@ -1,5 +1,6 @@
-//ƒŒƒCƒ„V‹Kì¬
+//ãƒ¬ã‚¤ãƒ¤æ–°è¦ä½œæˆ
 import Hdrpaint from "../hdrpaint.js";
+import Img from "../lib/img.js";
 import Layer from "../layer.js";
 Command["createNewLayer"] = (function(){
 	return function(log,undo_flg){

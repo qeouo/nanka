@@ -1,4 +1,4 @@
-//ƒŒƒCƒ„íœ
+//ãƒ¬ã‚¤ãƒ¤å‰Šé™¤
 import Hdrpaint from "../hdrpaint.js";
 Command["deleteLayer"] = (function(){
 	return function(log,undo_flg){
@@ -25,7 +25,7 @@ Command["deleteLayer"] = (function(){
 			}
 
 			var index = layers.indexOf(layer);
-			//ƒŒƒCƒ„íœ
+			//ãƒ¬ã‚¤ãƒ¤å‰Šé™¤
 			Hdrpaint.removeLayer(layer);
 			if(layer === selected_layer){
 				if(layers.length===0){
@@ -45,3 +45,4 @@ Command["deleteLayer"] = (function(){
 		}
 	}
 })();
+

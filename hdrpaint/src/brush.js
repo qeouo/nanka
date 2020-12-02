@@ -1,6 +1,9 @@
 
 import Util from "./lib/util.js";
 import {Vec2} from "./lib/vector.js"
+import Img from "./lib/img.js";
+import CommandLog from "./commandlog.js";
+import Hdrpaint from "./hdrpaint.js";
 import Redraw from "./redraw.js";
 import Layer from "./layer.js";
 let refresh_flg=false;

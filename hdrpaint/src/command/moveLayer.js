@@ -1,4 +1,4 @@
-//ƒŒƒCƒ„ˆÊ’uˆÚ“®
+//ãƒ¬ã‚¤ãƒ¤ä½ç½®ç§»å‹•
 import Hdrpaint from "../hdrpaint.js";
 import Layer from "../layer.js";
 Command["moveLayer"] = (function(){

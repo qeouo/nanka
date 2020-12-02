@@ -1,6 +1,5 @@
 "use strict"
 
-
 import {Vec2,Vec3,Vec4} from "./lib/vector.js"
 import Hdrpaint from "./hdrpaint.js";
 import Slider from "./lib/slider.js";
@@ -17,21 +16,9 @@ import Util from "./lib/util.js";
 import ColorPickerHDR from "./lib/colorpickerhdr.js";
 import ColorSelector from "./lib/colorselector.js";
 
-window.Img = Img;
-window.CommandLog = CommandLog;
-window.Redraw = Redraw;
-window.Hdrpaint = Hdrpaint;
-window.Layer = Layer;
-window.Brush = Brush;
-
-
-
-
-
 window.painted_mask=new Float32Array(1024*1024);
 window.root_layer=null;
 window.selected_layer = null;
-
 
 import {} from "./command/brush.js"
 import {} from "./command/changeLayerAttribute.js"

@@ -12,6 +12,8 @@
 <link rel="stylesheet" type="text/css" href="./css/main.css">
 <link rel="stylesheet" type="text/css" href="./css/layer.css">
 <link rel="stylesheet" type="text/css" href="./css/dialog.css">
+<link rel="stylesheet" type="text/css" href="./css/colorpickerhdr.css">
+<link rel="stylesheet" type="text/css" href="./css/slider.css">
 <style>
 </style>
 </head>
@@ -82,7 +84,6 @@
 			<option value="1">αブレンド</option>
 			<option value="2">α直書</option>
 		</select>
-		</ul>
 
 		<div>
 			<div style="float:left;text-align:left;">
@@ -118,32 +119,8 @@
 		</div>
 	</div>
 
-	<div id="color_selecter" class="area">
+	<div id="color_selector" class="area">
 		<div class="label">カラーセレクタ</div>
-		<div id="tab_cs_default"> 
-			<div style="float:left;" onselectstart="return false;">
-				<div style="position:relative;display:inline-block;" id="img_hsv_area">
-					<img id="img_hsv" width="128" height="128" draggable="false">
-					<div id="cursor_img_hsv"></div>
-					<div id="cursor2_img_hsv"></div>
-				</div>
-				<div style="position:relative;display:inline-block;">
-					<img id="img_hsv2" width="8" height="128" draggable="false">
-					<div id="cursor_img_hsv2" ></div>
-				</div>
-			</div>
-			<div class="color_status" class="float:left;" onchange="{changeColor();}">
-				<ul>
-				<li class="red">R<input type="text" id="color_R" value="0.8" /></li>
-				<li class="green">G<input type="text" id="color_G" value="0.2"/></li>
-				<li class="blue">B<input type="text" id="color_B" value="0.2"/></li>
-				</ul>
-			</div>
-			<div style="clear:both;">
-				明るさ<input class="slider" id="cs_default_lumi" min="-10" max="10" value="0"><br>
-			</div>
-		</div>
-		A<input class="slider" id="color_A" max="1" value="1"/>
 	</div>
 
 	<div id="additional" class="area" style="display:none;">
@@ -259,7 +236,7 @@
 			<ul>
 			<li><a id="" href="#" onclick="inputs['open_layer'].click();return false;">画像ファイルを新規レイヤで開く</a></li>
 			</ul>
-			<input style="display:none;"type="file" id="open_layer" accept="image/*,.hdr,.exr" >
+			<input style="display:none;" type="file" id="open_layer" accept="image/*,.hdr,.exr" >
 			<div id="modifier_area" onclick="createModifier(event);">
 			モディファイア<br>
 			</div>
@@ -279,7 +256,7 @@
 </div>
 
 <div class="dialog_parent"></div>
-<script type="module" src="./main.js"> </script>
+<script type="text/javascript" src="./main.js"></script>
 </body>
 </html>
 

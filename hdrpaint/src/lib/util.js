@@ -762,24 +762,24 @@ static hex2rgb(rgb,hex){
 		return current;
 	};
 	static loadJs= function(path,func){
-		//var script = document.createElement('script');
-		//script.type="module"
-		//script.src = path;
-		loadingCount++;
+		////var script = document.createElement('script');
+		////script.type="module"
+		////script.src = path;
+		//loadingCount++;
 
-		var _func = func;
+		//var _func = func;
 
-		import(path)
-		.then( function(){
-			loadingCount--;
-			if(_func){
-				_func();
-			}
-		})
-		.catch(function(){
-			loadingCount--;
-		})
-		//document.head.appendChild(script);
+		//import(path)
+		//.then( function(){
+		//	loadingCount--;
+		//	if(_func){
+		//		_func();
+		//	}
+		//})
+		//.catch(function(){
+		//	loadingCount--;
+		//})
+		////document.head.appendChild(script);
 	}
 
 	static fireEvent(elem,eventname,evt){

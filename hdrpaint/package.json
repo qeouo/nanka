@@ -1,20 +1,23 @@
 {
   "scripts": {
-    "build": "webpack",
+    "build": "webpack ",
     "start": "webpack serve"
   },
   "devDependencies": {
-    "@babel/core": "^7.12.7",
+    "@babel/core": "^7.12.9",
     "@babel/plugin-proposal-object-rest-spread": "^7.12.1",
     "@babel/preset-env": "^7.12.7",
-    "babel-loader": "^8.2.1",
-    "webpack": "^5.0.0",
-    "webpack-cli": "^4.0.0",
+    "babel-loader": "^8.2.2",
+    "webpack": "^5.9.0",
+    "webpack-cli": "^4.2.0",
     "webpack-dev-server": "^3.11.0"
   },
   "private": true,
   "dependencies": {
-    "@babel/core": "^7.0.0",
-    "@babel/plugin-proposal-class-properties": "^7.0.0"
+    "@babel/plugin-proposal-class-properties": "^7.0.0",
+    "@babel/polyfill": "^7.12.1",
+    "core-js": "^3.8.0",
+    "esbuild": "^0.8.17",
+    "regenerator-runtime": "^0.13.7"
   }
 }

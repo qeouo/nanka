@@ -2,6 +2,7 @@
 
 import Util from "./lib/util.js";
 import Layer from "./layer.js";
+import Img from "./lib/img.js";
 
 let  undo_max=10; //undo情報最大保持ステップ数
 let  command_log_cursor=-1; //現在のログ位置(undo redoで移動する)

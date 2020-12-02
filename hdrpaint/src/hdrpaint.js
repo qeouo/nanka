@@ -1,6 +1,8 @@
 
 import Util from "./lib/util.js";
+import Img from "./lib/img.js";
 import Layer from "./layer.js";
+import CommandLog from "./commandlog.js";
 import {Vec4} from "./lib/vector.js";
 
 window.inputs=[];

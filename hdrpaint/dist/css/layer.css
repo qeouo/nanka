@@ -27,11 +27,7 @@
 }
 
 .layer{
-	text-shadow:1px 0px #000
-	,-1px 0px #000
-	,0px 1px #000
-	,0px -1px #000
-	;
+	text-shadow:0px 0px 1px  #000 ;
 box-sizing:border-box;
 	border-color:#666;
 	
@@ -46,7 +42,9 @@ box-sizing:border-box;
 
 }
 .layer.modifier.active{
-	background-color:#2A2;
+	background-color:#282;
+	text-shadow:0px 0px 1px  #000;
+	color:#fff;
 }
 
 .layer .thumbnail{
@@ -132,9 +130,10 @@ box-sizing:border-box;
 }
 
 .layer.active{
-background-color:#FB0;
-	border-color:#FA0;
-/*color:#000;*/
+background-color:#FA0;
+	border-color:#F90;
+color:#000;
+	text-shadow:none;
 }
 
 div#modifier_param_area{
@@ -148,10 +147,3 @@ top:0px;
 display:none;
 }
 
-div.modifier_gradient input.pos{
-	 text-align:right;
-	width:30px;
-}
-div.modifier_gradient input.col{
-	width:120px;
-}

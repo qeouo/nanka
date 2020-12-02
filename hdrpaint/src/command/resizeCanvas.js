@@ -1,5 +1,6 @@
 
 import {Vec2} from "../lib/vector.js"
+import Img from "../lib/img.js";
 import Hdrpaint from "../hdrpaint.js";
 Command["resizeCanvas"] = (function(){
 	return function(log,undo_flg){

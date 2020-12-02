@@ -52,7 +52,7 @@ export default class PenFunc{
 		}
 		if(this.idx>=1){
 
-			//ログ文面変更
+			//繝ｭ繧ｰ譁�髱｢螟画峩
 			log.label = ("0000" + log.id).slice(-4) + "| " + log.command;
 			log.label += "(" + points[0].pos[0].toFixed(2)+ ","+ points[0].pos[1].toFixed(2)+")-";
 			log.label += (points.length-2) +"-";
@@ -60,7 +60,7 @@ export default class PenFunc{
 			var option = inputs["history"].options[inputs["history"].selectedIndex];
 			Util.setText(option,log.label);
 
-			//今回と前回の座標で直線描画
+			//莉雁屓縺ｨ蜑榊屓縺ｮ蠎ｧ讓吶〒逶ｴ邱壽緒逕ｻ
 			Command.drawHermitian(log,this.idx);
 		}
 		this.idx++;
