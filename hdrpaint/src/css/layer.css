@@ -5,9 +5,11 @@
 	border:solid 1px;
 	overflow:visible scroll;
 	height:240px;
-	background-color:#111;
+	background-color:#666;
+padding:3px;
 }
 .layer{
+display:block;
 	color:#ccc;
 	border:solid 2px;
 	min-width:240px;
@@ -49,15 +51,17 @@
 	display:none;
 }
 .layer .name{
+display:inline-block;
+
+	vertical-align:top;
 	text-align:left;
 	font-weight:bold;
-	float:left;
 
 
 }
 .layer_attributes{
-	/*position:absolute;*/
-	top:2px;
+	display:inline-block;
+	position:absolute;
 	right:0px;
 }
 .layer_dragenter{
@@ -69,7 +73,6 @@
 
 }
 .layer .openclosebutton{
-	float:left;
 	margin-right:4px;
 	visibility:hidden;
 	color:inherit;
@@ -92,22 +95,21 @@
 	clear:both;
 	margin-left:8px;
     min-height: 32px;
-	padding-top:1px;
+position:relative;
    /* border: 1px solid black; */
 }
 .layer.group.open>div.children{
-	display:inherit;
+	display:block;
 }
 .layer .openclosebutton a{
 	color:inherit;
 }
 .layer .thumbnailouter{
+display:inline-block;
 	width:32px;
 	height:32px;
-    display: flex;
     align-items: center;
     justify-content: center;
-	float:left;
 	margin-top:1px;
 	margin-right:4px;
 }

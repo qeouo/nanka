@@ -22,7 +22,7 @@ class LoadImage extends CommandBase{
 		var layer;
 		if(!this.undo_data){
 			param.img=null;
-			layer=Layer.create(img);
+			layer=Hdrpaint.createLayer(img);
 			this.undo_data={"layer":layer};
 		}else{
 			layer = this.undo_data.layer;
