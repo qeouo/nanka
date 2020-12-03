@@ -18,7 +18,6 @@ import ColorSelector from "./lib/colorselector.js";
 
 window.painted_mask=new Float32Array(1024*1024);
 window.root_layer=null;
-window.selected_layer = null;
 
 import {} from "./command/brush.js"
 import {} from "./command/changeLayerAttribute.js"
@@ -51,6 +50,7 @@ import {} from "./modifier/gradient.js";
 import {} from "./modifier/gradientmap.js";
 import {} from "./modifier/noise.js";
 
+window.Hdrpaint = Hdrpaint;
 window.Layer = Layer;
 window.Brush = Brush;
 Hdrpaint.inputs=inputs;
@@ -59,78 +59,6 @@ doc.scale=100;
 doc.canvas_pos=new Vec2();
 doc.cursor_pos=new Vec2();
 
-window.createModifier=function(e){
-	if(e.target.value ===""){return;}
-	var modifier = e.target.value;
-	//新規モディファイア
-	var data = Hdrpaint.getPosition();
-	
-	Hdrpaint.executeCommand("createmodifier",{"modifier":modifier,"parent_layer_id":data.parent_layer.id,"position":data.position
-		,"width":data.parent_layer.size[0],"height":data.parent_layer.size[1]});
-}
-
-window.copylayer=function(e){
-	//レイヤコピー
-
-	var data =Hdrpaint.getPosition();
-	
-	Hdrpaint.executeCommand("copylayer",{"position":data.position,"parent":data.parent_layer.id,"src_layer_id":selected_layer.id});
-}
-window.createNewCompositeLayer=function(e){
-	//新規コンポジットレイヤを作成
-	var data = Hdrpaint.getPosition();
-	var width= preview.width;
-	var height= preview.height;
-	
-	Hdrpaint.executeCommand("createNewCompositeLayer",{"parent":data.parent_layer.id,"position":data.position,"width":width,"height":height,"composite_flg":1});
-
-}
-
-window.redo=function(){
-	//リドゥ
-
-	var option_index = inputs["history"].selectedIndex;
-	var options = inputs["history"].options;
-	if(option_index === options.length-1){
-		return;
-	}	
-	option_index++;
-	var option = options[option_index];
-	inputs["history"].selectedIndex = option_index;
-
-	CommandLog.moveLog(parseInt(option.value));
-
-}
-
-window.undo = function(){
-	//アンドゥ
-
-	var option_index = inputs["history"].selectedIndex;
-	var options = inputs["history"].options;
-	if(option_index === 0){
-		return;
-	}	
-	var option = options[option_index-1];
-	if(option.disabled){
-		return;
-	}
-	option_index--;
-	inputs["history"].selectedIndex = option_index;
-
-	CommandLog.moveLog(parseInt(option.value));
-
-}
-
-window.createNewLayer=function(e){
-	//新規レイヤを作成
-
-	var data = Hdrpaint.getPosition();
-
-	var width= data.parent_layer.size[0];
-	var height= data.parent_layer.size[1];
-	
-	Hdrpaint.executeCommand("createNewLayer",{"position":data.position,"parent":data.parent_layer.id,"width":width,"height":height});
-}
 
 var canvas_field;
 
@@ -836,7 +764,7 @@ var onloadfunc=function(e){
 		//	loadHpd(buffer);
 		//});
 	}else{
-		root_layer = Layer.create(new Img(1,1),1);
+		root_layer = Hdrpaint.createLayer(new Img(1,1),1);
 		//Hdrpaint.executeCommand("resizeLayer",{"layer_id":root_layer.id,"width":512,"height":512});
 
 		Hdrpaint.executeCommand("resizeCanvas",{"width":512,"height":512});
@@ -873,7 +801,6 @@ var onloadfunc=function(e){
 	}
 
 	Brush.init();
-	Layer.init();
 	var brush = Brush.create();
 	var brush1 = brush;
 	brush.name="ペン"

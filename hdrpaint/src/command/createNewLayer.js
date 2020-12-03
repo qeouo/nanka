@@ -24,7 +24,7 @@ Command["createNewLayer"] = (function(){
 				data[i+3]= 0;
 			}
 
-			layer =Layer.create(img,param.composite_flg);
+			layer =Hdrpaint.createLayer(img,param.composite_flg);
 			log.undo_data={"layer":layer};
 		}else{
 			layer = log.undo_data.layer;
@@ -32,7 +32,8 @@ Command["createNewLayer"] = (function(){
 		var parentLayer = Layer.findById(param.parent);
 
 		parentLayer.append(n,layer);
-		Layer.select(layer);
+
+		Hdrpaint.select(layer);
 
 		return layer;
 

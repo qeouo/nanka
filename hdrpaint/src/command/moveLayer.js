@@ -29,7 +29,7 @@ Command["moveLayer"] = (function(){
 		now_parent_layer.children.splice(layer_num,1);
 		now_parent_layer.bubbleComposite();
 
-		var layers_container = layer.div.parentNode;
+		var layers_container = layer.dom.parentNode;
 
 		next_parent_layer.append(position,layer);
 

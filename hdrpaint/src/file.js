@@ -113,7 +113,7 @@ var loadHpd_=function(buffer){
 		layer.refreshDiv();
 		maxid=Math.max(maxid,layer.id);
 	}
-	Layer.setLayerIdCount(maxid+1);
+	Hdrpaint.setLayerIdCount(maxid+1);
 	Redraw.enableRefresh();
 
 

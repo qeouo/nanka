@@ -213,32 +213,16 @@
 		<div class="layers" id="layers_container" >
 		</div>
 
-		<div style="display:none;" id="layer_template">
-			<div class="layer open" draggable="true"
-				ondragstart="Layer.DragStart(event)"
-				ondragover="Layer.DragOver(event)"
-				onclick="Layer.click(event)">
-				<a href="#" class="openclosebutton" onclick="Layer.opencloseClick(event)">
-				</a>
-				<div class="layer_dragenter" ondragenter="Layer.DragEnter(event)" > </div>
-				<div class="thumbnailouter" >
-					<img class="thumbnail" >
-				</div>
-				<div class="name"></div>
-				<div class="layer_attributes"></div>
-				<div class="children" ondragenter="Layer.DragEnterChild(event)"></div>
-			</div>
-		</div>
 
 		<div  style="">
-			<input type="button" id="new" onclick="createNewLayer(event);" value="新規">
-			<input type="button" id="copylayer" onclick="copylayer(event);" value="複製">
-			<input type="button" id="new_composite_layer" onclick="createNewCompositeLayer(event);" value="新規グループレイヤ"><br>
+			<input type="button" id="new" onclick="Hdrpaint.createNewLayer(event);" value="新規">
+			<input type="button" id="copylayer" onclick="Hdrpaint.copylayer(event);" value="複製">
+			<input type="button" id="new_composite_layer" onclick="Hdrpaint.createNewCompositeLayer(event);" value="新規グループレイヤ"><br>
 			<ul>
 			<li><a id="" href="#" onclick="inputs['open_layer'].click();return false;">画像ファイルを新規レイヤで開く</a></li>
 			</ul>
 			<input style="display:none;"type="file" id="open_layer" accept="image/*,.hdr,.exr" >
-			<div id="modifier_area" onclick="createModifier(event);">
+			<div id="modifier_area" onclick="Hdrpaint.createNewModifier(event)">
 			モディファイア<br>
 			</div>
 		</div>

@@ -5,6 +5,11 @@ import Redraw from "./redraw.js";
 import Hdrpaint from "./hdrpaint.js";
 import Util from "./lib/util.js";
 
+let stackThumbnail=[];
+let composite_img = new Img(512,512);
+let composite_area = new Vec4();
+var drag_layer=null;
+
 	var refreshThumbnail=function(){
 		if(Layer.enableRefreshThumbnail){
 			var layer = stackThumbnail.shift();
@@ -16,87 +21,11 @@ import Util from "./lib/util.js";
 			});
 		}
 	}
-	var refreshActiveLayerParam = function(){
-		//アクティブレイヤパラメータ更新
-		var layer = selected_layer;
-		if(!layer){
-			return;
-		}
-		var layer_inputs = Array.prototype.slice.call(document.getElementById("layer_param").getElementsByTagName("input"));
-		layer_inputs = layer_inputs.concat(Array.prototype.slice.call(document.getElementById("layer_param").getElementsByTagName("select")));
-		for(var i=0;i<layer_inputs.length;i++){
-			var input = layer_inputs[i];
-			switch(input.id){
-				case "layer_x":
-				input.value = layer.position[0];
-				break;
-			case "layer_y":
-				input.value = layer.position[1];
-				break;
-			case "layer_width":
-				if(layer.img){
-					input.value = layer.img.width;
-				}
-				break;
-			case "layer_height":
-				if(layer.img){
-					input.value = layer.img.height;
-				}
-				break;
-			default:
-				var member = input.id.replace("layer_","");
-				if(member in layer){
-					if(input.getAttribute("type")==="checkbox"){
-						input.checked=layer[member];
-					}else{
-						input.value=layer[member];
-					}
-					Util.fireEvent(input,"input");
-				}
-			}
-		}
-var inputs = Hdrpaint.inputs;
-		if(selected_layer.type ===1){
-			inputs["join_layer"].value="子を結合";
-		}else{
-			inputs["join_layer"].value="下のレイヤと結合";
-		}
-
-		var elems = document.querySelector("#modifier_param_area").children;
-		for(var i=0;i<elems.length;i++){
-			elems[i].style.display="none";
-		}
-		var elem = document.querySelector("#div_" + selected_layer.modifier);
-		if(elem){
-			elem.style.display="inline";
-
-			var elems = elem.querySelectorAll("input,select");
-			for(var i=0;i<elems.length;i++){
-				var input = elems[i];
-				var name = input.title;
-				if(name in layer){
-					if(input.type==="checkbox"){
-						input.checked=Boolean(layer[name]);
-					}else if(input.type==="radio"){
-						input.checked=Boolean(layer[name] === input.value);
-					}else{
-						input.value=layer[name];
-					}
-					Util.fireEvent(input,"input");
-				}
-			}
-		}
-		
-	}
-let stackThumbnail=[];
-let composite_img = new Img(512,512);
-let composite_area = new Vec4();
-let layer_id_count=0;
 
 	var getLayerFromDiv = function(div){
 		var result_layer = null;
 		Layer.eachLayers(function(layer){
-			if(layer.div == div){
+			if(layer.dom == div){
 				result_layer = layer;
 
 				return true;
@@ -105,9 +34,111 @@ let layer_id_count=0;
 		});
 		return result_layer;
 	}
-	var drag_layer=null;
-	//レイヤサムネイル作成用
-	var thumbnail_img = new Img(64,64,1);
+//レイヤサムネイル作成用
+var thumbnail_img = new Img(64,64,1);
+
+	var click = function(e){
+	//レイヤー一覧クリック時、クリックされたものをアクティブ化する
+		var layer=getLayerFromDiv(e.currentTarget);
+		Hdrpaint.select(layer);
+		e.stopPropagation();
+	}
+
+	//ドラッグ＆ドロップによるレイヤ順編集
+	var DragStart = function(event) {
+		//ドラッグ開始
+		drag_layer= getLayerFromDiv(event.currentTarget);
+	//     event.dataTransfer.setData("text", drag_layer.id);
+		 drag_layer.select;
+
+		event.stopPropagation();
+	}
+	var DragOver = function (event) {
+	 event.preventDefault();
+	// event.dataTransfer.dropEffect = "move";
+	}	
+
+	var DragEnter = function(event) {
+		//ドラッグ移動時
+		var drop_layer = getLayerFromDiv(event.currentTarget.parentNode);
+
+		if(!drop_layer){
+			return;
+		}
+
+		event.stopPropagation();
+		if(drag_layer=== drop_layer){
+			//自分自身の場合は無視
+			return;
+		}
+
+		if(drag_layer.type !==0){
+			//グループレイヤドラッグ時は、自身の子になるかチェックし、その場合は無視
+			var flg = false;
+			Layer.bubble_func(drop_layer,
+				function(layer){
+					if(layer === drag_layer){
+						flg=true;
+						return true;
+					}
+				}
+			);
+			if(flg){
+				return;
+			}
+		}
+
+		var parent_layer = drop_layer.parent;//Layer.findParent(drop_layer);
+		var position= parent_layer.children.indexOf(drop_layer);
+		var now_position= parent_layer.children.indexOf(drag_layer);
+		if(now_position <0){
+			position++;
+		}
+
+		Hdrpaint.executeCommand("moveLayer",{"layer_id":drag_layer.id
+			,"parent_layer_id":parent_layer.id,"position":position});
+	}
+
+	var DragEnterChild = function(event) {
+		//ドラッグ移動時
+		var drop_layer = getLayerFromDiv(event.currentTarget);
+		
+		event.stopPropagation();
+
+		var drag = parseInt(event.dataTransfer.getData("text"));
+		var parent_layer= getLayerFromDiv(event.currentTarget.parentNode);
+
+
+		if(drag_layer.type !==0){
+			//グループレイヤドラッグ時は、自身の子になるかチェックし、その場合は無視
+			var flg = false;
+			Layer.bubble_func(parent_layer,
+				function(layer){
+					if(layer === drag_layer){
+						flg=true;
+						return true;
+					}
+				}
+			);
+			if(flg){
+				return;
+			}
+		}
+
+		var position= 0;
+
+		Hdrpaint.executeCommand("moveLayer",{"layer_id":drag_layer.id
+			,"parent_layer_id":parent_layer.id,"position":position});
+	}
+
+	var opencloseClick=function(e){
+		var layer= getLayerFromDiv(event.target.parentNode);
+		layer.dom.classList.toggle("open");
+		e.preventDefault();
+		return false;
+	}
+	
+
 export default class Layer{
 //レイヤ
 	constructor(){
@@ -127,13 +158,45 @@ export default class Layer{
 
 		this.type=0; //1なら階層レイヤ
 		this.children=null; //子供レイヤ
-	};
 
+
+		var html=`
+				<a href="#" class="openclosebutton">
+				</a>
+				<div class="layer_dragenter" > </div>
+				<div class="thumbnailouter" >
+					<img class="thumbnail" >
+				</div>
+				<div class="name"></div>
+				<div class="layer_attributes"></div>
+				<div class="children"></div>
+			`;
+
+		var dom =document.createElement("div");
+		dom.insertAdjacentHTML('beforeend',html);
+		dom.classList.add("layer");
+		dom.classList.add("open");
+		dom.setAttribute("draggable","true");
+		dom.addEventListener("dragstart",DragStart);
+		dom.addEventListener("dragover",DragOver);
+		dom.addEventListener("click",click);
+		dom.querySelector(".openclosebutton").addEventListener("click",opencloseClick);
+		dom.querySelector(".layer_dragenter").addEventListener("dragenter",DragEnter);
+		dom.querySelector(".children").addEventListener("dragenter",DragEnterChild);
+
+		this.dom = dom;
+
+	};
 
 	static enableRefreshThumbnail=true;
 
+	//レイヤ合成開始前処理
 	before(area){};
+
+	//レイヤ合成直前処理
 	beforeReflect(){};
+
+	//レイヤ合成処理
 	reflect (img,x,y,w,h){
 		var x = Math.max(img.offsetx,composite_area[0]);
 		var y = Math.max(img.offsety,composite_area[1]);
@@ -170,11 +233,7 @@ export default class Layer{
 			
 	};
 
-	static setLayerIdCount(id){
-		layer_id_count=id;
-
-	}
-
+	//レイヤ合成
 	composite(left,top,right,bottom){
 		var layers=this.children;
 
@@ -288,8 +347,6 @@ export default class Layer{
 	}
 
 
-	static init(){};
-
 	static bubble_func(layer,f){
 		//親に伝搬する処理
 		f(layer);
@@ -350,99 +407,7 @@ export default class Layer{
 
 	}
 
-	static click = function(e){
-	//レイヤー一覧クリック時、クリックされたものをアクティブ化する
-		var layer=getLayerFromDiv(e.currentTarget);
-		layer.select();
-		e.stopPropagation();
-	}
 
-	//ドラッグ＆ドロップによるレイヤ順編集
-	static DragStart = function(event) {
-		//ドラッグ開始
-		drag_layer= getLayerFromDiv(event.currentTarget);
-	//     event.dataTransfer.setData("text", drag_layer.id);
-		 drag_layer.select;
-
-		event.stopPropagation();
-	}
-	static DragOver (event) {
-	 event.preventDefault();
-	// event.dataTransfer.dropEffect = "move";
-	}	
-
-	static DragEnter = function(event) {
-		//ドラッグ移動時
-		var drop_layer = getLayerFromDiv(event.currentTarget.parentNode);
-
-		if(!drop_layer){
-			return;
-		}
-
-		event.stopPropagation();
-		if(drag_layer=== drop_layer){
-			//自分自身の場合は無視
-			return;
-		}
-
-		if(drag_layer.type !==0){
-			//グループレイヤドラッグ時は、自身の子になるかチェックし、その場合は無視
-			var flg = false;
-			Layer.bubble_func(drop_layer,
-				function(layer){
-					if(layer === drag_layer){
-						flg=true;
-						return true;
-					}
-				}
-			);
-			if(flg){
-				return;
-			}
-		}
-
-		var parent_layer = drop_layer.parent;//Layer.findParent(drop_layer);
-		var position= parent_layer.children.indexOf(drop_layer);
-		var now_position= parent_layer.children.indexOf(drag_layer);
-		if(now_position <0){
-			position++;
-		}
-
-		Hdrpaint.executeCommand("moveLayer",{"layer_id":drag_layer.id
-			,"parent_layer_id":parent_layer.id,"position":position});
-	}
-
-	static DragEnterChild = function(event) {
-		//ドラッグ移動時
-		var drop_layer = getLayerFromDiv(event.currentTarget);
-		
-		event.stopPropagation();
-
-		var drag = parseInt(event.dataTransfer.getData("text"));
-		var parent_layer= getLayerFromDiv(event.currentTarget.parentNode);
-
-
-		if(drag_layer.type !==0){
-			//グループレイヤドラッグ時は、自身の子になるかチェックし、その場合は無視
-			var flg = false;
-			Layer.bubble_func(parent_layer,
-				function(layer){
-					if(layer === drag_layer){
-						flg=true;
-						return true;
-					}
-				}
-			);
-			if(flg){
-				return;
-			}
-		}
-
-		var position= 0;
-
-		Hdrpaint.executeCommand("moveLayer",{"layer_id":drag_layer.id
-			,"parent_layer_id":parent_layer.id,"position":position});
-	}
 
 	refreshImg(x,y,w,h){
 		var layer = this;
@@ -550,38 +515,38 @@ export default class Layer{
 		if(layer === root_layer){
 			layers_container = document.getElementById("layers_container");
 		}else{
-			//layer.div.className="layer";
+			//layer.dom.className="layer";
 			if(selected_layer === layer){
-				layer.div.classList.add("active");
+				layer.dom.classList.add("active");
 			}else{
-				layer.div.classList.remove("active");
+				layer.dom.classList.remove("active");
 			}
 
 			if(layer.type===0 || !layer.children){
-				layer.div.classList.remove("group");
+				layer.dom.classList.remove("group");
 			}else{
-				layer.div.classList.add("group");
+				layer.dom.classList.add("group");
 			}
-			var div= layer.div.getElementsByClassName("name")[0];
+			var div= layer.dom.getElementsByClassName("name")[0];
 			var name=layer.name;
 			if(!this.display){
 				name +="(非表示)";
-				layer.div.classList.add("invisible");
+				layer.dom.classList.add("invisible");
 			}else{
-				layer.div.classList.remove("invisible");
+				layer.dom.classList.remove("invisible");
 			}
 			if(this.lock){
 				name +="(lock)";
-				layer.div.classList.add("lock");
+				layer.dom.classList.add("lock");
 			}else{
-				layer.div.classList.remove("lock");
+				layer.dom.classList.remove("lock");
 			}
 			if(this.mask_alpha){
 				name +="(αlock)";
 			}
 			div.innerHTML=name;
 			
-			var span = layer.div.getElementsByClassName("layer_attributes")[0];
+			var span = layer.dom.getElementsByClassName("layer_attributes")[0];
 			var txt="";
 			if(layer.type === 2){
 				txt += "modifier:"+layer.modifier+"<br>";
@@ -593,7 +558,7 @@ export default class Layer{
 
 			span.innerHTML = txt;
 
-			layers_container = layer.div.getElementsByClassName("children")[0];
+			layers_container = layer.dom.getElementsByClassName("children")[0];
 
 		}
 
@@ -602,13 +567,13 @@ export default class Layer{
 		while (layers_container.firstChild) layers_container.removeChild(layers_container.firstChild);
 		if(layer.children){
 			for(var li=layer.children.length;li--;){
-				layers_container.appendChild(layer.children[li].div);
+				layers_container.appendChild(layer.children[li].dom);
 			}
 		}
 
 
 		if(layer === selected_layer){
-			refreshActiveLayerParam();
+			Hdrpaint.refreshActiveLayerParam();
 		}
 
 	}
@@ -636,7 +601,7 @@ export default class Layer{
 		var img = layer.img;
 		var img_data=img.data;
 
-		var layer_img=layer.div.getElementsByTagName("img")[0];
+		var layer_img=layer.dom.getElementsByTagName("img")[0];
 
 		var can = img.toCanvas();
 		var ctx = Img.ctx;
@@ -690,27 +655,6 @@ export default class Layer{
 
 	}
 
-	static select(target_layer){
-		//アクティブレイヤ変更
-		
-		selected_layer=target_layer;
-		Layer.eachLayers(function(layer){
-			if(target_layer !== layer){
-				//アクティブレイヤ以外の表示を非アクティブにする
-				layer.div.classList.remove("active");
-			}else{
-				layer.div.classList.add("active");
-			}
-		});
-
-		refreshActiveLayerParam();
-
-
-		if(inputs["selected_layer_only"].checked){
-			refreshPreview(1);
-		}
-
-	}
 
 	getAbsolutePosition(p){
 		Vec2.set(p,0,0);
@@ -720,70 +664,10 @@ export default class Layer{
 		});
 	}
 	select(){
-		Layer.select(this);
+		Hdrpaint.select(this);
 
 	}
 
-	static create(img,composite_flg){
-		var layer_template= document.getElementById("layer_template");
-		var layer = new Layer();
-
-		if(composite_flg){
-			//グループレイヤの場合
-			layer.type=1;
-			layer.children=[];
-		}
-
-		var layer_div = layer_template.children[0].cloneNode(true);
-		if(layer.type == 1){
-			layer_div.classList.add("group");
-		}
-
-		//layer_div.addEventListener("click",layerSelect);
-		layer.div=layer_div;
-
-		layer.img=img;
-		if(img){
-			Vec2.set(layer.size,img.width,img.height);
-		}
-
-		layer.id=layer_id_count;
-		layer_id_count++;
-		layer.name ="layer"+("0000"+layer.id).slice(-4);
-
-		layer.refreshDiv();
-		layer.registRefreshThumbnail();
-
-		return layer;
-
-	}
-	static createModifier(modifier_name){
-		var layer_template= document.getElementById("layer_template");
-	//	var layer = new Layer();
-		var layer = new Hdrpaint.modifier[modifier_name]();
-
-		layer.type=2;
-
-		var layer_div = layer_template.children[0].cloneNode(true);
-		if(layer.children){
-			layer_div.classList.add("group");
-		}
-		layer_div.classList.add("modifier");
-
-		layer.div=layer_div;
-
-		layer.img=null;
-
-		layer.id=layer_id_count;
-		layer_id_count++;
-		layer.modifier=modifier_name;
-		layer.name =modifier_name+("0000"+layer.id).slice(-4);
-
-		layer.refreshDiv();
-
-		return layer;
-
-	}
 
 
 	registRefreshThumbnail(){
@@ -800,58 +684,8 @@ export default class Layer{
 	}
 	
 
-	static opencloseClick(e){
-		var layer= getLayerFromDiv(event.target.parentNode);
-		layer.div.classList.toggle("open");
-		e.preventDefault();
-		return false;
-	}
-	
 
 
 };
 
 Layer.prototype.typename="normal_layer";
-	//レイヤパラメータコントロール変更時反映
-	document.querySelector("#layer_param").addEventListener("change"
-		,function(e){
-
-		var input = e.target;
-		if(!selected_layer){ return; }
-		if(!input){return;}
-
-		var layer = selected_layer;
-		var member = e.target.id.replace("layer_","");
-		if(member===""){
-			member = e.target.title;
-		}
-
-		if(input.id==="layer_width"  || input.id==="layer_height"){
-			var layer = selected_layer;
-			var width = parseInt(inputs["layer_width"].value);
-			var height= parseInt(inputs["layer_height"].value);
-			Hdrpaint.executeCommand("resizeLayer",{"layer_id":layer.id,"width":width,"height":height});
-			return;
-		}
-		if(input.id==="layer_x"  || input.id==="layer_y"){
-			var layer = selected_layer;
-			var x= parseInt(inputs["layer_x"].value);
-			var y= parseInt(inputs["layer_y"].value);
-			x-=layer.position[0];
-			y-=layer.position[1];
-			Hdrpaint.executeCommand("translateLayer",{"layer_id":layer.id,"x":x,"y":y});
-			return;
-		}
-		if(e.target.getAttribute("type")==="checkbox"){
-			Hdrpaint.executeCommand("changeLayerAttribute",{"layer_id":layer.id,"name":member,"value":e.target.checked});
-		}else if(e.target.getAttribute("type")==="radio"){
-			member = e.target.name;
-			Hdrpaint.executeCommand("changeLayerAttribute",{"layer_id":layer.id,"name":member,"value":e.target.value});
-
-		  }else{
-			Hdrpaint.executeCommand("changeLayerAttribute",{"layer_id":layer.id,"name":member,"value":e.target.value});
-		}
-		
-		
-		
-	});

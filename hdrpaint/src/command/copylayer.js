@@ -2,6 +2,8 @@ import {Vec2} from "../lib/vector.js"
 import Layer from "../layer.js";
 import CommandBase from "./commandbase.js";
 import Hdrpaint from "../hdrpaint.js";
+import Img from "../lib/img.js";
+
 class CopyLayer extends CommandBase{
 	constructor(){
 		super();
@@ -27,12 +29,12 @@ class CopyLayer extends CommandBase{
 			var img = new Img(src_layer.size[0],src_layer.size[1]);
 			Img.copy(img,0,0,src_layer.img,0,0,img.width,img.height);
 
-			layer =Layer.create(img,0);
+			layer =Hdrpaint.createLayer(img,0);
 
 			var keys=Object.keys(layer);
 			for(var i=0;i<keys.length;i++){
 				var key = keys[i];
-				if(["id","div","img","children"].indexOf(key)>=0)continue;
+				if(["id","dom","img","children"].indexOf(key)>=0)continue;
 				if(layer[key] instanceof Vec2){
 					Vec2.copy(layer[key],src_layer[key]);
 				}else{
@@ -48,7 +50,7 @@ class CopyLayer extends CommandBase{
 		var parentLayer = Layer.findById(param.parent);
 
 		parentLayer.append(n,layer);
-		Layer.select(layer);
+		Hdrpaint.select(layer);
 
 		return layer;
 	}

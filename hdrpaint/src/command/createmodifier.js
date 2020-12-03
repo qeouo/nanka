@@ -22,7 +22,7 @@ class CreateModifier extends CommandBase{
 
 		var layer;
 		if(!this.undo_data){
-			layer = Layer.createModifier(param.modifier);
+			layer = Hdrpaint.createModifier(param.modifier);
 			Vec2.set(layer.size,param.width,param.height);
 
 			this.undo_data={"layer":layer};
@@ -32,7 +32,7 @@ class CreateModifier extends CommandBase{
 		var parentLayer = Layer.findById(param.parent_layer_id);
 
 		parentLayer.append(n,layer);
-		Layer.select(layer);
+		Hdrpaint.select(layer);
 
 		return layer;
 	}
