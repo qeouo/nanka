@@ -60,7 +60,7 @@ var thumbnail_img = new Img(64,64,1);
 
 	var DragEnter = function(event) {
 		//ドラッグ移動時
-		var drop_layer = getLayerFromDiv(event.currentTarget.parentNode);
+		var drop_layer = getLayerFromDiv(event.currentTarget.parentNode.parentNode);
 
 		if(!drop_layer){
 			return;
@@ -106,7 +106,7 @@ var thumbnail_img = new Img(64,64,1);
 		event.stopPropagation();
 
 		var drag = parseInt(event.dataTransfer.getData("text"));
-		var parent_layer= getLayerFromDiv(event.currentTarget.parentNode);
+		var parent_layer= getLayerFromDiv(event.currentTarget.parentNode.parentNode);
 
 
 		if(drag_layer.type !==0){
@@ -132,7 +132,7 @@ var thumbnail_img = new Img(64,64,1);
 	}
 
 	var opencloseClick=function(e){
-		var layer= getLayerFromDiv(event.target.parentNode);
+		var layer= getLayerFromDiv(event.target.parentNode.parentNode);
 		layer.dom.classList.toggle("open");
 		e.preventDefault();
 		return false;
@@ -161,6 +161,7 @@ export default class Layer{
 
 
 		var html=`
+			<div class="background">
 				<a href="#" class="openclosebutton">
 				</a>
 				<div class="layer_dragenter" > </div>
@@ -170,6 +171,7 @@ export default class Layer{
 				<div class="name"></div>
 				<div class="layer_attributes"></div>
 				<div class="children"></div>
+			</div>
 			`;
 
 		var dom =document.createElement("div");

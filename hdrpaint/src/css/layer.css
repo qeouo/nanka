@@ -6,10 +6,9 @@
 	overflow:visible scroll;
 	height:240px;
 	background-color:#666;
-padding:3px;
+	padding:3px;
 }
 .layer{
-display:block;
 	color:#ccc;
 	border:solid 2px;
 	min-width:240px;
@@ -34,10 +33,16 @@ display:block;
 }
 
 .layer.modifier{
-	background-color:#030;
+	border-radius:0px;
+	border-top-right-radius:13px;
+	border-top-left-radius:13px;
+
+}
+.layer.modifier>.background{
 	border-radius:0px;
 	border-top-right-radius:10px;
 	border-top-left-radius:10px;
+	background-color:#036;
 	background-size:contain,auto;
 
 }
@@ -47,15 +52,15 @@ display:block;
 		   border-color:#000;
 	background-image:url(./back.png);
 }
-.layer.modifier>.thumbnailouter{
+.layer.modifier .thumbnailouter{
 	display:none;
 }
 .layer .name{
-display:inline-block;
-
+	display:inline-block;
 	vertical-align:top;
 	text-align:left;
 	font-weight:bold;
+height:34px;
 
 
 }
@@ -73,38 +78,50 @@ display:inline-block;
 
 }
 .layer .openclosebutton{
+	text-decoration:underline;
 	margin-right:4px;
 	visibility:hidden;
 	color:inherit;
+	vertical-align:top;
+	display:inline-block;
+	margin-top:10px;
+	margin-left:2px;
+
 }
 .layer.group{
 	border-radius:10px;
 }
-.layer.group>.openclosebutton{
+
+.layer.group .openclosebutton{
 	visibility:inherit;
 }
-.layer .openclosebutton:after{
-	text-decoration:underline;
+.layer:not(.group) .openclosebutton{
+	display:none;
+}
+.layer:not(.open) .openclosebutton:after{
 	content:'+';
 }
-.layer.open>.openclosebutton:after{
+.layer.open .openclosebutton:after{
 	content:'-';
 }
-.layer>div.children{
-	display:none;
-	clear:both;
-	margin-left:8px;
-    min-height: 32px;
-position:relative;
-   /* border: 1px solid black; */
-}
-.layer.group.open>div.children{
+.layer.group.open div.children{
 	display:block;
+}
+.layer.group:not(.open) div.children{
+	display:none;
+}
+.layer:not(.group) div.children{
+	display:none !important;
+}
+.layer div.children{
+	margin-left:8px;
+	min-height: 32px;
+	position:relative;
 }
 .layer .openclosebutton a{
 	color:inherit;
 }
-.layer .thumbnailouter{
+.layer:not(.modifier) .thumbnailouter{
 display:inline-block;
 	width:32px;
 	height:32px;
@@ -113,7 +130,7 @@ display:inline-block;
 	margin-top:1px;
 	margin-right:4px;
 }
-.layer.invisible {
+.layer.invisible .background{
 	opacity:0.3;
 }
  .layer.lock .layer_attributes{
