@@ -4,6 +4,7 @@ import Hdrpaint from "../hdrpaint.js";
 import Layer from "../layer.js";
 import Img from "../lib/img.js";
 
+var Command = Hdrpaint.Command;
 Command["fill"] = (function(){
 	var fillStack=[];
 	var joined_r,joined_g,joined_b,joined_a;

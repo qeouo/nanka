@@ -43,5 +43,6 @@ class Grayscale extends Layer{
 		ret[idx+3] = img_data[idx+3];
 	}
 }
+Grayscale.prototype.name="grayscale";
 
-Hdrpaint.registModifier(Grayscale,"graysclae","");
+Hdrpaint.registModifier(Grayscale,"grayscale","");

@@ -4,7 +4,7 @@ import Layer from "../layer.js";
 var clip=function(v,min,max){
 	return Math.max(min,Math.min(max,v));
 }
-class GradientMap extends Layer{
+class ColorMap extends Layer{
 	constructor(){
 		super();
 		this.effect=4;
@@ -62,4 +62,5 @@ var html = `
 		<input type="radio" name="gradtype" title="gradtype" value="0"/>明るさで判定
 		<input type="radio" name="gradtype" title="gradtype" value="1"/>アルファ値で判定
 	`;
-Hdrpaint.registModifier(GradientMap,"gradientmap",html);
+ColorMap.prototype.name="colormap";
+Hdrpaint.registModifier(ColorMap,"colormap",html);

@@ -3,6 +3,7 @@ import {Vec2} from "../lib/vector.js";
 import CommandBase from "./commandbase.js";
 import Hdrpaint from "../hdrpaint.js";
 import Layer from "../layer.js";
+var commandObjs = Hdrpaint.commandObjs;
 class CreateModifier extends CommandBase{
 	constructor(){
 		super();

@@ -1,6 +1,8 @@
 //レイヤ位置移動
 import Hdrpaint from "../hdrpaint.js";
 import Layer from "../layer.js";
+
+var Command = Hdrpaint.Command;
 Command["moveLayer"] = (function(){
 	return function(log,undo_flg){
 

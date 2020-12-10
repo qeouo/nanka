@@ -36,13 +36,7 @@
 	border-radius:0px;
 	border-top-right-radius:13px;
 	border-top-left-radius:13px;
-
-}
-.layer.modifier>.background{
-	border-radius:0px;
-	border-top-right-radius:10px;
-	border-top-left-radius:10px;
-	background-color:#036;
+	background-color:#063;
 	background-size:contain,auto;
 
 }
@@ -130,7 +124,9 @@ display:inline-block;
 	margin-top:1px;
 	margin-right:4px;
 }
-.layer.invisible .background{
+
+
+.layer.invisible{
 	opacity:0.3;
 }
  .layer.lock .layer_attributes{
@@ -151,5 +147,9 @@ div.modifier_param{
 left:0px;
 top:0px;
 display:none;
+}
+div#modifier_area input{
+	background-color:#063;
+	margin:1px;
 }
 

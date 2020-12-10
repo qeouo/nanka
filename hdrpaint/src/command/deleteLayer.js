@@ -1,5 +1,6 @@
 //レイヤ削除
 import Hdrpaint from "../hdrpaint.js";
+var Command = Hdrpaint.Command;
 Command["deleteLayer"] = (function(){
 	return function(log,undo_flg){
 

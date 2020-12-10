@@ -1,5 +1,6 @@
 //複数コマンドバッチ
 import Hdrpaint from "../hdrpaint.js";
+var Command = Hdrpaint.Command;
 Command["multiCommand"] = (function(){
 	return function(_log,undo_flg){
 		var logs = _log.param.logs

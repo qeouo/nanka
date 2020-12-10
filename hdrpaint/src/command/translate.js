@@ -1,6 +1,7 @@
 
 import Hdrpaint from "../hdrpaint.js";
 import Layer from "../layer.js";
+var Command = Hdrpaint.Command;
 Command["translateLayer"] = (function(){
 	return function(log,undo_flg){
 		var param = log.param;

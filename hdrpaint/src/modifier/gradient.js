@@ -39,7 +39,7 @@ class Gradient extends Layer{
 		width=64;
 		height=0;
 		backimg.scan(function(ret,idx,x,y){layer.getPixel(ret,idx,x,y);});
-		layer.dom.children[0].style.backgroundImage = "url(" + backimg.toDataURL() + "),url(./back.png)";
+		layer.dom.style.backgroundImage = "url(" + backimg.toDataURL() + "),url(./back.png)";
 
 		return "";
 	}

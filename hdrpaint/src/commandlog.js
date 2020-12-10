@@ -66,7 +66,7 @@ export default class CommandLog{
 			if(log.obj){
 				log.obj.func();
 			}else{
-				let command = Command[log.command];
+				let command = Hdrpaint.Command[log.command];
 				command(log);
 			}
 		}
@@ -79,7 +79,7 @@ export default class CommandLog{
 				log.obj.undo();
 				log.obj.undo_default();
 			}else{
-				let command = Command[log.command];
+				let command = Hdrpaint.Command[log.command];
 				command(log,true);
 
 				var difs = log.undo_data.difs;

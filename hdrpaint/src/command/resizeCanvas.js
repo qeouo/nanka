@@ -2,6 +2,7 @@
 import {Vec2} from "../lib/vector.js"
 import Img from "../lib/img.js";
 import Hdrpaint from "../hdrpaint.js";
+var Command = Hdrpaint.Command;
 Command["resizeCanvas"] = (function(){
 	return function(log,undo_flg){
 		var width = log.param.width;

@@ -2,6 +2,9 @@ import {Vec2} from "../lib/vector.js"
 import CommandBase from "./commandbase.js";
 import Hdrpaint from "../hdrpaint.js";
 import Layer from "../layer.js";
+import Img from "../lib/img.js";
+
+var commandObjs = Hdrpaint.commandObjs;
 class JoinLayer extends CommandBase{
 	constructor(){
 		super();
@@ -39,7 +42,7 @@ class JoinLayer extends CommandBase{
 			var position = layers.indexOf(layerA);
 			var position2 = layers.indexOf(layerB);
 			var img = new Img(width,height);
-			layer =Layer.create(img,1);
+			layer =Hdrpaint.createLayer(img,1);
 			layer.position[0]=x;
 			layer.position[1]=y;
 			layer.name=layerA.name + "," + layerB.name;

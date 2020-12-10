@@ -18,8 +18,26 @@ import ColorSelector from "./lib/colorselector.js";
 
 window.painted_mask=new Float32Array(1024*1024);
 window.root_layer=null;
+window.inputs=[];
+window.doc ={};
+window.pen_log=null;
+window.pen_func=null;
 
-import {} from "./command/brush.js"
+window.bloomed_img=null;
+window.bloom_img=null;
+window.preview=null;
+window.preview_ctx=null;
+window.preview_ctx_imagedata=null;
+
+//現在選択状態にあるブラシ
+window.selected_brush=null;
+
+//全ブラシ
+window.brushes=[];
+
+window.selected_layer = null;
+
+import {} from "./command/drawLine.js"
 import {} from "./command/changeLayerAttribute.js"
 import {} from "./command/changeModifierAttribute.js"
 import {} from "./command/clear.js"
@@ -47,12 +65,10 @@ import {} from "./modifier/grayscale.js";
 import {} from "./modifier/shift.js";
 import {} from "./modifier/blur.js";
 import {} from "./modifier/gradient.js";
-import {} from "./modifier/gradientmap.js";
+import {} from "./modifier/colormap.js";
 import {} from "./modifier/noise.js";
 
 window.Hdrpaint = Hdrpaint;
-window.Layer = Layer;
-window.Brush = Brush;
 Hdrpaint.inputs=inputs;
 doc.draw_col=new Vec4();
 doc.scale=100;
@@ -256,7 +272,7 @@ var onloadfunc=function(e){
 
 				pen_log.param.x=x-oldx;
 				pen_log.param.y=y-oldy;
-				Command[pen_log.command](pen_log);
+				Hdrpaint.Command[pen_log.command](pen_log);
 				pen_log.param.x=x;
 				pen_log.param.y=y;
 
@@ -469,7 +485,7 @@ var onloadfunc=function(e){
 			if(event.ctrlKey){
 				if (event.shiftKey) {
 					//リドゥ
-					redo();
+					Hdrpaint.redo();
 
 				}else{
 					//アンドゥ

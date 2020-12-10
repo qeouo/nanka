@@ -1,6 +1,7 @@
 
 import Hdrpaint from "../hdrpaint.js";
 //モディファイアパラメータ変更
+var Command = Hdrpaint.Command;
 Command["changeModifierAttribute"] = (function(){
 	return function(log,undo_flg){
 		var param = log.param;

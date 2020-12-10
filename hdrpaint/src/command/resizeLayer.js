@@ -1,4 +1,7 @@
 //リサイズレイヤ
+//
+import Hdrpaint from "../hdrpaint.js";
+var Command = Hdrpaint.Command;
 Command["resizeLayer"] = (function(){
 	return function(log,undo_flg){
 

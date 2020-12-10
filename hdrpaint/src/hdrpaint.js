@@ -5,30 +5,12 @@ import Layer from "./layer.js";
 import CommandLog from "./commandlog.js";
 import {Vec2,Vec3,Vec4} from "./lib/vector.js";
 
-window.inputs=[];
-window.doc ={};
-window.pen_log=null;
-window.pen_func=null;
-
-window.bloomed_img=null;
-window.bloom_img=null;
-window.preview=null;
-window.preview_ctx=null;
-window.preview_ctx_imagedata=null;
-
-//現在選択状態にあるブラシ
-window.selected_brush=null;
-window.Command = {};
-window.commandObjs={};
-
-//全ブラシ
-window.brushes=[];
-
 let layer_id_count=0;
-window.selected_layer = null;
 
 class Hdrpaint {
 	static color=new Vec4();
+	static Command = {};
+	static commandObjs={};
 
 	static refreshActiveLayerParam(){
 		//アクティブレイヤパラメータ更新
@@ -348,6 +330,8 @@ static createNewLayer(e){
 
 		var log = CommandLog.createLog(command,param,flg);
 		CommandLog.appendOption();
+		var commandObjs = this.commandObjs;
+		var Command = this.Command;
 		if(commandObjs[log.command]){
 			log.obj = new commandObjs[log.command]();
 			log.obj.param = param;
@@ -373,29 +357,9 @@ static createNewLayer(e){
 		,"transmit"
 	];
 
-//モデファイア
-	static modifier={};
-	static modifiername= [ "grayscale",
-		"shift"
-		,"blur"
-		,"gradient"
-		,"gradientmap"
-		,"noise"
-	];
 
 
 	static init(){
-	var area = document.querySelector("#modifier_area");
-	for(var i=0;i<this.modifiername.length;i++){
-		var name  = this.modifiername[i];
-		//Util.loadJs("../modifier/" + name +".js");
-
-		var input= document.createElement("input");
-		input.type="button";
-		input.title=name;
-		input.value=name;
-		area.appendChild(input);
-	}
 	}
 
 
@@ -434,6 +398,7 @@ static createNewLayer(e){
 
 
 
+	static modifier={};
 	static registModifier = (mod,name,html)=>{
 		mod.prototype.typename=name;
 
@@ -447,6 +412,14 @@ static createNewLayer(e){
 
 		var dialog_parent= document.querySelector("#modifier_param_area");
 		dialog_parent.appendChild(div);
+
+
+		var area = document.querySelector("#modifier_area");
+		var input= document.createElement("input");
+		input.type="button";
+		input.title=name;
+		input.value=name;
+		area.appendChild(input);
 	}
 
 
@@ -517,5 +490,6 @@ Hdrpaint.init();
 		
 		
 	});
+
 export default Hdrpaint;
 

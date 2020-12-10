@@ -1,5 +1,6 @@
 
 import Hdrpaint from "../hdrpaint.js";
+var Command = Hdrpaint.Command;
 Command["clear"] = (function(){
 	return function(log,undo_flg){
 		//全クリア

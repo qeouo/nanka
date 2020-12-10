@@ -2,6 +2,7 @@
 import Hdrpaint from "../hdrpaint.js";
 import Img from "../lib/img.js";
 import Layer from "../layer.js";
+var Command = Hdrpaint.Command;
 Command["createNewLayer"] = (function(){
 	return function(log,undo_flg){
 		var param = log.param;

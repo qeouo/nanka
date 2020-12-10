@@ -61,7 +61,7 @@ export default class PenFunc{
 			Util.setText(option,log.label);
 
 			//今回と前回の座標で直線描画
-			Command.drawHermitian(log,this.idx);
+			Hdrpaint.Command.drawHermitian(log,this.idx);
 		}
 		this.idx++;
 

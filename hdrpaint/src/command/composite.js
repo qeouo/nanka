@@ -1,5 +1,6 @@
 //レイヤ結合
 import Hdrpaint from "../hdrpaint.js";
+var Command = Hdrpaint.Command;
 Command["composite"] = (function(){
 	return function(log,undo_flg){
 		//グループレイヤの子レイヤをすべて結合して通常レイヤにする

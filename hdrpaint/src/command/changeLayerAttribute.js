@@ -2,6 +2,7 @@
 import Layer from "../layer.js";
 import Hdrpaint from "../hdrpaint.js";
 //レイヤパラメータ変更
+var Command = Hdrpaint.Command;
 Command["changeLayerAttribute"] = (function(){
 	return function(log,undo_flg){
 		var param = log.param;

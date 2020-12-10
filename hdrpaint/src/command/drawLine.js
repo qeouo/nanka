@@ -4,6 +4,7 @@ import Hdrpaint from "../hdrpaint.js";
 import Img from "../lib/img.js";
 import Layer from "../layer.js";
 
+var Command = Hdrpaint.Command;
 Command["eraser"]=(function(){
 	return function(log,undo_flg){
 		//消しゴム描画

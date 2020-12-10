@@ -4,6 +4,7 @@ import CommandBase from "./commandbase.js";
 import Hdrpaint from "../hdrpaint.js";
 import Img from "../lib/img.js";
 
+var commandObjs = Hdrpaint.commandObjs;
 class CopyLayer extends CommandBase{
 	constructor(){
 		super();
