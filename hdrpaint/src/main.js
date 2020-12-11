@@ -16,7 +16,6 @@ import Util from "./lib/util.js";
 import ColorPickerHDR from "./lib/colorpickerhdr.js";
 import ColorSelector from "./lib/colorselector.js";
 
-window.painted_mask=new Float32Array(1024*1024);
 window.root_layer=null;
 window.inputs=[];
 window.doc ={};

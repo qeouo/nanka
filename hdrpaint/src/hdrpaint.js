@@ -11,6 +11,7 @@ class Hdrpaint {
 	static color=new Vec4();
 	static Command = {};
 	static commandObjs={};
+	static painted_mask=new Float32Array(1024*1024);
 
 	static refreshActiveLayerParam(){
 		//アクティブレイヤパラメータ更新

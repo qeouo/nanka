@@ -4,124 +4,123 @@ import Hdrpaint from "../hdrpaint.js";
 import Layer from "../layer.js";
 import Img from "../lib/img.js";
 
-var Command = Hdrpaint.Command;
-Command["fill"] = (function(){
-	var fillStack=[];
-	var joined_r,joined_g,joined_b,joined_a;
-	var target_r,target_g,target_b,target_a;
+import CommandBase from "./commandbase.js";
+var commandObjs = Hdrpaint.commandObjs;
+var fillStack=[];
+var joined_r,joined_g,joined_b,joined_a;
+var target_r,target_g,target_b,target_a;
+var offset = new Vec2();
+var refresh_left,refresh_top,refresh_bottom,refresh_right;
 
-	var offset = new Vec2();
+var fillCheckAll = function(layer,joined,x,y){
+	var x2 = x+offset[0];
+	var y2 = y+offset[1];
+	if(joined.width<=x2 || x2<0 || y2<0 || joined.height<=y2){
+		return false;
+	}
+	var target = layer.img;
+	var idx  = target.getIndex(x,y) <<2;
+	var idx2 = joined.getIndex(x2,y2) <<2;
+	var joined_data = joined.data;
+	var target_data = target.data;
+	return (joined_r===joined_data[idx2]
+	&& joined_g===joined_data[idx2+1]
+	&& joined_b===joined_data[idx2+2]
+	&& joined_a===joined_data[idx2+3]
+	&& target_r===target_data[idx]
+	&& target_g===target_data[idx+1]
+	&& target_b===target_data[idx+2]
+	&& target_a===target_data[idx+3]);
+}
+var fillCheckLayer = function(layer,joined,x,y){
+	var target = layer.img;
+	var idx  = target.getIndex(x,y) <<2;
+	var target_data = target.data;
+	return ( target_r===target_data[idx]
+	&& target_g===target_data[idx+1]
+	&& target_b===target_data[idx+2]
+	&& target_a===target_data[idx+3]);
+}
+var fillCheckAlpha= function(layer,joined,x,y){
+	var x2 = x+offset[0];
+	var y2 = y+offset[1];
+	if(joined.width<=x2 || x2<0 || y2<0 || joined.height<=y2){
+		return false;
+	}
+	var target = layer.img;
+	var idx  = target.getIndex(x,y) <<2;
+	var idx2 = joined.getIndex(x2,y2) <<2;
+	var joined_data = joined.data;
+	var target_data = target.data;
+	return (target_data[idx+3]!== 1
+		   	&& joined_data[idx2+3]!==1);
+}
+var fillCheck=fillCheckAll;
+var fillSub=function(layer,y,left,right){
+	var target = layer.img;
+	var joined_img = root_layer.img;
 
-	var fillCheckAll = function(layer,joined,x,y){
-		var x2 = x+offset[0];
-		var y2 = y+offset[1];
-		if(joined.width<=x2 || x2<0 || y2<0 || joined.height<=y2){
-			return false;
+	var mode=0;
+
+	//塗りつぶし領域を求める
+
+	//左の端を探す
+	var xi = left;
+	var yidx = target.getIndex(0,y) <<2;
+	for(;xi>=0;xi--){
+		var idx2 = yidx + (xi<<2);
+		if(fillCheck(layer,joined_img,xi,y)){
+			if(mode===0){
+				mode=1;
+			}
+		}else{
+			break;
 		}
-		var target = layer.img;
-		var idx  = target.getIndex(x,y) <<2;
-		var idx2 = joined.getIndex(x2,y2) <<2;
-		var joined_data = joined.data;
-		var target_data = target.data;
-		return (joined_r===joined_data[idx2]
-		&& joined_g===joined_data[idx2+1]
-		&& joined_b===joined_data[idx2+2]
-		&& joined_a===joined_data[idx2+3]
-		&& target_r===target_data[idx]
-		&& target_g===target_data[idx+1]
-		&& target_b===target_data[idx+2]
-		&& target_a===target_data[idx+3]);
 	}
-	var fillCheckLayer = function(layer,joined,x,y){
-		var target = layer.img;
-		var idx  = target.getIndex(x,y) <<2;
-		var target_data = target.data;
-		return ( target_r===target_data[idx]
-		&& target_g===target_data[idx+1]
-		&& target_b===target_data[idx+2]
-		&& target_a===target_data[idx+3]);
+
+	if(mode===1){
+		fillStack.push(y);
+		fillStack.push(xi+1);
 	}
-	var fillCheckAlpha= function(layer,joined,x,y){
-		var x2 = x+offset[0];
-		var y2 = y+offset[1];
-		if(joined.width<=x2 || x2<0 || y2<0 || joined.height<=y2){
-			return false;
+
+	for(var xi=left;xi<right;xi++){
+		var idx2 = yidx + (xi<<2);
+		if(fillCheck(layer,joined_img,xi,y)){
+			if(mode===0){
+				//塗りつぶし領域開始
+				fillStack.push(y);
+				fillStack.push(xi);
+				mode=1;
+			}
+		}else{
+			if(mode===1){
+				//塗りつぶし領域外なので終了
+				fillStack.push(xi);
+				mode=0;
+			}
 		}
-		var target = layer.img;
-		var idx  = target.getIndex(x,y) <<2;
-		var idx2 = joined.getIndex(x2,y2) <<2;
-		var joined_data = joined.data;
-		var target_data = target.data;
-		return (target_data[idx+3]!== 1
-			   	&& joined_data[idx2+3]!==1);
 	}
-	var fillCheck=fillCheckAll;
-	var fillSub=function(layer,y,left,right){
-		var target = layer.img;
-		var joined_img = root_layer.img;
 
-		var mode=0;
-
-		//塗りつぶし領域を求める
-
-		//左の端を探す
-		var xi = left;
-		var yidx = target.getIndex(0,y) <<2;
-		for(;xi>=0;xi--){
+	//右端
+	if(mode===1){
+		var xi = right-1;
+		for(;xi<target.width;xi++){
 			var idx2 = yidx + (xi<<2);
-			if(fillCheck(layer,joined_img,xi,y)){
-				if(mode===0){
-					mode=1;
-				}
-			}else{
+			if(!fillCheck(layer,joined_img,xi,y)){
 				break;
 			}
 		}
-
-		if(mode===1){
-			fillStack.push(y);
-			fillStack.push(xi+1);
-		}
-
-		for(var xi=left;xi<right;xi++){
-			var idx2 = yidx + (xi<<2);
-			if(fillCheck(layer,joined_img,xi,y)){
-				if(mode===0){
-					//塗りつぶし領域開始
-					fillStack.push(y);
-					fillStack.push(xi);
-					mode=1;
-				}
-			}else{
-				if(mode===1){
-					//塗りつぶし領域外なので終了
-					fillStack.push(xi);
-					mode=0;
-				}
-			}
-		}
-
-		//右端
-		if(mode===1){
-			var xi = right-1;
-			for(;xi<target.width;xi++){
-				var idx2 = yidx + (xi<<2);
-				if(!fillCheck(layer,joined_img,xi,y)){
-					break;
-				}
-			}
-			fillStack.push(xi);
-		}
+		fillStack.push(xi);
+	}
+}
+class Fill extends CommandBase{
+	constructor(){
+		super();
 	}
 
-	return function(log,undo_flg){
+	func(){
 		//塗りつぶし
-		if(undo_flg){
-			return;
-		}
-
-		var refresh_left,refresh_top,refresh_bottom,refresh_right;
-		var param = log.param;
+		var param = this.param;
 		var layer = Layer.findById(param.layer_id);
 
 		layer.getAbsolutePosition(offset);
@@ -221,14 +220,14 @@ Command["fill"] = (function(){
 		var width = refresh_right-refresh_left;
 		var height= refresh_bottom -refresh_top;
 
-		if(!log.undo_data){
-			log.undo_data={};
+		if(!this.undo_data){
+			this.undo_data={};
 			var layer_img= layer.img;
 			layer.img = old_img;
 			var dif=Hdrpaint.createDif(layer,refresh_left,refresh_top,width,height);
 			layer.img=layer_img;
-			log.undo_data.difs=[];
-			log.undo_data.difs.push(dif);
+			this.undo_data.difs=[];
+			this.undo_data.difs.push(dif);
 		}
 
 		layer.refreshImg(refresh_left
@@ -236,4 +235,5 @@ Command["fill"] = (function(){
 			,refresh_right-refresh_left+1,refresh_bottom-refresh_top+1);
 
 	}
-})();
+}
+commandObjs["fill"] = Fill;

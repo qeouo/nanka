@@ -216,7 +216,7 @@ export default class Brush{
 				param.stroke_interpolation = brush.stroke_interpolation;
 			}
 
-			painted_mask.fill(0);
+			Hdrpaint.painted_mask.fill(0);
 			if(param.eraser){
 				//黒でクリア
 				var data = pen_preview_img.data;

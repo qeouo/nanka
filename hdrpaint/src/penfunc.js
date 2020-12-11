@@ -31,7 +31,7 @@ export default class PenFunc{
 		var funcs = Hdrpaint.blendfuncs;
 
 
-			painted_mask.fill(0);
+			Hdrpaint.painted_mask.fill(0);
 			return;
 
 		}

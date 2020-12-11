@@ -1,13 +1,14 @@
+import Layer from "../layer.js";
+import Img from "../lib/img.js";
 
-var CommandBase = (function(){
-	var CommandBase = function(){
+export default class CommandBase{
+	constructor(){	
 		this.param={};
 		this.undo_data=null;
 	}
-	var ret = CommandBase;
-	ret.prototype.undo=function(){};
-	ret.prototype.func=function(){};
-	ret.prototype.undo_default=function(){
+	undo(){};
+	func(){};
+	undo_default(){
 		var difs = this.undo_data.difs;
 		if(difs){
 			//画像戻す
@@ -22,7 +23,4 @@ var CommandBase = (function(){
 			}
 		}
 	}
-
-	return ret;
-})();
-export default CommandBase;
+};

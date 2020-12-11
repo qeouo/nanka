@@ -4,6 +4,8 @@ import Hdrpaint from "../hdrpaint.js";
 import Img from "../lib/img.js";
 import Layer from "../layer.js";
 
+var painted_mask = Hdrpaint.painted_mask;
+
 var Command = Hdrpaint.Command;
 Command["eraser"]=(function(){
 	return function(log,undo_flg){
