@@ -3,35 +3,172 @@ import PenPoint from "../penpoint.js"
 import Hdrpaint from "../hdrpaint.js";
 import Img from "../lib/img.js";
 import Layer from "../layer.js";
+import CommandBase from "./commandbase.js";
 
 var painted_mask = Hdrpaint.painted_mask;
 
-var Command = Hdrpaint.Command;
-Command["eraser"]=(function(){
-	return function(log,undo_flg){
-		//消しゴム描画
-		Command.brush(log,undo_flg);
+class Brush extends CommandBase{
+	constructor(){
+		super();
 	}
-})();
-Command["brush"] = (function(){
-	return function(log,undo_flg){
-		//ペン描画
-		if(undo_flg){
-			return;
+	toString(){
+		var points = this.param.points;
+		var str=this.name;
+		if(points.length){
+			str +=  "(" + points[0].pos[0].toFixed(2)+ ","+ points[0].pos[1].toFixed(2)+")-";
+			str += (points.length-2) +"-";
+			str += "(" + points[points.length-1].pos[0].toFixed(2)+ ","+ points[points.length-1].pos[1].toFixed(2)+")";
 		}
-		var param = log.param;
+		return str;
+	}
+
+	func(){
+		//ペン描画
+		var param = this.param;
 		var layer = Layer.findById(param.layer_id);
 		var points = param.points;
 
 			painted_mask.fill(0);
 
 		for(var li=1;li<points.length;li++){
-			Command.drawHermitian(log,li);
+			this.draw(li);
 		}
 	}
-})();
+	draw(n){
+		var param=this.param;
+		var points = param.points;
+		var layer = Layer.findById(param.layer_id);
+		if(!layer){
+			layer = param.layer;
+		}
+		var img= layer.img;
 
-Command.drawHermitian = (function(){
+		layer.getAbsolutePosition(absolute);
+
+		var point0=points[n-1];
+		var point1=points[n];
+		var p0=point0.pos;
+		var p1=point1.pos;
+
+
+		var offset=0;
+		//補間するための係数を求める
+		if(n>=2 ){
+			Vec2.sub(A,p0,points[n-2].pos);
+			var l1 = Vec2.scalar(A);
+			Vec2.sub(B,p1,p0);
+			var l2 = Vec2.scalar(B);
+			if(l1+l2>0){
+				Vec2.mul(q0,A,  (l2/(l1+l2)));
+				Vec2.madd(q0,q0,B, (l1/(l1+l2)));
+			}
+			
+		}else{
+			Vec2.sub(q0,p1,p0);
+		}
+		if(n+ 1<points.length) {
+			Vec2.sub(A,p1,p0);
+			var l1 = Vec2.scalar(A);
+			Vec2.sub(B,points[n+1].pos,p1);
+			var l2 = Vec2.scalar(B);
+			if(l1+l2>0){
+				Vec2.mul(q1,A, (l2/(l1+l2)));
+				Vec2.madd(q1,q1,B, (l1/(l1+l2)));
+			}
+
+		}else{
+
+			Vec2.sub(q1,p1,p0);
+			Vec2.madd(q1,q1,q0,-0.5);
+		}
+
+		Vec2.copy(D,p0);
+
+		Vec2.copy(C,q0);
+		
+		Vec2.madd(A,q1,p1,-2);
+		Vec2.add(A,A,q0);
+		Vec2.madd(A,A,p0,2);
+
+		Vec2.sub(B,p1,A);
+		Vec2.sub(B,B,q0);
+		Vec2.sub(B,B,p0);
+
+
+		var dp = point1.pressure - point0.pressure;
+		var len = Vec2.len(p1,p0);
+		var devide= clamp((len/4)|0,1,MAX-1);
+
+		if(!param.stroke_interpolation){
+			//補間しない
+			devide=1;
+		}
+		var _devide=1/devide;
+
+		var wei = param.weight*0.5;
+		if(param.pressure_effect_flgs & 1){
+			wei *=Math.max(point0.pressure,point1.pressure);
+		}
+		var left   = img.width;
+		var right  = 0;
+		var top    = img.height;
+		var bottom = 0;
+
+		for(var i=0;i<devide+1;i++){
+			var p=_p[i];
+
+			var dt = i*_devide+offset;
+			Vec2.mul (p.pos,  A,dt*dt*dt);
+			Vec2.madd(p.pos,p.pos,B,dt*dt);
+			Vec2.madd(p.pos,p.pos,C,dt);
+			Vec2.add (p.pos,p.pos,D);
+			Vec2.sub(p.pos,p.pos,absolute);
+
+
+			p.pressure=point0.pressure + dp*dt;
+
+			//Vec2.sub(p.pos,p.pos,layer.position);
+
+			left   = Math.min(p.pos[0],left);
+			right  = Math.max(p.pos[0],right);
+			top    = Math.min(p.pos[1],top);
+			bottom = Math.max(p.pos[1],bottom);
+			
+		}
+
+		left = Math.floor(clamp(left -wei,0,img.width-1));
+		right= Math.ceil(clamp(right + wei,0,img.width-1));
+		top= Math.floor(clamp(top -wei,0,img.height-1));
+		bottom=Math.ceil(clamp(bottom + wei,0,img.height-1));
+
+			//差分ログ作成
+			if(!this.undo_data){
+				this.undo_data={"difs":[]};
+			}
+			if(this.undo_data.difs.length<n){
+				var dif= Hdrpaint.createDif(layer,left,top,right-left+1,bottom-top+1);
+				this.undo_data.difs.push(dif);
+			}
+		
+
+		for(var i=0;i<devide;i++){
+			drawPen(layer.img,_p[i],_p[i+1],param);
+		}
+
+		//再描画
+		layer.refreshImg(left,top,right-left+1,bottom-top+1);
+
+	}
+};
+Brush.prototype.name="brush";
+
+class Eraser extends Brush{}
+Eraser.prototype.name="eraser";
+
+Hdrpaint.commandObjs["eraser"]=Eraser;
+Hdrpaint.commandObjs["brush"]=Brush;
+
+	var absolute=new Vec2();
 	var A = new Vec2(),B= new Vec2(),C= new Vec2(),D=new Vec2();
 	var q0=new Vec2();
 	var q1=new Vec2();
@@ -208,136 +345,4 @@ Command.drawHermitian = (function(){
 
 
 	}
-	var absolute=new Vec2();
-	return function(pen_log,n){
-		var param=pen_log.param;
-		var points = param.points;
-		var layer = Layer.findById(param.layer_id);
-		if(!layer){
-			layer = param.layer;
-		}
-		var img= layer.img;
-
-		layer.getAbsolutePosition(absolute);
-
-		var point0=points[n-1];
-		var point1=points[n];
-		var p0=point0.pos;
-		var p1=point1.pos;
-		var param = pen_log.param;
-
-
-		var offset=0;
-		//補間するための係数を求める
-		if(n>=2 ){
-			Vec2.sub(A,p0,points[n-2].pos);
-			var l1 = Vec2.scalar(A);
-			Vec2.sub(B,p1,p0);
-			var l2 = Vec2.scalar(B);
-			if(l1+l2>0){
-				Vec2.mul(q0,A,  (l2/(l1+l2)));
-				Vec2.madd(q0,q0,B, (l1/(l1+l2)));
-			}
-			
-		}else{
-			Vec2.sub(q0,p1,p0);
-		}
-		if(n+ 1<points.length) {
-			Vec2.sub(A,p1,p0);
-			var l1 = Vec2.scalar(A);
-			Vec2.sub(B,points[n+1].pos,p1);
-			var l2 = Vec2.scalar(B);
-			if(l1+l2>0){
-				Vec2.mul(q1,A, (l2/(l1+l2)));
-				Vec2.madd(q1,q1,B, (l1/(l1+l2)));
-			}
-
-		}else{
-
-			Vec2.sub(q1,p1,p0);
-			Vec2.madd(q1,q1,q0,-0.5);
-		}
-
-		Vec2.copy(D,p0);
-
-		Vec2.copy(C,q0);
-		
-		Vec2.madd(A,q1,p1,-2);
-		Vec2.add(A,A,q0);
-		Vec2.madd(A,A,p0,2);
-
-		Vec2.sub(B,p1,A);
-		Vec2.sub(B,B,q0);
-		Vec2.sub(B,B,p0);
-
-
-		var dp = point1.pressure - point0.pressure;
-		var len = Vec2.len(p1,p0);
-		var devide= clamp((len/4)|0,1,MAX-1);
-
-		if(!param.stroke_interpolation){
-			//補間しない
-			devide=1;
-		}
-		var _devide=1/devide;
-
-		var wei = param.weight*0.5;
-		if(param.pressure_effect_flgs & 1){
-			wei *=Math.max(point0.pressure,point1.pressure);
-		}
-		var left   = img.width;
-		var right  = 0;
-		var top    = img.height;
-		var bottom = 0;
-
-		for(var i=0;i<devide+1;i++){
-			var p=_p[i];
-
-			var dt = i*_devide+offset;
-			Vec2.mul (p.pos,  A,dt*dt*dt);
-			Vec2.madd(p.pos,p.pos,B,dt*dt);
-			Vec2.madd(p.pos,p.pos,C,dt);
-			Vec2.add (p.pos,p.pos,D);
-			Vec2.sub(p.pos,p.pos,absolute);
-
-
-			p.pressure=point0.pressure + dp*dt;
-
-			//Vec2.sub(p.pos,p.pos,layer.position);
-
-			left   = Math.min(p.pos[0],left);
-			right  = Math.max(p.pos[0],right);
-			top    = Math.min(p.pos[1],top);
-			bottom = Math.max(p.pos[1],bottom);
-			
-		}
-
-		left = Math.floor(clamp(left -wei,0,img.width-1));
-		right= Math.ceil(clamp(right + wei,0,img.width-1));
-		top= Math.floor(clamp(top -wei,0,img.height-1));
-		bottom=Math.ceil(clamp(bottom + wei,0,img.height-1));
-
-		if(pen_log){
-			//差分ログ作成
-			var log = pen_log;
-			if(!log.undo_data){
-				log.undo_data={"difs":[]};
-			}
-			if(log.undo_data.difs.length<n){
-				var dif= Hdrpaint.createDif(layer,left,top,right-left+1,bottom-top+1);
-				log.undo_data.difs.push(dif);
-			}
-		}
-
-		for(var i=0;i<devide;i++){
-			drawPen(layer.img,_p[i],_p[i+1],param);
-		}
-
-		//再描画
-		layer.refreshImg(left,top,right-left+1,bottom-top+1);
-
-	}
-
-
-})();
 

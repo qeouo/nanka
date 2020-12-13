@@ -114,9 +114,6 @@ var fillSub=function(layer,y,left,right){
 	}
 }
 class Fill extends CommandBase{
-	constructor(){
-		super();
-	}
 
 	func(){
 		//塗りつぶし

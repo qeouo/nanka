@@ -28,7 +28,7 @@ Command["multiCommand"] = (function(){
 			}
 			for(var li=0;li<logs.length;li++){
 				var log = logs[li];
-				Command[log.command](log);
+				log.func();
 			}
 		}
 

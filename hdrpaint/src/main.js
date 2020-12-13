@@ -68,6 +68,8 @@ import {} from "./modifier/colormap.js";
 import {} from "./modifier/noise.js";
 
 window.Hdrpaint = Hdrpaint;
+window.Brush= Brush;
+
 Hdrpaint.inputs=inputs;
 doc.draw_col=new Vec4();
 doc.scale=100;
@@ -214,7 +216,7 @@ var onloadfunc=function(e){
 			}else{
 				point.pressure=0;
 			}	
-			var points= pen_log.param.points;
+			var points= pen_log.obj.param.points;
 
 			//今回座標をパスに追加
 			point.time=Date.now();
@@ -236,7 +238,7 @@ var onloadfunc=function(e){
 			if(!(e.buttons&1)){
 
 				//描画前ポイントを補正
-					var points = pen_log.param.points;
+					var points = pen_log.obj.param.points;
 				if(pen_func.idx +1<points.length){
 					var len = points.length - (pen_func.idx + 1) ;
 					var a = points[pen_func.idx].pressure;
@@ -260,8 +262,8 @@ var onloadfunc=function(e){
 		}else if(inputs["translate"].checked) {
 			//移動のとき
 			if((e.buttons & 1) && pen_log){
-				var oldx =pen_log.param.x;
-				var oldy =pen_log.param.y;
+				var oldx =pen_log.obj.param.x;
+				var oldy =pen_log.obj.param.y;
 				x = (x|0) - drag_start[0];
 				y = (y|0) - drag_start[1];
 				
@@ -269,11 +271,11 @@ var onloadfunc=function(e){
 				//一旦元の座標に戻してから再度移動させる
 				//Command[pen_log.command](pen_log,true);
 
-				pen_log.param.x=x-oldx;
-				pen_log.param.y=y-oldy;
-				Hdrpaint.Command[pen_log.command](pen_log);
-				pen_log.param.x=x;
-				pen_log.param.y=y;
+				pen_log.obj.param.x=x-oldx;
+				pen_log.obj.param.y=y-oldy;
+				pen_log.obj.func();
+				pen_log.obj.param.x=x;
+				pen_log.obj.param.y=y;
 
 				pen_log.refreshLabel();
 				//CommandLog.appendOption();

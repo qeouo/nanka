@@ -308,15 +308,11 @@ static createNewLayer(e){
 				}
 			}
 		}
-	
-		var log ={"param":param};
 
-		command = Command[command];
-		if(command.execute){
-			command.execute(log);
-		}else{
-			command(log);
-		}
+		var commandObjs = this.commandObjs;
+		log.obj = new commandObjs[command]();
+		log.obj.param = param;
+		log.obj.func();
 	}
 	static executeCommand(command,param,flg){
 
@@ -332,19 +328,12 @@ static createNewLayer(e){
 		var log = CommandLog.createLog(command,param,flg);
 		CommandLog.appendOption();
 		var commandObjs = this.commandObjs;
-		var Command = this.Command;
-		if(commandObjs[log.command]){
-			log.obj = new commandObjs[log.command]();
-			log.obj.param = param;
-			log.obj.func();
-		}else{
-			var command = Command[log.command];
-			if(command.execute){
-				command.execute(log);
-			}else{
-				command(log);
-			}
-		}
+		log.obj = new commandObjs[command]();
+		log.obj.param = param;
+		log.obj.func();
+
+		log.refreshLabel();
+
 		return log;
 	}
 

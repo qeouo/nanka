@@ -2,20 +2,27 @@
 import {Vec2} from "../lib/vector.js"
 import Img from "../lib/img.js";
 import Hdrpaint from "../hdrpaint.js";
-var Command = Hdrpaint.Command;
-Command["resizeCanvas"] = (function(){
-	return function(log,undo_flg){
-		var width = log.param.width;
-		var height = log.param.height;
+import CommandBase from "./commandbase.js";
+import Layer from "../layer.js";
+
+class ResizeCanvas extends CommandBase{
+	undo(){
+		this.func(true);
+		
+	}
+	func(undo_flg){
+		var param  =this.param;
+		var width = param.width;
+		var height = param.height;
 		var old_width=preview.width;
 		var old_height=preview.height;
 
 		if(undo_flg){
-			width = log.undo_data.width;
-			height = log.undo_data.height;
+			width = this.undo_data.width;
+			height = this.undo_data.height;
 		}
-		if(!log.undo_data){
-			log.undo_data = {"width":old_width,"height":old_height};
+		if(!this.undo_data){
+			this.undo_data = {"width":old_width,"height":old_height};
 		}
 
 		preview.width=width;
@@ -36,4 +43,5 @@ Command["resizeCanvas"] = (function(){
 
 		root_layer.composite();
 	}
-})();
+};
+Hdrpaint.commandObjs["resizeCanvas"] = ResizeCanvas;

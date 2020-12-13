@@ -6,9 +6,9 @@ export default class CommandBase{
 		this.param={};
 		this.undo_data=null;
 	}
-	undo(){};
-	func(){};
-	undo_default(){
+
+	undo(){
+		//アンドゥ処理
 		var difs = this.undo_data.difs;
 		if(difs){
 			//画像戻す
@@ -22,5 +22,24 @@ export default class CommandBase{
 				layer.refreshImg(dif.x,dif.y,dif.img.width,dif.img.height);
 			}
 		}
+	};
+	func(){
+		//メイン処理
+	};
+
+	toString(){
+		var param_txt="";
+		var param= this.param;
+		var keys=Object.keys(param);
+		for(var ki=0;ki<keys.length;ki++){
+			var key = keys[ki];
+			if(ki){
+				param_txt+=",";
+			}
+			param_txt+=param[key];
+		}
+		return  this.name +"("+param_txt+")";
+
 	}
 };
+CommandBase.prototype.name="command";

@@ -1,20 +1,25 @@
 
 import Hdrpaint from "../hdrpaint.js";
 import Layer from "../layer.js";
-var Command = Hdrpaint.Command;
-Command["translateLayer"] = (function(){
-	return function(log,undo_flg){
-		var param = log.param;
+import CommandBase from "./commandbase.js";
+class TranslateLayer extends CommandBase{
+
+	undo(){
+		this.param.x*=-1;
+		this.param.y*=-1;
+		this.func();
+		this.param.x*=-1;
+		this.param.y*=-1;
+	}
+	func(){
+		var param = this.param;
 		var layer = Layer.findById(param.layer_id);
 
 		var x = param.x;
 		var y = param.y;
-		if(undo_flg){
-			x*=-1;
-			y*=-1;
-		}
-		if(!log.undo_data){
-			log.undo_data={};
+
+		if(!this.undo_data){
+			this.undo_data={};
 		}
 
 		if(!layer){
@@ -47,4 +52,5 @@ Command["translateLayer"] = (function(){
 			layer.refreshImg();
 		}
 	}
-})();
+};
+Hdrpaint.commandObjs["translateLayer"] = TranslateLayer;

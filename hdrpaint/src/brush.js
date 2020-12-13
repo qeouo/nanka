@@ -77,7 +77,7 @@ export default class Brush{
 
 
 		//ブラシプレビュー準備
-		pen_preview_log = new CommandLog();
+		pen_preview_log= new Hdrpaint.commandObjs.brush();
 		var param = pen_preview_log.param;
 		var pen_preview=  document.getElementById('pen_preview');
 		pen_preview_img= new Img(pen_preview.width,pen_preview.height);
@@ -234,7 +234,7 @@ export default class Brush{
 
 			var points = pen_preview_log.param.points;
 			for(var li=1;li<points.length;li++){
-				Hdrpaint.Command.drawHermitian(pen_preview_log,li);
+				pen_preview_log.draw(li);
 			}
 			var dataurl = pen_preview_img.toDataURL();
 			if(brush){

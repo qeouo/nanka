@@ -10,9 +10,8 @@ let  log_id=0;
 export default class CommandLog{
 //ログ制御
 	constructor(){
-		this.command="";
-		this.param={};
-		this.undo_data=null;
+		this.obj=null;
+		this.option=null;
 	}
 	static command_logs=[];
 
@@ -20,18 +19,8 @@ export default class CommandLog{
 	refreshLabel(){
 		var log = this;
 		//optionのテキストをセット
-		var param_txt="";
-		var param= log.param;
-		var keys=Object.keys(param);
-		for(var ki=0;ki<keys.length;ki++){
-			var key = keys[ki];
-			if(ki){
-				param_txt+=",";
-			}
-			param_txt+=param[key];
-		}
 		var label="" + ("0000" + log.id).substr(-4) + "| " 
-			+ log.command+"("+param_txt+")";
+		label = label + log.obj.toString();
 		Util.setText(this.option, label);
 	}
 
@@ -52,7 +41,7 @@ export default class CommandLog{
 		pen_log=null;
 		if(pen_func){
 			pen_func.end_flg=1;
-			pen_func.pen_log.param.points.length=pen_func.idx;
+			pen_func.pen_log.obj.param.points.length=pen_func.idx;
 			pen_func=null;
 		}
 
@@ -63,45 +52,14 @@ export default class CommandLog{
 			command_log_cursor++
 			var log = CommandLog.command_logs[command_log_cursor];
 			
-			if(log.obj){
-				log.obj.func();
-			}else{
-				let command = Hdrpaint.Command[log.command];
-				command(log);
-			}
+			log.obj.func();
 		}
 
 		for(;command_log_cursor>n;){
 			//アンドゥ
 			var log = CommandLog.command_logs[command_log_cursor];
 
-			if(log.obj){
-				log.obj.undo();
-				log.obj.undo_default();
-			}else{
-				let command = Hdrpaint.Command[log.command];
-				command(log,true);
-
-				var difs = log.undo_data.difs;
-				if(difs){
-					//画像戻す
-					var param = log.param;
-					var layer_id= param.layer_id;
-					var layer = Layer.findById(layer_id);
-
-					var x0=0,x1=0,y0=0,y1=0;
-					for(var di=difs.length;di--;){
-						var dif = difs[di];
-						Img.copy(layer.img,dif.x,dif.y,dif.img,0,0,dif.img.width,dif.img.height);
-
-						x0 = Math.min(x0,dif.x);
-						x1 = Math.max(x1,dif.img.width+dif.x);
-						y0 = Math.min(y0,dif.y);
-						y1 = Math.max(y1,dif.img.height+dif.y);
-					}
-					layer.refreshImg(x0,y0,x1-x0,y1-y0);
-				}
-			}
+			log.obj.undo();
 			command_log_cursor--;
 		}
 	}
@@ -139,12 +97,6 @@ export default class CommandLog{
 			command_log_cursor++;
 			CommandLog.command_logs.push(log);
 		}
-
-		log.command=command;
-		
-		if(param){
-			log.param=param;
-		}
 		
 		return log;
 	}
@@ -180,7 +132,7 @@ export default class CommandLog{
 		option.value = command_log_cursor;
 
 		log.option = option;
-		log.refreshLabel();
+		//log.refreshLabel();
 //		var label="" + ("0000" + log.id).substr(-4) + "| " 
 //			+ log.command+"("+param_txt+")";
 //		Util.setText(option, label);

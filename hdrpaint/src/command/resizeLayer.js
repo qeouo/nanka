@@ -1,28 +1,42 @@
 //リサイズレイヤ
 //
 import Hdrpaint from "../hdrpaint.js";
-var Command = Hdrpaint.Command;
-Command["resizeLayer"] = (function(){
-	return function(log,undo_flg){
+import CommandLog from "../commandlog.js";
+import CommandBase from "./commandbase.js";
+import Layer from "../layer.js";
+import Img from "../lib/img.js";
 
-		var param = log.param;
+class ResizeLayer extends CommandBase{
+	undo(){
+		this.func(true);
+	}
+
+	func(undo_flg){
+
+		var param = this.param;
 
 		if(param.layer_id===-1){
+			if(undo_flg){
+				for(var li=this.cmds.length;li--;){
+					this.cmds[li].undo();
+				}
+
+				return;
+			}
+
 			//全レイヤ一括の場合バッチ化
-			var logs =[];
+			var cmds =[];
 			var layers = Layer.layerArray();
 			for(var li=0;li<layers.length;li++){
 				var layer = layers[li];
 				if(layer === root_layer){continue;}
-				var _log = new CommandLog();
-				_log.command="resizeLayer";
-				_log.param={"layer_id":layer.id,"width":param.width,"height":param.height};
-				logs.push(_log);
+				var cmd = new ResizeLayer();
+				cmd.param={"layer_id":layer.id,"width":param.width,"height":param.height};
+				cmd.func();
+				cmds.push(cmd);
 			}
-			log.command="multiCommand";
-			log.param={"logs":logs};
+			this.cmds = cmds;
 
-			Command[log.command](log);
 			return;
 		}
 
@@ -37,25 +51,25 @@ Command["resizeLayer"] = (function(){
 		var height= param.height;
 
 		if(undo_flg){
-			width=log.undo_data.width;
-			height=log.undo_data.height;
+			width=this.undo_data.width;
+			height=this.undo_data.height;
 		}
 		
 		//差分ログ作成
-		if(!log.undo_data){
-			log.undo_data = {"width":old_width,"height":old_height};
+		if(!this.undo_data){
+			this.undo_data = {"width":old_width,"height":old_height};
 			var dx = old_width-width;
 			var dy = old_height-height;
-			log.undo_data.difs=[];
+			this.undo_data.difs=[];
 			
 			var dif;
 			if(dx>0){
 				dif = Hdrpaint.createDif(layer,width,0,dx,old_height);
-				log.undo_data.difs.push(dif);
+				this.undo_data.difs.push(dif);
 			}
 			if(dy>0){
 				dif= Hdrpaint.createDif(layer,0,height,old_width,dy);
-				log.undo_data.difs.push(dif);
+				this.undo_data.difs.push(dif);
 			}
 		}
 		var old_img = img;
@@ -70,4 +84,5 @@ Command["resizeLayer"] = (function(){
 			layer.parent.bubbleComposite();
 		}
 	}
-})();
+};
+Hdrpaint.commandObjs["resizeLayer"] = ResizeLayer;

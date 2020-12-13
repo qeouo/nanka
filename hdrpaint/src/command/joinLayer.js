@@ -4,14 +4,7 @@ import Hdrpaint from "../hdrpaint.js";
 import Layer from "../layer.js";
 import Img from "../lib/img.js";
 
-var commandObjs = Hdrpaint.commandObjs;
 class JoinLayer extends CommandBase{
-	constructor(){
-		super();
-	}
-	static name ="JoinLayer";
-
-
 	undo(){
 		var undo_data=this.undo_data;
 		var layer = undo_data.layer;
@@ -80,4 +73,5 @@ class JoinLayer extends CommandBase{
 	}
 
 };
-commandObjs["joinLayer"] = JoinLayer;
+JoinLayer.prototype.name ="JoinLayer";
+Hdrpaint.commandObjs["joinLayer"] = JoinLayer;
