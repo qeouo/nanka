@@ -1,6 +1,7 @@
 
 import CommandBase from "./commandbase.js";
 import Hdrpaint from "../hdrpaint.js";
+import Layer from "../layer.js";
 
 var commandObjs = Hdrpaint.commandObjs;
 class LoadImage extends CommandBase{
