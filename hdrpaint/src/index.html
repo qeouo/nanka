@@ -41,9 +41,10 @@
 		<div id="tools">
 			<ul>
 				<li><label><input type="radio" id="pen" name="tool" checked>ブラシ</label>
-				<li><label><input type="radio" id="translate" name="tool">[t]移動</label></li>
-				<li><label><input type="radio" id="fill" name="tool">[f]塗り潰し</label></li>
-				<li><label><input type="radio" id="color_picker" name="tool">(q)カラーピッカー</label></li>
+				<li><label><input type="radio" id="range" name="tool" shortcut="r">[r]矩形選択</label></li>
+				<li><label><input type="radio" id="translate" name="tool" shortcut="t">[t]移動</label></li>
+				<li><label><input type="radio" id="fill" name="tool" shortcut="f">[f]塗り潰し</label></li>
+				<li><label><input type="radio" id="color_picker" name="tool" >(q)カラーピッカー</label></li>
 			</ul>
 		</div>
 		<div id="tool_status">
@@ -102,17 +103,7 @@
 		<div class="brushes" id="brushes_container" >
 		</div>
 
-		<!-- ブラシ一覧テンプレート -->
-		<div style="display:none;" id="brush_template">
-			<div class="brush"  onclick="Brush.brushselect(event)" draggable="true" ondragstart="{Brush.DragStart(event)}" ondragover="{Brush.dragover_handler(event)}" ondragenter="{Brush.DragEnter(event)}" >
-				<img draggable="false">
-				<span class="name"></span>
-				<div class="attributes"></div>
-			</div>
-		</div>
-
-
-		<div  style="">
+		<div>
 			<ul>
 			<li><a id="add_brush" href="#" >ブラシインポート</a></li>
 			</ul>
@@ -149,6 +140,7 @@
 			<input type="text" id="canvas_height" value="256" class="size">
 			<input type="button" id="btn_resize_layer" value="アクティブレイヤをキャンバスに合わせる" >
 			<input type="button" id="btn_resize_layers" value="全レイヤをキャンバスに合わせる" >
+			背景色<input type="input" id="background_color" class="colorpickerhdr" value="1,1,1,1" style="width:10px;" readonly="readonly">
 		</div>
 		<div id="canvas_field" style="clear:both;" class="canvas_field">
 			<div id="spacer" class="spacer">
@@ -169,7 +161,7 @@
 		</div>
 
 		<div style="display:inline;position:absolute;right:0px;bottom:0px;">
-			<label><input type="checkbox" id="selected_layer_only" onchange="{Redraw.refreshPreview(1);}">(w)選択レイヤのみ表示</label>
+			<label><input type="checkbox" id="selected_layer_only">(w)選択レイヤのみ表示</label>
 		</div>
 	</div>
 

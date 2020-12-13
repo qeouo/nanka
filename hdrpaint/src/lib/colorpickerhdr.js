@@ -23,7 +23,11 @@ var updateTextArea=function(textArea){
 
 	textArea.style.backgroundImage= "linear-gradient( 0," + rgba + "," + rgba + "),url(back.png)";
 
-	textArea.style.color=(0.3*rgb[0]+0.6*rgb[1]+0.1*rgb[2]<0.5)?"white":"black";
+	if(textArea.readOnly){
+		textArea.style.color="rgba(0,0,0,0)";
+	}else{
+		textArea.style.color=(0.3*rgb[0]+0.6*rgb[1]+0.1*rgb[2]<0.5)?"white":"black";
+	}
 }
 
 
@@ -102,6 +106,7 @@ export default class ColorpickerHDR{
 				//内容変更時、背景色とカーソルをリフレッシュする
 				updateTextArea(this);
 			});
+			updateTextArea(node);
 			
 		}
 	}

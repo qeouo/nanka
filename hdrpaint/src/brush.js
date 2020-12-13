@@ -14,9 +14,50 @@ let brush_id_count=0;
 	var getBrushFromDiv=function(div){
 		var result_brush = null;
 		return brushes.find(function(a){
-			return (a.div===div);});
+			return (a.dom===div);});
 	}
 	let refreshpen_flg=true;
+
+var brushselect=function(e){
+//ブラシー一覧クリック時、クリックされたものをアクティブ化する
+
+	var brush=getBrushFromDiv(e.currentTarget);
+
+	brush.select();
+
+	e.stopPropagation();
+
+}
+	var drag_brush=null;
+	var DragStart=function(event) {
+		//ドラッグ開始
+		drag_brush= getBrushFromDiv(event.currentTarget);
+	//     event.dataTransfer.setData("text", drag_brush.id);
+
+		event.stopPropagation();
+	}
+	//ドラッグ＆ドロップによるブラシ順編集
+	var dragover_handler = function(event) {
+	 event.preventDefault();
+	 event.dataTransfer.dropEffect = "move";
+	}	
+	var DragEnter =function(event) {
+		//ドラッグ移動時
+		var drop_brush = getBrushFromDiv(event.currentTarget);
+
+		event.stopPropagation();
+		if(drag_brush=== drop_brush){
+			//自分自身の場合は無視
+			return;
+		}
+
+		var num = brushes.indexOf(drag_brush);
+		var num2= brushes.indexOf(drop_brush);
+		brushes.splice(num,1);
+
+		brushes.splice(num2,0,drag_brush);
+		Brush.refreshBrush();
+	}
 export default class Brush{
 //ブラシ
 	constructor(){
@@ -33,7 +74,24 @@ export default class Brush{
 		this.stroke_correction=0;
 		this.stroke_interpolation=1;
 		this.shortcut='';
-		this.div=[];
+
+		var html=` 
+				<img draggable="false">
+				<span class="name"></span>
+				<div class="attributes"></div>
+			`
+
+		var dom =document.createElement("div");
+		dom.insertAdjacentHTML('beforeend',html);
+
+		dom.classList.add("brush");
+		dom.setAttribute("draggable","true");
+		dom.addEventListener("click",brushselect);
+		dom.addEventListener("dragstart",DragStart);
+		dom.addEventListener("dragover",dragover_handler);
+		dom.addEventListener("dragenter",DragEnter);
+
+		this.dom=dom;
 	};
 
 	static init(){
@@ -48,7 +106,7 @@ export default class Brush{
 				if(num<=0){ return; }
 				brushes.splice(num,1);
 				brushes.splice(num-1,0,selected_brush);
-				refreshBrush();
+				Brush.refreshBrush();
 			});
 		document.querySelector("#down_brush").addEventListener(
 			"click"
@@ -57,7 +115,7 @@ export default class Brush{
 				if(num+1>=brushes.length){ return; }
 				brushes.splice(num,1);
 				brushes.splice(num+1,0,selected_brush);
-				refreshBrush();
+				Brush.refreshBrush();
 			});
 		document.querySelector("#update_brush").addEventListener(
 			"click"
@@ -117,12 +175,9 @@ export default class Brush{
 
 	//現在のブラシID 作るたびインクリメントされる
 	static create(){
-		var brush_template= document.getElementById("brush_template");
 		var brush = new Brush();
 
-		var brush_div = brush_template.children[0].cloneNode(true);
 
-		brush.div=brush_div;
 
 		brush.id=brush_id_count;
 		brush_id_count++;
@@ -168,7 +223,7 @@ export default class Brush{
 			var num = brushes.indexOf(selected_brush);
 			brushes.splice(num,1);
 
-			refreshBrush();
+			Brush.refreshBrush();
 		}
 
 		static setParam(param){
@@ -238,7 +293,7 @@ export default class Brush{
 			}
 			var dataurl = pen_preview_img.toDataURL();
 			if(brush){
-				brush.div.querySelector("img").src = dataurl;
+				brush.dom.querySelector("img").src = dataurl;
 			}else{
 				document.getElementById("pen_preview").src=dataurl;
 			}
@@ -268,9 +323,9 @@ export default class Brush{
 
 				if(selected_brush !== brush){
 					//アクティブブラシ以外の表示を非アクティブにする
-					brush.div.classList.remove("active");
+					brush.dom.classList.remove("active");
 				}else{
-					brush.div.classList.add("active");
+					brush.dom.classList.add("active");
 				}
 			}
 
@@ -301,19 +356,6 @@ export default class Brush{
 			
 		}
 
-	//ドラッグ＆ドロップによるブラシ順編集
-	static drag_brush=null;
-	static DragStart(event) {
-		//ドラッグ開始
-		drag_brush= getBrushFromDiv(event.currentTarget);
-	//     event.dataTransfer.setData("text", drag_brush.id);
-
-		event.stopPropagation();
-	}
-	static dragover_handler(event) {
-	 event.preventDefault();
-	 event.dataTransfer.dropEffect = "move";
-	}	
 
 	static refreshBrush(brush){
 		if(!brush){
@@ -321,49 +363,22 @@ export default class Brush{
 			//子ブラシセット
 			while (container.firstChild)container.removeChild(container.firstChild);
 			for(var li=0;li<brushes.length;li++){
-				container.appendChild(brushes[li].div);
+				container.appendChild(brushes[li].dom);
 			}
 
 
 		}else{
-			var div= brush.div.getElementsByClassName("name")[0];
+			var div= brush.dom.getElementsByClassName("name")[0];
 			div.innerHTML="[" + brush.shortcut + "]"  + brush.name;
-			var span = brush.div.getElementsByClassName("attributes")[0];
+			var span = brush.dom.getElementsByClassName("attributes")[0];
 			var txt="";
 			span.innerHTML = txt;
 
 		}
 	}
 
-	static DragEnter (event) {
-		//ドラッグ移動時
-		var drop_brush = getBrushFromDiv(event.currentTarget);
-
-		event.stopPropagation();
-		if(drag_brush=== drop_brush){
-			//自分自身の場合は無視
-			return;
-		}
-
-		var num = brushes.indexOf(drag_brush);
-		var num2= brushes.indexOf(drop_brush);
-		brushes.splice(num,1);
-
-		brushes.splice(num2,0,drag_brush);
-		refreshBrush();
-	}
 
 
 
-	static brushselect(e){
-	//ブラシー一覧クリック時、クリックされたものをアクティブ化する
-
-		var brush=getBrushFromDiv(e.currentTarget);
-
-		brush.select();
-
-		e.stopPropagation();
-
-	}
 };
 

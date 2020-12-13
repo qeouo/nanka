@@ -18,7 +18,7 @@ import ColorSelector from "./lib/colorselector.js";
 
 window.root_layer=null;
 window.inputs=[];
-window.doc ={};
+var shortcuts=[];
 window.pen_log=null;
 window.pen_func=null;
 
@@ -71,10 +71,14 @@ window.Hdrpaint = Hdrpaint;
 window.Brush= Brush;
 
 Hdrpaint.inputs=inputs;
-doc.draw_col=new Vec4();
-doc.scale=100;
-doc.canvas_pos=new Vec2();
-doc.cursor_pos=new Vec2();
+
+Hdrpaint.doc={};
+Hdrpaint.doc.draw_col=new Vec4();
+Hdrpaint.doc.background_color=new Vec4();
+Vec4.set(Hdrpaint.doc.background_color,1,1,1,1);
+Hdrpaint.doc.scale=100;
+Hdrpaint.doc.canvas_pos=new Vec2();
+Hdrpaint.cursor_pos=new Vec2();
 
 
 var canvas_field;
@@ -86,16 +90,28 @@ var canvas_field;
 		var input = elements[i];
 		var id= input.getAttribute("id");
 		inputs[id]= elements[i];
+
+		var input = inputs[id];
+		if(input.getAttribute("shortcut")){
+			var shortcut = {};
+			var ka= input.getAttribute("shortcut");
+			if(ka.length===1){
+				ka = ka.charCodeAt(0);
+			}
+			shortcut.key =ka;
+			shortcut.command = input;
+			shortcuts.push(shortcut);
+		}
 	}
 
 
 	var getPos=function(e){
 		var rect = preview.getBoundingClientRect();
-		doc.cursor_pos[0] =(e.clientX- rect.left)-1;
-		doc.cursor_pos[1] = (e.clientY- rect.top)-1;
+		Hdrpaint.cursor_pos[0] =(e.clientX- rect.left)-1;
+		Hdrpaint.cursor_pos[1] = (e.clientY- rect.top)-1;
 		
-		doc.cursor_pos[0]*=100/doc.scale;
-		doc.cursor_pos[1]*=100/doc.scale;
+		Hdrpaint.cursor_pos[0]*=100/Hdrpaint.doc.scale;
+		Hdrpaint.cursor_pos[1]*=100/Hdrpaint.doc.scale;
 		
 	}
 var onloadfunc=function(e){
@@ -156,8 +172,8 @@ var onloadfunc=function(e){
 	var drawfunc =function(e){
 		//描画関数
 		
-		var x =doc.cursor_pos[0];
-		var y = doc.cursor_pos[1];
+		var x =Hdrpaint.cursor_pos[0];
+		var y = Hdrpaint.cursor_pos[1];
 
 		if((e.buttons & 2) || (inputs["color_picker"].checked)){
 			//カラーピッカー
@@ -290,6 +306,18 @@ var onloadfunc=function(e){
 
 
 	
+	inputs["background_color"].addEventListener("change",function(e){
+		var sp = this.value.split(",");
+		var rgb=Hdrpaint.doc.background_color;
+		rgb[0]=Number(sp[0]);
+		rgb[1]=Number(sp[1]);
+		rgb[2]=Number(sp[2]);
+		rgb[3]=Number(sp[3]);
+
+		root_layer.composite();
+
+	});
+
 	window.addEventListener("pointerup",function(e){
 		getPos(e);
 		if(pen_log){
@@ -316,8 +344,8 @@ var onloadfunc=function(e){
 
 	preview.addEventListener("pointerdown",function(e){
 		getPos(e);
-		var x =doc.cursor_pos[0];
-		var y = doc.cursor_pos[1];
+		var x =Hdrpaint.cursor_pos[0];
+		var y = Hdrpaint.cursor_pos[1];
 		drag_start[0]= x;
 		drag_start[1]= y;
 
@@ -429,7 +457,7 @@ var onloadfunc=function(e){
 		case 87://w
 			//flg_active_layer_only=false;
 			inputs["selected_layer_only"].checked=false;
-			Redraw.refreshPreview(1);
+			Util.fireEvent(inputs["selected_layer_only"],"change");
 		}
 	});
 
@@ -439,6 +467,10 @@ var onloadfunc=function(e){
 		if(event.ctrlKey){
 			ctrlkey = true;
 		}
+		var keycode = event.keyCode;
+		if(!event.shiftKey && keycode<=96&& keycode>=65){
+			keycode +=32;
+		}
 
 		//キーショートカット
 		if(event.target.tagName==="INPUT"){
@@ -446,43 +478,39 @@ var onloadfunc=function(e){
 				return;
 			}
 		}
+		var shortcut = shortcuts.find((a)=>{return a.key === keycode});
+		if(shortcut){
+			var command = shortcut.command;
+			if(command.nodeName==="INPUT"){
+				if(command.type==="checkbox" || command.type==="radio"){
+					command.checked=true;
+				}
+				Util.fireEvent(command,"change");
+			}
+			return;
+		}
 		for(var bi=0;bi<brushes.length;bi++){
 			var brush = brushes[bi];
 			if(!brush.shortcut)continue;
-			var shortcut = brush.shortcut.toUpperCase().charCodeAt(0);
-			if(shortcut === event.keyCode){
-				brush.select();
+			var shortcut = brush.shortcut.charCodeAt(0);
+			if(shortcut === keycode){
+				brush.select()
 				return;
 			}
 		}
+		
 
-		switch(event.keyCode){
-		case 70://f
-			inputs["fill"].checked=true;
-			refreshTab("tools");
-			break;
-		case 84://t
-			inputs["translate"].checked=true;
-			refreshTab("tools");
-			break;
-		case 81://q
+		switch(keycode){
+		case 113://q
 			if(!old_tool){
 				old_tool  = document.querySelector("input[name='tool']:checked");
 			}
 			inputs["color_picker"].checked=true;
 			break;
-		case 82://r
+		case 82://R
 			Redraw.compositeAll();
 			break;
-		//case 69://e
-		//	inputs["weight"].value=parseFloat(inputs["weight"].value)-1;
-		//	Util.fireEvent(inputs["weight"],"change");
-		//	break;
-		//case 82://r
-		//	inputs["weight"].value=parseFloat(inputs["weight"].value)+1;
-		//	Util.fireEvent(inputs["weight"],"change");
-		//	break;
-		case 90:
+		case 122:
 			if(event.ctrlKey){
 				if (event.shiftKey) {
 					//リドゥ
@@ -501,18 +529,22 @@ var onloadfunc=function(e){
 			}
 			Hdrpaint.executeCommand("clear",{"layer_id":selected_layer.id});
 			break;
-		//case 32://space
-		case 87://w
+		case 119://w
 			//if(!flg_active_layer_only){
 			//	flg_active_layer_only=true;
 			//	event.preventDefault();
 			//	refreshPreview(1);
 			//}
 			inputs["selected_layer_only"].checked=true;
-			Redraw.refreshPreview(1);
+			Util.fireEvent(inputs["selected_layer_only"],"change");
+
 			break;
 		}
     });
+
+	document.querySelector("#selected_layer_only").addEventListener("change",(e)=>{
+		Redraw.refreshPreview(1);
+	});
 
 
 
@@ -661,6 +693,7 @@ var onloadfunc=function(e){
 			//中ボタンドラッグでキャンバス移動
 			//c.scrollLeft-=e.pageX-oldpos[0];
 			//c.scrollTop-=e.pageY-oldpos[1];
+			var doc = Hdrpaint.doc;
 
 			doc.canvas_pos[0]+=(e.pageX-oldpos[0]);
 			doc.canvas_pos[1]+=(e.pageY-oldpos[1]);
@@ -687,6 +720,7 @@ var onloadfunc=function(e){
 		if(!e.ctrlKey){
 			return;
 		}
+		var doc = Hdrpaint.doc;
 		var add=0;
 		e.preventDefault();
 		if(e.buttons&4){
@@ -723,7 +757,7 @@ var onloadfunc=function(e){
 		preview.style.width = (preview.width* doc.scale/100 ) + "px";
 		preview.style.height= (preview.height*doc.scale/100) + "px";
 
-		refreshPreviewStatus(e);
+		Redraw.refreshPreviewStatus(e);
 
 	}) ;
 
@@ -744,7 +778,7 @@ var onloadfunc=function(e){
 	var url=location.search.substring(1,location.search.length)
 	var args=url.split("&")
 
-	Vec4.set(doc.draw_col,0.8,0.2,0.2,1);
+	Vec4.set(Hdrpaint.doc.draw_col,0.8,0.2,0.2,1);
 
 	for(i=args.length;i--;){
 		var arg=args[i].split("=")
@@ -785,30 +819,18 @@ var onloadfunc=function(e){
 		//Hdrpaint.executeCommand("resizeLayer",{"layer_id":root_layer.id,"width":512,"height":512});
 
 		Hdrpaint.executeCommand("resizeCanvas",{"width":512,"height":512});
-		Hdrpaint.executeCommand("createNewLayer",{"position":0,"parent":root_layer.id,"width":preview.width,"height":preview.height});
 
-		var canvas_area=document.querySelector("#canvas_area");
 		var canvas_field=document.querySelector("#canvas_field");
-
-		doc.canvas_pos[0]=(canvas_field.clientWidth-512)>>1;
-		doc.canvas_pos[1]=(canvas_field.clientHeight-512)>>1;
+		Hdrpaint.doc.canvas_pos[0]=(canvas_field.clientWidth-512)>>1;
+		Hdrpaint.doc.canvas_pos[1]=(canvas_field.clientHeight-512)>>1;
 		
-		preview.style.left = doc.canvas_pos[0] + "px";
-		preview.style.top = doc.canvas_pos[1] + "px";
-
-		var layer = root_layer.children[0];
-		var img_data = layer.img.data;
-		for(var i=0;i<img_data.length;i++){
-			img_data[i]=1;
-		}
-		layer.name="background"
-		layer.refreshDiv();
-		layer.registRefreshThumbnail();
+		preview.style.left = Hdrpaint.doc.canvas_pos[0] + "px";
+		preview.style.top = Hdrpaint.doc.canvas_pos[1] + "px";
 
 		CommandLog.reset();
 
 		Hdrpaint.executeCommand("createNewLayer",{"position":1,"parent":root_layer.id,"width":preview.width,"height":preview.height});
-		layer = root_layer.children[1];
+		var layer = root_layer.children[0];
 		layer.name="default"
 		layer.refreshDiv();
 		layer.registRefreshThumbnail();

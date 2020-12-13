@@ -1,12 +1,15 @@
 //レイヤ位置移動
 import Hdrpaint from "../hdrpaint.js";
 import Layer from "../layer.js";
+import CommandBase from "./commandbase.js";
 
-var Command = Hdrpaint.Command;
-Command["moveLayer"] = (function(){
-	return function(log,undo_flg){
+class MoveLayer extends CommandBase{
+	undo(){
+		this.func(true);
+	}
+	func(undo_flg){
 
-		var param = log.param;
+		var param = this.param;
 		var layer = Layer.findById(param.layer_id);
 //		var now_parent_layer= Layer.findParent(layer);
 		var now_parent_layer= layer.parent;
@@ -16,8 +19,8 @@ Command["moveLayer"] = (function(){
 		var layer_num = layers.indexOf(layer);
 
 		if(undo_flg){
-			position = log.undo_data.before;
-			next_parent_layer= log.undo_data.before_parent;
+			position = this.undo_data.before;
+			next_parent_layer= this.undo_data.before_parent;
 		}
 		next_parent_layer = Layer.findById(next_parent_layer);
 		
@@ -35,8 +38,10 @@ Command["moveLayer"] = (function(){
 
 		next_parent_layer.append(position,layer);
 
-		if(!log.undo_data){
-			log.undo_data = {"before":layer_num,"before_parent":now_parent_layer.id};
+		if(!this.undo_data){
+			this.undo_data = {"before":layer_num,"before_parent":now_parent_layer.id};
 		}
 	}
-})();
+};
+MoveLayer.prototype.name="moveLayer";
+Hdrpaint.commandObjs["moveLayer"] = MoveLayer;

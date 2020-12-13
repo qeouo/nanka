@@ -279,7 +279,12 @@ export default class Layer{
 		composite_img.height= bottom-top;
 
 
-		composite_img.clear(0,0,composite_img.width,composite_img.height);
+		if(this === root_layer){
+			var bg = Hdrpaint.doc.background_color;
+			composite_img.fill(bg[0],bg[1],bg[2],bg[3],0,0,composite_img.width,composite_img.height);
+		}else{
+			composite_img.clear(0,0,composite_img.width,composite_img.height);
+		}
 		
 		for(var li=0;li<layers.length;li++){
 			var layer = layers[li];

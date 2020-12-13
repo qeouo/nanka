@@ -1,7 +1,7 @@
 
 import Hdrpaint from "../hdrpaint.js";
-import CommandBase from "./commandbase.js";
 import Layer from "../layer.js";
+import CommandBase from "./commandbase.js";
 class Clear extends CommandBase{
 	func(){
 		//全クリア

@@ -332,6 +332,32 @@ export default class Img{
 		
 		return img;
 	}
+	fill(r,g,b,a,x,y,w,h){
+		var data = this.data;
+		if(x === undefined){
+			var size = data.length;
+			for(var i=0;i<size;i+=4){
+				data[idx+0]=r;
+				data[idx+1]=g;
+				data[idx+2]=b;
+				data[idx+3]=a;
+			}
+		}else{
+			var img_width = this.width;
+			var bottom = Math.min(this.height, y+h);
+			var right = Math.min(img_width,x+w);
+			for(var yi=y;yi<bottom;yi++){
+				var idx = yi * img_width + x << 2;
+				var max = yi * img_width + right << 2;
+				for(;idx<max;idx+=4){
+					data[idx+0]=r;
+					data[idx+1]=g;
+					data[idx+2]=b;
+					data[idx+3]=a;
+				}
+			}
+		}
+	}
 	clear(x,y,w,h){
 		//透明でクリア
 		var data = this.data;
@@ -347,12 +373,13 @@ export default class Img{
 			for(var yi=y;yi<bottom;yi++){
 				var idx = yi * img_width + x << 2;
 				var max = yi * img_width + right << 2;
-				for(;idx<max;idx+=4){
-					data[idx+0]=1;
-					data[idx+1]=1;
-					data[idx+2]=1;
-					data[idx+3]=0;
-				}
+				data.fill(0,idx,max);
+//				for(;idx<max;idx+=4){
+//					data[idx+0]=1;
+//					data[idx+1]=1;
+//					data[idx+2]=1;
+//					data[idx+3]=0;
+//				}
 			}
 		}
 	}

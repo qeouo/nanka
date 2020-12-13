@@ -278,9 +278,10 @@ export default class Redraw{
 		//カーソル下情報表示
 		var img = root_layer.img;
 		var data = img.data;
+		var doc = Hdrpaint.doc;
 
-		var x = doc.cursor_pos[0];
-		var y = doc.cursor_pos[1];
+		var x = Hdrpaint.cursor_pos[0];
+		var y = Hdrpaint.cursor_pos[1];
 		var width=img.width;
 		var height=img.height;
 		var status2= document.getElementById("status2");
