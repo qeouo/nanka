@@ -41,7 +41,7 @@
 		<div id="tools">
 			<ul>
 				<li><label><input type="radio" id="pen" name="tool" checked>ブラシ</label>
-				<li><label><input type="radio" id="range" name="tool" shortcut="r">[r]矩形選択</label></li>
+				<li><label><input type="radio" id="rectangle" name="tool" shortcut="r">[r]矩形選択</label></li>
 				<li><label><input type="radio" id="translate" name="tool" shortcut="t">[t]移動</label></li>
 				<li><label><input type="radio" id="fill" name="tool" shortcut="f">[f]塗り潰し</label></li>
 				<li><label><input type="radio" id="color_picker" name="tool" >(q)カラーピッカー</label></li>
@@ -146,6 +146,7 @@
 			<div id="spacer" class="spacer">
 				<canvas width="256" height="256" id="preview" ></canvas>
 			</div>
+			<div class="select_rectangle"></div>
 		</div>
 		<div class="canvas_status">
 			<span id="status2">

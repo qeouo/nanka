@@ -235,3 +235,10 @@ margin-left:0px;
 #div_gradient .js-slider3{
 width:80px;
 }
+
+
+.select_rectangle{
+	border:1px solid black;
+	display:none;
+	position:absolute;
+}

@@ -193,34 +193,33 @@ var onloadfunc=function(e){
 				selectorhdr.A_txt.value = data[idx+3];
 				Util.fireEvent(selectorhdr.A_txt,"change");
 
-				//Brush.refreshPreview();
-
-				//Vec4.set(Hdrpaint.color,1,0.5,0.5,1);
-
-//				selectorhdr.setColor(Hdrpaint.color);
-
-//				inputs["color_R"].value=data[idx];
-//				inputs["color_G"].value=data[idx+1];
-//				inputs["color_B"].value=data[idx+2];
-//				inputs["color_A"].value=data[idx+3];
-//				Util.fireEvent(inputs["color_A"],"input");
-
 			}
 			return;
 		}
 
-		if(!pen_log){
+		if(!(e.buttons&1)){
 			return;
 		}
+//		if(!pen_log){
+//			return;
+//		}
 
-		if(inputs["pen"].checked){
+		if(inputs["rectangle"].checked){
+			Vec2.set(select_rectangle.p1,x,y);
+			var rect =document.querySelector(".select_rectangle");
+			var doc = Hdrpaint.doc;
+			rect.style.left=Math.min(select_rectangle.p0[0],select_rectangle.p1[0])+ doc.canvas_pos[0]+"px";
+			rect.style.top=Math.min(select_rectangle.p0[1],select_rectangle.p1[1]) +doc.canvas_pos[1] +"px";
+			rect.style.width=Math.abs(select_rectangle.p0[0]-select_rectangle.p1[0]) + "px";
+			rect.style.height=Math.abs(select_rectangle.p0[1]-select_rectangle.p1[1]) + "px";
+			rect.style.display="inline-block"
+
+
+		}else if(inputs["pen"].checked){
 			//ペンのとき
 			if(!pen_log)return;
 
 			var point=new PenPoint();
-			//selected_layer.getAbsolutePosition(absolute);
-			//point.pos[0]= x - absolute[0];
-			//point.pos[1]= y - absolute[1];
 			point.pos[0]= x;
 			point.pos[1]= y;
 			if(e.buttons&1){
@@ -304,8 +303,6 @@ var onloadfunc=function(e){
 		}
 	};
 
-
-	
 	inputs["background_color"].addEventListener("change",function(e){
 		var sp = this.value.split(",");
 		var rgb=Hdrpaint.doc.background_color;
@@ -315,7 +312,6 @@ var onloadfunc=function(e){
 		rgb[3]=Number(sp[3]);
 
 		root_layer.composite();
-
 	});
 
 	window.addEventListener("pointerup",function(e){
@@ -342,6 +338,11 @@ var onloadfunc=function(e){
 	
 	var drag_start=new Vec2();
 
+	var select_rectangle={}
+	select_rectangle.p0 = new Vec2();
+	select_rectangle.p1 = new Vec2();
+
+
 	preview.addEventListener("pointerdown",function(e){
 		getPos(e);
 		var x =Hdrpaint.cursor_pos[0];
@@ -357,7 +358,9 @@ var onloadfunc=function(e){
 
 
 
-		if(inputs["fill"].checked && (e.buttons &1)){
+		if(inputs["rectangle"].checked && (e.buttons &1)){
+			Vec2.set(select_rectangle.p0,x,y);
+		}else if(inputs["fill"].checked && (e.buttons &1)){
 			if(selected_layer.type === 1){
 				return;
 			}
