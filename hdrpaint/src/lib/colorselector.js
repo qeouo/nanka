@@ -32,7 +32,17 @@ for(var yi=0;yi<128;yi++){
 	data[idx+3]=255;
 	
 }
-var h_img_dataurl= img.toDataURL("image/png",1.0,0,0,1,128);
+var h_img_dataurl= null;
+
+img.toBlob((blob)=>{
+//	URL.revokeObjectURL(h_img_dataurl);
+	h_img_dataurl = URL.createObjectURL(blob);
+	var nodes = document.querySelectorAll(".cphdr_h_img");
+	for(var i=0;i<nodes.length;i++){
+		nodes[i].src = h_img_dataurl;
+	}
+},"image/png",1.0,0,0,1,128);
+
 
 export default class ColorSelector{
 
@@ -99,7 +109,6 @@ export default class ColorSelector{
 		Slider.init(this.div);
 
 		this.redrawSv(0);
-this.h_img.src = h_img_dataurl;
 
 		Vec3.set(col,1,1,1);
 		this.setRGB(col);
@@ -167,7 +176,11 @@ this.h_img.src = h_img_dataurl;
 				idx+=4;
 			}
 		}
-		this.sv_img.src = img.toDataURL();
+
+		img.toBlob((blob)=>{
+			URL.revokeObjectURL(this.sv_img.src);
+			this.sv_img.src =  URL.createObjectURL(blob);
+		},"image/png");
 	}
 setColor(c){
 	this.R_txt.value = c[0];

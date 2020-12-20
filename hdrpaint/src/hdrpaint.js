@@ -12,6 +12,7 @@ class Hdrpaint {
 	static Command = {};
 	static commandObjs={};
 	static painted_mask=new Float32Array(1024*1024);
+	static select_rectangle={x:0,y:0,x2:0,y2:0};
 
 	static refreshActiveLayerParam(){
 		//アクティブレイヤパラメータ更新

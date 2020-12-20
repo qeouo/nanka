@@ -654,9 +654,13 @@ export default class Layer{
 		}
 		thumbnail_img.width=newx;
 		thumbnail_img.height=newy;
-		layer_img.src = thumbnail_img.toDataURL();
 		thumbnail_img.width=64;
 		thumbnail_img.height=64;
+
+		thumbnail_img.toBlob((blob)=>{
+			URL.revokeObjectURL(layer_img.src);
+			layer_img.src = URL.createObjectURL(blob);
+		});
 
 	}
 

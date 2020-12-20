@@ -36,7 +36,7 @@ display:inline;
 .colorselector .cphdr_sv_img{
 width:128px;
 height:128px;
-	background-image:url("back.png");
+	background-image:url("./back.png");
 }
 .colorselector .cphdr_s_cursor{
 	width:128px;

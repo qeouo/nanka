@@ -363,9 +363,7 @@ export default class Img{
 		var data = this.data;
 		if(x === undefined){
 			var size = data.length;
-			for(var i=3;i<size;i+=4){
-				data[i]=0;
-			}
+			data.fill(0);
 		}else{
 			var img_width = this.width;
 			var bottom = Math.min(this.height, y+h);
@@ -400,8 +398,8 @@ export default class Img{
 		return this.toCanvas(x,y,w,h).toDataURL(p1,p2);
 		
 	}
-	toBlob= function(f,p1,p2){
-		return this.toCanvas().toBlob(f,p1,p2);
+	toBlob= function(f,p1,p2,x,y,w,h){
+		return this.toCanvas(x,y,w,h).toBlob(f,p1,p2);
 		
 	}
 

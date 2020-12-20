@@ -108,7 +108,7 @@ div.spacer{
 	min-height:0%;
 }
 #preview{
-	background-image:url(../back.png);
+	background-image:url(./back.png);
 
 	position:absolute;
 
@@ -137,7 +137,7 @@ div.spacer{
 .brush img{
 	width:128px;
 	height:24px;
-	background-image:url(../back.png);
+	background-image:url(./back.png);
 	position:absolute;
 	right:1px;
   object-fit: cover;
@@ -164,7 +164,7 @@ div.history{
 }
 
 #pen_preview{
-   background-image:url(../back.png);
+   background-image:url(./back.png);
 }
 
 /*カラーセレクタ-------------------------------------------*/
@@ -239,6 +239,10 @@ width:80px;
 
 .select_rectangle{
 	border:1px solid black;
+	border-image:url('selection.gif') repeat;
+	border-image-slice:1;
+	border-image-width:1px;
 	display:none;
 	position:absolute;
+	pointer-events:none;
 }

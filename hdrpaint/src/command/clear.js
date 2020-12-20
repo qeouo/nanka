@@ -8,16 +8,23 @@ class Clear extends CommandBase{
 
 		var param = this.param;
 		var layer = Layer.findById(param.layer_id);
+		var layer_img= layer.img;
+		var range = param.range;
+		if(!range){
+			range={};
+			range.x = 0;
+			range.y = 0;
+			range.w = layer_img.width;
+			range.h = layer_img.height;
+		}
 		if(!this.undo_data){
 			var undo_data ={};
 			this.undo_data=undo_data;
-			var layer_img= layer.img;
-			var dif=Hdrpaint.createDif(layer,0,0,layer_img.width,layer_img.height);
-			layer.img=layer_img;
+			var dif=Hdrpaint.createDif(layer,range.x,range.y,range.w,range.h);
 			undo_data.difs=[];
 			undo_data.difs.push(dif);
 		}
-		layer.img.data.fill(0);
+		layer_img.clear(range.x,range.y,range.w,range.h);
 		layer.refreshImg();
 	}
 };

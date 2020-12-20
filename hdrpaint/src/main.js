@@ -205,13 +205,17 @@ var onloadfunc=function(e){
 //		}
 
 		if(inputs["rectangle"].checked){
-			Vec2.set(select_rectangle.p1,x,y);
+			var sr = Hdrpaint.select_rectangle;
+			sr.x2 = Math.floor(x);
+			sr.y2 = Math.floor(y);
+
+			console.log(sr);
 			var rect =document.querySelector(".select_rectangle");
 			var doc = Hdrpaint.doc;
-			rect.style.left=Math.min(select_rectangle.p0[0],select_rectangle.p1[0])+ doc.canvas_pos[0]+"px";
-			rect.style.top=Math.min(select_rectangle.p0[1],select_rectangle.p1[1]) +doc.canvas_pos[1] +"px";
-			rect.style.width=Math.abs(select_rectangle.p0[0]-select_rectangle.p1[0]) + "px";
-			rect.style.height=Math.abs(select_rectangle.p0[1]-select_rectangle.p1[1]) + "px";
+			rect.style.left=(Math.min(sr.x,sr.x2) +  doc.canvas_pos[0])+"px";
+			rect.style.top=(Math.min(sr.y,sr.y2) + doc.canvas_pos[1]) +"px";
+			rect.style.width=Math.abs(sr.x2-sr.x) + "px";
+			rect.style.height=Math.abs(sr.y2-sr.y)+ "px";
 			rect.style.display="inline-block"
 
 
@@ -338,12 +342,9 @@ var onloadfunc=function(e){
 	
 	var drag_start=new Vec2();
 
-	var select_rectangle={}
-	select_rectangle.p0 = new Vec2();
-	select_rectangle.p1 = new Vec2();
 
 
-	preview.addEventListener("pointerdown",function(e){
+	window.addEventListener("pointerdown",function(e){
 		getPos(e);
 		var x =Hdrpaint.cursor_pos[0];
 		var y = Hdrpaint.cursor_pos[1];
@@ -359,7 +360,16 @@ var onloadfunc=function(e){
 
 
 		if(inputs["rectangle"].checked && (e.buttons &1)){
-			Vec2.set(select_rectangle.p0,x,y);
+			var sr= Hdrpaint.select_rectangle;
+			x = Math.floor(x);
+			y = Math.floor(y);
+			sr.x=x;
+			sr.y=y;
+			sr.x2=x;
+			sr.y2=y;
+			var rect =document.querySelector(".select_rectangle");
+			rect.style.display="none"
+			return;
 		}else if(inputs["fill"].checked && (e.buttons &1)){
 			if(selected_layer.type === 1){
 				return;
@@ -390,10 +400,10 @@ var onloadfunc=function(e){
 			drag_start[1]= y | 0;
 			var layer_id=-1;//全レイヤ移動
 			var flg_active_layer_only = inputs["selected_layer_only"].checked;
-			if(flg_active_layer_only){
+			//if(flg_active_layer_only){
 				//アクティブレイヤ
 				layer_id=selected_layer.id;
-			}
+			//}
 			pen_log = Hdrpaint.executeCommand("translateLayer",{"layer_id":layer_id,"x":0,"y":0} ,{"x":selected_layer.position[0],"y":selected_layer.position[1]},1);
 
 
@@ -527,10 +537,20 @@ var onloadfunc=function(e){
 			event.preventDefault();
 			break;
 		case 46://delete
-			if(selected_layer.type===1){
+			if(selected_layer.type!==0){
 				break;
 			}
-			Hdrpaint.executeCommand("clear",{"layer_id":selected_layer.id});
+			var sr = Hdrpaint.select_rectangle;
+			var rectangle =null;
+			if(sr.x !== sr.x2){
+				rectangle={};
+				rectangle.x = Math.min(sr.x,sr.x2);
+				rectangle.y = Math.min(sr.y,sr.y2);
+				rectangle.w = Math.abs(sr.x-sr.x2);
+				rectangle.h = Math.abs(sr.y-sr.y2);
+
+			}
+			Hdrpaint.executeCommand("clear",{"layer_id":selected_layer.id,range:rectangle});
 			break;
 		case 119://w
 			//if(!flg_active_layer_only){
@@ -543,6 +563,7 @@ var onloadfunc=function(e){
 
 			break;
 		}
+
     });
 
 	document.querySelector("#selected_layer_only").addEventListener("change",(e)=>{
@@ -684,6 +705,67 @@ var onloadfunc=function(e){
 
 	var oldpos=new Vec2();
 	canvas_field = document.getElementById("canvas_field");
+	var canvas_area = document.getElementById("canvas_area");
+	canvas_area.addEventListener("paste", function(e){
+	var data =null;
+	for(var i=0;i<e.clipboardData.types.length;i++){
+		if(e.clipboardData.types[i] ==="Files"){
+			data = e.clipboardData.items[i];
+			break;
+		}
+	}
+	if(!data){
+		return true;
+	}
+	
+	var imageFile = data.getAsFile();
+	Hdrpaint.loadImageFile_(imageFile);
+});
+	canvas_field.addEventListener( "pointerdown", function(e){
+		if(e.buttons&4){
+			oldpos[0]=e.pageX;
+			oldpos[1]=e.pageY;
+			e.preventDefault();
+		}
+	});
+
+	canvas_area.addEventListener("copy", function(e){
+		const selection = document.getSelection();
+		var clip = event.clipboardData;
+
+		//var buffer = root_layer.img.createExr(3);
+		if(selected_layer.type!==0){
+			return true;
+		}
+		var layer = selected_layer;
+		var url = layer.img.toBlob((blob)=>{
+  let data = [new ClipboardItem({ "image/png": blob})];
+
+navigator.clipboard.write(data);
+},"image/png"
+		);
+		//var file = dataURIConverter(url);
+		//clip.setData('image/png', file);
+
+		event.preventDefault();
+	});
+function dataURIConverter(dataURI) {
+    // base64/URLEncodedデータを文字列としてバイナリデータに変換する
+    var byteString = atob(dataURI.split(',')[1]);
+
+    // mimetypeを抜き出す
+    var mimeType = dataURI.split(',')[0].split(':')[1].split(';')[0];
+
+    // バイナリデータを扱えるように、typed arrayに書き換えていく
+    var buffer = new Uint8Array(byteString.length);
+    for (var i = 0; i < byteString.length; i++) {
+        buffer[i] = byteString.charCodeAt(i);// charCodeAtで配列に
+    }
+
+    // 第一引数は配列で渡し、Fileオブジェクトを返す。
+    return new File([buffer], 'ファイル名', { type:mimeType } );
+}
+
 	canvas_field.addEventListener( "pointerdown", function(e){
 		if(e.buttons&4){
 			oldpos[0]=e.pageX;

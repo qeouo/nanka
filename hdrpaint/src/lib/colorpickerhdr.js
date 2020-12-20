@@ -21,7 +21,7 @@ var updateTextArea=function(textArea){
 	//textArea.style.backgroundColor= "rgb(" + rgb[0]*255+","+rgb[1]*255+"," + rgb[2]*255 +")"
 	var rgba = Util.rgba(rgb[0]*255,rgb[1]*255,rgb[2]*255,rgb[3]);
 
-	textArea.style.backgroundImage= "linear-gradient( 0," + rgba + "," + rgba + "),url(back.png)";
+	textArea.style.backgroundImage= "linear-gradient( 0," + rgba + "," + rgba + "),url(css/back.png)";
 
 	if(textArea.readOnly){
 		textArea.style.color="rgba(0,0,0,0)";
