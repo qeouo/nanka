@@ -1,5 +1,5 @@
 
-<!-- �����ꂳ�܂ł� -->
+<!-- ごくろうさまです -->
 
 <!DOCTYPE html>
 <html>
@@ -12,96 +12,271 @@
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Cache-Control" content="no-cache" />
 <title>mapgen</title>
-<style>
-span.status{
-	display:inline-block;
-	text-align:right;
-	width:40px;
-}
-.atk{
-	background-color:#fcc;
-}
-.def{
-	background-color:#cfc;
-}
-.spd{
-	background-color:#ccf;
-}
-.lp{
-	background-color:#cff;
-}
-.bst{
-	background-color:#99c;
-}
-.n{
-	background-color:#ccc;
-}
-.r{
-	background-color:#f96;
-}
-.sr{
-	background-color:#c99;
-}
-.ur{
-	background-color:#ff6;
-}
-.rarelity{
-	width:40px;
-}
-select{
-	width:200px;
-}
-
-</style>
+<link rel="stylesheet" href="b.css">
 
 </head>
 
 <body onLoad="onloadfunc(event)">
 
-	<div>
-		<select id="head_buso">
-			<option class="n" value="0">N</option>
-			<option class="r" value="1">R</option>
+	<div class="header">
+		<span class="bui"></span>
+		<span class="buso"></span>
+		<span class="rarelity"></span>
+		<span class="header status atk"></span>
+		<span class="header status def"></span>
+		<span class="header status spd"></span>
+		<span class="header status lp"></span>
+		<span class="header status bst"></span>
+	</div>
+	<div><span class="shinki template_buso" id="shinki" ></span><span bind="biko"></span></div>
+	<div><span class="template_buso" id="head" ></span></div>
+	<div><span class="template_buso" id="body" ></span></div>
+	<div><span class="template_buso" id="arm" ></span></div>
+	<div><span class="template_buso" id="leg" ></span></div>
+	<div><span class="template_buso" id="rear" ></span></div>
+	<div><span class="template_buso" id="weapon"></span></div>
+	<div class="sub"><span class="template_buso" id="sub"></span></div>
+
+	<div class="total">
+		<span class="bui"></span>
+		<span class="buso">total</span>
+		<span class="rarelity"></span>
+		<span class="status atk" bind="total.atk"></span>
+		<span class="status def" bind="total.def"></span>
+		<span class="status spd" bind="total.spd"></span>
+		<span class="status lp" bind="total.lp"></span>
+		<span class="status bst" bind="total.bst"></span>
+	</div>
+
+
+<div style="display:none;" id="template">
+
+	<span id="buso" class="">
+		<span class="bui header"></span>
+		<select class="buso">
 		</select>
 			
-		<select id="head_rarelity" class="rarelity">
-			<option class="n" value="0">N</option>
-			<option class="r" value="1">R</option>
-			<option class="sr" value="2">SR</option>
-			<option class="ur" value="3">UR</option>
+		<select  class="rarelity">
 		</select>
-		<span>
 		<span class="status atk">1</span>
 		<span class="status def">2</span>
 		<span class="status spd">3</span>
 		<span class="status lp">4</span>
 		<span class="status bst">5</span>
-	</div>
+	</span>
 
+	<select id="rarelity" >
+		<option class="n" value="n">N</option>
+		<option class="r" value="r">R</option>
+		<option class="sr" value="sr">SR</option>
+		<option class="ur" value="ur">UR</option>
+	</select>
+</div>
 
 </body>
 
 <script type="text/javascript">
 "use strict"
 
-var onloadfunc=function(){
+var controls={};
+var values={total:{}};
+var binds=[];
+
+
+var paramnames=["atk","def","spd","lp","bst"];
+var buis=["head","body","arm","leg","rear","weapon","sub"];
+var shinkis=[
+	{name:"a",param:{atk:10,def:40,spd:2,lp:10,bst:3},apts:[{cat:"A",value:-0.2},{cat:"B",value:0.3}]}
+	,{name:"s",param:{atk:20,def:10,spd:2,lp:10,bst:3},apts:[]}
+];
+
+var busos=[
+	{bui:"head",name:"test",atk:"10",def:"11",spd:"12",lp:"13",bst:"14"}
+];
+
+var rarelityBonuses={
+	n:{atk:0,def:0,spd:0,lp:0,bst:0}
+	,r:{atk:100,def:0,spd:0,lp:0,bst:0}
+	,sr:{atk:200,def:0,spd:0,lp:0,bst:0}
+	,ur:{atk:300,def:0,spd:0,lp:0,bst:0}
 }
 
-var selects = document.getElementsByTagName("SELECT");
-for(var i=0;i<selects.length;i++){
-	if(selects[i].className ==="rarelity"){
-		selects[i].addEventListener("change",function(){
-			this.className="rarelity";
-			this.classList.add(["n","r","sr","ur"][this.value]);
-		});
-		selects[i].className="rarelity n";
+var add=function(a,b){
+	a.atk += b.atk;
+	a.def += b.def;
+	a.spd += b.spd;
+	a.lp += b.lp;
+	a.bst += b.bst;
+}
+var getStatusShinki=function(cd,rarelity,lv){
+	var result={atk:0,def:0,spd:0,lp:0,bst:0};
+	var shinki= shinkis.find((elem)=>{return cd === elem.cd});
+	if(!shinki)return result;
+
+	add(result,shinki.param);
+	var bonus = rarelityBonuses[rarelity];
+	add(result,bonus);
+	
+	return result;
+}
+var getStatus=function(cd,rarelity,lv){
+	var result={atk:0,def:0,spd:0,lp:0,bst:0};
+	var buso = busos.find((elem)=>{return cd === elem.cd});
+	if(!buso)return result;
+
+	add(result,buso);
+	var bonus = rarelityBonuses[rarelity];
+	add(result,bonus);
+	
+	return result;
+}
+
+var refreshBindData=function(){
+	for(var i=0;i<binds.length;i++){
+		const bind = binds[i];
+		var value = values;
+		for(var j=0;j<bind.variable.length;j++){
+			value = value[bind.variable[j]];
+			if(value == undefined){
+				value="err";
+				break;
+			}
+		}
+		bind.target.innerHTML = value;
 	}
 }
+var reCalc=function(){
+	var total={atk:0,def:0,spd:0,lp:0,bst:0};
+	var select = controls.buso_shinki;
+	var r = select.parentNode.querySelector(".rarelity");
+	values.shinki= getStatusShinki(select.value,r.value,0);
+	add(total,values.shinki);
+	var shinki= shinkis.find((elem)=>{return select.value === elem.cd});
+	var ap="";
+	for(var i=0;i<shinki.apts.length;i++){
+		var apt = shinki.apts[i];
+		ap += " " + apt.cat +"=" + Math.floor(apt.value*100)+"%";
+	}
+		values.biko=ap;
 
-document.getElementById("head_buso").addEventListener("change",function(){
-	this.parentNode.querySelector(".atk").innerText=this.value;
+	for(var i=0;i<buis.length;i++){
+		var bui=buis[i];
+		var buso = controls["buso_"+bui];
 
-});
+		var r = buso.parentNode.querySelector(".rarelity");
+		var buso = getStatus(buso.value,r.value,0);
+		values[bui]=buso;
+		if(bui !=="sub"){
+			add(total,buso);
+		}
+	}
+	values.total=total;
+
+	refreshBindData();
+}
+
+var onloadfunc=function(){
+
+	//部位ごとの武装フォーム作成
+	var divs= document.querySelectorAll(".template_buso");
+	var divbuso=document.querySelector("#template #buso");
+	for(var i=0;i<divs.length;i++){
+		var org = divs[i];
+		var bui = org.id;
+		if(org === divbuso)continue;
+		var div2 = divbuso.cloneNode(true);
+
+		div2.id = org.id;
+		div2.querySelector("select.buso").id="buso_"+org.id;
+		div2.classList.add(org.id);
+
+		for(var j=0;j<paramnames.length;j++){
+			div2.querySelector("span."+paramnames[j]).setAttribute("bind",bui+"."+paramnames[j]);
+		}
+
+		org.parentNode.replaceChild(div2,org);
+	}
+
+	//レアリティコンボボックス設定
+	var selects = document.querySelectorAll("select.rarelity");
+	var rare = document.getElementById("rarelity");
+	for(var i=0;i<selects.length;i++){
+		if(selects[i].className ==="rarelity"){
+			var rare2 = rare.cloneNode(true);
+			rare2.addEventListener("change",function(){
+				this.className="rarelity";
+				this.classList.add(this.value);
+
+			});
+
+			rare2.value="n";
+			rare2.className="rarelity n";
+			rare2.id = selects[i].id;
+
+			selects[i].parentNode.replaceChild(rare2,selects[i]);
+		}
+	}
+
+	//部位ごとの武装セット
+	for(var i=0;i<buis.length;i++){
+		var bui=buis[i];
+		
+		var select= document.getElementById("buso_"+bui);
+	
+		for(var j=0;j<5;j++){
+			var buso ={};
+			buso.cd=bui + ("00000"+j).slice(-5);
+			buso.bui=bui;
+			buso.name="名"+buso.cd;
+			buso.atk = j*10+1;
+			buso.def= j*10+2;
+			buso.spd= j*10+3;
+			buso.lp= j*10+4;
+			buso.bst= j*10+5;
+			busos.push(buso);
+
+			var option = document.createElement("OPTION");
+			option.innerHTML = buso.name;
+			option.value= buso.cd;
+			select.appendChild(option);
+		}
+	}
+
+	var select = document.getElementById("buso_shinki");
+	for(var j=0;j<shinkis.length;j++){
+		var s = shinkis[j];
+		s.cd="shinki"+ ("00000"+j).slice(-5);
+
+		var option = document.createElement("OPTION");
+		option.innerHTML = s.name;
+		option.value= s.cd;
+		select.appendChild(option);
+	}
+
+
+
+	//バインド
+	var bindedNodes = document.querySelectorAll("[bind]");
+	for(var i=0;i<bindedNodes.length;i++){
+		var bind={};
+		bind.target = bindedNodes[i];
+		bind.variable = bind.target.getAttribute("bind").split(".");
+		binds.push(bind);
+	}
+
+
+	var nodes= document.querySelectorAll("select");
+	for(var i=0;i<nodes.length;i++){
+		nodes[i].addEventListener("change",function(){
+			reCalc();
+		});
+		controls[nodes[i].id]=nodes[i];
+	}
+
+	reCalc();
+}
+
+
 
 </script>
 </html>
