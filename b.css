@@ -1,0 +1,117 @@
+body{
+
+}
+span{
+display:inline-block;
+}
+.header .status{
+	background-color:#333;
+	text-align:center;
+}
+
+span.bui{
+width:60px;
+}
+span.buso{
+width:200px;
+}
+.header .atk::before{
+color:#fcc;
+content:'攻';
+}
+.header .def::before{
+color:#cfc;
+content:'防';
+}
+.header .spd::before{
+color:#ff9;
+content:'速';
+}
+.header .lp::before{
+color:#ccc;
+content:'LP';
+}
+.header .bst::before{
+color:#ccf;
+content:'ブ';
+}
+
+.bui.header{
+	width:60px;
+	background-color:#333;
+	color:#ccc;
+	text-align:right;
+}
+.shinki .bui.header::before{
+	content:'神姫型';
+}
+.head .bui.header::before{
+	content:'ヘッド';
+}
+.body .bui.header::before{
+	content:'ボディ';
+}
+.arm .bui.header::before{
+	content:'アーム';
+}
+.leg .bui.header::before{
+	content:'レッグ';
+}
+.rear .bui.header::before{
+	content:'リア';
+}
+.weapon .bui.header::before{
+	content:'武器';
+}
+.sub .bui.header::before{
+	content:'サブ';
+}
+span.status{
+	display:inline-block;
+	text-align:right;
+	width:40px;
+}
+.atk{
+	background-color:#fcc;
+}
+.def{
+	background-color:#cfc;
+}
+.spd{
+	background-color:#ff9;
+}
+.lp{
+	background-color:#ccc;
+}
+.bst{
+	background-color:#ccf;
+}
+.n{
+	background-color:#ccc;
+}
+.r{
+	background-color:#f96;
+}
+.sr{
+	background-color:#c99;
+}
+.ur{
+	background-color:#ff6;
+}
+.rarelity{
+	width:40px;
+}
+select{
+	width:200px;
+}
+
+div.sub span.stat{
+	opacity:0.25;
+}
+
+span.biko{
+	font-size:small;
+}
+span.hoge{
+	padding-top:10px;
+}
