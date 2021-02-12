@@ -1,35 +1,34 @@
+var atkUp=function(values){
+	values.total.atk += Math.trunc(values.subtotal.atk * 0.01);
+}
 
-var bui_names=["shinki","head","body","arm","leg","rear","weapon","sub"];
-class Buso{
-	constructor(bui,name,atk,def,spd,lp,bst){
-		var bui_name = bui_names[bui];
-		this.cd=bui_name + Buso.seq;
-		this.bui=bui;
-		this.name=name;
-		this.atk=atk;
-		this.def=def;
-		this.spd=spd;
-		this.lp=lp;
-		this.bst=bst;
-		Buso.seq++;
+var convCsv=function(csv){
+	var tmp = csv.split("\n");
+	var ret=[];
+	var n=0;
+	for(var i=0;i<tmp.length;i++){
+		if(tmp[i].trim()==="")continue;
+		var res = tmp[i].split(",");
+		for(var j=0;j<res.length;j++){
+			res[j]=res[j].trim();
+			if(res[j]==="-"){
+				res[j]=ret[n-1][j];
+			}else if(res[j]===""){
+				res[j]=-1;
+			}else{
+				if(res[j].indexOf('"')>=0){
+					res[j]=res[j].replaceAll('"','')
+				}else{
+					res[j]=Number(res[j]);
+				}
+			}
+		}
+		ret.push(res);
+		n++;
 	}
-
+	return ret;
 }
-Buso.seq=0;
-
-class Shinki extends Buso{
-	constructor(name,atk,def,spd,lp,bst,apts){
-		super(0,name,atk,def,spd,lp,bst);
-		this.apts=apts;
-	};
-}
-class Weapon extends Buso{
-	constructor(name,atk,def,spd,lp,bst,category){
-		super(6,name,atk,def,spd,lp,bst);
-		this.category=category;
-	};
-
-}
+var bui_names=["shinki","head","body","arm","leg","rear","weapon","sub"];
 
 class Param{
 	constructor(atk=0,def=0,spd=0,lp=0,bst=0){
@@ -56,17 +55,86 @@ Data.param_names=["atk","def","spd","lp","bst"];
 Data.default_shinki_param=new Param();
 
 
+var pussive_csv=`
+	"攻撃力アップ[小]"
+`
+Data.pussives=[];
+var ret=convCsv(pussive_csv);
+for(var i=0;i<ret.length;i++){
+	var res =ret[i];
+	var pussive={};
+	pussive.name = res[0];
+	Data.pussives.push(pussive);
+}
+Data.pussives[0].func=atkUp;
+
+
 Data.shinkis=[];
-Data.shinkis.push(new Shinki("アーンヴァルMk2",0,10,20,0,0,[30,30,0,30,-15,-30,-30,30,0,0,0,30]));
-Data.shinkis.push(new Shinki("ストラーフMk2",50,30,0,0,0,[35,35,0,30,0,0,0,30,0,0,-30,0]));
+
+
+
+var shinki_csv=`
+	"アーンヴァルMk2",0,10,20,0,0,	30,30,0,30,-15,-30,-30,30,0,0,0,30
+	"ストラーフMk2",50,30,0,0,0,	35,35,0,30,0,0,0,30,0,0,-30,0
+`
+var ret=convCsv(shinki_csv);
+for(var i=0;i<ret.length;i++){
+	var res =ret[i];
+	var shinki={};
+	shinki.name=res[0];
+	shinki.atk=res[1];
+	shinki.def=res[2];
+	shinki.spd=res[3];
+	shinki.lp=res[4];
+	shinki.bst=res[5];
+	shinki.apts=res.slice(6,6+12);
+	Data.shinkis.push(shinki);
+}
 
 Data.busos=[];
-Data.busos.push(new Buso(1,"バトルスキン ヘッド",0,0,0,150,20));
-Data.busos.push(new Buso(2,"バトルスキン ボディ",0,0,0,300,0));
-Data.busos.push(new Buso(3,"バトルスキン アーム",0,0,0,300,70));
-Data.busos.push(new Buso(4,"バトルスキン レッグ",0,0,185,300,50));
-Data.busos.push(new Buso(5,"バトルスキン リア",0,0,50,0,150));
-Data.busos.push(new Weapon("素手",-4,0,0,0,51,5));
+var buso_csv=`
+	1,"バトルスキン ヘッド",0, 0,0,0,150,20 , 0
+	1,"aaaa",0, 0,0,0,150,20
+	-,-,1, 10,0,20,250,120
+	-,-,2, 20,0,20,250,120
+	-,-,3, 30,0,20,250,120
+	2,"バトルスキン ボディ",0, 0,0,0,300,0,0
+	3,"バトルスキン アーム",0, 0,0,0,300,70
+	4,"バトルスキン レッグ",0, 0,0,185,300,50
+	5,"バトルスキン リア",0, 0,0,50,0,150
+	6,"素手",0, -4,0,0,0,51 ,-1,5
+`;
+var ret=convCsv(buso_csv);
+for(var i=0;i<ret.length;i++){
+	var res =ret[i];
+	var buso={};
+	buso.cd="buso_" + i;
+
+	buso.bui=res[0];
+	buso.name=res[1];
+	buso.rarelity=res[2];
+	buso.atk=res[3];
+	buso.def=res[4];
+	buso.spd=res[5];
+	buso.lp=res[6];
+	buso.bst=res[7];
+	if(res[8] == undefined){
+		buso.pussive=-1;
+	}else{
+		buso.pussive=res[8];
+	}
+	if(res[9] == undefined){
+		buso.category=-1;
+	}else{
+		buso.category=res[9];
+	}
+	Data.busos.push(buso);
+	console.log(buso);
+
+}
+
+
+
 
 Data.rarelity_bonuses={
 	shinki:{
@@ -114,7 +182,8 @@ Data.rarelity_bonuses={
 }
 
 Data.individuals=[
-	{name:"攻",param:new Param(100,0,0,0,0)}
+	{name:"無し(DN)",param:new Param(0,0,0,0,0)}
+	,{name:"攻",param:new Param(100,0,0,0,0)}
 	,{name:"防",param:new Param(0,100,0,0,0)}
 	,{name:"体",param:new Param(0,0,0,100,0)}
 	,{name:"ブ",param:new Param(0,0,0,0,50)}

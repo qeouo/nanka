@@ -105,13 +105,13 @@ select{
 	width:200px;
 }
 
-div.sub span.stat{
+div.sub span.status{
 	opacity:0.25;
 }
 
 span.biko{
 	font-size:small;
 }
-span.hoge{
-	padding-top:10px;
+div{
+	padding-top:6px;
 }

@@ -21,24 +21,18 @@
 	<div class="header">
 		<span class="bui"></span>
 		<span class="buso"></span>
+		<span class="rarelity"></span>
 		<span class="header status atk"></span>
 		<span class="header status def"></span>
 		<span class="header status spd"></span>
 		<span class="header status lp"></span>
 		<span class="header status bst"></span>
 	</div>
-	<div>
-		<span class="bui header"></span>
-		<span style="width:200px;text-align:right;">
-			<span>基本値</span>
-		</span>
-		<span class="param" bind="default_shinki_param">
-		</span>
-	</div>
 
 	<div><span class="shinki template_buso" id="shinki" ></span><span class="biko" bind="biko"></span></div>
-	<div>
+	<div style="margin-bottom:4px;">
 		<span class="bui header"></span>
+		<span class="rarelity"></span>
 		<span style="width:200px;text-align:right;">
 			<span>アイコン</span>
 			<select id="individual" style="width:100px">
@@ -52,16 +46,21 @@
 	<div><span class="template_buso" id="arm" ></span></div>
 	<div><span class="template_buso" id="leg" ></span></div>
 	<div><span class="template_buso" id="rear" ></span></div>
-	<div><span class="template_buso" id="weapon"></span><span class="biko" bind="weapon.biko"></span></div>
-	<div class="sub"><span class="template_buso" id="sub"></span><span class="biko" bind="sub.biko"></span></div>
+	<div><span class="template_buso" id="weapon"></span></div>
+	<div class="sub"><span class="template_buso" id="sub"></div>
 
+	<br>
 	<div class="subtotal">
 		<span class="bui"></span>
+		<span class="rarelity"></span>
 		<span class="buso">小計</span>
 		<span class="param" bind="subtotal"></span>
+		<span class="biko" bind="subtotal.biko"></span>
 	</div>
+	<br>
 	<div class="total">
 		<span class="bui"></span>
+		<span class="rarelity"></span>
 		<span class="buso">武器適正やパッシブ適用後</span>
 		<span class="param" bind="total"></span>
 	</div>
@@ -73,16 +72,12 @@
 		<span class="bui header"></span>
 		<select class="buso">
 		</select>
+		<select  class="rarelity">
+		</select>
 			
 		<span class="param">
 		</span>
-		<div>
-		<span style="width:220px;text-align:right;">レアリティ</span>
-		<select  class="rarelity">
-		</select>
-		<span class="param">
-		</span>
-		</div>
+		<span class="biko"></span>
 	</span>
 
 	<select id="rarelity" >
@@ -112,6 +107,22 @@ var controls={};
 var values={total:{}};
 var binds=[];
 
+class Param{
+	constructor(atk=0,def=0,spd=0,lp=0,bst=0){
+		this.atk=atk;
+		this.def=def;
+		this.spd=spd;
+		this.lp=lp;
+		this.bst=bst;
+	}
+	set(atk,def,spd,lp,bst){
+		this.atk=atk;
+		this.def=def;
+		this.spd=spd;
+		this.lp=lp;
+		this.bst=bst;
+	}
+}
 var refreshBindData=function(){
 	for(var i=0;i<binds.length;i++){
 		const bind = binds[i];
@@ -119,7 +130,7 @@ var refreshBindData=function(){
 		for(var j=0;j<bind.variable.length;j++){
 			value = value[bind.variable[j]];
 			if(value == undefined){
-				value="err";
+				value="";
 				break;
 			}
 		}
@@ -137,12 +148,20 @@ var add=function(a,b){
 var reCalc=function(){
 	var select = controls.buso_shinki;
 	var r = select.parentNode.querySelector(".rarelity");
+	var pussives=[];
 
 	values.default_shinki_param = Data.default_shinki_param;
 	//神姫
 	var shinki= Data.shinkis.find((elem)=>{return elem.cd === select.value});
 	if(shinki){
-		values.shinki=shinki;
+		values.shinki=new Param(0,0,0,0,0);
+		add(values.shinki,shinki);
+		add(values.shinki,Data.default_shinki_param);
+
+		//レアリティ
+		var cd = controls["shinki_rarelity"].value;
+		add(values.shinki,Data.shinki_rarelity_bonus[cd]);
+
 		var ap="";
 		for(var i=0;i<shinki.apts.length;i++){
 			var apt = shinki.apts[i];
@@ -157,32 +176,28 @@ var reCalc=function(){
 	var individual= Data.individuals[cd];
 	values.individual=individual.param;
 
-	//レアリティ
-	var cd = controls["shinki_rarelity"].value;
-	values.shinki_rarelity_bonus= Data.shinki_rarelity_bonus[cd];
 	
 
 	for(var i=1;i<Data.bui_names.length;i++){
 		var bui=Data.bui_names[i];
 		var select = controls["buso_"+bui];
-		var r = controls[bui + "_rarelity"].value;
+		var r = controls[bui + "_rarelity"].selectedIndex;
 
-		if(bui==="sub"){
-			values[bui+"_rarelity_bonus"] = Data.rarelity_bonus.weapon[r];
-		}else{
-			values[bui+"_rarelity_bonus"] = Data.rarelity_bonus[bui][r];
-		}
-
-		var buso = Data.busos.find((elem)=>{return elem.cd === select.value});
+		var idx = Data.busos.findIndex((elem)=>{return elem.cd === select.value});
+		var buso = Data.busos[idx+r];
+		values[bui]=new Param(0,0,0,0,0);
 		if(buso){
-			values[bui]=buso;
+			add(values[bui],buso);
+			if(buso.pussive>=0){
+				values[bui].biko = Data.pussives[buso.pussive].name;
+
+				pussives.push(Data.pussives[buso.pussive]);
+			}
 		}
 	}
 
 	var total={atk:0,def:0,spd:0,lp:0,bst:0};
-	add(total,values.default_shinki_param);
 	add(total,values.shinki);
-	add(total,values.shinki_rarelity_bonus);
 	add(total,values.individual);
 	add(total,values.head);
 	add(total,values.body);
@@ -194,6 +209,7 @@ var reCalc=function(){
 	values.subtotal=total;
 
 	var total2={atk:0,def:0,spd:0,lp:0,bst:0};
+	values.total=total2;
 	var cd =controls["buso_weapon"].value;
 	var weapon= Data.busos.find((elem)=>{return elem.cd === cd});
 	values.weapon.biko = "["+Data.categories[weapon.category]+"]";
@@ -203,7 +219,16 @@ var reCalc=function(){
 	var hose = shinki.apts[weapon.category];
 	add(total2,total);
 	total2.atk += Math.trunc(total2.atk * hose*0.01);
-	values.total=total2;
+
+	//pussive
+	values.subtotal.biko ="";
+	if(hose!==0){
+		values.subtotal.biko += " [" + Data.categories[weapon.category] + "]"+hose+"%";
+	}
+	for(var i=0;i<pussives.length;i++){
+		values.subtotal.biko += " " + pussives[i].name;
+		pussives[i].func(values);
+	}
 
 	refreshBindData();
 }
@@ -224,8 +249,8 @@ window.onloadfunc=function(){
 		div2.classList.add(org.id);
 		div2.querySelector("select.rarelity").id=org.id+"_rarelity";
 
-		div2.querySelectorAll("span.param")[0].setAttribute("bind",bui);
-		div2.querySelectorAll("span.param")[1].setAttribute("bind",bui+"_rarelity_bonus");
+		div2.querySelector("span.param").setAttribute("bind",bui);
+		div2.querySelector("span.biko").setAttribute("bind",bui+".biko");
 
 
 		org.parentNode.replaceChild(div2,org);
@@ -272,6 +297,7 @@ window.onloadfunc=function(){
 		for(var j=0;j<Data.busos.length;j++){
 			var buso = Data.busos[j];
 			if(buso.bui !== i && !(buso.bui===6 && i===7)){continue;};
+			if(buso.rarelity !== 0){continue;};
 
 			var option = document.createElement("OPTION");
 			option.innerHTML = buso.name;
