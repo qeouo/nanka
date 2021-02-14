@@ -17,6 +17,14 @@
 </head>
 
 <body onLoad="onloadfunc(event)">
+<div style="left:0px;top:0px;position:fixed;width:100%;height:100%;background-color:black;opacity:0.6;z-index:100;">
+</div>
+<div style="position:fixed;z-index:101;width:100%;height:100%;">
+<div style="background-color:white;width:50%;height:50%;margin-left:25%;">
+aaaa
+</div>
+
+</div>
 
 <!--
 	<div class="header">
@@ -524,7 +532,7 @@ function prepareData(data){
 		passive.name=data.passive[i][0];
 		Data.passives.push(passive);
 	}
-	var correctStatus=(values,atk,def,bst,lp,spd)=>{
+	var correctStatus=(values,atk,def,spd,lp,bst)=>{
 	   values.total.atk += Math.trunc(values.subtotal.atk * 0.01*atk);
 	   values.total.def += Math.trunc(values.subtotal.def * 0.01*def);
 	   values.total.spd += Math.trunc(values.subtotal.spd * 0.01*spd);
