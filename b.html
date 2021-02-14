@@ -18,6 +18,7 @@
 
 <body onLoad="onloadfunc(event)">
 
+<!--
 	<div class="header">
 		<span class="bui"></span>
 		<span class="buso"></span>
@@ -29,6 +30,7 @@
 		<span class="header lp"></span>
 		<span class="header bst"></span>
 	</div>
+	-->
 
 	<div><span class="shinki template_buso" id="shinki" ></span><span class="biko" bind="biko"></span></div>
 	<div style="margin-bottom:4px;">
@@ -337,7 +339,7 @@ window.onloadfunc=function(){
 		var node = nodes[i];
 		var newnode = param.cloneNode(true);
 		var bindName = node.getAttribute("bind");
-		var children = newnode.children;
+		var children = newnode.querySelectorAll("[bind]");
 		for(var j=0;j<children.length;j++){
 			children[j].setAttribute("bind",bindName +"."+children[j].getAttribute("bind"));
 		}

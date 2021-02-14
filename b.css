@@ -2,6 +2,7 @@ html{
 	background-color:#888;
 	color:#fff;
 }
+
 select{
 border:none;
 }
@@ -70,22 +71,36 @@ content:'【神姫】';
 span.status{
 	display:inline-block;
 	text-align:right;
-	width:40px;
-}
-.atk{
-	background-color:#655;
-}
-.def{
-	background-color:#565;
-}
-.spd{
-	background-color:#665;
-}
-.lp{
+	width:48px;
+	position:relative;
 	background-color:#555;
 }
-.bst{
-	background-color:#556;
+span.status::before{
+position:absolute;
+	left:0px;
+	top:0px;
+	font-size:4px;
+	padding:1px;
+}
+span.status.atk::before{
+	color:#fcc;
+	content:'攻';
+}
+span.status.def::before{
+	color:#cfc;
+	content:'防';
+}
+span.status.spd::before{
+	color:#ff9;
+	content:'速';
+}
+span.status.lp::before{
+	color:#ccc;
+	content:'体';
+}
+span.status.bst::before{
+	color:#ccf;
+	content:'ブ';
 }
 .n select{
 	background-color:#eee;
