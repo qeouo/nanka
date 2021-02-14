@@ -1,16 +1,23 @@
-body{
-
+html{
+	background-color:#888;
+	color:#fff;
+}
+select{
+border:none;
 }
 span{
 display:inline-block;
 }
-.header .status{
-	background-color:#333;
+span.header {
+	background-color:#444;
 	text-align:center;
+	display:inline-block;
+	width:40px;
 }
 
 span.bui{
-width:60px;
+	text-align:right;
+width:70px;
 }
 span.buso{
 width:200px;
@@ -36,35 +43,29 @@ color:#ccf;
 content:'ブ';
 }
 
-.bui.header{
-	width:60px;
-	background-color:#333;
-	color:#ccc;
-	text-align:right;
+.shinki .bui::before{
+content:'【神姫】';
 }
-.shinki .bui.header::before{
-	content:'神姫';
+.head .bui::before{
+	content:'【ヘッド】';
 }
-.head .bui.header::before{
-	content:'ヘッド';
+.body .bui::before{
+	content:'【ボディ】';
 }
-.body .bui.header::before{
-	content:'ボディ';
+.arm .bui::before{
+	content:'【アーム】';
 }
-.arm .bui.header::before{
-	content:'アーム';
+.leg .bui::before{
+	content:'【レッグ】';
 }
-.leg .bui.header::before{
-	content:'レッグ';
+.rear .bui::before{
+	content:'【リア】';
 }
-.rear .bui.header::before{
-	content:'リア';
+.weapon .bui::before{
+	content:'【武器】';
 }
-.weapon .bui.header::before{
-	content:'武器';
-}
-.sub .bui.header::before{
-	content:'サブ';
+.sub .bui::before{
+	content:'【サブ】';
 }
 span.status{
 	display:inline-block;
@@ -72,30 +73,42 @@ span.status{
 	width:40px;
 }
 .atk{
-	background-color:#fcc;
+	background-color:#655;
 }
 .def{
-	background-color:#cfc;
+	background-color:#565;
 }
 .spd{
-	background-color:#ff9;
+	background-color:#665;
 }
 .lp{
-	background-color:#ccc;
+	background-color:#555;
 }
 .bst{
+	background-color:#556;
+}
+.n select{
+	background-color:#eee;
+}
+.r select{
+	background-color:#fc3;
+}
+.sr select{
 	background-color:#ccf;
 }
-.n{
-	background-color:#ccc;
+.ur select{
+	background-color:#ff6;
 }
-.r{
-	background-color:#f96;
+option.n{
+	background-color:#eee;
 }
-.sr{
-	background-color:#c99;
+option.r{
+	background-color:#fc3;
 }
-.ur{
+option.sr{
+	background-color:#ccf;
+}
+option.ur{
 	background-color:#ff6;
 }
 .rarelity{
@@ -119,25 +132,25 @@ div{
 	padding-top:6px;
 }
 span.passive::before{
-	background-color:#666;
+	background-color:#555;
 	color:#fff;
 	content:"パ";
 	margin-right:1px;
 }
 span.active::before{
-	background-color:#666;
+	background-color:#555;
 	color:#f66;
 	content:"ア";
 	margin-right:1px;
 }
 span.apt::before{
-	background-color:#666;
+	background-color:#555;
 	color:#6f6;
 	content:"適";
 	margin-right:1px;
 }
 span.apt_::before{
-	background-color:#666;
+	background-color:#555;
 	color:#6f6;
 	content:"適";
 	margin-right:1px;

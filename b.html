@@ -23,16 +23,16 @@
 		<span class="buso"></span>
 		<span class="rarelity"></span>
 		<span class="lv"></span>
-		<span class="header status atk"></span>
-		<span class="header status def"></span>
-		<span class="header status spd"></span>
-		<span class="header status lp"></span>
-		<span class="header status bst"></span>
+		<span class="header atk"></span>
+		<span class="header def"></span>
+		<span class="header spd"></span>
+		<span class="header lp"></span>
+		<span class="header bst"></span>
 	</div>
 
 	<div><span class="shinki template_buso" id="shinki" ></span><span class="biko" bind="biko"></span></div>
 	<div style="margin-bottom:4px;">
-		<span class="bui header"></span>
+		<span class="bui"></span>
 		<span class="rarelity"></span>
 		<span class="lv"></span>
 		<span style="width:200px;text-align:right;">
@@ -73,7 +73,7 @@
 <div style="display:none;" id="template">
 
 	<span id="buso" class="hoge">
-		<span class="bui header"></span>
+		<span class="bui"></span>
 		<select class="buso">
 		</select>
 		<select  class="rarelity">
@@ -88,7 +88,7 @@
 		<span class="biko"></span>
 	</span>
 
-	<select id="rarelity" >
+	<select id="rarelity" class="rarelity">
 		<option class="n" value="n">N</option>
 		<option class="r" value="r">R</option>
 		<option class="sr" value="sr">SR</option>
@@ -351,16 +351,21 @@ window.onloadfunc=function(){
 		if(selects[i].className ==="rarelity"){
 			var rare2 = rare.cloneNode(true);
 			rare2.addEventListener("change",function(){
-				this.className="rarelity";
-				this.classList.add(this.value);
+				var div = this.parentNode;
+				div.classList.remove("n");
+				div.classList.remove("r");
+				div.classList.remove("sr");
+				div.classList.remove("ur");
+				div.classList.add(this.value);
 
 			});
 
 			rare2.value="n";
-			rare2.className="rarelity n";
 			rare2.id = selects[i].id;
 
 			selects[i].parentNode.replaceChild(rare2,selects[i]);
+
+			rare2.parentNode.classList.add("n");
 		}
 	}
 
@@ -384,7 +389,6 @@ window.onloadfunc=function(){
 	var select = document.getElementById("buso_shinki");
 	for(var j=0;j<Data.shinkis.length;j++){
 		var s = Data.shinkis[j];
-		s.cd="shinki"+ ("00000"+j).slice(-5);
 
 		var option = document.createElement("OPTION");
 		option.innerHTML = s.name;
@@ -463,6 +467,7 @@ function prepareData(data){
 		var shinki= conv(row,0);
 		shinki.cd="shinki_"+i;
 		shinki.apts=row.slice(7,7+15);
+		shinki.apts.unshift(0);
 		Data.shinkis.push(shinki);
 	}
 	for(var i=0;i<data.individuals.length;i++){
@@ -581,9 +586,10 @@ function prepareData(data){
 }
 
 </script>
-<script type="text/javascript" src="./b_data.js"></script>
 <!--
-<script type="text/javascript" src="https://script.google.com/macros/s/AKfycbx-WLdGV8_s5s3Cus5xIltvzh76ML8EnPhmP2pX0t4/dev?callback=prepareData"></script>;
+<script type="text/javascript" src="./b_data.js"></script>
+-->
+<script type="text/javascript" src="https://script.google.com/macros/s/AKfycbx-WLdGV8_s5s3Cus5xIltvzh76ML8EnPhmP2pX0t4/dev?callback=prepareData"></script>
 </html>
 
 
