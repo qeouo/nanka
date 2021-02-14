@@ -22,6 +22,7 @@
 		<span class="bui"></span>
 		<span class="buso"></span>
 		<span class="rarelity"></span>
+		<span class="lv"></span>
 		<span class="header status atk"></span>
 		<span class="header status def"></span>
 		<span class="header status spd"></span>
@@ -33,6 +34,7 @@
 	<div style="margin-bottom:4px;">
 		<span class="bui header"></span>
 		<span class="rarelity"></span>
+		<span class="lv"></span>
 		<span style="width:200px;text-align:right;">
 			<span>アイコン</span>
 			<select id="individual" style="width:100px">
@@ -52,6 +54,7 @@
 	<br>
 	<div class="subtotal">
 		<span class="bui"></span>
+		<span class="lv"></span>
 		<span class="rarelity"></span>
 		<span class="buso">小計</span>
 		<span class="param" bind="subtotal"></span>
@@ -60,6 +63,7 @@
 	<br>
 	<div class="total">
 		<span class="bui"></span>
+		<span class="lv"></span>
 		<span class="rarelity"></span>
 		<span class="buso">武器適正やパッシブ適用後</span>
 		<span class="param" bind="total"></span>
@@ -73,6 +77,10 @@
 		<select class="buso">
 		</select>
 		<select  class="rarelity">
+		</select>
+		<select class="lv">
+			<option value="1">Lv1</option>
+			<option value="60">Lv60</option>
 		</select>
 			
 		<span class="param">
@@ -98,10 +106,25 @@
 
 </body>
 
-<script type="module">
+<script type="text/javascript">
 "use strict"
 
-import Data from "./b_data.js";
+var Data={};
+Data.passives=[];
+Data.shinkis=[];
+Data.busos=[];
+
+Data.individuals=[
+	{name:"無し(デジタル)",atk:0,def:0,spd:0,lp:0,bst:0}
+];
+Data.shinki_rarelity_bonus={
+	n:{atk:0,def:0,spd:0,lp:0,bst:0}
+	, r:{atk:5,def:5,spd:10,lp:50,bst:20}
+	,sr:{atk:10,def:10,spd:20,lp:100,bst:40}
+	,ur:{atk:15,def:15,spd:30,lp:150,bst:60}
+}
+Data.weapon_categories=[];
+Data.bui_names=["shinki","head","body","arm","leg","rear","weapon","sub"];
 
 var controls={};
 var values={total:{}};
@@ -148,7 +171,7 @@ var add=function(a,b){
 var reCalc=function(){
 	var select = controls.buso_shinki;
 	var r = select.parentNode.querySelector(".rarelity");
-	var pussives=[];
+	var passives=[];
 
 	values.default_shinki_param = Data.default_shinki_param;
 	//神姫
@@ -156,17 +179,34 @@ var reCalc=function(){
 	if(shinki){
 		values.shinki=new Param(0,0,0,0,0);
 		add(values.shinki,shinki);
-		add(values.shinki,Data.default_shinki_param);
 
 		//レアリティ
 		var cd = controls["shinki_rarelity"].value;
+		var rare = controls["shinki_rarelity"].selectedIndex;
 		add(values.shinki,Data.shinki_rarelity_bonus[cd]);
+
+		//Lv
+		//var lv= controls["shinki_lv"].value;
+		//add(values.shinki,Data.lv_bonus.shinki[rare]);
 
 		var ap="";
 		for(var i=0;i<shinki.apts.length;i++){
-			var apt = shinki.apts[i];
-			if(apt !==0){
-				ap += " [" + Data.categories[i] + "]"+apt+"%";
+			var hose= shinki.apts[i];
+			if(hose !==0){
+
+				if(hose===100){
+					hose-=20*rare;
+				}else if(hose<0){
+					hose+=5*rare;
+				}else{
+					hose-=5*rare;
+				}
+				if(hose>0){
+					ap += "<span class='apt'>[";
+				}else{
+					ap += "<span class='apt_'>[";
+				}
+				ap +=  Data.weapon_categories[i].short_name + "]"+hose+"%</span>";
 			}
 		}
 		values.biko=ap;
@@ -174,7 +214,7 @@ var reCalc=function(){
 	//アイコン
 	var cd = controls["individual"].value;
 	var individual= Data.individuals[cd];
-	values.individual=individual.param;
+	values.individual=individual;
 
 	
 
@@ -183,15 +223,35 @@ var reCalc=function(){
 		var select = controls["buso_"+bui];
 		var r = controls[bui + "_rarelity"].selectedIndex;
 
+		var lv= controls[bui +"_lv"].selectedIndex;
+
 		var idx = Data.busos.findIndex((elem)=>{return elem.cd === select.value});
 		var buso = Data.busos[idx+r];
 		values[bui]=new Param(0,0,0,0,0);
+		values[bui].biko = "";
 		if(buso){
 			add(values[bui],buso);
-			if(buso.pussive>=0){
-				values[bui].biko = Data.pussives[buso.pussive].name;
+			if(lv>0){
+				var bonus;
+				if(buso.bui===6){
+					if(bui.range===0){
+						bonus= Data.lv_bonus.weapon_short[r];
+					}else{
+						bonus= Data.lv_bonus.weapon_long[r];
+					}
+				}else{
+					bonus= Data.lv_bonus[bui][r];
+				}
+				add(values[bui],bonus);
+			}
+			if(buso.passive>0){
+				values[bui].biko = "<span class='passive'>" + Data.passives[buso.passive].name + "</span>";
 
-				pussives.push(Data.pussives[buso.pussive]);
+				passives.push(Data.passives[buso.passive]);
+			}
+			if(buso.active>0){
+				values[bui].biko = "<span class='active'>" + Data.actives[buso.active].name + "</span>";
+
 			}
 		}
 	}
@@ -212,22 +272,35 @@ var reCalc=function(){
 	values.total=total2;
 	var cd =controls["buso_weapon"].value;
 	var weapon= Data.busos.find((elem)=>{return elem.cd === cd});
-	values.weapon.biko = "["+Data.categories[weapon.category]+"]";
+	//values.weapon.biko += "["+Data.weapon_categories[weapon.category].short_name+"]";
 	cd =controls["buso_sub"].value;
 	var sub= Data.busos.find((elem)=>{return elem.cd === cd});
-	values.sub.biko = "["+Data.categories[sub.category]+"]";
+	//values.sub.biko += "["+Data.weapon_categories[sub.category].short_name+"]";
 	var hose = shinki.apts[weapon.category];
 	add(total2,total);
-	total2.atk += Math.trunc(total2.atk * hose*0.01);
 
-	//pussive
+	//passive
 	values.subtotal.biko ="";
 	if(hose!==0){
-		values.subtotal.biko += " [" + Data.categories[weapon.category] + "]"+hose+"%";
+		if(hose===100){
+			hose-=20*rare;
+		}else if(hose<0){
+			hose+=5*rare;
+		}else{
+			hose-=5*rare;
+		}
+		total2.atk += Math.trunc(total2.atk * hose*0.01);
+		if(hose>0){
+			values.subtotal.biko += "<span class='apt'>[" + Data.weapon_categories[weapon.category].short_name + "]"+hose+"%</span>";
+		}else{
+			values.subtotal.biko += "<span class='apt_'>[" + Data.weapon_categories[weapon.category].short_name + "]"+hose+"%</span>";
+		}
 	}
-	for(var i=0;i<pussives.length;i++){
-		values.subtotal.biko += " " + pussives[i].name;
-		pussives[i].func(values);
+	for(var i=0;i<passives.length;i++){
+		values.subtotal.biko += "<span class='passive'>" + passives[i].name +"</span>";
+		if(passives[i].func){
+			passives[i].func(values);
+		}
 	}
 
 	refreshBindData();
@@ -248,6 +321,7 @@ window.onloadfunc=function(){
 		div2.querySelector("select.buso").id="buso_"+org.id;
 		div2.classList.add(org.id);
 		div2.querySelector("select.rarelity").id=org.id+"_rarelity";
+		div2.querySelector("select.lv").id=org.id+"_lv";
 
 		div2.querySelector("span.param").setAttribute("bind",bui);
 		div2.querySelector("span.biko").setAttribute("bind",bui+".biko");
@@ -304,6 +378,7 @@ window.onloadfunc=function(){
 			option.value= buso.cd;
 			select.appendChild(option);
 		}
+		select.selectedIndex=1;
 
 	}
 	var select = document.getElementById("buso_shinki");
@@ -315,8 +390,9 @@ window.onloadfunc=function(){
 		option.innerHTML = s.name;
 		option.value= s.cd;
 		select.appendChild(option);
-	}
 
+	}
+	select.selectedIndex=0;
 
 
 	//バインド
@@ -346,12 +422,168 @@ window.onloadfunc=function(){
 		select.appendChild(option);
 	}
 
+	controls["shinki_lv"].setAttribute("disabled","disabled");
+
 	reCalc();
 }
 
+var conv=function(res,n){
+	var buso = {};
 
+	buso.bui=n;
+	buso.name=res[0];
+	buso.rarelity=res[1];
+	buso.atk=res[2];
+	buso.def=res[3];
+	buso.spd=res[4];
+	buso.lp=res[5];
+	buso.bst=res[6];
+	buso.passive=res[7];
+	return buso;
+}
+
+function prepareData(data){
+
+	var keys = Object.keys(data);
+	for(var i=0;i<keys.length;i++){
+		var list = data[keys[i]];
+		for(var j=0;j<list.length;j++){
+			var row = list[j];
+			for(var k=0;k<row.length;k++){
+				if(row[k]==="" || row[k]==="#N/A"){
+					row[k]=list[j-1][k];
+				}
+			}
+		}
+		
+	}
+
+	for(var i=0;i<data.shinki.length;i++){
+		var row = data.shinki[i];
+		var shinki= conv(row,0);
+		shinki.cd="shinki_"+i;
+		shinki.apts=row.slice(7,7+15);
+		Data.shinkis.push(shinki);
+	}
+	for(var i=0;i<data.individuals.length;i++){
+		var row = data.individuals[i];
+		var individual= {};
+		individual.name=row[0];
+		individual.atk=row[1];
+		individual.def=row[2];
+		individual.spd=row[3];
+		individual.lp=row[4];
+		individual.bst=row[5];
+		Data.individuals.push(individual);
+	}
+	for(var j=1;j<6;j++){
+		var bui=Data.bui_names[j];
+		var bui_data= data[bui];
+		if(!bui_data)continue;
+		for(var i=0;i<bui_data.length;i++){
+			var row = bui_data[i];
+			var buso = conv(row,j);
+			buso.cd=bui+"_"+i;
+			Data.busos.push(buso);
+		}
+	}
+
+
+	//武器カテゴリ
+	for(var j=0;j<data.weapon_categories.length;j++){
+		var cat ={}
+		cat.name=data.weapon_categories[j][0];
+		cat.short_name=data.weapon_categories[j][1];
+		Data.weapon_categories.push(cat);
+	}
+
+	//武器
+	var bui_data= data.weapon;
+	for(var i=0;i<bui_data.length;i++){
+		var row = bui_data[i];
+		var buso = conv(row,6);
+		buso.passive=-1;
+		buso.active=row[7];
+		buso.category=row[8];
+		buso.name = "["+Data.weapon_categories[buso.category].short_name+"]" + buso.name;
+		buso.range=row[9];
+		buso.cd="weapon_"+i;
+		Data.busos.push(buso);
+	}
+
+	//パッシブ
+	for(var i=0;i<data.passive.length;i++){
+		var passive={};
+		passive.name=data.passive[i][0];
+		Data.passives.push(passive);
+	}
+	var correctStatus=(values,atk,def,bst,lp,spd)=>{
+	   values.total.atk += Math.trunc(values.subtotal.atk * 0.01*atk);
+	   values.total.def += Math.trunc(values.subtotal.def * 0.01*def);
+	   values.total.spd += Math.trunc(values.subtotal.spd * 0.01*spd);
+	   values.total.lp  += Math.trunc(values.subtotal.lp  * 0.01*lp);
+	   values.total.bst += Math.trunc(values.subtotal.bst * 0.01*bst);
+	}
+	Data.passives[ 1].func=(values)=>{ correctStatus(values,2,0,0,0,0); }
+	Data.passives[ 2].func=(values)=>{ correctStatus(values,3,0,0,0,0); }
+	Data.passives[ 3].func=(values)=>{ correctStatus(values,4,0,0,0,0); }
+	Data.passives[ 4].func=(values)=>{ correctStatus(values,5,0,0,0,0); }
+	Data.passives[ 5].func=(values)=>{ correctStatus(values,0,2,0,0,0); }
+	Data.passives[ 6].func=(values)=>{ correctStatus(values,0,3,0,0,0); }
+	Data.passives[ 7].func=(values)=>{ correctStatus(values,0,4,0,0,0); }
+	Data.passives[ 8].func=(values)=>{ correctStatus(values,0,5,0,0,0); }
+	Data.passives[ 9].func=(values)=>{ correctStatus(values,0,0,2,0,0); }
+	Data.passives[10].func=(values)=>{ correctStatus(values,0,0,3,0,0); }
+	Data.passives[11].func=(values)=>{ correctStatus(values,0,0,4,0,0); }
+	Data.passives[12].func=(values)=>{ correctStatus(values,0,0,5,0,0); }
+	Data.passives[13].func=(values)=>{ correctStatus(values,0,0,0,2,0); }
+	Data.passives[14].func=(values)=>{ correctStatus(values,0,0,0,3,0); }
+	Data.passives[15].func=(values)=>{ correctStatus(values,0,0,0,4,0); }
+	Data.passives[16].func=(values)=>{ correctStatus(values,0,0,0,5,0); }
+	Data.passives[17].func=(values)=>{ correctStatus(values,0,0,0,0,2); }
+	Data.passives[18].func=(values)=>{ correctStatus(values,0,0,0,0,3); }
+	Data.passives[19].func=(values)=>{ correctStatus(values,0,0,0,0,4); }
+	Data.passives[20].func=(values)=>{ correctStatus(values,0,0,0,0,5); }
+	Data.passives[21].func=(values)=>{ correctStatus(values,1,1,1,1,1); }
+	Data.passives[22].func=(values)=>{ correctStatus(values,2,2,1,2,2); }
+	Data.passives[23].func=(values)=>{ correctStatus(values,2,2,2,2,2); }
+	Data.passives[24].func=(values)=>{ correctStatus(values,3,3,2,3,3); }
+
+	//アクティブ
+	Data.actives=[];
+	for(var i=0;i<data.active.length;i++){
+		var active={};
+		active.name=data.active[i][0];
+		Data.actives.push(active);
+	}
+
+	//レベル増加値
+	Data.bui_names=["shinki","head","body","arm","leg","rear","weapon","sub"];
+	Data.lv_bonus={};
+	var sheet_data = data.lv_bonus;
+	for(var i=0;i<sheet_data.length;){
+		var bonuses=[];
+		var bui = sheet_data[i][0];
+		for(var j=0;j<4;j++){
+			var bonus={};
+			var row = data.lv_bonus[i];
+			bonus.atk=row[3];
+			bonus.def=row[4];
+			bonus.spd=row[5];
+			bonus.lp =row[6];
+			bonus.bst=row[7];
+			bonuses.push(bonus);
+			i++;
+		}
+		Data.lv_bonus[bui] = bonuses;
+	}
+
+}
 
 </script>
+<script type="text/javascript" src="./b_data.js"></script>
+<!--
+<script type="text/javascript" src="https://script.google.com/macros/s/AKfycbx-WLdGV8_s5s3Cus5xIltvzh76ML8EnPhmP2pX0t4/dev?callback=prepareData"></script>;
 </html>
 
 

@@ -29,7 +29,7 @@ content:'速';
 }
 .header .lp::before{
 color:#ccc;
-content:'LP';
+content:'体';
 }
 .header .bst::before{
 color:#ccf;
@@ -43,7 +43,7 @@ content:'ブ';
 	text-align:right;
 }
 .shinki .bui.header::before{
-	content:'神姫型';
+	content:'神姫';
 }
 .head .bui.header::before{
 	content:'ヘッド';
@@ -101,6 +101,9 @@ span.status{
 .rarelity{
 	width:40px;
 }
+.lv{
+	width:50px;
+}
 select{
 	width:200px;
 }
@@ -114,4 +117,41 @@ span.biko{
 }
 div{
 	padding-top:6px;
+}
+span.passive::before{
+	background-color:#666;
+	color:#fff;
+	content:"パ";
+	margin-right:1px;
+}
+span.active::before{
+	background-color:#666;
+	color:#f66;
+	content:"ア";
+	margin-right:1px;
+}
+span.apt::before{
+	background-color:#666;
+	color:#6f6;
+	content:"適";
+	margin-right:1px;
+}
+span.apt_::before{
+	background-color:#666;
+	color:#6f6;
+	content:"適";
+	margin-right:1px;
+}
+span.passive{
+	margin-left:2px;
+}
+span.active{
+	margin-left:2px;
+}
+span.apt{
+	margin-left:2px;
+}
+span.apt_{
+	margin-left:2px;
+	color:#f00;
 }
