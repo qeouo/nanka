@@ -1,10 +1,48 @@
+a{
+	color:#fff;
+}
+.hidden{
+	display:none;
+}
 html{
 	background-color:#888;
 	color:#fff;
 }
+div.subwindow{
+	position:fixed;
+	z-index:100;
+	width:100%;
+	height:100%;
+	padding:0px;
+	left:0px;
+	top:0px;
+}
+div.back{
+	position:absolute;
+	width:100%;
+	height:100%;
+	background-color:black;
+	opacity:0.6;
+}
+div.submain{
+	position:relative;
+	background-color:black;
+	width:50%;
+	height:50%;
+	margin-left:25%;
+	overflow:auto;
+}
+table{
+	border-collapse: separate;
+	border-spacing: 4px 10px;
+}
+table tr:nth-child(odd) {
+	background: #333;
+}
+
 
 select{
-border:none;
+	border:none;
 }
 span{
 display:inline-block;
@@ -18,7 +56,18 @@ span.header {
 
 span.bui{
 	text-align:right;
-width:70px;
+width:80px;
+}
+select.buso{
+	display:none;
+}
+a.name{
+width:200px;
+display:inline-block;
+overflow:hidden;
+	white-space: nowrap;
+    vertical-align: middle;
+
 }
 span.buso{
 width:200px;
@@ -68,64 +117,68 @@ content:'【神姫】';
 .sub .bui::before{
 	content:'【サブ】';
 }
-span.status{
-	display:inline-block;
+.status{
 	text-align:right;
 	width:48px;
 	position:relative;
 	background-color:#555;
 }
-span.status::before{
+.status::before{
 position:absolute;
 	left:0px;
 	top:0px;
 	font-size:4px;
 	padding:1px;
 }
-span.status.atk::before{
+.status.atk::before{
 	color:#fcc;
 	content:'攻';
 }
-span.status.def::before{
+.status.def::before{
 	color:#cfc;
 	content:'防';
 }
-span.status.spd::before{
+.status.spd::before{
 	color:#ff9;
 	content:'速';
 }
-span.status.lp::before{
+.status.lp::before{
 	color:#ccc;
 	content:'体';
 }
-span.status.bst::before{
-	color:#ccf;
+.status.bst::before{
+	color:#cff;
 	content:'ブ';
 }
-.n select{
+.N select
+,option.n{
 	background-color:#eee;
 }
-.r select{
+.N a{
+	color:#eee;
+}
+.R select
+,option.r{
 	background-color:#fc3;
 }
-.sr select{
+.R a{
+	color:#fc3;
+}
+.SR select
+,option.sr{
 	background-color:#ccf;
 }
-.ur select{
+.SR a{
+	color:#ccf;
+}
+.UR select
+,option.ur{
 	background-color:#ff6;
 }
-option.n{
-	background-color:#eee;
+.UR a{
+	color:#ff6;
 }
-option.r{
-	background-color:#fc3;
-}
-option.sr{
-	background-color:#ccf;
-}
-option.ur{
-	background-color:#ff6;
-}
+
 .rarelity{
 	width:40px;
 }

@@ -17,12 +17,18 @@
 </head>
 
 <body onLoad="onloadfunc(event)">
-<div style="left:0px;top:0px;position:fixed;width:100%;height:100%;background-color:black;opacity:0.6;z-index:100;">
-</div>
-<div style="position:fixed;z-index:101;width:100%;height:100%;">
-<div style="background-color:white;width:50%;height:50%;margin-left:25%;">
-aaaa
-</div>
+<div  class="subwindow" id="subwindow" style="display:none;">
+	<div  class="back">
+	</div>
+	<div style="" class="submain">
+		<table>
+			<th>
+				<tr><td>名称</td><td>ステータス</td></tr>
+			</th>
+			<tbody id="subbody">
+			</tbody>
+		</table>
+	</div>
 
 </div>
 
@@ -84,25 +90,27 @@ aaaa
 
 	<span id="buso" class="hoge">
 		<span class="bui"></span>
-		<select class="buso">
+		<select class="buso" >
 		</select>
-		<select  class="rarelity">
+		<a class="name" bind="name" href="#">
+		</a>
+		<select  class="rarelity" bind="rarelity">
 		</select>
-		<select class="lv">
+		<select class="lv" bind="lv">
 			<option value="1">Lv1</option>
 			<option value="60">Lv60</option>
 		</select>
 			
-		<span class="param">
+		<span class="param" bind="">
 		</span>
-		<span class="biko"></span>
+		<span class="biko" bind="biko"></span>
 	</span>
 
-	<select id="rarelity" class="rarelity">
-		<option class="n" value="n">N</option>
-		<option class="r" value="r">R</option>
-		<option class="sr" value="sr">SR</option>
-		<option class="ur" value="ur">UR</option>
+	<select id="rarelity" class="rarelity" bind="rarelity">
+		<option class="n" value="0">N</option>
+		<option class="r" value="1">R</option>
+		<option class="sr" value="2">SR</option>
+		<option class="ur" value="3">UR</option>
 	</select>
 
 	<span id="param">
@@ -125,41 +133,47 @@ Data.shinkis=[];
 Data.busos=[];
 
 Data.individuals=[
-	{name:"無し(デジタル)",atk:0,def:0,spd:0,lp:0,bst:0}
+	{name:"",atk:0,def:0,spd:0,lp:0,bst:0}
 ];
-Data.shinki_rarelity_bonus={
-	n:{atk:0,def:0,spd:0,lp:0,bst:0}
-	, r:{atk:5,def:5,spd:10,lp:50,bst:20}
-	,sr:{atk:10,def:10,spd:20,lp:100,bst:40}
-	,ur:{atk:15,def:15,spd:30,lp:150,bst:60}
-}
+Data.shinki_rarelity_bonus=[
+	{atk:0,def:0,spd:0,lp:0,bst:0}
+	,{atk:5,def:5,spd:10,lp:50,bst:20}
+	,{atk:10,def:10,spd:20,lp:100,bst:40}
+	,{atk:15,def:15,spd:30,lp:150,bst:60}
+];
 Data.weapon_categories=[];
 Data.bui_names=["shinki","head","body","arm","leg","rear","weapon","sub"];
 
 var controls={};
-var values={total:{}};
+var values={total:{},subtotal:{}};
+for(var i=0;i<Data.bui_names.length;i++){
+	values[Data.bui_names[i]]={};
+	values[Data.bui_names[i]].rarelity=0;
+}
 var binds=[];
 
-class Param{
-	constructor(atk=0,def=0,spd=0,lp=0,bst=0){
-		this.atk=atk;
-		this.def=def;
-		this.spd=spd;
-		this.lp=lp;
-		this.bst=bst;
+var setBindValue=function(target,n){
+	const bind = binds.find((elem)=>{return elem.target ===target});
+	var val =getBindValue(target,1);
+	val[bind.variable[bind.variable.length-1]]=n;
+}
+var getBindValue=function(target,n){
+	var value=values;
+	const bind = binds.find((elem)=>{return elem.target===target});
+	for(var j=0;j<bind.variable.length-n;j++){
+		value = value[bind.variable[j]];
+		if(value == undefined){
+			value=null;
+			break;
+		}
 	}
-	set(atk,def,spd,lp,bst){
-		this.atk=atk;
-		this.def=def;
-		this.spd=spd;
-		this.lp=lp;
-		this.bst=bst;
-	}
+	return value;
 }
 var refreshBindData=function(){
 	for(var i=0;i<binds.length;i++){
 		const bind = binds[i];
 		var value = values;
+		var target = bind.target;
 		for(var j=0;j<bind.variable.length;j++){
 			value = value[bind.variable[j]];
 			if(value == undefined){
@@ -167,8 +181,19 @@ var refreshBindData=function(){
 				break;
 			}
 		}
-		bind.target.innerHTML = value;
+		if(target.tagName==="INPUT" || target.tagName==="SELECT"){
+			target.value = value;
+		}else{
+			target.innerHTML = value;
+		}
 	}
+}
+var reset=function(a){
+	a.atk = 0;
+	a.def = 0;
+	a.spd = 0;
+	a.lp  = 0;
+	a.bst = 0;
 }
 var add=function(a,b){
 	a.atk += b.atk;
@@ -180,20 +205,26 @@ var add=function(a,b){
 
 var reCalc=function(){
 	var select = controls.buso_shinki;
-	var r = select.parentNode.querySelector(".rarelity");
 	var passives=[];
 
-	values.default_shinki_param = Data.default_shinki_param;
+	var nodes = document.querySelectorAll("select[bind]");
+	for(var i=0;i<nodes.length;i++){
+		var node = nodes[i];
+		setBindValue(node,node.value);
+	}
+
+
 	//神姫
+	values.default_shinki_param = Data.default_shinki_param;
 	var shinki= Data.shinkis.find((elem)=>{return elem.cd === select.value});
 	if(shinki){
-		values.shinki=new Param(0,0,0,0,0);
+		reset(values.shinki);
 		add(values.shinki,shinki);
+		values.shinki.name=shinki.name;
 
 		//レアリティ
-		var cd = controls["shinki_rarelity"].value;
-		var rare = controls["shinki_rarelity"].selectedIndex;
-		add(values.shinki,Data.shinki_rarelity_bonus[cd]);
+		var rare = values.shinki.rarelity;// controls["shinki_rarelity"].value;
+		add(values.shinki,Data.shinki_rarelity_bonus[rare]);
 
 		//Lv
 		//var lv= controls["shinki_lv"].value;
@@ -228,20 +259,30 @@ var reCalc=function(){
 
 	
 
+	//武装
 	for(var i=1;i<Data.bui_names.length;i++){
 		var bui=Data.bui_names[i];
 		var select = controls["buso_"+bui];
-		var r = controls[bui + "_rarelity"].selectedIndex;
+		//var r = controls[bui + "_rarelity"].selectedIndex;
+		var r = values[bui].rarelity;
 
-		var lv= controls[bui +"_lv"].selectedIndex;
+		var lv= values[bui].lv;
 
-		var idx = Data.busos.findIndex((elem)=>{return elem.cd === select.value});
-		var buso = Data.busos[idx+r];
-		values[bui]=new Param(0,0,0,0,0);
+		var cd = values[bui].cd;
+
+		var idx = Data.busos.findIndex((elem)=>{return elem.cd === cd;});
+		var buso = Data.busos[idx];
+		if(buso.rarelity !== r){
+			idx += r -buso.rarelity;
+			buso = Data.busos[idx];
+			values[bui].cd = buso.cd;
+		}
+		values[bui].name=buso.name;
+		reset(values[bui]);
 		values[bui].biko = "";
 		if(buso){
 			add(values[bui],buso);
-			if(lv>0){
+			if(lv==60){
 				var bonus;
 				if(buso.bui===6){
 					if(bui.range===0){
@@ -266,7 +307,8 @@ var reCalc=function(){
 		}
 	}
 
-	var total={atk:0,def:0,spd:0,lp:0,bst:0};
+	var total=values.subtotal;
+	reset(total);
 	add(total,values.shinki);
 	add(total,values.individual);
 	add(total,values.head);
@@ -276,10 +318,10 @@ var reCalc=function(){
 	add(total,values.rear);
 	add(total,values.weapon);
 	
-	values.subtotal=total;
 
-	var total2={atk:0,def:0,spd:0,lp:0,bst:0};
+	var total2=values.total;
 	values.total=total2;
+	reset(total2);
 	var cd =controls["buso_weapon"].value;
 	var weapon= Data.busos.find((elem)=>{return elem.cd === cd});
 	//values.weapon.biko += "["+Data.weapon_categories[weapon.category].short_name+"]";
@@ -333,8 +375,11 @@ window.onloadfunc=function(){
 		div2.querySelector("select.rarelity").id=org.id+"_rarelity";
 		div2.querySelector("select.lv").id=org.id+"_lv";
 
+		var children = div2.querySelectorAll("[bind]");
+		for(var j=0;j<children.length;j++){
+			children[j].setAttribute("bind",bui+"."+children[j].getAttribute("bind"));
+		}
 		div2.querySelector("span.param").setAttribute("bind",bui);
-		div2.querySelector("span.biko").setAttribute("bind",bui+".biko");
 
 
 		org.parentNode.replaceChild(div2,org);
@@ -354,29 +399,28 @@ window.onloadfunc=function(){
 
 		node.parentNode.replaceChild(newnode,node);
 	}
+
 	//レアリティコンボボックス設定
+	var rarelity_label=["N","R","SR","UR"];
 	var selects = document.querySelectorAll("select.rarelity");
 	var rare = document.getElementById("rarelity");
 	for(var i=0;i<selects.length;i++){
-		if(selects[i].className ==="rarelity"){
-			var rare2 = rare.cloneNode(true);
-			rare2.addEventListener("change",function(){
-				var div = this.parentNode;
-				div.classList.remove("n");
-				div.classList.remove("r");
-				div.classList.remove("sr");
-				div.classList.remove("ur");
-				div.classList.add(this.value);
-
-			});
-
-			rare2.value="n";
-			rare2.id = selects[i].id;
-
-			selects[i].parentNode.replaceChild(rare2,selects[i]);
-
-			rare2.parentNode.classList.add("n");
+		var rare2 = rare.cloneNode(true);
+		var org = selects[i];
+		rare2.addEventListener("change",function(){
+			var div = this.parentNode;
+			for(var j=0;j<rarelity_label.length;j++){
+				div.classList.remove(rarelity_label[j]);
+			}
+			div.classList.add(rarelity_label[this.selectedIndex]);
+		});
+		if(org.getAttribute("bind") !== null){
+			rare2.setAttribute("bind",org.getAttribute("bind"));
 		}
+
+
+		org.parentNode.replaceChild(rare2,org);
+
 	}
 
 	//部位ごとの武装セット
@@ -395,6 +439,33 @@ window.onloadfunc=function(){
 		}
 		select.selectedIndex=1;
 
+		var f=(function(bui){
+		  return function(e){
+			values[bui].cd= e.currentTarget.value;
+		  }
+		})(bui);
+	  select.addEventListener("change",f);
+	  
+		f=(function(bui){
+			return function(e){
+				var target = e.currentTarget;
+				var rarelity = target.parentNode.querySelector(".rarelity").selectedIndex;
+	  			var target =Data.bui_names[bui];
+	  			if(bui===7){
+	  				bui=6
+				}
+
+				openSubWindow(target,bui,rarelity);
+				e.preventDefault();
+				return false;
+			}
+		})(i);
+		
+		var span = select.parentNode.querySelector(".name");
+		span.addEventListener("click",f);
+		//select.addEventListener("click",f);
+	 	values[bui].cd=select.value;
+
 	}
 	var select = document.getElementById("buso_shinki");
 	for(var j=0;j<Data.shinkis.length;j++){
@@ -407,6 +478,7 @@ window.onloadfunc=function(){
 
 	}
 	select.selectedIndex=0;
+	values.shinki.cd=select.value;
 
 
 	//バインド
@@ -439,6 +511,7 @@ window.onloadfunc=function(){
 	controls["shinki_lv"].setAttribute("disabled","disabled");
 
 	reCalc();
+
 }
 
 var conv=function(res,n){
@@ -593,6 +666,72 @@ function prepareData(data){
 		Data.lv_bonus[bui] = bonuses;
 	}
 
+}
+
+	  var sub_target=null;
+	  var openSubWindow=function(target,bui,rarelity){
+	  		sub_target=target;
+	//		var rarelity = sub_target.parentNode.querySelector(".rarelity").selectedIndex;
+
+			  var data =[];
+			for(var i=0;i<Data.busos.length;i++){
+				var buso = Data.busos[i];
+				if(buso.bui !== bui || buso.rarelity !==rarelity){
+					continue;
+				}
+				data.push(buso);
+
+			}
+			  createTable(data);
+			var subwindow= document.querySelector("#subwindow");
+			subwindow.style.display="block";
+	  }
+
+	var closeSubWindow=(e)=>{
+		var subwindow= document.querySelector("#subwindow");
+		subwindow.style.display="none";
+
+		if(e===null){
+			return;
+		}
+
+		var h=e.currentTarget.parentNode.querySelector(".hidden");
+		//controls["buso_head"].value=h.innerHTML;
+		values[sub_target].cd = h.innerHTML;
+
+		reCalc();
+	}
+var params=["atk","def","spd","lp","bst"];
+var createTable=function(data){
+	var tbody = document.querySelector("#subbody");
+	tbody.innerHTML="";
+	for(var i=0;i<data.length;i++){
+		var buso = data[i];
+		
+		var tr = document.createElement("tr");
+		var td = document.createElement("td");
+		var a= document.createElement("a");
+		a.setAttribute("href","#");
+		a.onclick=closeSubWindow;
+		var hidden= document.createElement("span");
+		hidden.className="hidden";
+		hidden.innerHTML =buso.cd;
+		
+		a.innerHTML = buso.name;
+		a.appendChild(hidden);
+		td.appendChild(a);
+		tr.appendChild(td);
+
+	  
+
+		for(var j=0;j<params.length;j++){
+			td = document.createElement("td");
+			td.className="status "+params[j];
+			td.innerHTML = buso[params[j]];
+			tr.appendChild(td);
+		}
+		tbody.appendChild(tr);
+	}
 }
 
 </script>
