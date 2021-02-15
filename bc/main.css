@@ -76,7 +76,7 @@ span.header {
 	width:40px;
 }
 
-span.bui{
+span.part{
 	text-align:right;
 width:80px;
 }
@@ -116,28 +116,28 @@ color:#ccf;
 content:'ブ';
 }
 
-.shinki .bui::before{
+.shinki .part::before{
 content:'【神姫】';
 }
-.head .bui::before{
+.head .part::before{
 	content:'【ヘッド】';
 }
-.body .bui::before{
+.body .part::before{
 	content:'【ボディ】';
 }
-.arm .bui::before{
+.arm .part::before{
 	content:'【アーム】';
 }
-.leg .bui::before{
+.leg .part::before{
 	content:'【レッグ】';
 }
-.rear .bui::before{
+.rear .part::before{
 	content:'【リア】';
 }
-.weapon .bui::before{
+.weapon .part::before{
 	content:'【武器】';
 }
-.sub .bui::before{
+.sub .part::before{
 	content:'【サブ】';
 }
 .status{
