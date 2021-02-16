@@ -58,7 +58,7 @@
 	<div class="sub"><span class="template_part" id="sub"></div>
 
 	<br>
-	<div class="subtotal">
+	<div>
 		<span class="part"></span>
 		<span class="lv"></span>
 		<span class="rarelity"></span>
@@ -67,7 +67,7 @@
 		<span class="biko" bind="subtotal.biko"></span>
 	</div>
 	<br>
-	<div class="total">
+	<div>
 		<span class="part"></span>
 		<span class="lv"></span>
 		<span class="rarelity"></span>
@@ -79,14 +79,12 @@
 
 <div style="display:none;" id="template">
 
-	<span id="buso" class="hoge">
+	<span id="buso">
 		<span class="part"></span>
-		<select class="buso" >
-		</select>
-			<span class="name">
+		<span class="name">
 		<a bind=".name" href="#">
 		</a>
-			</span>
+		</span>
 		<select  class="rarelity" bind=".rarelity">
 		</select>
 		<select class="lv" bind=".lv">
@@ -388,13 +386,10 @@ var onloadfunc=function(){
 		}
 
 	  
-		var span = clone.querySelector(".name");
+		var span = clone.querySelector(".name a");
 		span.addEventListener("click"
 			,(function(part_cd,part_idx){
 				return function(e){
-
-					values.subwindow_part="【"+const_lists.part_name[part_idx]+"】";
-					Bind.refresh();
 					openSubWindow(part_cd,part_idx,Number(values[part_cd].rarelity));
 					e.preventDefault();
 					return false;
@@ -542,6 +537,7 @@ function prepareData(data){
 		shinki.bst=row[6];
 		shinki.apts=row.slice(7,7+15);
 		shinki.apts.unshift(0);
+		shinki.rarelity=0;
 		Data.shinkis.push(shinki);
 	}
 	//アイコン補正
@@ -640,23 +636,56 @@ function prepareData(data){
 	  var sub_target=null;
 	  var sub_header=[];
 	  var table_data=[];
+	  var filterd_table_data=[];
+	  var table_filter=[];
+	  var table_sorter=[];
 	  var openSubWindow=function(target,part,rarelity){
 	  		sub_target=target;
+			table_filter=[];
 
-			sub_header=[["name","name"],["atk","atk"],["def","def"],["spd","spd"],["lp","lp"],["bst","bst"]];
-	  		if(part===0){
-	  			table_data = Data.shinkis;
-		 	}else{
+
+			sub_header=[["name","name"]
+				,["攻撃力","atk"]
+				,["防御力","def"]
+				,["スピード","spd"]
+				,["体力","lp"]
+				,["ブースト","bst"]];
+			if(part===0){
+				table_data = Data.shinkis;
+			}else{
 			  sub_header.unshift(["分類","class",function(e){return const_lists.class[e.class];}]);
-	  			if(part===6){
-			 		sub_header.splice(2,0,["カテゴリ","category",function(e){return weapon_categories[e.category].short_name;}]); 
-			 		 sub_header.push(["active","active",function(e){return Data.actives[e.active].name + (e.effect?"["+const_lists.effect[e.effect]+"]":"");}]); 
-	  			}else{
-			 		 sub_header.push(["passive","passive",function(e){return Data.passives[e.passive].name + (e.effect?"["+const_lists.effect[e.effect]+"]":"");}]); 
-	  }
-			  if(part===5){ sub_header.push(["飛行","flying",function(e){return const_lists.flying[e.flying]}]); }
-				table_data= Data.busos.filter(function(e){return e.part === part && e.rarelity === rarelity;});
-	 		}
+				if(part===6){
+					sub_header.splice(2,0,["カテゴリ","category" ,function(e){
+						return weapon_categories[e.category].short_name;}]); 
+					 sub_header.push(["active","active",function(e){
+						 return Data.actives[e.active].name + (e.effect?"["+const_lists.effect[e.effect]+"]":"");}]); 
+				}else{
+					 sub_header.push(["passive","passive",function(e){
+						 return Data.passives[e.passive].name + (e.effect?"["+const_lists.effect[e.effect]+"]":"");}]); 
+				}
+				if(part===5){
+					sub_header.push(["飛行","flying",function(e){return const_lists.flying[e.flying]}]);
+				}
+				table_filter.push({name:"part",value:part,title:"【"+const_lists.part_name[part]+"】"});
+				table_filter.push({name:"rarelity",value:rarelity,title:const_lists.rarelity[rarelity]});
+				table_data = Data.busos;
+			}
+
+			//ヘッダ作る
+			var tr = document.createElement("tr");
+			for(var i=0;i<sub_header.length;i++){
+				var cd = sub_header[i][1];
+				var th = document.createElement("th");
+				var a= document.createElement("a");
+				a.textContent=sub_header[i][0];
+				a.onclick=(function(cd){return function(e){createTable(cd);}})(cd);
+				a.href="#";
+				th.className=cd;
+				th.appendChild(a);
+				tr.appendChild(th);
+			}
+			var header = document.querySelector("#sub_head tr");
+			header.parentNode.replaceChild(tr,header);
 			createTable();
 			var subwindow= document.querySelector("#subwindow");
 			subwindow.style.display="block";
@@ -672,7 +701,21 @@ function prepareData(data){
 	}
 
 var createTable=function(sort_member){
-	var data= table_data;
+
+	var data= table_data.filter(function(e){
+		var flg=true;
+		table_filter.forEach(function(e2){
+			flg &= (e[e2.name] === e2.value);
+		});
+		return flg;
+	});
+	values.subwindow_part="";
+	table_filter.forEach(function(e2){
+		values.subwindow_part+=e2.title;
+	});
+
+
+	Bind.refresh();
 	if(sort_member){
 		if(values.old_sort === sort_member){
 			data.sort(function(a,b){return a[sort_member]> b[sort_member]?1:-1;});
@@ -683,21 +726,6 @@ var createTable=function(sort_member){
 		}
 	}
 
-//ヘッダ作る
-	var tr = document.createElement("tr");
-	for(var i=0;i<sub_header.length;i++){
-		var cd = sub_header[i][1];
-		var th = document.createElement("th");
-		var a= document.createElement("a");
-		a.textContent=sub_header[i][0];
-		a.onclick=(function(cd){return function(e){createTable(cd);}})(cd);
-		a.href="#";
-	 	th.className=cd;
-		th.appendChild(a);
-		tr.appendChild(th);
-	}
-	var header = document.querySelector("#sub_head tr");
-	header.parentNode.replaceChild(tr,header);
 
 //ボディ作る
 	var tbody = document.querySelector("#sub_body");
@@ -719,6 +747,9 @@ var createTable=function(sort_member){
 				var a= document.createElement("a");
 				a.setAttribute("href","#");
 				a.textContent = content;
+				if(rowdata.rarelity){
+					a.className =const_lists.rarelity[rowdata.rarelity];
+				}
 				a.onclick=(function(cd){return function(e){closeSubWindow(cd);}})(rowdata.cd);
 				td.appendChild(a);
 			}else if(['atk','def','spd','lp','bst'].indexOf(param_cd)>=0){

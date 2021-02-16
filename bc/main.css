@@ -202,30 +202,34 @@ td span.status{
 }
 .N select
 ,option.N{
+	color:initial;
 	background-color:#eee;
 }
-.N a{
+.N a,.N .part,.name .N{
 	color:#eee;
 }
 .R select
 ,option.R{
+	color:initial;
 	background-color:#fc3;
 }
-.R a{
+.R a,.R .part,.name .R{
 	color:#fc3;
 }
 .SR select
 ,option.SR{
+	color:initial;
 	background-color:#ccf;
 }
-.SR a{
+.SR a,.SR .part,.name .SR{
 	color:#ccf;
 }
 .UR select
 ,option.UR{
+	color:initial;
 	background-color:#ff6;
 }
-.UR a{
+.UR a,.UR .part,.name .UR{
 	color:#ff6;
 }
 
