@@ -5,14 +5,30 @@ th{
 thead,tbody{
 	display:block;
 }
+tr .passive{
+	width:200px;
+}
+tr .category{
+	width:80px;
+}
+tr .active{
+	width:200px;
+}
 th,td{
 	width:60px;
 	white-space: nowrap;
 	overflow:hidden;
 }
+td.name{
+	font-size:medium;
+}
+td .status{
+	font-size:medium;
+}
 tbody{
 height:80%;
   overflow-y: scroll;
+	font-size:smaller;
 }
 a{
 	color:#fff;
@@ -51,10 +67,13 @@ div.submain{
 table{
 	width:100%;
 	height:100%;
-	border-collapse: separate;
-	border-spacing: 4px 10px;
+border-collapse: collapse;
 }
-table tr:nth-child(odd) {
+table td,table th{
+	margin:4px 8px;
+	
+}
+table tbody tr:nth-child(odd) {
 	background: #333;
 }
 
@@ -156,6 +175,10 @@ position:absolute;
 	top:0px;
 	font-size:4px;
 	padding:1px;
+}
+td span.status{
+	margin-top:2px;
+	margin-bottom:2px;
 }
 .status.atk::before{
 	color:#fcc;

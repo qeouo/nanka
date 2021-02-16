@@ -566,6 +566,11 @@ function prepareData(data){
 			var buso = conv(row,j);
 			buso.cd=part+"_"+i;
 			Data.busos.push(buso);
+
+	  		if(j===5){
+	  			buso.flying=row[12];
+				if(buso.flying !== 1)buso.flying=0;
+			}
 		}
 	}
 
@@ -638,16 +643,18 @@ function prepareData(data){
 	  var openSubWindow=function(target,part,rarelity){
 	  		sub_target=target;
 
+			sub_header=[["name","name"],["atk","atk"],["def","def"],["spd","spd"],["lp","lp"],["bst","bst"]];
 	  		if(part===0){
-			  sub_header=[
-				["name","name"],["atk","atk"],["def","d"],["spd","s"],["lp","l"],["bst","b"]];
 	  			table_data = Data.shinkis;
 		 	}else{
-			  sub_header=[
-				["class","分類"],["name","name"],["atk","atk"],["def","d"],["spd","s"],["lp","l"],["bst","b"]];
-			  if(part===6){
-				sub_header.push(["category","c"]);
-			  }
+			  sub_header.unshift(["分類","class",function(e){return const_lists.class[e.class];}]);
+	  			if(part===6){
+			 		sub_header.splice(2,0,["カテゴリ","category",function(e){return weapon_categories[e.category].short_name;}]); 
+			 		 sub_header.push(["active","active",function(e){return Data.actives[e.active].name + (e.effect?"["+const_lists.effect[e.effect]+"]":"");}]); 
+	  			}else{
+			 		 sub_header.push(["passive","passive",function(e){return Data.passives[e.passive].name + (e.effect?"["+const_lists.effect[e.effect]+"]":"");}]); 
+	  }
+			  if(part===5){ sub_header.push(["飛行","flying",function(e){return const_lists.flying[e.flying]}]); }
 				table_data= Data.busos.filter(function(e){return e.part === part && e.rarelity === rarelity;});
 	 		}
 			createTable();
@@ -666,12 +673,12 @@ function prepareData(data){
 
 var createTable=function(sort_member){
 	var data= table_data;
-	if(sort_member !== null){
+	if(sort_member){
 		if(values.old_sort === sort_member){
-			data.sort(function(a,b){return a[sort_member]- b[sort_member];});
+			data.sort(function(a,b){return a[sort_member]> b[sort_member]?1:-1;});
 			values.old_sort="!" + sort_member;
 		}else{
-			data.sort(function(a,b){return -a[sort_member]+ b[sort_member];});
+			data.sort(function(a,b){return a[sort_member]< b[sort_member]?1:-1;});
 			values.old_sort= sort_member;
 		}
 	}
@@ -679,11 +686,12 @@ var createTable=function(sort_member){
 //ヘッダ作る
 	var tr = document.createElement("tr");
 	for(var i=0;i<sub_header.length;i++){
-		var cd = sub_header[i][0];
+		var cd = sub_header[i][1];
 		var th = document.createElement("th");
 		var a= document.createElement("a");
-		a.textContent=sub_header[i][1];
+		a.textContent=sub_header[i][0];
 		a.onclick=(function(cd){return function(e){createTable(cd);}})(cd);
+		a.href="#";
 	 	th.className=cd;
 		th.appendChild(a);
 		tr.appendChild(th);
@@ -700,8 +708,11 @@ var createTable=function(sort_member){
 		tr = document.createElement("tr");
 
 		for(var j=0;j<sub_header.length;j++){
-			var param_cd = sub_header[j][0];
+			var param_cd = sub_header[j][1];
 			var content = rowdata[param_cd];
+			  if(sub_header[j][2]){
+				 content= sub_header[j][2](rowdata);
+			  }
 			var td = document.createElement("td");
 			td.className =param_cd;
 			if(param_cd ==='name'){
@@ -710,20 +721,15 @@ var createTable=function(sort_member){
 				a.textContent = content;
 				a.onclick=(function(cd){return function(e){closeSubWindow(cd);}})(rowdata.cd);
 				td.appendChild(a);
-			}else if(param_cd ==='category'){
-				td.textContent = weapon_categories[content].short_name;
-			}else if(param_cd ==='class'){
-				if(content>=0){
-					td.textContent = const_lists.class[content];
-				}else{
-					td.textContent = "";
-				}
-			}else{
+			}else if(['atk','def','spd','lp','bst'].indexOf(param_cd)>=0){
 				var span= document.createElement("span");
 				span.className="status "+param_cd;
-				span.innerHTML = rowdata[param_cd];
+				span.textContent = content;
 				td.appendChild(span);
+			}else{
+				td.textContent = content;
 			}
+			td.setAttribute("title",content);
 			tr.appendChild(td);
 		}
 		tbody.appendChild(tr);
