@@ -5,14 +5,10 @@ th{
 thead,tbody{
 	display:block;
 }
-th:first-child,td:first-child{
-	max-width:300px;
-	width:300px;
-	overflow:hidden;
-}
 th,td{
 	width:60px;
 	white-space: nowrap;
+	overflow:hidden;
 }
 tbody{
 height:80%;
@@ -83,11 +79,19 @@ width:80px;
 select.buso{
 	display:none;
 }
+.class{
+	max-width:30px;
+}
+td.category::before{
+	content:"[";
+}
+td.category::after{
+	content:"]";
+}
 .name{
     text-overflow: ellipsis;
-width:200px;
-display:inline-block;
-overflow:hidden;
+	width:200px;
+	display:inline-block;
 	white-space: nowrap;
     vertical-align: middle;
 
