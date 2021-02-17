@@ -1,35 +1,3 @@
-th{
-  position: sticky;
-  top:0;
-}
-thead,tbody{
-	display:block;
-}
-tr .passive{
-	width:200px;
-}
-tr .category{
-	width:80px;
-}
-tr .active{
-	width:200px;
-}
-th,td{
-	width:60px;
-	white-space: nowrap;
-	overflow:hidden;
-}
-td.name{
-	font-size:medium;
-}
-td .status{
-	font-size:medium;
-}
-tbody{
-height:80%;
-  overflow-y: scroll;
-	font-size:smaller;
-}
 a{
 	color:#fff;
 }
@@ -63,18 +31,6 @@ div.submain{
 	position:relative;
 	background-color:black;
 	height:100%;
-}
-table{
-	width:100%;
-	height:100%;
-border-collapse: collapse;
-}
-table td,table th{
-	margin:4px 8px;
-	
-}
-table tbody tr:nth-child(odd) {
-	background: #333;
 }
 
 
@@ -139,30 +95,6 @@ color:#ccf;
 content:'ブ';
 }
 
-.shinki .part::before{
-content:'【神姫】';
-}
-.head .part::before{
-	content:'【ヘッド】';
-}
-.body .part::before{
-	content:'【ボディ】';
-}
-.arm .part::before{
-	content:'【アーム】';
-}
-.leg .part::before{
-	content:'【レッグ】';
-}
-.rear .part::before{
-	content:'【リア】';
-}
-.weapon .part::before{
-	content:'【武器】';
-}
-.sub .part::before{
-	content:'【サブ】';
-}
 .status{
 	text-align:right;
 	width:48px;
@@ -289,4 +221,63 @@ span.apt{
 span.apt_{
 	margin-left:2px;
 	color:#f00;
+}
+
+:not(th).part::before{
+	content:"【";
+}
+:not(th).part::after{
+	content:"】";
+}
+/*サブウィンド*/
+input.filter{
+	width:90%;
+	background-color:#000;
+	color:#fff;
+	border:1px solid #fff;
+}
+table{
+	width:100%;
+	height:100%;
+border-collapse: collapse;
+}
+table td,table th{
+	margin:4px 8px;
+	
+}
+table tbody tr:nth-child(odd) {
+	background: #333;
+}
+
+th{
+  position: sticky;
+  top:0;
+}
+thead,tbody{
+	display:block;
+}
+tr .passive{
+	width:200px;
+}
+tr .category{
+	width:80px;
+}
+tr .active{
+	width:200px;
+}
+th,td{
+	width:60px;
+	white-space: nowrap;
+	overflow:hidden;
+}
+td.name{
+	font-size:medium;
+}
+td .status{
+	font-size:medium;
+}
+tbody{
+height:90%;
+  overflow-y: scroll;
+	font-size:smaller;
 }
