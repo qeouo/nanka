@@ -21,10 +21,12 @@
 	<div  class="back" onclick="closeSubWindow(null);">
 	</div>
 	<div style="" class="submain">
-		<div><input class="filter" bind="filter" onchange="{values.filter=this.value;createTable();}";>
+		<div><input class="filter" bind="filter_sort" onchange="{values.filter_sort=this.value;createTable();}";>
 		</div>
 		<table>
 			<thead id="sub_head">
+				<tr>
+				</tr>
 				<tr>
 				</tr>
 			</thead>
@@ -83,8 +85,7 @@
 	<span id="buso">
 		<span class="part"></span>
 		<span class="name">
-		<a bind=".name" href="#">
-		</a>
+			<span bind=".name" class="onclick"></span>
 		</span>
 		<select  class="rarelity" bind=".rarelity">
 		</select>
@@ -124,6 +125,7 @@
 var Bind={};
 Bind.binds=[];
 Bind.init=function(){
+	Bind.binds=[];
 	var bindedNodes = document.querySelectorAll("#form [bind]");
 	for(var i=0;i<bindedNodes.length;i++){
 		Bind.bind(bindedNodes[i]);
@@ -155,6 +157,7 @@ Bind.refresh=function(){
 	for(var i=0;i<this.binds.length;i++){
 		const bind = this.binds[i];
 		var value = this.getBindValue(bind,0);
+		if(bind.old_value  === value){continue;}
 		var target = bind.target;
 		if(target.tagName==="INPUT" || target.tagName==="SELECT"){
 			if(target.value !== value){
@@ -165,6 +168,7 @@ Bind.refresh=function(){
 		}else{
 			target.innerHTML = value;
 		}
+		bind.old_value = value;
 	}
 }
 
@@ -366,6 +370,8 @@ var reCalc=function(){
 
 
 var onloadfunc=function(){
+	const_lists =Data.const_lists;
+	weapon_categories=Data.weapon_categories;
 
 	//部位ごとのフォーム作成
 	var targets= document.querySelectorAll(".template_part");
@@ -387,7 +393,7 @@ var onloadfunc=function(){
 		}
 		 clone.querySelector(".part").textContent = const_lists.part_name[i];
  
-		var span = clone.querySelector(".name a");
+		var span = clone.querySelector(".name *");
 		span.addEventListener("click"
 			,(function(part_cd,part_idx){
 				return function(e){
@@ -513,6 +519,7 @@ function prepareData(data){
 	}
 	//名称リスト
 	const_lists=[];
+	Data.const_lists = const_lists;
 	var lists = data.lists;
 	for(var i=0;i<lists[0].length;i++){
 		var list=[];
@@ -631,6 +638,14 @@ function prepareData(data){
 		}
 		Data.lv_bonus[part] = bonuses;
 	}
+
+	  Data.weapon_categories=weapon_categories;
+	  Data.const_lists=const_lists;
+    let blob = new Blob(["Data=",JSON.stringify(Data),";"],{type:"text/plan"});
+	  var a =document.createElement('a');
+a.href=URL.createObjectURL(blob);
+	  a.innerText="AAA";
+	  document.body.appendChild(a);
 }
 
 //サブ画面ーーーーーーーーーーーーーーーーーー
@@ -643,13 +658,14 @@ var openSubWindow=function(target,part,rarelity){
 	values.filter ="";
 	
 	sub_header=[{label:"name",data:"name"}
-		,{data:"atk",label:"攻撃力"}
-		,{data:"def",label:"防御力"}
-		,{data:"spd",label:"スピード"}
-		,{data:"lp", label:"体力"}
-		,{data:"bst",label:"ブースト"}];
+		,{data:"atk",label:"攻"}
+		,{data:"def",label:"防"}
+		,{data:"spd",label:"速"}
+		,{data:"lp", label:"体"}
+		,{data:"bst",label:"ブ"}];
 		if(part===0){
 			table_data = Data.shinkis;
+			values.filter={};
 		}else{
 			sub_header.splice(0,0,{data:"rarelity",label:"R",disp:function(e){
 				return const_lists.rarelity[e.rarelity];}}); 
@@ -659,34 +675,55 @@ var openSubWindow=function(target,part,rarelity){
 				sub_header.splice(4,0,{data:"category",label:"カテゴリ",disp:function(e){
 					return weapon_categories[e.category].short_name;}}); 
 				sub_header.push({data:"active",disp:function(e){
-					 return Data.actives[e.active].name + (e.effect?"["+const_lists.effect[e.effect]+"]":"");}}); 
+						if(Data.actives[e.active]){
+							return Data.actives[e.active].name + (e.effect?"["+const_lists.effect[e.effect]+"]":"");}}}); 
+						
+
 			}else{
 				sub_header.push({data:"passive",disp:function(e){
-					 return Data.passives[e.passive].name + (e.effect?"["+const_lists.effect[e.effect]+"]":"");}}); 
+					if(e.passive>=0){
+
+						return Data.passives[e.passive].name + (e.effect?"["+const_lists.effect[e.effect]+"]":"");}}}); 
 			}
 			if(part===5){
 				sub_header.push({data:"flying",label:"飛行",disp:function(e){return const_lists.flying[e.flying]}});
 			}
-			var filter={filter:{part:[part],rarelity:[rarelity]},sort:[]};
-			values.filter =JSON.stringify(filter); 
+			values.filter={part:[part],rarelity:[rarelity]};
 			table_data = Data.busos;
 		}
-		Bind.refresh();
+		values.sort=[];
 
 		//ヘッダ作る
 		var tr = document.createElement("tr");
+		var tr2 = document.createElement("tr");
+		tr2.classList.add("filter");
 		sub_header.forEach(function(header){
 			var th = document.createElement("th");
-			var a= document.createElement("a");
-			a.textContent=header.label?header.label:header.data;
-			a.onclick=(function(cd){return function(e){setSort(cd);}})(header.data);
-			a.href="#";
-			th.className=header.data;
+
+			var a= document.createElement("span");
+			a.textContent="terst";
+			a.setAttribute("bind","filter_name."+header.data);
+			a.onclick=(function(cd){return function(e){setFilter(cd,null);}})(header.data);
 			th.appendChild(a);
+			th.classList.add(header.data);
+			tr2.appendChild(th);
+
+			th = document.createElement("th");
+			a= document.createElement("span");
+			a.textContent=header.label?header.label:header.data;
+			a.classList.add("onclick");
+			a.onclick=(function(cd){return function(e){setSort(cd);}})(header.data);
+			th.appendChild(a);
+
+			th.classList.add(header.data);
 			tr.appendChild(th);
 		});
-		var header = document.querySelector("#sub_head tr");
-		header.parentNode.replaceChild(tr,header);
+		var header = document.querySelectorAll("#sub_head tr");
+		header[0].parentNode.replaceChild(tr2,header[0]);
+		header[1].parentNode.replaceChild(tr,header[1]);
+
+	  	Bind.init();
+
 		createTable();
 		var subwindow= document.querySelector("#subwindow");
 		subwindow.style.display="block";
@@ -712,17 +749,18 @@ var closeSubWindow = function(e){
 }
 
 var setFilter=function(name,value){
-	var filter_sort = JSON.parse(values.filter);
-	var filter = filter_sort.filter;
-	filter[name]=[value];
+	var filter = values.filter;
+	if(!value){
+		delete filter[name];
+	}else{
+		filter[name]=value;
+	}
 
-	values.filter =JSON.stringify(filter_sort); 
-	Bind.refresh();
 	createTable();
 }
 var setSort=function(data){
-	var filter_sort = JSON.parse(values.filter);
-	var sort = filter_sort.sort;
+	//var filter_sort = JSON.parse(values.filter_sort);
+	var sort = values.sort;
 
 	var idx = sort.indexOf(data);
 	if(idx<0){
@@ -738,16 +776,14 @@ var setSort=function(data){
 		}
 	}
 	sort.unshift(data);
-	values.filter =JSON.stringify(filter_sort); 
-	Bind.refresh();
 	createTable();
 
 }
 var createTable=function(sort_member){
 
-	var filter_sort = JSON.parse(values.filter);
-	var filters = filter_sort.filter;
-	var sort = filter_sort.sort;
+	//var filter_sort = JSON.parse(values.filter_sort);
+	var filters = values.filter;
+	var sort = values.sort;
 	var keys = Object.keys(filters);
 	//フィルタ
 	var data= table_data.filter(function(e){
@@ -758,7 +794,17 @@ var createTable=function(sort_member){
 		return flg;
 	});
 
-//	Bind.refresh();
+	values.filter_name=[];
+	sub_header.forEach(function(header){
+		var content= filters[header.data];
+		if(content){
+			var a = {};a[header.data]=content;
+			values.filter_name[header.data]= typeof header.disp == "function"?header.disp(a):content;
+		}else{
+			values.filter_name[header.data]= "";
+		}
+	});
+
 	
 	//ソート
 	data.sort(function(a,b){
@@ -790,8 +836,8 @@ var createTable=function(sort_member){
 			var td = document.createElement("td");
 			td.className =header.data;
 			if(header.data ==='name'){
-				var a= document.createElement("a");
-				a.setAttribute("href","#");
+				var a= document.createElement("span");
+				a.classList.add("onclick");
 				a.textContent = content;
 				if(rowdata.rarelity){
 					a.className =const_lists.rarelity[rowdata.rarelity];
@@ -804,10 +850,10 @@ var createTable=function(sort_member){
 				span.textContent = content;
 				td.appendChild(span);
 			}else{
-				var a= document.createElement("a");
+				var a= document.createElement("span");
+				a.classList.add("filtertarget");
 				a.textContent = content;
-				a.href="#";
-				a.onclick=(function(cd,value){return function(e){setFilter(cd,value);}})(header.data,rowdata[header.data]);
+				a.onclick=(function(cd,value){return function(e){setFilter(cd,[value]);}})(header.data,rowdata[header.data]);
 				td.appendChild(a);
 			}
 			td.setAttribute("title",content);
@@ -815,6 +861,7 @@ var createTable=function(sort_member){
 		});
 		tbody.appendChild(tr);
 	}
+	Bind.refresh();
 }
 
 </script>
