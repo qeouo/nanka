@@ -1,5 +1,5 @@
 .filtertarget{
-	cursor:zoom-in;
+	cursor:cell;
 	text-decoration:underline dotted ;
 
 }
@@ -178,8 +178,7 @@ span.passive::before{
 	margin-right:1px;
 }
 span.active::before{
-	background-color:#555;
-	color:#f66;
+	background-color:#c33;
 	content:"ア";
 	margin-right:1px;
 }
@@ -237,11 +236,11 @@ div.submain{
 	text-align:left;
 	display:inline-block;
 	position:relative;
-	background-color:black;
+	background-color:#222;
 	height:100%;
 }
 tr.filter span{
-	cursor:zoom-out;
+	cursor:cell;
 	text-decoration:underline dotted ;
 	font-size:smaller;
 }

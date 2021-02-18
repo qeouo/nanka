@@ -9,7 +9,7 @@
 <meta http-equiv="Content-Script-Type" content="text/javascript" />
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Cache-Control" content="no-cache" />
-<title>bc</title>
+<title>bcassembly</title>
 <link rel="stylesheet" href="main.css">
 </head>
 
@@ -120,86 +120,16 @@
 <script type="text/javascript">
 "use strict";
 
-
-//バインドーーーーーーーーーーーーーーーーーーーーー
-var Bind={};
-Bind.binds=[];
-Bind.init=function(){
-	Bind.binds=[];
-	var bindedNodes = document.querySelectorAll("#form [bind]");
-	for(var i=0;i<bindedNodes.length;i++){
-		Bind.bind(bindedNodes[i]);
-	}
-}
-
-Bind.bind=function(target){
-	var bind={};
-	bind.target = target;
-	bind.variable = bind.target.getAttribute("bind").split(".");
-	this.binds.push(bind);
-}
-Bind.setBindValue=function(bind,n){
-	var val =this.getBindValue(bind,1);
-	val[bind.variable[bind.variable.length-1]]=n;
-}
-Bind.getBindValue=function(bind,n){
-	var value=values;
-	for(var j=0;j<bind.variable.length-n;j++){
-		value = value[bind.variable[j]];
-		if(value == undefined){
-			value=null;
-			break;
-		}
-	}
-	return value;
-}
-Bind.refresh=function(){
-	for(var i=0;i<this.binds.length;i++){
-		const bind = this.binds[i];
-		var value = this.getBindValue(bind,0);
-		if(bind.old_value  === value){continue;}
-		var target = bind.target;
-		if(target.tagName==="INPUT" || target.tagName==="SELECT"){
-			if(target.value !== value){
-				target.value = value;
-				//var event = new Event('change');
-				//target.dispatchEvent(event);
-			}
-		}else{
-			target.innerHTML = value;
-		}
-		bind.old_value = value;
-	}
-}
-
-var const_lists=[];
-var weapon_categories=[];
-var shinki_rarelity_bonus=[
-	{atk:0,def:0,spd:0,lp:0,bst:0}
-	,{atk:5,def:5,spd:10,lp:50,bst:20}
-	,{atk:10,def:10,spd:20,lp:100,bst:40}
-	,{atk:15,def:15,spd:30,lp:150,bst:60}
-];
-
 var values={total:{},subtotal:{}};
-var Data={};
-Data.passives=[];
-Data.shinkis=[];
-Data.busos=[];
-
-Data.individuals=[
-	{name:"",atk:0,def:0,spd:0,lp:0,bst:0}
-];
-
 
 var reset=function(a){
-	for(var i=0;i<const_lists.param_cd.length;i++){
-		a[const_lists.param_cd[i]]= 0;
+	for(var i=0;i<Data.param_cd.length;i++){
+		a[Data.param_cd[i]]= 0;
 	}
 }
 var add=function(a,b){
-	for(var i=0;i<const_lists.param_cd.length;i++){
-		var param_cd = const_lists.param_cd[i];
+	for(var i=0;i<Data.param_cd.length;i++){
+		var param_cd = Data.param_cd[i];
 		a[param_cd] += b[param_cd];
 	}
 }
@@ -226,7 +156,7 @@ var reCalc=function(){
 
 	//レアリティ
 	var rare = values.shinki.rarelity;
-	add(values.shinki,shinki_rarelity_bonus[rare]);
+	add(values.shinki,Data.shinki_rarelity_bonus[rare]);
 
 	values.shinki.apts=[];
 	for(var i=0;i<shinki.apts.length;i++){
@@ -253,7 +183,7 @@ var reCalc=function(){
 		}else{
 			ap += "<span class='apt_'>";
 		}
-		ap +=  "[" +weapon_categories[apt.weapon_category].short_name + "]"+apt.effect+"%</span>";
+		ap +=  "[" +Data.categories[apt.weapon_category].short_name + "]"+apt.effect+"%</span>";
 	}
 	values.tekise=ap;
 	
@@ -261,8 +191,8 @@ var reCalc=function(){
 	values.individual= Data.individuals[values.shinki.individual];
 
 	//武装
-	for(var i=1;i<const_lists.part_cd.length;i++){
-		var part=const_lists.part_cd[i];
+	for(var i=1;i<Data.part_cd.length;i++){
+		var part=Data.part_cd[i];
 		var r = Number(values[part].rarelity);
 		var lv= values[part].lv;
 		var cd = values[part].cd;
@@ -287,7 +217,7 @@ var reCalc=function(){
 
 		values[part].name=buso.name;
 	  	if(buso.part===6){
-			values[part].name=buso.name + "[" +weapon_categories[buso.category].short_name +"]";
+			values[part].name=buso.name + "[" +Data.categories[buso.category].short_name +"]";
 		}
 		add(values[part],buso);
 		if(lv==60){
@@ -310,14 +240,14 @@ var reCalc=function(){
 			passives.push(passive);
 			values[part].biko = "<span class='passive'>" + Data.passives[passive.cd].name ;
 			if(passive.effect>0){
-				values[part].biko += "[" + const_lists.effect[passive.effect]+"]";
+				values[part].biko += "[" + Data.effect[passive.effect]+"]";
 			}
 			values[part].biko += "</span>";
 		}
 		if(buso.active>0){
 			values[part].biko = "<span class='active'>" + Data.actives[buso.active].name + "</span>";
 			if(buso.effect>0){
-				values[part].biko += "[" + const_lists.effect[buso.effect]+"]";
+				values[part].biko += "[" + Data.effect[buso.effect]+"]";
 			}
 		}
 	}
@@ -348,7 +278,7 @@ var reCalc=function(){
 		}else{
 			str+= "<span class='apt_'>";
 		}
-		str +=  "[" + weapon_categories[apt.weapon_category].short_name + "]"+apt.effect+"%</span>";
+		str +=  "[" + Data.categories[apt.weapon_category].short_name + "]"+apt.effect+"%</span>";
 		values.total.atk += Math.trunc(values.subtotal.atk * apt.effect*0.01);
 		values.subtotal.biko +=str;
 	}
@@ -357,7 +287,7 @@ var reCalc=function(){
 		var passive =passives[i];
 		values.subtotal.biko += "<span class='passive'>" + Data.passives[passive.cd].name ;
 		if(passive.effect>0){
-			values.subtotal.biko += "[" + const_lists.effect[passive.effect]+"]";
+			values.subtotal.biko += "[" + Data.effect[passive.effect]+"]";
 		}
 		values.subtotal.biko += "</span>";
 		if(Data.passives[passive.cd].func){
@@ -370,8 +300,6 @@ var reCalc=function(){
 
 
 var onloadfunc=function(){
-	const_lists =Data.const_lists;
-	weapon_categories=Data.weapon_categories;
 
 	//部位ごとのフォーム作成
 	var targets= document.querySelectorAll(".template_part");
@@ -379,7 +307,7 @@ var onloadfunc=function(){
 	for(var i=0;i<targets.length;i++){
 		var target = targets[i];
 		var part_cd = target.id;
-		var part_idx = const_lists.part_cd.findIndex(function(e){return e===part_cd;});
+		var part_idx = Data.part_cd.findIndex(function(e){return e===part_cd;});
 		if(part_idx===7){part_idx=6;};
 
 		var clone = template.cloneNode(true);
@@ -391,7 +319,7 @@ var onloadfunc=function(){
 		for(var j=0;j<children.length;j++){
 			children[j].setAttribute("bind",part_cd+children[j].getAttribute("bind"));
 		}
-		 clone.querySelector(".part").textContent = const_lists.part_name[i];
+		 clone.querySelector(".part").textContent = Data.part_name[i];
  
 		var span = clone.querySelector(".name *");
 		span.addEventListener("click"
@@ -430,10 +358,10 @@ var onloadfunc=function(){
 		rare2.id="";
 		rare2.addEventListener("change",function(){
 			var div = this.parentNode;
-			for(var j=0;j<const_lists.rarelity.length;j++){
-				div.classList.remove(const_lists.rarelity[j]);
+			for(var j=0;j<Data.rarelity.length;j++){
+				div.classList.remove(Data.rarelity[j]);
 			}
-			div.classList.add(const_lists.rarelity[this.selectedIndex]);
+			div.classList.add(Data.rarelity[this.selectedIndex]);
 		});
 		if(org.getAttribute("bind") !== null){
 			rare2.setAttribute("bind",org.getAttribute("bind"));
@@ -445,9 +373,9 @@ var onloadfunc=function(){
 	values.shinki={};
 	values.shinki.cd=Data.shinkis[0].cd;
 
-	for(var i=1;i<const_lists.part_cd.length;i++){
-		values[const_lists.part_cd[i]]={};
-		var part=values[const_lists.part_cd[i]];
+	for(var i=1;i<Data.part_cd.length;i++){
+		values[Data.part_cd[i]]={};
+		var part=values[Data.part_cd[i]];
 		var part_idx = i;
 		if(part_idx=== 7){ part_idx=6;};
 		part.rarelity=0;
@@ -481,173 +409,6 @@ var onloadfunc=function(){
 }
 
 
-//データ整形ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
-var conv=function(row,n){
-	var buso = {};
-
-	buso.part=n;
-	buso.set=row[0];
-	buso.class = row[1];
-	buso.name=row[2];
-	buso.rarelity=row[3];
-	buso.atk=row[4];
-	buso.def=row[5];
-	buso.spd=row[6];
-	buso.lp=row[7];
-	buso.bst=row[8];
-	buso.passive=row[9];
-	buso.effect=row[10];
-	buso.biko=row[11];
-	return buso;
-}
-
-function prepareData(data){
-	//省略セルデータ補間
-	var keys = Object.keys(data);
-	for(var i=0;i < keys.length;i++){
-		if(keys[i]==="lists"){ continue; }
-		var list = data[keys[i]];
-		for(var j=1;j<list.length;j++){
-			var row = list[j];
-			for(var k=0;k<row.length;k++){
-				if(row[k]==="" || row[k]==="#N/A"){
-					row[k]=list[j-1][k];
-				}
-			}
-		}
-		
-	}
-	//名称リスト
-	const_lists=[];
-	Data.const_lists = const_lists;
-	var lists = data.lists;
-	for(var i=0;i<lists[0].length;i++){
-		var list=[];
-		for(var j=1;j<lists.length;j++){
-			if(lists[j][i] ==="")break;
-			list.push(lists[j][i]);
-		}
-		const_lists[lists[0][i]]=list;
-	}
-
-	//神姫
-	for(var i=0;i<data.shinki.length;i++){
-		var row = data.shinki[i];
-		var shinki= {};
-
-		shinki.cd="shinki_"+i;
-		shinki.name=row[0];
-		shinki.rarelity=row[1];
-		shinki.atk=row[2];
-		shinki.def=row[3];
-		shinki.spd=row[4];
-		shinki.lp=row[5];
-		shinki.bst=row[6];
-		shinki.apts=row.slice(7,7+15);
-		shinki.apts.unshift(0);
-		shinki.rarelity=0;
-		Data.shinkis.push(shinki);
-	}
-	//アイコン補正
-	for(var i=0;i<data.individuals.length;i++){
-		var row = data.individuals[i];
-		var individual= {};
-		individual.name=row[0];
-		individual.atk=row[1];
-		individual.def=row[2];
-		individual.spd=row[3];
-		individual.lp=row[4];
-		individual.bst=row[5];
-		Data.individuals.push(individual);
-	}
-	//武装
-	for(var j=1;j<6;j++){
-		var part=const_lists.part_cd[j];
-		var part_data= data[part];
-		if(!part_data)continue;
-		for(var i=0;i<part_data.length;i++){
-			var row = part_data[i];
-			var buso = conv(row,j);
-			buso.cd=part+"_"+i;
-			Data.busos.push(buso);
-
-	  		if(j===5){
-	  			buso.flying=row[12];
-				if(buso.flying !== 1)buso.flying=0;
-			}
-		}
-	}
-
-	//武器カテゴリ
-	weapon_categories = data.weapon_categories.map(function(e){
-	  return {name:e[0],short_name:e[1]};
-	});
-
-	//武器
-	var part_data= data.weapon;
-	for(var i=0;i<part_data.length;i++){
-		var row = part_data[i];
-		var buso = conv(row,6);
-		buso.cd="weapon_"+i;
-		buso.passive=-1;
-		buso.active=row[9];
-		buso.category=row[12];
-		buso.range=row[13];
-		Data.busos.push(buso);
-	}
-
-	//パッシブ
-	Data.passives= data.passive.map(function(e){return {name:e[0]};});
-
-	var correctStatus=function(atk,def,spd,lp,bst){
-	   values.total.atk += Math.trunc(values.subtotal.atk * 0.01*atk);
-	   values.total.def += Math.trunc(values.subtotal.def * 0.01*def);
-	   values.total.spd += Math.trunc(values.subtotal.spd * 0.01*spd);
-	   values.total.lp  += Math.trunc(values.subtotal.lp  * 0.01*lp);
-	   values.total.bst += Math.trunc(values.subtotal.bst * 0.01*bst);
-	}
-	Data.passives[ 1].func=function(effect){ correctStatus(1+effect,0,0,0,0); }
-	Data.passives[ 2].func=function(effect){ correctStatus(0,1+effect,0,0,0); }
-	Data.passives[ 3].func=function(effect){ correctStatus(0,0,1+effect,0,0); }
-	Data.passives[ 4].func=function(effect){ correctStatus(0,0,0,1+effect,0); }
-	Data.passives[ 5].func=function(effect){ correctStatus(0,0,0,0,1+effect); }
-	Data.passives[ 6].func=function(effect){
-		var a =Math.trunc(effect*0.5)
-		correctStatus(a+1,a+1,a,a+1,a+1);
-	}
-
-	//アクティブ
-	Data.actives = data.active.map(function(e){return {name:e[0]};});
-
-	//レベル増加値
-	Data.lv_bonus={};
-	var sheet_data = data.lv_bonus;
-	for(var i=0;i < sheet_data.length;){
-		var bonuses=[];
-		var part = sheet_data[i][0];
-		for(var j=0;j < 4;j++){
-			var bonus={};
-			var row = data.lv_bonus[i];
-			bonus.atk=row[3];
-			bonus.def=row[4];
-			bonus.spd=row[5];
-			bonus.lp =row[6];
-			bonus.bst=row[7];
-			bonuses.push(bonus);
-			i++;
-		}
-		Data.lv_bonus[part] = bonuses;
-	}
-
-	  Data.weapon_categories=weapon_categories;
-	  Data.const_lists=const_lists;
-    let blob = new Blob(["Data=",JSON.stringify(Data),";"],{type:"text/plan"});
-	  var a =document.createElement('a');
-a.href=URL.createObjectURL(blob);
-	  a.innerText="AAA";
-	  document.body.appendChild(a);
-}
-
 //サブ画面ーーーーーーーーーーーーーーーーーー
 var sub_target=null;
 var sub_header=[];
@@ -668,25 +429,25 @@ var openSubWindow=function(target,part,rarelity){
 			values.filter={};
 		}else{
 			sub_header.splice(0,0,{data:"rarelity",label:"R",disp:function(e){
-				return const_lists.rarelity[e.rarelity];}}); 
-			sub_header.unshift({data:"part",disp:function(e){return const_lists.part_name[e.part]}});
-			sub_header.unshift({data:"class",label:"分類",disp:function(e){return const_lists.class[e.class];}});
+				return Data.rarelity[e.rarelity];}}); 
+			sub_header.unshift({data:"part",disp:function(e){return Data.part_name[e.part]}});
+			sub_header.unshift({data:"class",label:"分類",disp:function(e){return Data.class[e.class];}});
 			if(part===6){
 				sub_header.splice(4,0,{data:"category",label:"カテゴリ",disp:function(e){
-					return weapon_categories[e.category].short_name;}}); 
+					return Data.categories[e.category].short_name;}}); 
 				sub_header.push({data:"active",disp:function(e){
 						if(Data.actives[e.active]){
-							return Data.actives[e.active].name + (e.effect?"["+const_lists.effect[e.effect]+"]":"");}}}); 
+							return Data.actives[e.active].name + (e.effect?"["+Data.effect[e.effect]+"]":"");}}}); 
 						
 
 			}else{
 				sub_header.push({data:"passive",disp:function(e){
 					if(e.passive>=0){
 
-						return Data.passives[e.passive].name + (e.effect?"["+const_lists.effect[e.effect]+"]":"");}}}); 
+						return Data.passives[e.passive].name + (e.effect?"["+Data.effect[e.effect]+"]":"");}}}); 
 			}
 			if(part===5){
-				sub_header.push({data:"flying",label:"飛行",disp:function(e){return const_lists.flying[e.flying]}});
+				sub_header.push({data:"flying",label:"飛行",disp:function(e){return Data.flying[e.flying]}});
 			}
 			values.filter={part:[part],rarelity:[rarelity]};
 			table_data = Data.busos;
@@ -840,7 +601,7 @@ var createTable=function(sort_member){
 				a.classList.add("onclick");
 				a.textContent = content;
 				if(rowdata.rarelity){
-					a.className =const_lists.rarelity[rowdata.rarelity];
+					a.className =Data.rarelity[rowdata.rarelity];
 				}
 				a.onclick=(function(cd){return function(e){closeSubWindow(cd);}})(rowdata.cd);
 				td.appendChild(a);
@@ -862,6 +623,57 @@ var createTable=function(sort_member){
 		tbody.appendChild(tr);
 	}
 	Bind.refresh();
+}
+
+//バインドーーーーーーーーーーーーーーーーーーーーー
+var Bind={};
+Bind.binds=[];
+Bind.init=function(){
+	Bind.binds=[];
+	var bindedNodes = document.querySelectorAll("#form [bind]");
+	for(var i=0;i<bindedNodes.length;i++){
+		Bind.bind(bindedNodes[i]);
+	}
+}
+
+Bind.bind=function(target){
+	var bind={};
+	bind.target = target;
+	bind.variable = bind.target.getAttribute("bind").split(".");
+	this.binds.push(bind);
+}
+Bind.setBindValue=function(bind,n){
+	var val =this.getBindValue(bind,1);
+	val[bind.variable[bind.variable.length-1]]=n;
+}
+Bind.getBindValue=function(bind,n){
+	var value=values;
+	for(var j=0;j<bind.variable.length-n;j++){
+		value = value[bind.variable[j]];
+		if(value == undefined){
+			value=null;
+			break;
+		}
+	}
+	return value;
+}
+Bind.refresh=function(){
+	for(var i=0;i<this.binds.length;i++){
+		const bind = this.binds[i];
+		var value = this.getBindValue(bind,0);
+		if(bind.old_value  === value){continue;}
+		var target = bind.target;
+		if(target.tagName==="INPUT" || target.tagName==="SELECT"){
+			if(target.value !== value){
+				target.value = value;
+				//var event = new Event('change');
+				//target.dispatchEvent(event);
+			}
+		}else{
+			target.innerHTML = value;
+		}
+		bind.old_value = value;
+	}
 }
 
 </script>
