@@ -1,7 +1,13 @@
+#add_extra_passive{
+	background-color:#222;
+}
 .filtertarget{
 	cursor:cell;
 	text-decoration:underline dotted ;
 
+}
+.remove{
+	background-color:#000;
 }
 .onclick{
 	cursor:pointer;
@@ -182,18 +188,14 @@ span.active::before{
 	content:"ア";
 	margin-right:1px;
 }
+/*
 span.apt::before{
 	background-color:#555;
 	color:#6f6;
 	content:"適";
 	margin-right:1px;
 }
-span.apt_::before{
-	background-color:#555;
-	color:#6f6;
-	content:"適";
-	margin-right:1px;
-}
+*/
 span.passive{
 	margin-left:2px;
 }
@@ -203,8 +205,7 @@ span.active{
 span.apt{
 	margin-left:2px;
 }
-span.apt_{
-	margin-left:2px;
+span.minus{
 	color:#f00;
 }
 

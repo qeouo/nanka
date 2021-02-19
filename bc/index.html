@@ -15,32 +15,26 @@
 
 <body onload="onloadfunc()">
 <div id="form">
-<div style="position:fixed;bottom:0px;right:0px;font-size:8pt;">c20210215_d20210215</div>
+<div style="position:fixed;bottom:0px;right:0px;font-size:8pt;" bind="version">c20210215_d20210215</div>
 
 <div  class="subwindow" id="subwindow" style="display:none;">
 	<div  class="back" onclick="closeSubWindow(null);">
 	</div>
 	<div style="" class="submain">
-		<div><input class="filter" bind="filter_sort" onchange="{values.filter_sort=this.value;createTable();}";>
-		</div>
 		<table>
-			<thead id="sub_head">
-				<tr>
-				</tr>
-				<tr>
-				</tr>
-			</thead>
-			<tbody id="sub_body">
-				<tr>
-				</tr>
-			</tbody>
+			<thead id="sub_head"> <tr> </tr> <tr> </tr> </thead>
+			<tbody id="sub_body"> <tr> </tr> </tbody>
 		</table>
 	</div>
 </div>
 
 	<div><span class="shinki template_part" id="shinki" ></span><span class="biko" bind="biko"></span></div>
-	<span bind="tekise" class="biko"></span>
-	<div style="margin-bottom:4px;">
+	<div>武器適性<span bind="tekise" class="biko"></span></div>
+	<div>パッシブ 
+		<span class="onclick" id="add_extra_passive">追加</span>
+		<span id="extra_passive" class="biko"></span>
+	</div>
+	<div style="margin-bottom:10px;">
 		<span class="" style="width:80px;display:inline-block;"></span>
 		<span class="rarelity"></span>
 		<span class="lv"></span>
@@ -67,7 +61,7 @@
 		<span class="rarelity"></span>
 		<span class="buso">小計</span>
 		<span class="param" bind="subtotal"></span>
-		<span class="biko" bind="subtotal.biko"></span>
+		<span class="biko" bind="subtotal.biko" id="subbiko"></span>
 	</div>
 	<br>
 	<div>
@@ -78,21 +72,24 @@
 		<span class="param" bind="total"></span>
 	</div>
 
+<div>
+	<textarea style="width:600px;height:200px;" bind="export_text">aaa</textarea>
+</div>
 </div>
 
 <div style="display:none;" id="template">
 
 	<span id="buso">
 		<span class="part"></span>
-		<span class="name">
-			<span bind=".name" class="onclick"></span>
-		</span>
-		<select  class="rarelity" bind=".rarelity">
-		</select>
 		<select class="lv" bind=".lv">
 			<option value="1">Lv1</option>
 			<option value="60">Lv60</option>
 		</select>
+		<select  class="rarelity" bind=".rarelity">
+		</select>
+		<span class="name">
+			<span bind=".name" class="onclick"></span>
+		</span>
 			
 		<span class="param" bind="">
 		</span>
@@ -120,7 +117,7 @@
 <script type="text/javascript">
 "use strict";
 
-var values={total:{},subtotal:{}};
+var values={total:{},subtotal:{},extra_passives:[]};
 
 var reset=function(a){
 	for(var i=0;i<Data.param_cd.length;i++){
@@ -149,6 +146,7 @@ var reCalc=function(){
 	//神姫
 	values.default_shinki_param = Data.default_shinki_param;
 	var shinki= Data.shinkis.find(function(elem){return elem.cd === values.shinki.cd});
+	values.shinki.org =shinki;
 	if(!shinki){return;}
 	reset(values.shinki);
 	add(values.shinki,shinki);
@@ -175,17 +173,28 @@ var reCalc=function(){
 			values.shinki.apts.push(apt);
 		}
 	}
-	var ap="";
-	for(var i=0;i<values.shinki.apts.length;i++){
-		var apt=values.shinki.apts[i];
-		if(apt.effect>0){
-			ap += "<span class='apt'>";
-		}else{
-			ap += "<span class='apt_'>";
-		}
-		ap +=  "[" +Data.categories[apt.weapon_category].short_name + "]"+apt.effect+"%</span>";
-	}
-	values.tekise=ap;
+	values.tekise= document.createElement("span");
+	values.shinki.apts.forEach(function(e){
+		values.tekise.appendChild(getAptSpan(e));
+	});
+
+	//追加パッシブ
+	var parent_span= document.querySelector("#extra_passive");
+	parent_span.innerHTML="";
+	values.extra_passives.forEach(function(e,idx){
+		var span = getPassiveSpan(e);
+		var remove = document.createElement("span");
+		remove.textContent="X";
+		remove.className="onclick remove";
+		remove.onclick=function(){
+			values.extra_passives.splice(idx,1);
+			reCalc();
+		};
+		span.appendChild(remove);
+		parent_span.appendChild(span);
+
+		passives.push(e);
+	});
 	
 	//アイコン補正
 	values.individual= Data.individuals[values.shinki.individual];
@@ -267,39 +276,60 @@ var reCalc=function(){
 	reset(values.total);
 	add(values.total,values.subtotal);
 
-	values.subtotal.biko ="";
+	values.subtotal.biko =document.createElement("span");
 	//適性補正
-	for(var i=0;i<values.shinki.apts.length;i++){
-		var apt=values.shinki.apts[i];
-		if(apt.weapon_category !== values.weapon.org.category)continue;
-		var str="";
-		if(apt.effect>0){
-			str+= "<span class='apt'>";
-		}else{
-			str+= "<span class='apt_'>";
-		}
-		str +=  "[" + Data.categories[apt.weapon_category].short_name + "]"+apt.effect+"%</span>";
+	values.shinki.apts.forEach(function(apt){
+		if(apt.weapon_category !== values.weapon.org.category)return;
 		values.total.atk += Math.trunc(values.subtotal.atk * apt.effect*0.01);
-		values.subtotal.biko +=str;
-	}
+		values.subtotal.biko.appendChild(getAptSpan(apt));
+	});
 	//パッシブ補正
-	for(var i=0;i<passives.length;i++){
-		var passive =passives[i];
-		values.subtotal.biko += "<span class='passive'>" + Data.passives[passive.cd].name ;
-		if(passive.effect>0){
-			values.subtotal.biko += "[" + Data.effect[passive.effect]+"]";
-		}
-		values.subtotal.biko += "</span>";
+	passives.forEach(function(passive){
+		var span = getPassiveSpan(passive);
+		values.subtotal.biko.appendChild(span);
 		if(Data.passives[passive.cd].func){
 			Data.passives[passive.cd].func(passive.effect);
 		}
-	}
+	});
+
+
+	var export_text_data="";
+	export_text_data += "攻"+values.total.atk 
+		+" 防" +values.total.def
+		+" 速" +values.total.spd
+		+" 体" +values.total.lp
+		+" ブ" +values.total.bst+"\n";
+	Data.part_cd.forEach(function(e,idx){
+		export_text_data += ("　　　【"+Data.part_name[idx]+"】").slice(-5);
+		export_text_data += "[" +Data.rarelity[values[e].rarelity]+"]";
+		export_text_data +=  values[e].org.name;
+		if(idx==0){
+			export_text_data +="("+ Data.individuals[values.shinki.individual].name+")";
+		} else if(idx==6 ||idx==7){
+			export_text_data += "[" +Data.categories[values[e].org.category].name +"]";
+			export_text_data += "(" +Data.range[values[e].org.range]+")";
+		}
+		
+		export_text_data +=  "\n";
+	});
+	export_text_data += location.protocol + "//"+location.host+location.pathname;
+	values.export_text = export_text_data;
 
 	Bind.refresh();
 }
 
 
 var onloadfunc=function(){
+	Data.busos.forEach(function(e){
+		if(e.set ===""){ e.set="-"}
+		if(e.set.indexOf("M")===0){
+			e.set = e.set.substr(1);
+		}else{
+			e.parent=e.set;
+			e.set="";
+		}
+
+	});
 
 	//部位ごとのフォーム作成
 	var targets= document.querySelectorAll(".template_part");
@@ -325,7 +355,70 @@ var onloadfunc=function(){
 		span.addEventListener("click"
 			,(function(part_cd,part_idx){
 				return function(e){
-					openSubWindow(part_cd,part_idx,Number(values[part_cd].rarelity));
+					var rarelity = Number(values[part_cd].rarelity);
+
+					sub_cols=[{label:"name",data:"name"}
+						,{data:"atk",label:"攻",class:"status atk"}
+						,{data:"def",label:"防",class:"status def"}
+						,{data:"spd",label:"速",class:"status sdp"}
+						,{data:"lp", label:"体",class:"status lp"}
+						,{data:"bst",label:"ブ",class:"status bst"}];
+
+					if(part_idx===0){
+						values.filter={};
+						table_data = Data.shinkis;
+					}else{
+						sub_cols.splice(0,0,{data:"rarelity",label:"R",filter:1,disp:function(e){
+							return Data.rarelity[e.rarelity];}}); 
+						sub_cols.unshift({data:"part",filter:1,disp:function(e){return Data.part_name[e.part]}});
+						sub_cols.unshift({data:"class",label:"分類",filter:1,disp:function(e){return Data.class[e.class];}});
+						sub_cols.splice(0,0,{data:"parent",filter:1});
+						if(part===6){
+							sub_cols.splice(4,0,{data:"category",label:"カテゴリ",filter:1,disp:function(e){
+								return Data.categories[e.category].short_name;}}); 
+							sub_cols.push({data:"active",filter:1,disp:function(e){
+									if(Data.actives[e.active]){
+										return Data.actives[e.active].name + (e.effect?"["+Data.effect[e.effect]+"]":"");}}}); 
+									
+
+						}else{
+							sub_cols.push({data:"passive",filter:1,disp:function(e){
+								if(e.passive>=0){
+
+									return Data.passives[e.passive].name + (e.effect?"["+Data.effect[e.effect]+"]":"");}}}); 
+						}
+						if(part===5){
+							sub_cols.push({data:"flying",label:"飛行",filter:1,disp:function(e){return Data.flying[e.flying]}});
+						}
+						values.filter={part:[part_idx],rarelity:[rarelity]};
+						table_data = Data.busos;
+					}
+					openSubWindow(function(e){
+						if(e===null){ return; }
+						if(part_cd !== 'shinki'){
+
+							if(e.part!==6 || part_cd!=='sub'){
+								part_cd = Data.part_cd[e.part];
+							}
+							var buso = Data.busos.find(function(elem){return elem.cd === e.cd;});
+							if(buso){
+								values[part_cd].cd = buso.cd ;
+								values[part_cd].rarelity = buso.rarelity;
+							}
+							if(buso.set !== ""){
+								var setbusos = Data.busos.filter(function(e){return e.parent === buso.set && e.rarelity === buso.rarelity;});
+								setbusos.forEach(function(e){
+									var part_cd = Data.part_cd[e.part];
+									values[part_cd].cd = e.cd ;
+									values[part_cd].rarelity = e.rarelity;
+								});
+							}
+						}else{
+							values[part_cd].cd = e.cd;
+						}
+						Bind.refresh();
+						reCalc();
+					});
 					e.preventDefault();
 					return false;
 				}
@@ -410,78 +503,45 @@ var onloadfunc=function(){
 
 
 //サブ画面ーーーーーーーーーーーーーーーーーー
-var sub_target=null;
-var sub_header=[];
+var sub_cols=[];
 var table_data=[];
-var table_sorter=[];
-var openSubWindow=function(target,part,rarelity){
-	sub_target=target;
-	values.filter ="";
+var sub_callback=null;
+var openSubWindow=function(callback){
+	  sub_callback=callback;
 	
-	sub_header=[{label:"name",data:"name"}
-		,{data:"atk",label:"攻"}
-		,{data:"def",label:"防"}
-		,{data:"spd",label:"速"}
-		,{data:"lp", label:"体"}
-		,{data:"bst",label:"ブ"}];
-		if(part===0){
-			table_data = Data.shinkis;
-			values.filter={};
-		}else{
-			sub_header.splice(0,0,{data:"rarelity",label:"R",disp:function(e){
-				return Data.rarelity[e.rarelity];}}); 
-			sub_header.unshift({data:"part",disp:function(e){return Data.part_name[e.part]}});
-			sub_header.unshift({data:"class",label:"分類",disp:function(e){return Data.class[e.class];}});
-			if(part===6){
-				sub_header.splice(4,0,{data:"category",label:"カテゴリ",disp:function(e){
-					return Data.categories[e.category].short_name;}}); 
-				sub_header.push({data:"active",disp:function(e){
-						if(Data.actives[e.active]){
-							return Data.actives[e.active].name + (e.effect?"["+Data.effect[e.effect]+"]":"");}}}); 
-						
-
-			}else{
-				sub_header.push({data:"passive",disp:function(e){
-					if(e.passive>=0){
-
-						return Data.passives[e.passive].name + (e.effect?"["+Data.effect[e.effect]+"]":"");}}}); 
-			}
-			if(part===5){
-				sub_header.push({data:"flying",label:"飛行",disp:function(e){return Data.flying[e.flying]}});
-			}
-			values.filter={part:[part],rarelity:[rarelity]};
-			table_data = Data.busos;
-		}
 		values.sort=[];
 
 		//ヘッダ作る
 		var tr = document.createElement("tr");
 		var tr2 = document.createElement("tr");
 		tr2.classList.add("filter");
-		sub_header.forEach(function(header){
+		var th = document.createElement("th");
+	  	tr.appendChild(th);
+		th = document.createElement("th");
+	  	tr2.appendChild(th);
+		sub_cols.forEach(function(cols){
 			var th = document.createElement("th");
 
 			var a= document.createElement("span");
-			a.textContent="terst";
-			a.setAttribute("bind","filter_name."+header.data);
-			a.onclick=(function(cd){return function(e){setFilter(cd,null);}})(header.data);
+			a.setAttribute("bind","filter_name."+cols.data);
+			a.onclick=(function(cd){return function(e){setFilter(cd,null);}})(cols.data);
 			th.appendChild(a);
-			th.classList.add(header.data);
+			th.classList.add(cols.data);
 			tr2.appendChild(th);
 
 			th = document.createElement("th");
 			a= document.createElement("span");
-			a.textContent=header.label?header.label:header.data;
+			a.textContent=cols.label?cols.label:cols.data;
 			a.classList.add("onclick");
-			a.onclick=(function(cd){return function(e){setSort(cd);}})(header.data);
+			a.onclick=(function(cd){return function(e){setSort(cd);}})(cols.data);
 			th.appendChild(a);
 
-			th.classList.add(header.data);
+			th.classList.add(cols.data);
 			tr.appendChild(th);
 		});
-		var header = document.querySelectorAll("#sub_head tr");
-		header[0].parentNode.replaceChild(tr2,header[0]);
-		header[1].parentNode.replaceChild(tr,header[1]);
+		var cols = document.querySelectorAll("#sub_head tr");
+		cols[0].parentNode.replaceChild(tr2,cols[0]);
+		cols[1].parentNode.replaceChild(tr,cols[1]);
 
 	  	Bind.init();
 
@@ -494,19 +554,10 @@ var closeSubWindow = function(e){
 	var subwindow= document.querySelector("#subwindow");
 	subwindow.style.display="none";
 
-	if(e===null){ return; }
-	if(sub_target !== 'shinki'){
-		var buso = Data.busos.find(function(elem){return elem.cd === e;});
-		if(buso){
-			values[sub_target].cd = buso.cd ;
-			values[sub_target].rarelity = buso.rarelity;
-		}
-
-	}else{
-		values[sub_target].cd = e;
+	if(sub_callback){
+		sub_callback(e);
 	}
-	Bind.refresh();
-	reCalc();
+
 }
 
 var setFilter=function(name,value){
@@ -556,13 +607,13 @@ var createTable=function(sort_member){
 	});
 
 	values.filter_name=[];
-	sub_header.forEach(function(header){
-		var content= filters[header.data];
+	sub_cols.forEach(function(cols){
+		var content= filters[cols.data];
 		if(content){
-			var a = {};a[header.data]=content;
-			values.filter_name[header.data]= typeof header.disp == "function"?header.disp(a):content;
+			var a = {};a[cols.data]=content;
+			values.filter_name[cols.data]= typeof cols.disp == "function"?cols.disp(a):content;
 		}else{
-			values.filter_name[header.data]= "";
+			values.filter_name[cols.data]= "";
 		}
 	});
 
@@ -592,32 +643,31 @@ var createTable=function(sort_member){
 		var tr;
 		tr = document.createElement("tr");
 
-		sub_header.forEach(function(header){
-			var content =  typeof header.disp == "function"?header.disp(rowdata):rowdata[header.data];
+		var th = document.createElement("th");
+		var span = document.createElement("span");
+		span.textContent = "選択";
+		span.classList.add("onclick");
+		span.onclick=(function(cd){return function(e){closeSubWindow(cd);}})(rowdata);
+		th.appendChild(span);
+		tr.appendChild(th);
+
+		sub_cols.forEach(function(col){
+			var content =  typeof col.disp == "function"?col.disp(rowdata):rowdata[col.data];
 			var td = document.createElement("td");
-			td.className =header.data;
-			if(header.data ==='name'){
-				var a= document.createElement("span");
-				a.classList.add("onclick");
-				a.textContent = content;
+			td.className =col.data;
+			var span = document.createElement("span");
+			span.textContent = content;
+			span.className = col.class;
+			td.appendChild(span);
+			if(col.data ==='name'){
 				if(rowdata.rarelity){
-					a.className =Data.rarelity[rowdata.rarelity];
+					span.className =Data.rarelity[rowdata.rarelity];
 				}
-				a.onclick=(function(cd){return function(e){closeSubWindow(cd);}})(rowdata.cd);
-				td.appendChild(a);
-			}else if(['atk','def','spd','lp','bst'].indexOf(header.data)>=0){
-				var span= document.createElement("span");
-				span.className="status "+header.data;
-				span.textContent = content;
-				td.appendChild(span);
-			}else{
-				var a= document.createElement("span");
-				a.classList.add("filtertarget");
-				a.textContent = content;
-				a.onclick=(function(cd,value){return function(e){setFilter(cd,[value]);}})(header.data,rowdata[header.data]);
-				td.appendChild(a);
 			}
-			td.setAttribute("title",content);
+			if(col.filter){
+				span.classList.add("filtertarget");
+				span.onclick=(function(cd,value){return function(e){setFilter(cd,[value]);}})(col.data,rowdata[col.data]);
+			}
 			tr.appendChild(td);
 		});
 		tbody.appendChild(tr);
@@ -663,19 +713,71 @@ Bind.refresh=function(){
 		var value = this.getBindValue(bind,0);
 		if(bind.old_value  === value){continue;}
 		var target = bind.target;
-		if(target.tagName==="INPUT" || target.tagName==="SELECT"){
+		if(target.tagName==="INPUT" || target.tagName==="SELECT" || target.tagName==="TEXTAREA"){
 			if(target.value !== value){
 				target.value = value;
-				//var event = new Event('change');
-				//target.dispatchEvent(event);
 			}
 		}else{
-			target.innerHTML = value;
+			  if(value && (value instanceof HTMLElement || value.nodeName)){
+	  			target.innerHTML="";
+				target.appendChild(value);
+			}else{
+				//target.textContent= value;
+				target.innerHTML= value;
+			  }
 		}
 		bind.old_value = value;
 	}
 }
+var span = document.querySelector("#add_extra_passive");
+span.addEventListener("click",function(e){
 
+  sub_cols=[{label:"name",data:"name",filter:1}
+		,{label:"effect",data:"effect",filter:1}];
+
+	values.filter={effect:[0,1]};
+	table_data=[];
+	Data.passives.forEach(function(e,idx){
+		if(idx===0)return;
+		if(1===0){
+			var data  ={name:e.name,cd:idx,effect:0};
+			table_data.push(data);
+		}else{
+			for(var i=1;i<5;i++){
+				var data  ={name:e.name,cd:idx,effect:i};
+				data.name+= "[" + Data.effect[i]+"]";
+				table_data.push(data);
+			}
+		}
+	});
+	
+	openSubWindow(function(res){
+		if(res===null){ return; }
+	  	values.extra_passives.push({cd:res.cd,effect:res.effect});
+		
+		reCalc();
+	});
+ });
+
+
+var getPassiveSpan=function(passive){
+	var span = document.createElement("span");
+	span.textContent = Data.passives[passive.cd].name
+		+((passive.effect>0)?"[" + Data.effect[passive.effect]+"]":"");
+	span.className = "passive";
+	return span;
+}
+var getAptSpan=function(apt){
+	var span = document.createElement("span");
+	span.textContent ="[" + Data.categories[apt.weapon_category].short_name + "]";
+	span.className= "apt";
+	var span2 = document.createElement("span");
+	span2.textContent =apt.effect+"%";
+	span2.className= (apt.effect)<0?"minus":"";
+	 span.appendChild(span2);
+	return span;
+}
+	  values.version="c20210219";
 </script>
 <script type="text/javascript" src="./data.js"></script>
 </html>
