@@ -69,7 +69,7 @@ var prepareData=function(data){
 		var row = data.shinki[i];
 		var shinki= {};
 
-		shinki.cd="shinki_"+i;
+		shinki.cd="s"+i;
 		shinki.name=row[0];
 		shinki.rarelity=row[1];
 		shinki.atk=row[2];
@@ -102,7 +102,7 @@ var prepareData=function(data){
 		for(var i=0;i<part_data.length;i++){
 			var row = part_data[i];
 			var buso = conv(row,j);
-			buso.cd=part+"_"+i;
+			buso.cd=part.substr(0,1)+i;
 			Data.busos.push(buso);
 
 	  		if(j===5){
@@ -122,13 +122,25 @@ var prepareData=function(data){
 	for(var i=0;i<part_data.length;i++){
 		var row = part_data[i];
 		var buso = conv(row,6);
-		buso.cd="weapon_"+i;
+		buso.cd="w"+i;
 		buso.passive=-1;
 		buso.active=row[9];
 		buso.category=row[12];
 		buso.range=row[13];
 		Data.busos.push(buso);
 	}
+
+	Data.busos.forEach(function(e){
+		if(e.set ===""){ e.set="-"}
+		if(e.set.indexOf("M")===0){
+			e.set = e.set.substr(1);
+			e.parent="-";
+		}else{
+			e.parent=e.set;
+			e.set="";
+		}
+
+	});
 
 	//パッシブ
 	Data.passives= data.passive.map(function(e){return {name:e[0]};});
@@ -179,6 +191,19 @@ var prepareData=function(data){
 		,{atk:10,def:10,spd:20,lp:100,bst:40}
 		,{atk:15,def:15,spd:30,lp:150,bst:60}
 	];
+
+	//初期値
+	Data.default={};
+	Data.default.shinki={cd:Data.shinkis[0].cd,rarelity:0};
+
+	Data.part_cd.forEach(function(e,idx){
+		if(idx===0)return;
+		var part_idx = idx;
+		Data.default[e]={cd:0,rarelity:0};
+		if(part_idx=== 7){ part_idx=6;};
+		Data.default[e].cd=Data.busos.find(function(e){
+	  		return e.part===part_idx && e.name !=="-" && e.rarelity === 0}).cd;
+	});
 
 
     let blob = new Blob(["var Data=",JSON.stringify(Data),";"],{type:"text/plan"});

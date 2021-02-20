@@ -1,59 +1,30 @@
-#add_extra_passive{
-	background-color:#222;
-}
-.filtertarget{
-	cursor:cell;
-	text-decoration:underline dotted ;
-
-}
-.remove{
-	background-color:#000;
-}
-.onclick{
-	cursor:pointer;
-	text-decoration:underline;
-}
-
-a{
-	color:#fff;
-}
-.hidden{
-	display:none;
-}
 html{
 	background-color:#888;
 	color:#fff;
 }
+div{
+	padding-top:6px;
+}
 
+button{
+	cursor:pointer;
+	appearance: none;
+    border: 0;
+    border-radius: 2px;
+}
+button.armor{
+	width:100%;
+}
 
 select{
 	border:none;
 }
 span{
-display:inline-block;
-}
-span.header {
-	background-color:#444;
-	text-align:center;
 	display:inline-block;
-	width:40px;
 }
-
 span.part{
 	text-align:right;
-width:80px;
-}
-select.buso{
-	display:none;
-}
-.class{
-	max-width:30px;
-}
-td.category::before{
-	content:"[";
-}
-td.category::after{
-	content:"]";
+	width:100px;
 }
 .name{
     text-overflow: ellipsis;
@@ -63,46 +34,20 @@ td.category::after{
     vertical-align: middle;
 
 }
-span.buso{
-width:200px;
-}
-.header .atk::before{
-color:#fcc;
-content:'攻';
-}
-.header .def::before{
-color:#cfc;
-content:'防';
-}
-.header .spd::before{
-color:#ff9;
-content:'速';
-}
-.header .lp::before{
-color:#ccc;
-content:'体';
-}
-.header .bst::before{
-color:#ccf;
-content:'ブ';
-}
 
 .status{
 	text-align:right;
 	width:48px;
 	position:relative;
 	background-color:#555;
+	margin-left:4px;
 }
 .status::before{
-position:absolute;
+	position:absolute;
 	left:0px;
 	top:0px;
 	font-size:4px;
 	padding:1px;
-}
-td span.status{
-	margin-top:2px;
-	margin-bottom:2px;
 }
 .status.atk::before{
 	color:#fcc;
@@ -124,36 +69,32 @@ td span.status{
 	color:#cff;
 	content:'ブ';
 }
-.N select
-,option.N{
-	color:initial;
+.N{
 	background-color:#eee;
 }
-.N a,.N .part,.name .N{
-	color:#eee;
-}
-.R select
-,option.R{
-	color:initial;
+.R{
 	background-color:#fc3;
 }
-.R a,.R .part,.name .R{
-	color:#fc3;
-}
-.SR select
-,option.SR{
-	color:initial;
+.SR{
 	background-color:#ccf;
 }
-.SR a,.SR .part,.name .SR{
-	color:#ccf;
-}
-.UR select
-,option.UR{
-	color:initial;
+.UR{
 	background-color:#ff6;
 }
-.UR a,.UR .part,.name .UR{
+td span.N{
+	background-color:inherit;
+	color:#eee;
+}
+td span.R{
+	background-color:inherit;
+	color:#fc3;
+}
+td span.SR{
+	background-color:inherit;
+	color:#ccf;
+}
+td span.UR{
+	background-color:inherit;
 	color:#ff6;
 }
 
@@ -163,19 +104,13 @@ td span.status{
 .lv{
 	width:50px;
 }
-select{
-	width:200px;
-}
 
-div.sub span.status{
+span.weapon2 span.status{
 	opacity:0.25;
 }
 
 .biko{
 	font-size:small;
-}
-div{
-	padding-top:6px;
 }
 span.passive::before{
 	background-color:#555;
@@ -188,14 +123,6 @@ span.active::before{
 	content:"ア";
 	margin-right:1px;
 }
-/*
-span.apt::before{
-	background-color:#555;
-	color:#6f6;
-	content:"適";
-	margin-right:1px;
-}
-*/
 span.passive{
 	margin-left:2px;
 }
@@ -215,6 +142,7 @@ span.minus{
 :not(th).part::after{
 	content:"】";
 }
+
 /*サブウィンド*/
 div.subwindow{
 	position:fixed;
@@ -245,14 +173,7 @@ tr.filter span{
 	text-decoration:underline dotted ;
 	font-size:smaller;
 }
-input.filter{
-	width:90%;
-	background-color:#000;
-	color:#fff;
-	border:1px solid #fff;
-}
 table{
-	border-collapse: collapse;
 	height:90%;
 }
 tbody{
@@ -265,19 +186,16 @@ tbody{
 table td{
 	margin-top :4px;
 }
-table td,table th{
+th,td{
+	min-width:40px;
 	margin-left:8px ;
-	
+	white-space: nowrap;
+	overflow:hidden;
 }
 table tbody tr:nth-child(odd) {
 	background: #333;
 }
 
-th,td{
-	white-space: nowrap;
-	width:60px;
-	overflow:hidden;
-}
 thead,tbody{
 	display:block;
 }
@@ -290,13 +208,41 @@ tr .category{
 tr .active{
 	width:200px;
 }
-tr td.rarelity,tr th.rarelity{
-	width:40px;
+td.rarelity,th.rarelity{
+	min-width:40px;
+	max-width:40px;
 }
-td.name{
-	width:200px;
+td.name,th.name{
+	min-width:200px;
+	max-width:200px;
 	font-size:medium;
 }
 table .atk,table .def,table .spd,table .lp, table .bst{
-	width:48;
+	width:48px;
+}
+.filtertarget{
+	cursor:cell;
+	text-decoration:underline dotted ;
+}
+td.category::before{
+	content:"[";
+}
+td.category::after{
+	content:"]";
+}
+td.class{
+	max-width:30px;
+}
+td span.status{
+	margin-top:2px;
+	margin-bottom:2px;
+}
+button.pick{
+	background-color:#c00;
+color:#fff;
+}
+tr.sort button{
+text-decoration: underline;
+    background: none;
+    color: #fff;
 }

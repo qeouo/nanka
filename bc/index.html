@@ -14,6 +14,7 @@
 </head>
 
 <body onload="onloadfunc()">
+<div>※各種データ・計算式が正しいか分かりません。間違ってたら正しい値を教えてくれれば直します。</div>
 <div id="form">
 <div style="position:fixed;bottom:0px;right:0px;font-size:8pt;" bind="version">c20210215_d20210215</div>
 
@@ -31,11 +32,11 @@
 	<div><span class="shinki template_part" id="shinki" ></span><span class="biko" bind="biko"></span></div>
 	<div>武器適性<span bind="tekise" class="biko"></span></div>
 	<div>パッシブ 
-		<span class="onclick" id="add_extra_passive">追加</span>
+		<button id="add_extra_passive">追加</button>
 		<span id="extra_passive" class="biko"></span>
 	</div>
 	<div style="margin-bottom:10px;">
-		<span class="" style="width:80px;display:inline-block;"></span>
+		<span class="" style="width:100px;display:inline-block;"></span>
 		<span class="rarelity"></span>
 		<span class="lv"></span>
 		<span style="width:200px;text-align:right;">
@@ -46,33 +47,29 @@
 		<span class="param" bind="individual">
 		</span>
 	</div>
-	<div><span class="template_part" id="head" ></span></div>
-	<div><span class="template_part" id="body" ></span></div>
-	<div><span class="template_part" id="arm" ></span></div>
-	<div><span class="template_part" id="leg" ></span></div>
-	<div><span class="template_part" id="rear" ></span></div>
-	<div><span class="template_part" id="weapon"></span></div>
-	<div class="sub"><span class="template_part" id="sub"></div>
+	<div id="armor">
+	</div>
 
 	<br>
 	<div>
-		<span class="" style="width:80px;display:inline-block;"></span>
+		<span class="" style="width:100px;display:inline-block;"></span>
 		<span class="lv"></span>
 		<span class="rarelity"></span>
-		<span class="buso">小計</span>
+		<span class="name">小計</span>
 		<span class="param" bind="subtotal"></span>
 		<span class="biko" bind="subtotal.biko" id="subbiko"></span>
 	</div>
 	<br>
 	<div>
-		<span class="" style="width:80px;display:inline-block;"></span>
+		<span class="" style="width:100px;display:inline-block;"></span>
 		<span class="lv"></span>
 		<span class="rarelity"></span>
-		<span class="buso">武器適正やパッシブ適用後</span>
+		<span class="name">武器適正とパッシブ適用後</span>
 		<span class="param" bind="total"></span>
 	</div>
 
 <div>
+<div>export data</div>
 	<textarea style="width:600px;height:200px;" bind="export_text">aaa</textarea>
 </div>
 </div>
@@ -88,7 +85,7 @@
 		<select  class="rarelity" bind=".rarelity">
 		</select>
 		<span class="name">
-			<span bind=".name" class="onclick"></span>
+			<button bind=".name" class="armor"></button>
 		</span>
 			
 		<span class="param" bind="">
@@ -96,19 +93,9 @@
 		<span class="biko" bind=".biko"></span>
 	</span>
 
-	<select id="rarelity" class="rarelity" bind="rarelity">
-		<option class="N" value="0">N</option>
-		<option class="R" value="1">R</option>
-		<option class="SR" value="2">SR</option>
-		<option class="UR" value="3">UR</option>
-	</select>
+	<select id="rarelity" class="rarelity" bind="rarelity"> </select>
 
 	<span id="param">
-		<span class="status atk" bind=".atk">1</span>
-		<span class="status def" bind=".def">2</span>
-		<span class="status spd" bind=".spd">3</span>
-		<span class="status lp"  bind=".lp">4</span>
-		<span class="status bst" bind=".bst">5</span>
 	</span>
 </div>
 
@@ -183,15 +170,14 @@ var reCalc=function(){
 	parent_span.innerHTML="";
 	values.extra_passives.forEach(function(e,idx){
 		var span = getPassiveSpan(e);
-		var remove = document.createElement("span");
-		remove.textContent="X";
-		remove.className="onclick remove";
-		remove.onclick=function(){
+		var button = document.createElement("button");
+		button.appendChild(span);
+		button.onclick=function(){
 			values.extra_passives.splice(idx,1);
 			reCalc();
 		};
-		span.appendChild(remove);
-		parent_span.appendChild(span);
+		//span.appendChild(remove);
+		parent_span.appendChild(button);
 
 		passives.push(e);
 	});
@@ -293,6 +279,17 @@ var reCalc=function(){
 	});
 
 
+	//レアリティ色
+	Data.part_cd.forEach(function(e,idx){
+		document.querySelectorAll("span."+e+" select,span."+e+" button").forEach(function(node){
+			node.classList.remove("N","R","SR","UR");
+			node.classList.add(Data.rarelity[values[e].rarelity]);
+		});
+	});
+
+
+
+	//エクスポートテキスト
 	var export_text_data="";
 	export_text_data += "攻"+values.total.atk 
 		+" 防" +values.total.def
@@ -300,7 +297,7 @@ var reCalc=function(){
 		+" 体" +values.total.lp
 		+" ブ" +values.total.bst+"\n";
 	Data.part_cd.forEach(function(e,idx){
-		export_text_data += ("　　　【"+Data.part_name[idx]+"】").slice(-5);
+		export_text_data += ("　　　【"+Data.part_name[idx]+"】").slice(-7);
 		export_text_data += "[" +Data.rarelity[values[e].rarelity]+"]";
 		export_text_data +=  values[e].org.name;
 		if(idx==0){
@@ -312,26 +309,36 @@ var reCalc=function(){
 		
 		export_text_data +=  "\n";
 	});
-	export_text_data += location.protocol + "//"+location.host+location.pathname;
+	var param=values.shinki.individual;
+	Data.part_cd.forEach(function(e,idx){
+		var obj = values[e];
+		param+=obj.cd+Data.rarelity[obj.rarelity]+obj.lv;
+	});
+
+	param = btoa(encodeURIComponent(param));
+	export_text_data += location.protocol + "//"+location.host+location.pathname +"?v1" + param;
+
 	values.export_text = export_text_data;
+
 
 	Bind.refresh();
 }
 
 
 var onloadfunc=function(){
-	Data.busos.forEach(function(e){
-		if(e.set ===""){ e.set="-"}
-		if(e.set.indexOf("M")===0){
-			e.set = e.set.substr(1);
-		}else{
-			e.parent=e.set;
-			e.set="";
-		}
-
-	});
 
 	//部位ごとのフォーム作成
+	var parent = document.querySelector("#armor");
+	Data.part_cd.forEach(function(e,idx){
+		if(idx===0)return;
+		var div = document.createElement("div");
+		var span= document.createElement("span");
+		span.className="template_part";
+		span.id=e;
+		div.appendChild(span);
+		parent.appendChild(div);
+	});
+
 	var targets= document.querySelectorAll(".template_part");
 	var template=document.querySelector("#template #buso");
 	for(var i=0;i<targets.length;i++){
@@ -352,76 +359,84 @@ var onloadfunc=function(){
 		 clone.querySelector(".part").textContent = Data.part_name[i];
  
 		var span = clone.querySelector(".name *");
-		span.addEventListener("click"
-			,(function(part_cd,part_idx){
-				return function(e){
-					var rarelity = Number(values[part_cd].rarelity);
+		span.addEventListener("click" ,(function(part_cd,part_idx){
+			return function(e){
+				var rarelity = Number(values[part_cd].rarelity);
 
-					sub_cols=[{label:"name",data:"name"}
-						,{data:"atk",label:"攻",class:"status atk"}
-						,{data:"def",label:"防",class:"status def"}
-						,{data:"spd",label:"速",class:"status sdp"}
-						,{data:"lp", label:"体",class:"status lp"}
-						,{data:"bst",label:"ブ",class:"status bst"}];
+				sub_cols=[{label:"name",data:"name",filter:1
+					,disp:function(e){ 
+						if(e.parent === undefined){return e.name};
+						return (
+						(e.parent!=="-"?"*":"")
+						+(e.set !==""?"+":"")
+						+e.name);}}
+					,{data:"atk",label:"攻",class:"status atk"}
+					,{data:"def",label:"防",class:"status def"}
+					,{data:"spd",label:"速",class:"status spd"}
+					,{data:"lp", label:"体",class:"status lp"}
+					,{data:"bst",label:"ブ",class:"status bst"}];
 
-					if(part_idx===0){
-						values.filter={};
-						table_data = Data.shinkis;
+				if(part_idx===0){
+					values.filter={};
+					table_data = Data.shinkis;
+				}else{
+					sub_cols.splice(0,0,{data:"rarelity",filter:1
+						,disp:function(e){return Data.rarelity[e.rarelity];}}); 
+					sub_cols.unshift({data:"part",filter:1
+						,disp:function(e){return Data.part_name[e.part]}});
+					sub_cols.unshift({data:"class",label:"分類",filter:1
+						,disp:function(e){return Data.class[e.class];}});
+					if(part_idx===6){
+						sub_cols.splice(4,0,{data:"category",label:"カテゴリ",filter:1,disp:function(e){
+							return Data.categories[e.category].short_name;}}); 
+						sub_cols.push({data:"active",filter:1,disp:function(e){
+								if(Data.actives[e.active]){
+									return Data.actives[e.active].name + (e.effect?"["+Data.effect[e.effect]+"]":"");}}}); 
+								
+
 					}else{
-						sub_cols.splice(0,0,{data:"rarelity",label:"R",filter:1,disp:function(e){
-							return Data.rarelity[e.rarelity];}}); 
-						sub_cols.unshift({data:"part",filter:1,disp:function(e){return Data.part_name[e.part]}});
-						sub_cols.unshift({data:"class",label:"分類",filter:1,disp:function(e){return Data.class[e.class];}});
-						sub_cols.splice(0,0,{data:"parent",filter:1});
-						if(part===6){
-							sub_cols.splice(4,0,{data:"category",label:"カテゴリ",filter:1,disp:function(e){
-								return Data.categories[e.category].short_name;}}); 
-							sub_cols.push({data:"active",filter:1,disp:function(e){
-									if(Data.actives[e.active]){
-										return Data.actives[e.active].name + (e.effect?"["+Data.effect[e.effect]+"]":"");}}}); 
-									
+						sub_cols.push({data:"passive",filter:1,disp:function(e){
+							if(e.passive>=0){
 
-						}else{
-							sub_cols.push({data:"passive",filter:1,disp:function(e){
-								if(e.passive>=0){
-
-									return Data.passives[e.passive].name + (e.effect?"["+Data.effect[e.effect]+"]":"");}}}); 
-						}
-						if(part===5){
-							sub_cols.push({data:"flying",label:"飛行",filter:1,disp:function(e){return Data.flying[e.flying]}});
-						}
-						values.filter={part:[part_idx],rarelity:[rarelity]};
-						table_data = Data.busos;
+								return Data.passives[e.passive].name + (e.effect?"["+Data.effect[e.effect]+"]":"");}}}); 
 					}
-					openSubWindow(function(e){
-						if(e===null){ return; }
-						if(part_cd !== 'shinki'){
-
-							if(e.part!==6 || part_cd!=='sub'){
-								part_cd = Data.part_cd[e.part];
-							}
-							var buso = Data.busos.find(function(elem){return elem.cd === e.cd;});
-							if(buso){
-								values[part_cd].cd = buso.cd ;
-								values[part_cd].rarelity = buso.rarelity;
-							}
-							if(buso.set !== ""){
-								var setbusos = Data.busos.filter(function(e){return e.parent === buso.set && e.rarelity === buso.rarelity;});
-								setbusos.forEach(function(e){
-									var part_cd = Data.part_cd[e.part];
-									values[part_cd].cd = e.cd ;
-									values[part_cd].rarelity = e.rarelity;
-								});
-							}
-						}else{
-							values[part_cd].cd = e.cd;
-						}
-						Bind.refresh();
-						reCalc();
-					});
-					e.preventDefault();
-					return false;
+					if(part_idx===5){
+						sub_cols.push({data:"flying",label:"飛行",filter:1,disp:function(e){return Data.flying[e.flying]}});
+					}
+					values.filter={part:[part_idx],rarelity:[rarelity]};
+					table_data = Data.busos;
 				}
+				openSubWindow(function(e){
+					if(e===null){ return; }
+					if(part_cd !== 'shinki'){
+
+						if(e.part === 6 && part_cd ==='weapon2'){
+						}else{
+							part_cd = Data.part_cd[e.part];
+						}
+						var buso = Data.busos.find(function(elem){return elem.cd === e.cd;});
+						if(buso){
+							values[part_cd].cd = buso.cd ;
+							values[part_cd].rarelity = buso.rarelity;
+						}
+						if(buso.set !== ""){
+							//セット装備がある場合
+							var setbusos = Data.busos.filter(function(e){return e.parent === buso.set && e.rarelity === buso.rarelity;});
+							setbusos.forEach(function(e){
+								var part_cd = Data.part_cd[e.part];
+								values[part_cd].cd = e.cd ;
+								values[part_cd].rarelity = e.rarelity;
+							});
+						}
+					}else{
+						values[part_cd].cd = e.cd;
+					}
+					Bind.refresh();
+					reCalc();
+				});
+				e.preventDefault();
+				return false;
+			}
 		})(part_cd,part_idx));
 
 		target.parentNode.replaceChild(clone,target);
@@ -430,72 +445,83 @@ var onloadfunc=function(){
 	//param
 	var nodes= document.querySelectorAll("span.param");
 	var param= document.getElementById("param");
-	for(var i=0;i<nodes.length;i++){
-		var node = nodes[i];
+	Data.param_cd.forEach(function(e,idx){
+		var span = document.createElement("span");
+		span.classList.add("status",e);
+		span.setAttribute("bind","."+e);
+		param.appendChild(span);
+	});
+	nodes.forEach(function(node){
 		var newnode = param.cloneNode(true);
 		var bindName = node.getAttribute("bind");
 		var children = newnode.querySelectorAll("[bind]");
-		for(var j=0;j<children.length;j++){
-			children[j].setAttribute("bind",bindName +children[j].getAttribute("bind"));
-		}
-
+		children.forEach(function(e){
+			e.setAttribute("bind",bindName +e.getAttribute("bind"));
+		});
 		node.parentNode.replaceChild(newnode,node);
-	}
+	});
 
 	//レアリティコンボボックス設定
-	var selects = document.querySelectorAll("select.rarelity");
+	nodes= document.querySelectorAll("select.rarelity");
 	var rare = document.getElementById("rarelity");
-	for(var i=0;i<selects.length;i++){
+	Data.rarelity.forEach(function(e,idx){
+		var option = document.createElement("OPTION");
+		option.textContent = e;
+		option.className=e;
+		option.value= idx;
+		rare.appendChild(option);
+	});
+	nodes.forEach(function(org){
 		var rare2 = rare.cloneNode(true);
-		var org = selects[i];
 		rare2.id="";
-		rare2.addEventListener("change",function(){
-			var div = this.parentNode;
-			for(var j=0;j<Data.rarelity.length;j++){
-				div.classList.remove(Data.rarelity[j]);
-			}
-			div.classList.add(Data.rarelity[this.selectedIndex]);
-		});
 		if(org.getAttribute("bind") !== null){
 			rare2.setAttribute("bind",org.getAttribute("bind"));
 		}
 		org.parentNode.replaceChild(rare2,org);
-	}
+	});
 
 	//初期値セット
-	values.shinki={};
-	values.shinki.cd=Data.shinkis[0].cd;
-
-	for(var i=1;i<Data.part_cd.length;i++){
-		values[Data.part_cd[i]]={};
-		var part=values[Data.part_cd[i]];
-		var part_idx = i;
-		if(part_idx=== 7){ part_idx=6;};
-		part.rarelity=0;
-		part.cd=Data.busos.find(function(e){
-	  		return e.part===part_idx && e.name !=="-" && e.rarelity === 0}).cd;
-	}
-
-	Bind.init();
-
-	var nodes= document.querySelectorAll("select");
-	for(var i=0;i<nodes.length;i++){
-		nodes[i].addEventListener("change",function(){
-			reCalc();
+	if(location.search===""){
+		Data.part_cd.forEach(function(e){
+			values[e]={cd:Data.default[e].cd,rarelity:Data.default[e].rarelity,lv:"1"};
 		});
+		values.shinki.individual="0";
+	}else{
+		var param = location.search.substring(1);
+		var version = param.substring(0,2);
+		param = decodeURIComponent(atob(param.substring(2)));
+		var individual= param.match(/^(\d+)/)[1];
+		Data.part_cd.forEach(function(e){
+			var initial = e.substr(0,1);
+			var regexp = new RegExp("("+ initial +"\\d+)([NRSU]+)(\\d+)");
+			var result = param.match(regexp);
+			values[e]={};
+			values[e].cd = result[1];
+			values[e].rarelity= ""+Data.rarelity.indexOf(result[2]);
+			values[e].lv= result[3];
+			param=param.substr(result.index+result[0].length);
+		});
+		values.shinki.individual =individual;
 	}
+
+
+	document.querySelectorAll("select").forEach(function(node){
+		node.addEventListener("change",function(){ reCalc(); });
+	});
 
 	var select = document.querySelector("#individual");
-	var data = Data.individuals;
-	for(var i=0;i<data.length;i++){
+	Data.individuals.forEach(function(e,idx){
 		var option = document.createElement("OPTION");
-		option.textContent = data[i].name;
-		option.value= i;
+		option.textContent = e.name;
+		option.value= idx;
 		select.appendChild(option);
-	}
+	});
 	
 
 	document.querySelector("span#shinki .lv").setAttribute("disabled","disabled");
+
+	Bind.init();
+	Bind.refresh();
 
 	reCalc();
 
@@ -513,30 +539,26 @@ var openSubWindow=function(callback){
 
 		//ヘッダ作る
 		var tr = document.createElement("tr");
+		tr.classList.add("sort");
 		var tr2 = document.createElement("tr");
 		tr2.classList.add("filter");
 		var th = document.createElement("th");
 	  	tr.appendChild(th);
 		th = document.createElement("th");
 	  	tr2.appendChild(th);
-		sub_cols.forEach(function(cols){
+		sub_cols.forEach(function(col){
 			var th = document.createElement("th");
 
-			var a= document.createElement("span");
-			a.setAttribute("bind","filter_name."+cols.data);
-			a.onclick=(function(cd){return function(e){setFilter(cd,null);}})(cols.data);
-			th.appendChild(a);
-			th.classList.add(cols.data);
+			th.classList.add(col.data);
 			tr2.appendChild(th);
 
 			th = document.createElement("th");
-			a= document.createElement("span");
-			a.textContent=cols.label?cols.label:cols.data;
-			a.classList.add("onclick");
-			a.onclick=(function(cd){return function(e){setSort(cd);}})(cols.data);
+			var a= document.createElement("button");
+			a.textContent=col.label?col.label:col.data;
+			a.onclick=(function(cd){return function(e){setSort(cd);}})(col.data);
 			th.appendChild(a);
 
-			th.classList.add(cols.data);
+			th.classList.add(col.data);
 			tr.appendChild(th);
 		});
 		var cols = document.querySelectorAll("#sub_head tr");
@@ -563,6 +585,8 @@ var closeSubWindow = function(e){
 var setFilter=function(name,value){
 	var filter = values.filter;
 	if(!value){
+		delete filter[name];
+	}else if(value.length===0){
 		delete filter[name];
 	}else{
 		filter[name]=value;
@@ -591,12 +615,12 @@ var setSort=function(data){
 	createTable();
 
 }
-var createTable=function(sort_member){
+var createTable=function(){
 
-	//var filter_sort = JSON.parse(values.filter_sort);
 	var filters = values.filter;
 	var sort = values.sort;
 	var keys = Object.keys(filters);
+
 	//フィルタ
 	var data= table_data.filter(function(e){
 		var flg=true;
@@ -608,12 +632,20 @@ var createTable=function(sort_member){
 
 	values.filter_name=[];
 	sub_cols.forEach(function(cols){
-		var content= filters[cols.data];
-		if(content){
-			var a = {};a[cols.data]=content;
-			values.filter_name[cols.data]= typeof cols.disp == "function"?cols.disp(a):content;
-		}else{
-			values.filter_name[cols.data]= "";
+		var filter= filters[cols.data];
+		var th = document.querySelector("tr.filter th."+cols.data);
+		th.innerHTML="";
+		if(filter){
+			filter.forEach(function(e,idx){
+				var button = document.createElement("button");
+				button.textContent=e;
+				button.onclick=function(){
+					filter.splice(idx,1);
+					setFilter(cols.data,filter)
+				};
+				th.appendChild(button);
+			});
+			
 		}
 	});
 
@@ -644,9 +676,9 @@ var createTable=function(sort_member){
 		tr = document.createElement("tr");
 
 		var th = document.createElement("th");
-		var span = document.createElement("span");
+		var span = document.createElement("button");
 		span.textContent = "選択";
-		span.classList.add("onclick");
+		span.className="pick";
 		span.onclick=(function(cd){return function(e){closeSubWindow(cd);}})(rowdata);
 		th.appendChild(span);
 		tr.appendChild(th);
@@ -659,7 +691,7 @@ var createTable=function(sort_member){
 			span.textContent = content;
 			span.className = col.class;
 			td.appendChild(span);
-			if(col.data ==='name'){
+			if(col.data ==='name' || col.data ==='rarelity'){
 				if(rowdata.rarelity){
 					span.className =Data.rarelity[rowdata.rarelity];
 				}
@@ -732,8 +764,10 @@ Bind.refresh=function(){
 var span = document.querySelector("#add_extra_passive");
 span.addEventListener("click",function(e){
 
-  sub_cols=[{label:"name",data:"name",filter:1}
-		,{label:"effect",data:"effect",filter:1}];
+  sub_cols=[{label:"パッシブスキル",data:"name",filter:1,disp:function(e){
+  		return e.name + (e.effect>0?"["+Data.effect[e.effect]+"]":"");
+		}}
+		,{label:"効果量",data:"effect",filter:1,disp:function(e){return Data.effect[e.effect];}}];
 
 	values.filter={effect:[0,1]};
 	table_data=[];
@@ -745,7 +779,6 @@ span.addEventListener("click",function(e){
 		}else{
 			for(var i=1;i<5;i++){
 				var data  ={name:e.name,cd:idx,effect:i};
-				data.name+= "[" + Data.effect[i]+"]";
 				table_data.push(data);
 			}
 		}
