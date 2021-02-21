@@ -388,17 +388,14 @@ var onloadfunc=function(){
 						,disp:function(e){return DATA.class[e.class];}});
 					if(part_idx===6){
 						sub_cols.splice(4,0,{data:"category",label:"カテゴリ",filter:1,disp:function(e){
-							return DATA.categories[e.category].short_name;}}); 
+							return DATA.category_short[e.category];}}); 
 						sub_cols.push({data:"active",filter:1,disp:function(e){
-								if(DATA.actives[e.active]){
-									return DATA.actives[e.active].name + (e.effect?"["+DATA.effect[e.effect]+"]":"");}}}); 
+								return getSkillName(DATA.actives[e.active],e.active_effect); }}); 
 								
 
 					}else{
 						sub_cols.push({data:"passive",filter:1,disp:function(e){
-							if(e.passive>=0){
-
-								return DATA.passives[e.passive].name + (e.effect?"["+DATA.effect[e.effect]+"]":"");}}}); 
+								return getSkillName(DATA.passives[e.passive],e.effect); }}); 
 					}
 					if(part_idx===5){
 						sub_cols.push({data:"flying",label:"飛行",filter:1,disp:function(e){return DATA.flying[e.flying]}});
