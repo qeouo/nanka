@@ -16,25 +16,28 @@
 
 <script type="text/javascript">
 "use strict";
-var Data={shinkis:[],busos:[],individuals:[]};
+var DATA={shinkis:[],armors:[],individuals:[]};
 //データ整形ーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーーー
 var conv=function(row,n){
-	var buso = {};
+	var armor = {};
 
-	buso.part=n;
-	buso.set=row[0];
-	buso.class = row[1];
-	buso.name=row[2];
-	buso.rarelity=row[3];
-	buso.atk=row[4];
-	buso.def=row[5];
-	buso.spd=row[6];
-	buso.lp=row[7];
-	buso.bst=row[8];
-	buso.passive=row[9];
-	buso.effect=row[10];
-	buso.biko=row[11];
-	return buso;
+	armor.part=n;
+	armor.set=row[0];
+	armor.class = row[1];
+	armor.name=row[2];
+	armor.rarelity=row[3];
+	armor.atk=row[4];
+	armor.def=row[5];
+	armor.spd=row[6];
+	armor.lp=row[7];
+	armor.bst=row[8];
+	armor.passive=row[9];
+	armor.effect=row[10];
+	armor.active=row[11];
+	armor.active_effect=row[12];
+	armor.biko=row[13];
+	if(armor.biko==="-")armor.biko="";
+	return armor;
 }
 
 var prepareData=function(data){
@@ -61,7 +64,7 @@ var prepareData=function(data){
 			if(lists[j][i] ==="")break;
 			list.push(lists[j][i]);
 		}
-		Data[lists[0][i]]=list;
+		DATA[lists[0][i]]=list;
 	}
 
 	//神姫
@@ -80,7 +83,7 @@ var prepareData=function(data){
 		shinki.apts=row.slice(7,7+15);
 		shinki.apts.unshift(0);
 		shinki.rarelity=0;
-		Data.shinkis.push(shinki);
+		DATA.shinkis.push(shinki);
 	}
 	//アイコン補正
 	for(var i=0;i<data.individuals.length;i++){
@@ -92,45 +95,38 @@ var prepareData=function(data){
 		individual.spd=Number(row[3]);
 		individual.lp=Number(row[4]);
 		individual.bst=Number(row[5]);
-		Data.individuals.push(individual);
+		DATA.individuals.push(individual);
 	}
 	//武装
 	for(var j=1;j<6;j++){
-		var part=Data.part_cd[j];
+		var part=DATA.part_cd[j];
 		var part_data= data[part];
 		if(!part_data)continue;
 		for(var i=0;i<part_data.length;i++){
 			var row = part_data[i];
-			var buso = conv(row,j);
-			buso.cd=part.substr(0,1)+i;
-			Data.busos.push(buso);
+			var armor = conv(row,j);
+			armor.cd=part.substr(0,1)+i;
+			DATA.armors.push(armor);
 
 	  		if(j===5){
-	  			buso.flying=row[12];
-				if(buso.flying !== 1)buso.flying=0;
+	  			armor.flying=row[12];
+				if(armor.flying !== 1)armor.flying=0;
 			}
 		}
 	}
-
-	//武器カテゴリ
-	Data.categories = data.weapon_categories.map(function(e){
-	  return {name:e[0],short_name:e[1]};
-	});
 
 	//武器
 	var part_data= data.weapon;
 	for(var i=0;i<part_data.length;i++){
 		var row = part_data[i];
-		var buso = conv(row,6);
-		buso.cd="w"+i;
-		buso.passive=-1;
-		buso.active=row[9];
-		buso.category=row[12];
-		buso.range=row[13];
-		Data.busos.push(buso);
+		var armor = conv(row,6);
+		armor.cd="w"+i;
+		armor.category=row[14];
+		armor.range=row[15];
+		DATA.armors.push(armor);
 	}
 
-	Data.busos.forEach(function(e){
+	DATA.armors.forEach(function(e){
 		if(e.set ===""){ e.set="-"}
 		if(e.set.indexOf("M")===0){
 			e.set = e.set.substr(1);
@@ -143,30 +139,14 @@ var prepareData=function(data){
 	});
 
 	//パッシブ
-	Data.passives= data.passive.map(function(e){return {name:e[0]};});
+	DATA.passives= data.passive.map(function(e){return {name:e[0],effect_type:e[1]};});
 
-	var correctStatus=function(atk,def,spd,lp,bst){
-	   values.total.atk += Math.trunc(values.subtotal.atk * 0.01*atk);
-	   values.total.def += Math.trunc(values.subtotal.def * 0.01*def);
-	   values.total.spd += Math.trunc(values.subtotal.spd * 0.01*spd);
-	   values.total.lp  += Math.trunc(values.subtotal.lp  * 0.01*lp);
-	   values.total.bst += Math.trunc(values.subtotal.bst * 0.01*bst);
-	}
-	Data.passives[ 1].func=function(effect){ correctStatus(1+effect,0,0,0,0); }
-	Data.passives[ 2].func=function(effect){ correctStatus(0,1+effect,0,0,0); }
-	Data.passives[ 3].func=function(effect){ correctStatus(0,0,1+effect,0,0); }
-	Data.passives[ 4].func=function(effect){ correctStatus(0,0,0,1+effect,0); }
-	Data.passives[ 5].func=function(effect){ correctStatus(0,0,0,0,1+effect); }
-	Data.passives[ 6].func=function(effect){
-		var a =Math.trunc(effect*0.5)
-		correctStatus(a+1,a+1,a,a+1,a+1);
-	}
 
 	//アクティブ
-	Data.actives = data.active.map(function(e){return {name:e[0]};});
+	DATA.actives = data.active.map(function(e){return {name:e[0],effect_type:e[1]};});
 
 	//レベル増加値
-	Data.lv_bonus={};
+	DATA.lv_bonus={};
 	var sheet_data = data.lv_bonus;
 	for(var i=0;i < sheet_data.length;){
 		var bonuses=[];
@@ -182,10 +162,10 @@ var prepareData=function(data){
 			bonuses.push(bonus);
 			i++;
 		}
-		Data.lv_bonus[part] = bonuses;
+		DATA.lv_bonus[part] = bonuses;
 	}
 
-	Data.shinki_rarelity_bonus=[
+	DATA.shinki_rarelity_bonus=[
 		{atk:0,def:0,spd:0,lp:0,bst:0}
 		,{atk:5,def:5,spd:10,lp:50,bst:20}
 		,{atk:10,def:10,spd:20,lp:100,bst:40}
@@ -193,20 +173,22 @@ var prepareData=function(data){
 	];
 
 	//初期値
-	Data.default={};
-	Data.default.shinki={cd:Data.shinkis[0].cd,rarelity:0};
+	DATA.default={};
+	DATA.default.shinki={cd:DATA.shinkis[0].cd,rarelity:0};
 
-	Data.part_cd.forEach(function(e,idx){
+	DATA.part_cd.forEach(function(e,idx){
 		if(idx===0)return;
 		var part_idx = idx;
-		Data.default[e]={cd:0,rarelity:0};
+		DATA.default[e]={cd:0,rarelity:0};
 		if(part_idx=== 7){ part_idx=6;};
-		Data.default[e].cd=Data.busos.find(function(e){
+		DATA.default[e].cd=DATA.armors.find(function(e){
 	  		return e.part===part_idx && e.name !=="-" && e.rarelity === 0}).cd;
 	});
 
+	DATA.date= Date.now();
 
-    let blob = new Blob(["var Data=",JSON.stringify(Data),";"],{type:"text/plan"});
+
+    let blob = new Blob(["var DATA=",JSON.stringify(DATA),";"],{type:"text/plan"});
 	var a =document.createElement('a');
 	a.href=URL.createObjectURL(blob);
 	a.innerText="data.js";

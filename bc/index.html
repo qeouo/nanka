@@ -16,7 +16,7 @@
 <body onload="onloadfunc()">
 <div>※各種データ・計算式が正しいか分かりません。間違ってたら正しい値を教えてくれれば直します。</div>
 <div id="form">
-<div style="position:fixed;bottom:0px;right:0px;font-size:8pt;" bind="version">c20210215_d20210215</div>
+<div style="position:fixed;bottom:0px;right:0px;font-size:8pt;" bind="version"></div>
 
 <div  class="subwindow" id="subwindow" style="display:none;">
 	<div  class="back" onclick="closeSubWindow(null);">
@@ -29,7 +29,7 @@
 	</div>
 </div>
 
-	<div><span class="shinki template_part" id="shinki" ></span><span class="biko" bind="biko"></span></div>
+	<div><span class="shinki template_part" id="shinki" ></span></span></div>
 	<div>武器適性<span bind="tekise" class="biko"></span></div>
 	<div>パッシブ 
 		<button id="add_extra_passive">追加</button>
@@ -55,7 +55,7 @@
 		<span class="" style="width:100px;display:inline-block;"></span>
 		<span class="lv"></span>
 		<span class="rarelity"></span>
-		<span class="name">小計</span>
+		<span class="name" style="text-align:right;">ステータス計</span>
 		<span class="param" bind="subtotal"></span>
 		<span class="biko" bind="subtotal.biko" id="subbiko"></span>
 	</div>
@@ -64,7 +64,7 @@
 		<span class="" style="width:100px;display:inline-block;"></span>
 		<span class="lv"></span>
 		<span class="rarelity"></span>
-		<span class="name">武器適正とパッシブ適用後</span>
+		<span class="name" style="text-align:right;">武器適正とパッシブ適用後</span>
 		<span class="param" bind="total"></span>
 	</div>
 
@@ -76,7 +76,7 @@
 
 <div style="display:none;" id="template">
 
-	<span id="buso">
+	<span id="armor">
 		<span class="part"></span>
 		<select class="lv" bind=".lv">
 			<option value="1">Lv1</option>
@@ -90,7 +90,9 @@
 			
 		<span class="param" bind="">
 		</span>
-		<span class="biko" bind=".biko"></span>
+		<span class="skill" >
+		</span>
+		<span class="biko" bind=".org.biko"></span>
 	</span>
 
 	<select id="rarelity" class="rarelity" bind="rarelity"> </select>
@@ -107,13 +109,13 @@
 var values={total:{},subtotal:{},extra_passives:[]};
 
 var reset=function(a){
-	for(var i=0;i<Data.param_cd.length;i++){
-		a[Data.param_cd[i]]= 0;
+	for(var i=0;i<DATA.param_cd.length;i++){
+		a[DATA.param_cd[i]]= 0;
 	}
 }
 var add=function(a,b){
-	for(var i=0;i<Data.param_cd.length;i++){
-		var param_cd = Data.param_cd[i];
+	for(var i=0;i<DATA.param_cd.length;i++){
+		var param_cd = DATA.param_cd[i];
 		a[param_cd] += b[param_cd];
 	}
 }
@@ -131,8 +133,8 @@ var reCalc=function(){
 	}
 
 	//神姫
-	values.default_shinki_param = Data.default_shinki_param;
-	var shinki= Data.shinkis.find(function(elem){return elem.cd === values.shinki.cd});
+	values.default_shinki_param = DATA.default_shinki_param;
+	var shinki= DATA.shinkis.find(function(elem){return elem.cd === values.shinki.cd});
 	values.shinki.org =shinki;
 	if(!shinki){return;}
 	reset(values.shinki);
@@ -141,14 +143,14 @@ var reCalc=function(){
 
 	//レアリティ
 	var rare = values.shinki.rarelity;
-	add(values.shinki,Data.shinki_rarelity_bonus[rare]);
+	add(values.shinki,DATA.shinki_rarelity_bonus[rare]);
 
 	values.shinki.apts=[];
 	for(var i=0;i<shinki.apts.length;i++){
 		var apt={};
 		var effect= shinki.apts[i];
 		if(effect!==0){
-			apt.weapon_category = i;
+			apt.category = i;
 			if(effect===100){
 				effect-=20*rare;
 			}else if(effect<0){
@@ -183,67 +185,68 @@ var reCalc=function(){
 	});
 	
 	//アイコン補正
-	values.individual= Data.individuals[values.shinki.individual];
+	values.individual= DATA.individuals[values.shinki.individual];
 
 	//武装
-	for(var i=1;i<Data.part_cd.length;i++){
-		var part=Data.part_cd[i];
+	for(var i=1;i<DATA.part_cd.length;i++){
+		var part=DATA.part_cd[i];
 		var r = Number(values[part].rarelity);
 		var lv= values[part].lv;
 		var cd = values[part].cd;
 
-		var idx = Data.busos.findIndex(function(elem){return elem.cd === cd;});
+		var idx = DATA.armors.findIndex(function(elem){return elem.cd === cd;});
 		reset(values[part]);
 		values[part].biko = "";
 		if(idx<0){
 	 		continue;
 	  }
-		var buso = Data.busos[idx];
-		if(buso.rarelity !== r){
-			var idx2 = idx + r -buso.rarelity;
-			if(Data.busos[idx2].name === buso.name){
-				values[part].cd = buso.cd;
-				buso = Data.busos[idx2];
+		var armor = DATA.armors[idx];
+		if(armor.rarelity !== r){
+			var idx2 = idx + r -armor.rarelity;
+			if(DATA.armors[idx2].name === armor.name){
+				values[part].cd = armor.cd;
+				armor = DATA.armors[idx2];
 			}else{
-				values[part].rarelity = buso.rarelity;
+				values[part].rarelity = armor.rarelity;
 			}
 		}
-		values[part].org = buso;
+		values[part].org = armor;
 
-		values[part].name=buso.name;
-	  	if(buso.part===6){
-			values[part].name=buso.name + "[" +Data.categories[buso.category].short_name +"]";
+		values[part].name=armor.name;
+	  	if(armor.part===6){
+			values[part].name=armor.name + "[" +DATA.category_short[armor.category]+"]";
 		}
-		add(values[part],buso);
+		add(values[part],armor);
 		if(lv==60){
 			var bonus;
-			if(buso.part===6){
+			if(armor.part===6){
 				if(part.range===0){
-					bonus= Data.lv_bonus.weapon_short[r];
+					bonus= DATA.lv_bonus.weapon_short[r];
 				}else{
-					bonus= Data.lv_bonus.weapon_long[r];
+					bonus= DATA.lv_bonus.weapon_long[r];
 				}
 			}else{
-				bonus= Data.lv_bonus[part][r];
+				bonus= DATA.lv_bonus[part][r];
 			}
 			add(values[part],bonus);
 		}
-		if(buso.passive>0){
+		var span_skill= document.querySelector("#"+part+" span.skill");
+		span_skill.innerHTML="";
+		if(armor.passive>0){
 			var passive={};
-			passive.cd = buso.passive;
-			passive.effect= buso.effect;
+			passive.skill = DATA.passives[armor.passive];
+			passive.effect= armor.effect;
 			passives.push(passive);
-			values[part].biko = "<span class='passive'>" + Data.passives[passive.cd].name ;
-			if(passive.effect>0){
-				values[part].biko += "[" + Data.effect[passive.effect]+"]";
-			}
-			values[part].biko += "</span>";
+			var span =getPassiveSpan(passive);
+			span_skill.appendChild(span);
 		}
-		if(buso.active>0){
-			values[part].biko = "<span class='active'>" + Data.actives[buso.active].name + "</span>";
-			if(buso.effect>0){
-				values[part].biko += "[" + Data.effect[buso.effect]+"]";
-			}
+		if(armor.active>0){
+			var skill={};
+			skill.skill = DATA.actives[armor.active];
+			skill.effect= armor.active_effect;
+			var span =getPassiveSpan(skill);
+			span.className = "active";
+			span_skill.appendChild(span);
 		}
 	}
 
@@ -265,7 +268,7 @@ var reCalc=function(){
 	values.subtotal.biko =document.createElement("span");
 	//適性補正
 	values.shinki.apts.forEach(function(apt){
-		if(apt.weapon_category !== values.weapon.org.category)return;
+		if(apt.category !== values.weapon.org.category)return;
 		values.total.atk += Math.trunc(values.subtotal.atk * apt.effect*0.01);
 		values.subtotal.biko.appendChild(getAptSpan(apt));
 	});
@@ -273,17 +276,17 @@ var reCalc=function(){
 	passives.forEach(function(passive){
 		var span = getPassiveSpan(passive);
 		values.subtotal.biko.appendChild(span);
-		if(Data.passives[passive.cd].func){
-			Data.passives[passive.cd].func(passive.effect);
+		if(passive.skill.func){
+			passive.skill.func(passive.effect);
 		}
 	});
 
 
 	//レアリティ色
-	Data.part_cd.forEach(function(e,idx){
+	DATA.part_cd.forEach(function(e,idx){
 		document.querySelectorAll("span."+e+" select,span."+e+" button").forEach(function(node){
 			node.classList.remove("N","R","SR","UR");
-			node.classList.add(Data.rarelity[values[e].rarelity]);
+			node.classList.add(DATA.rarelity[values[e].rarelity]);
 		});
 	});
 
@@ -296,23 +299,20 @@ var reCalc=function(){
 		+" 速" +values.total.spd
 		+" 体" +values.total.lp
 		+" ブ" +values.total.bst+"\n";
-	Data.part_cd.forEach(function(e,idx){
-		export_text_data += ("　　　【"+Data.part_name[idx]+"】").slice(-7);
-		export_text_data += "[" +Data.rarelity[values[e].rarelity]+"]";
-		export_text_data +=  values[e].org.name;
+	DATA.part_cd.forEach(function(e,idx){
+		var data = values[e];
+		export_text_data += "Lv" + data.lv + DATA.rarelity[data.rarelity];
+		export_text_data +=  data.org.name;
 		if(idx==0){
-			export_text_data +="("+ Data.individuals[values.shinki.individual].name+")";
-		} else if(idx==6 ||idx==7){
-			export_text_data += "[" +Data.categories[values[e].org.category].name +"]";
-			export_text_data += "(" +Data.range[values[e].org.range]+")";
+			export_text_data +="("+ DATA.individuals[data.individual].name+")";
 		}
 		
 		export_text_data +=  "\n";
 	});
 	var param=values.shinki.individual;
-	Data.part_cd.forEach(function(e,idx){
+	DATA.part_cd.forEach(function(e,idx){
 		var obj = values[e];
-		param+=obj.cd+Data.rarelity[obj.rarelity]+obj.lv;
+		param+=obj.cd+DATA.rarelity[obj.rarelity]+obj.lv;
 	});
 
 	param = btoa(encodeURIComponent(param));
@@ -329,7 +329,7 @@ var onloadfunc=function(){
 
 	//部位ごとのフォーム作成
 	var parent = document.querySelector("#armor");
-	Data.part_cd.forEach(function(e,idx){
+	DATA.part_cd.forEach(function(e,idx){
 		if(idx===0)return;
 		var div = document.createElement("div");
 		var span= document.createElement("span");
@@ -340,11 +340,11 @@ var onloadfunc=function(){
 	});
 
 	var targets= document.querySelectorAll(".template_part");
-	var template=document.querySelector("#template #buso");
+	var template=document.querySelector("#template #armor");
 	for(var i=0;i<targets.length;i++){
 		var target = targets[i];
 		var part_cd = target.id;
-		var part_idx = Data.part_cd.findIndex(function(e){return e===part_cd;});
+		var part_idx = DATA.part_cd.findIndex(function(e){return e===part_cd;});
 		if(part_idx===7){part_idx=6;};
 
 		var clone = template.cloneNode(true);
@@ -356,7 +356,7 @@ var onloadfunc=function(){
 		for(var j=0;j<children.length;j++){
 			children[j].setAttribute("bind",part_cd+children[j].getAttribute("bind"));
 		}
-		 clone.querySelector(".part").textContent = Data.part_name[i];
+		 clone.querySelector(".part").textContent = DATA.part_name[i];
  
 		var span = clone.querySelector(".name *");
 		span.addEventListener("click" ,(function(part_cd,part_idx){
@@ -378,33 +378,33 @@ var onloadfunc=function(){
 
 				if(part_idx===0){
 					values.filter={};
-					table_data = Data.shinkis;
+					table_data = DATA.shinkis;
 				}else{
 					sub_cols.splice(0,0,{data:"rarelity",filter:1
-						,disp:function(e){return Data.rarelity[e.rarelity];}}); 
+						,disp:function(e){return DATA.rarelity[e.rarelity];}}); 
 					sub_cols.unshift({data:"part",filter:1
-						,disp:function(e){return Data.part_name[e.part]}});
+						,disp:function(e){return DATA.part_name[e.part]}});
 					sub_cols.unshift({data:"class",label:"分類",filter:1
-						,disp:function(e){return Data.class[e.class];}});
+						,disp:function(e){return DATA.class[e.class];}});
 					if(part_idx===6){
 						sub_cols.splice(4,0,{data:"category",label:"カテゴリ",filter:1,disp:function(e){
-							return Data.categories[e.category].short_name;}}); 
+							return DATA.categories[e.category].short_name;}}); 
 						sub_cols.push({data:"active",filter:1,disp:function(e){
-								if(Data.actives[e.active]){
-									return Data.actives[e.active].name + (e.effect?"["+Data.effect[e.effect]+"]":"");}}}); 
+								if(DATA.actives[e.active]){
+									return DATA.actives[e.active].name + (e.effect?"["+DATA.effect[e.effect]+"]":"");}}}); 
 								
 
 					}else{
 						sub_cols.push({data:"passive",filter:1,disp:function(e){
 							if(e.passive>=0){
 
-								return Data.passives[e.passive].name + (e.effect?"["+Data.effect[e.effect]+"]":"");}}}); 
+								return DATA.passives[e.passive].name + (e.effect?"["+DATA.effect[e.effect]+"]":"");}}}); 
 					}
 					if(part_idx===5){
-						sub_cols.push({data:"flying",label:"飛行",filter:1,disp:function(e){return Data.flying[e.flying]}});
+						sub_cols.push({data:"flying",label:"飛行",filter:1,disp:function(e){return DATA.flying[e.flying]}});
 					}
 					values.filter={part:[part_idx],rarelity:[rarelity]};
-					table_data = Data.busos;
+					table_data = DATA.armors;
 				}
 				openSubWindow(function(e){
 					if(e===null){ return; }
@@ -412,18 +412,18 @@ var onloadfunc=function(){
 
 						if(e.part === 6 && part_cd ==='weapon2'){
 						}else{
-							part_cd = Data.part_cd[e.part];
+							part_cd = DATA.part_cd[e.part];
 						}
-						var buso = Data.busos.find(function(elem){return elem.cd === e.cd;});
-						if(buso){
-							values[part_cd].cd = buso.cd ;
-							values[part_cd].rarelity = buso.rarelity;
+						var armor = DATA.armors.find(function(elem){return elem.cd === e.cd;});
+						if(armor){
+							values[part_cd].cd = armor.cd ;
+							values[part_cd].rarelity = armor.rarelity;
 						}
-						if(buso.set !== ""){
+						if(armor.set !== ""){
 							//セット装備がある場合
-							var setbusos = Data.busos.filter(function(e){return e.parent === buso.set && e.rarelity === buso.rarelity;});
-							setbusos.forEach(function(e){
-								var part_cd = Data.part_cd[e.part];
+							var setArmors = DATA.armors.filter(function(e){return e.parent === armor.set && e.rarelity === armor.rarelity;});
+							setArmors.forEach(function(e){
+								var part_cd = DATA.part_cd[e.part];
 								values[part_cd].cd = e.cd ;
 								values[part_cd].rarelity = e.rarelity;
 							});
@@ -445,7 +445,7 @@ var onloadfunc=function(){
 	//param
 	var nodes= document.querySelectorAll("span.param");
 	var param= document.getElementById("param");
-	Data.param_cd.forEach(function(e,idx){
+	DATA.param_cd.forEach(function(e,idx){
 		var span = document.createElement("span");
 		span.classList.add("status",e);
 		span.setAttribute("bind","."+e);
@@ -464,7 +464,7 @@ var onloadfunc=function(){
 	//レアリティコンボボックス設定
 	nodes= document.querySelectorAll("select.rarelity");
 	var rare = document.getElementById("rarelity");
-	Data.rarelity.forEach(function(e,idx){
+	DATA.rarelity.forEach(function(e,idx){
 		var option = document.createElement("OPTION");
 		option.textContent = e;
 		option.className=e;
@@ -482,8 +482,8 @@ var onloadfunc=function(){
 
 	//初期値セット
 	if(location.search===""){
-		Data.part_cd.forEach(function(e){
-			values[e]={cd:Data.default[e].cd,rarelity:Data.default[e].rarelity,lv:"1"};
+		DATA.part_cd.forEach(function(e){
+			values[e]={cd:DATA.default[e].cd,rarelity:DATA.default[e].rarelity,lv:"1"};
 		});
 		values.shinki.individual="0";
 	}else{
@@ -491,17 +491,34 @@ var onloadfunc=function(){
 		var version = param.substring(0,2);
 		param = decodeURIComponent(atob(param.substring(2)));
 		var individual= param.match(/^(\d+)/)[1];
-		Data.part_cd.forEach(function(e){
+		DATA.part_cd.forEach(function(e){
 			var initial = e.substr(0,1);
 			var regexp = new RegExp("("+ initial +"\\d+)([NRSU]+)(\\d+)");
 			var result = param.match(regexp);
 			values[e]={};
 			values[e].cd = result[1];
-			values[e].rarelity= ""+Data.rarelity.indexOf(result[2]);
+			values[e].rarelity= ""+DATA.rarelity.indexOf(result[2]);
 			values[e].lv= result[3];
 			param=param.substr(result.index+result[0].length);
 		});
 		values.shinki.individual =individual;
+	}
+
+	var correctStatus=function(atk,def,spd,lp,bst){
+	   values.total.atk += Math.trunc(values.subtotal.atk * 0.01*atk);
+	   values.total.def += Math.trunc(values.subtotal.def * 0.01*def);
+	   values.total.spd += Math.trunc(values.subtotal.spd * 0.01*spd);
+	   values.total.lp  += Math.trunc(values.subtotal.lp  * 0.01*lp);
+	   values.total.bst += Math.trunc(values.subtotal.bst * 0.01*bst);
+	}
+	DATA.passives[ 1].func=function(effect){ correctStatus(1+effect,0,0,0,0); }
+	DATA.passives[ 2].func=function(effect){ correctStatus(0,1+effect,0,0,0); }
+	DATA.passives[ 3].func=function(effect){ correctStatus(0,0,1+effect,0,0); }
+	DATA.passives[ 4].func=function(effect){ correctStatus(0,0,0,1+effect,0); }
+	DATA.passives[ 5].func=function(effect){ correctStatus(0,0,0,0,1+effect); }
+	DATA.passives[ 6].func=function(effect){
+		var a =Math.trunc(effect*0.5)
+		correctStatus(a+1,a+1,a,a+1,a+1);
 	}
 
 
@@ -510,7 +527,7 @@ var onloadfunc=function(){
 	});
 
 	var select = document.querySelector("#individual");
-	Data.individuals.forEach(function(e,idx){
+	DATA.individuals.forEach(function(e,idx){
 		var option = document.createElement("OPTION");
 		option.textContent = e.name;
 		option.value= idx;
@@ -519,6 +536,10 @@ var onloadfunc=function(){
 	
 
 	document.querySelector("span#shinki .lv").setAttribute("disabled","disabled");
+	var dt=new Date(DATA.date);
+	values.version="c20210221" + "d"+ dt.getFullYear()
+		+("0"+(dt.getMonth()+1)).slice(-2)
+		+("0"+dt.getDate()).slice(-2);
 
 	Bind.init();
 	Bind.refresh();
@@ -638,7 +659,9 @@ var createTable=function(){
 		if(filter){
 			filter.forEach(function(e,idx){
 				var button = document.createElement("button");
-				button.textContent=e;
+				var obj={};
+				obj[cols.data]=e;
+				button.textContent=cols.disp?cols.disp(obj):e;
 				button.onclick=function(){
 					filter.splice(idx,1);
 					setFilter(cols.data,filter)
@@ -693,7 +716,7 @@ var createTable=function(){
 			td.appendChild(span);
 			if(col.data ==='name' || col.data ==='rarelity'){
 				if(rowdata.rarelity){
-					span.className =Data.rarelity[rowdata.rarelity];
+					span.className =DATA.rarelity[rowdata.rarelity];
 				}
 			}
 			if(col.filter){
@@ -704,6 +727,8 @@ var createTable=function(){
 		});
 		tbody.appendChild(tr);
 	}
+
+
 	Bind.refresh();
 }
 
@@ -761,19 +786,21 @@ Bind.refresh=function(){
 		bind.old_value = value;
 	}
 }
+
+//パッシブサブ画面
 var span = document.querySelector("#add_extra_passive");
 span.addEventListener("click",function(e){
 
   sub_cols=[{label:"パッシブスキル",data:"name",filter:1,disp:function(e){
-  		return e.name + (e.effect>0?"["+Data.effect[e.effect]+"]":"");
+  		return e.name + (e.effect>0?"["+DATA.effect[e.effect]+"]":"");
 		}}
-		,{label:"効果量",data:"effect",filter:1,disp:function(e){return Data.effect[e.effect];}}];
+		,{label:"効果量",data:"effect",filter:1,disp:function(e){return DATA.effect[e.effect];}}];
 
 	values.filter={effect:[0,1]};
 	table_data=[];
-	Data.passives.forEach(function(e,idx){
+	DATA.passives.forEach(function(e,idx){
 		if(idx===0)return;
-		if(1===0){
+		if(e.effect_type===0){
 			var data  ={name:e.name,cd:idx,effect:0};
 			table_data.push(data);
 		}else{
@@ -786,23 +813,25 @@ span.addEventListener("click",function(e){
 	
 	openSubWindow(function(res){
 		if(res===null){ return; }
-	  	values.extra_passives.push({cd:res.cd,effect:res.effect});
+	  	values.extra_passives.push({cd:res.cd,skill:DATA.passives[res.cd],effect:res.effect});
 		
 		reCalc();
 	});
  });
 
 
-var getPassiveSpan=function(passive){
+var getPassiveSpan=function(skill){
 	var span = document.createElement("span");
-	span.textContent = Data.passives[passive.cd].name
-		+((passive.effect>0)?"[" + Data.effect[passive.effect]+"]":"");
+	span.textContent = getSkillName(skill.skill,skill.effect);
 	span.className = "passive";
 	return span;
 }
+var getSkillName=function(skill,effect){
+	return skill.name +(effect>0?"[" + DATA.effect[effect]+"]":"");
+}
 var getAptSpan=function(apt){
 	var span = document.createElement("span");
-	span.textContent ="[" + Data.categories[apt.weapon_category].short_name + "]";
+	span.textContent ="[" + DATA.category_short[apt.category]+ "]";
 	span.className= "apt";
 	var span2 = document.createElement("span");
 	span2.textContent =apt.effect+"%";
@@ -810,7 +839,6 @@ var getAptSpan=function(apt){
 	 span.appendChild(span2);
 	return span;
 }
-	  values.version="c20210219";
 </script>
 <script type="text/javascript" src="./data.js"></script>
 </html>

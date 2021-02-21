@@ -11,6 +11,7 @@ button{
 	appearance: none;
     border: 0;
     border-radius: 2px;
+margin:1px;
 }
 button.armor{
 	width:100%;
@@ -105,12 +106,15 @@ td span.UR{
 	width:50px;
 }
 
+span.skill{
+	font-size:smaller;
+}
 span.weapon2 span.status{
 	opacity:0.25;
 }
 
 .biko{
-	font-size:small;
+	font-size:smaller;
 }
 span.passive::before{
 	background-color:#555;
