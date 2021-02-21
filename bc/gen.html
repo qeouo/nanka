@@ -173,16 +173,14 @@ var prepareData=function(data){
 
 	//初期値
 	DATA.default={};
-	DATA.default.shinki={cd:DATA.shinkis[0].cd,rarelity:0};
-
-	DATA.part_cd.forEach(function(e,idx){
-		if(idx===0)return;
-		var part_idx = idx;
-		DATA.default[e]={cd:0,rarelity:0};
-		if(part_idx=== 7){ part_idx=6;};
-		DATA.default[e].cd=DATA.armors.find(function(e){
-	  		return e.part===part_idx && e.name !=="-" && e.rarelity === 0}).cd;
-	});
+	DATA.default.shinki={cd:"s0",rarelity:0};
+	DATA.default.head={cd:"h1",rarelity:0};
+	DATA.default.body={cd:"b1",rarelity:0};
+	DATA.default.arm={cd:"a1",rarelity:0};
+	DATA.default.leg={cd:"l1",rarelity:0};
+	DATA.default.rear={cd:"r1",rarelity:0};
+	DATA.default.weapon={cd:"w1",rarelity:0};
+	DATA.default.weapon2={cd:"w1",rarelity:0};
 
 	DATA.date= Date.now();
 
