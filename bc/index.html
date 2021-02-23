@@ -16,7 +16,7 @@
 <body onload="onloadfunc()">
 <div>※各種データ・計算式が正しいか分かりません。間違ってたら正しい値を教えてくれれば直します。</div>
 <div id="form">
-<div style="position:fixed;bottom:0px;right:0px;font-size:8pt;" bind="version"></div>
+<div style="position:fixed;bottom:2px;right:2px;font-size:8pt;" bind="version"></div>
 
 <div  class="subwindow" id="subwindow" style="display:none;">
 	<div  class="back" onclick="closeSubWindow(null);">
@@ -204,8 +204,8 @@ var reCalc=function(){
 		if(armor.rarelity !== r){
 			var idx2 = idx + r -armor.rarelity;
 			if(DATA.armors[idx2].name === armor.name){
-				values[part].cd = armor.cd;
 				armor = DATA.armors[idx2];
+				values[part].cd = armor.cd;
 			}else{
 				values[part].rarelity = armor.rarelity;
 			}
@@ -220,7 +220,7 @@ var reCalc=function(){
 		if(lv==60){
 			var bonus;
 			if(armor.part===6){
-				if(part.range===0){
+				if(armor.range===0){
 					bonus= DATA.lv_bonus.weapon_short[r];
 				}else{
 					bonus= DATA.lv_bonus.weapon_long[r];
@@ -313,14 +313,30 @@ var reCalc=function(){
 		
 		export_text_data +=  "\n";
 	});
-	var param=values.shinki.individual;
+	//var param=values.shinki.individual;
+	//DATA.part_cd.forEach(function(e,idx){
+	//	var obj = values[e];
+	//	param+=obj.cd+DATA.rarelity[obj.rarelity]+obj.lv;
+	//});
+
+	//param = btoa(encodeURIComponent(param));
+	var param = new Uint8Array(25);
+	var dv = new DataView(param.buffer);
 	DATA.part_cd.forEach(function(e,idx){
 		var obj = values[e];
-		param+=obj.cd+DATA.rarelity[obj.rarelity]+obj.lv;
+		if(idx===0){
+			dv.setUint8(0,obj.lv);
+			dv.setUint8(1,obj.rarelity);
+			dv.setUint8(2,parseInt(obj.cd.substr(1)));
+			dv.setUint8(3,obj.individual);
+		}else{
+			dv.setUint8(1+idx*3,obj.lv);
+			dv.setUint16(2+idx*3,parseInt(obj.cd.substr(1)));
+		}
 	});
+	var param = "0"+arrayToBase64(param);
 
-	param = btoa(encodeURIComponent(param));
-	export_text_data += location.protocol + "//"+location.host+location.pathname +"?v1" + param;
+	export_text_data += location.protocol + "//"+location.host+location.pathname +"?" + param;
 
 	values.export_text = export_text_data;
 
@@ -482,29 +498,6 @@ var onloadfunc=function(){
 		org.parentNode.replaceChild(rare2,org);
 	});
 
-	//初期値セット
-	if(location.search===""){
-		DATA.part_cd.forEach(function(e){
-			values[e]={cd:DATA.default[e].cd,rarelity:DATA.default[e].rarelity,lv:"1"};
-		});
-		values.shinki.individual="0";
-	}else{
-		var param = location.search.substring(1);
-		var version = param.substring(0,2);
-		param = decodeURIComponent(atob(param.substring(2)));
-		var individual= param.match(/^(\d+)/)[1];
-		DATA.part_cd.forEach(function(e){
-			var initial = e.substr(0,1);
-			var regexp = new RegExp("("+ initial +"\\d+)([NRSU]+)(\\d+)");
-			var result = param.match(regexp);
-			values[e]={};
-			values[e].cd = result[1];
-			values[e].rarelity= ""+DATA.rarelity.indexOf(result[2]);
-			values[e].lv= result[3];
-			param=param.substr(result.index+result[0].length);
-		});
-		values.shinki.individual =individual;
-	}
 
 	var correctStatus=function(atk,def,spd,lp,bst){
 	   values.total.atk += Math.trunc(values.subtotal.atk * 0.01*atk);
@@ -537,11 +530,58 @@ var onloadfunc=function(){
 	});
 	
 
+
 	document.querySelector("span#shinki .lv").setAttribute("disabled","disabled");
 	var dt=new Date(DATA.date);
-	values.version="c20210222" + "d"+ dt.getFullYear()
+	values.version="c202102231148" + "d"+ dt.getFullYear()
 		+("0"+(dt.getMonth()+1)).slice(-2)
-		+("0"+dt.getDate()).slice(-2);
+		+("0"+dt.getDate()).slice(-2)
+		+("0"+dt.getHours()).slice(-2)
+		+("0"+dt.getMinutes()).slice(-2);
+
+	//初期値セット
+	if(location.search===""){
+		DATA.part_cd.forEach(function(e){
+			values[e]={cd:DATA.default[e].cd,rarelity:DATA.default[e].rarelity,lv:"1"};
+		});
+		values.shinki.individual="0";
+	}else{
+		var param = location.search.substring(1);
+		var version = param.substring(0,1);
+		if(version==="v"){
+			param = decodeURIComponent(atob(param.substring(2)));
+			var individual= param.match(/^(\d+)/)[1];
+			DATA.part_cd.forEach(function(e){
+				var initial = e.substr(0,1);
+				var regexp = new RegExp("("+ initial +"\\d+)([NRSU]+)(\\d+)");
+				var result = param.match(regexp);
+				values[e]={};
+				values[e].cd = result[1];
+				values[e].rarelity= ""+DATA.rarelity.indexOf(result[2]);
+				values[e].lv= result[3];
+				param=param.substr(result.index+result[0].length);
+			});
+			values.shinki.individual =individual;
+		}else{
+			var param = base64ToArray(param.substr(1));
+			var dv = new DataView(param.buffer);
+			DATA.part_cd.forEach(function(e,idx){
+				values[e]={};;
+				var obj = values[e];
+				if(idx===0){
+					obj.lv = dv.getUint8(0);
+					obj.rarelity =dv.getUint8(1);
+					obj.cd=e.substr(0,1)+dv.getUint8(2);
+					obj.individual = dv.getUint8(3);
+				}else{
+					obj.lv =dv.getUint8(1+idx*3);
+					obj.cd = e.substr(0,1)+dv.getUint16(2+idx*3);
+					var armor = DATA.armors.find(function(elem){return elem.cd === obj.cd;});
+					obj.rarelity= armor.rarelity;
+				}
+			});
+		}
+	}
 
 	Bind.init();
 	Bind.refresh();
@@ -840,6 +880,19 @@ var getAptSpan=function(apt){
 	span2.className= (apt.effect)<0?"minus":"";
 	 span.appendChild(span2);
 	return span;
+}
+
+var arrayToBase64=function(array){
+	return btoa(String.fromCharCode(...array));
+}
+var base64ToArray=function(base64){
+	var binary = atob(base64);
+	var len = binary.length;
+	var bytes = new Uint8Array(len);
+	for (var i = 0; i < len; i++)        {
+	  bytes[i] = binary.charCodeAt(i);
+	}
+	return bytes;
 }
 </script>
 <script type="text/javascript" src="./data.js?2"></script>
