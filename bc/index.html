@@ -15,7 +15,7 @@
 
 <body onload="onloadfunc()">
 <div>※各種データ・計算式が正しいか分かりません。間違ってたら正しい値を教えてくれれば直します。</div>
-<div id="form">
+<span id="form">
 <div style="position:fixed;bottom:2px;right:2px;font-size:8pt;" bind="version"></div>
 
 <div  class="subwindow" id="subwindow" style="display:none;">
@@ -31,15 +31,8 @@
 
 	<div><span class="shinki template_part" id="shinki" ></span></span></div>
 	<div>武器適性<span bind="tekise" class="biko"></span></div>
-	<div>パッシブ 
-		<button id="add_extra_passive">追加</button>
-		<span id="extra_passive" class="biko"></span>
-	</div>
-	<div style="margin-bottom:10px;">
-		<span class="" style="width:100px;display:inline-block;"></span>
-		<span class="rarelity"></span>
-		<span class="lv"></span>
-		<span style="width:200px;text-align:right;">
+	<div>
+		<span class="setting">
 			<span>アイコン</span>
 			<select id="individual" style="width:100px" bind="shinki.individual">
 			</select>
@@ -47,52 +40,58 @@
 		<span class="param" bind="individual">
 		</span>
 	</div>
+	<div>パッシブ 
+		<button id="add_extra_passive">追加</button>
+		<span id="extra_passive" class="biko"></span>
+	</div>
 	<div id="armor">
 	</div>
 
 	<br>
 	<div>
-		<span class="" style="width:100px;display:inline-block;"></span>
-		<span class="lv">総コスト</span>
-		<span class="rarelity" bind="total.cost"></span>
+		<span class="setting">
+		<span >総コスト</span>
+		<span bind="total.cost"></span>
 		<span class="name" style="text-align:right;">ステータス計</span>
-		<span class="param" bind="subtotal"></span>
+		</span>
+		<span class="param" bind="subtotal"></span><br>
 		<span class="biko" bind="subtotal.biko" id="subbiko"></span>
 	</div>
-	<br>
 	<div>
-		<span class="" style="width:100px;display:inline-block;"></span>
-		<span class="lv"></span>
-		<span class="rarelity"></span>
+		<span class="setting">
 		<span class="name" style="text-align:right;">武器適正とパッシブ適用後</span>
+		</span>
 		<span class="param" bind="total"></span>
 	</div>
 
 <div>
-<div>export data</div>
-	<textarea style="width:600px;height:200px;" bind="export_text">aaa</textarea>
+	<div>export data</div>
+	<textarea rows="10" class="export" bind="export_text">aaa</textarea>
 </div>
-</div>
+</span>
 
 <div style="display:none;" id="template">
 
 	<span id="template_armor">
-		<span class="part"></span>
-		<select class="lv" bind=".lv">
-			<option value="1">Lv1</option>
-			<option value="60">Lv60</option>
-		</select>
-		<select  class="rarelity" bind=".rarelity">
-		</select>
-		<span class="name">
-			<button bind=".name" class="armor"></button>
+		<span class="setting">
+			<span>
+				<span class="part"></span><br>
+				Lv<select class="lv" bind=".lv">
+					<option value="1">1</option>
+					<option value="60">60</option>
+				</select>
+				<select  class="rarelity" bind=".rarelity">
+				</select>
+			</span>
+			<span class="name">
+				<button bind=".name" class="armor"></button>
+			</span>
 		</span>
-			
-		<span class="param" bind="">
+		<span>
+			<span class="param" bind=""></span><br>
+			<span class="skill"></span>
+			<span class="biko" bind=".org.biko"></span>
 		</span>
-		<span class="skill" >
-		</span>
-		<span class="biko" bind=".org.biko"></span>
 	</span>
 
 	<select id="rarelity" class="rarelity" bind="rarelity"> </select>
@@ -371,7 +370,7 @@ var onloadfunc=function(){
 		var clone = template.cloneNode(true);
 
 		clone.id = target.id;
-		clone.classList.add(target.id);
+		clone.classList.add(target.id,"armor");
 
 		var children = clone.querySelectorAll("[bind]");
 		for(var j=0;j<children.length;j++){

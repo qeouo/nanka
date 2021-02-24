@@ -1,15 +1,10 @@
-html{
+body{
 	background-color:#888;
 	color:#fff;
-}
-body{
 	font-size:14px;
 }
 div{
 	padding-top:6px;
-}
-textarea{
-	white-space: nowrap;
 }
 	
 
@@ -18,34 +13,55 @@ button{
 	appearance: none;
     border: 0;
     border-radius: 2px;
-margin:1px;
+	margin:1px;
+	white-space:pre-wrap;
 }
 button.armor{
-	width:100%;
+	width:160px;
+	height:32px;
+	
 }
 
+textarea.export{
+	width:100%;
+
+}
+span.armor span{
+	vertical-align:top;
+}
 select{
+	appearance: none;
 	border:none;
+	padding:1px;
+}
+select.rarelity{
+	width:30px;
+}
+select.lv{
+	width:20px;
+	text-align:right;
+}
+select.lv option{
+	text-align:right;
 }
 span{
 	display:inline-block;
 }
+span.setting{
+width:240px;
+	  text-align:right;
+}
 span.part{
 	text-align:right;
-	width:100px;
+	width:70px;
 }
 .name{
-    text-overflow: ellipsis;
-	width:200px;
-	display:inline-block;
-	white-space: nowrap;
-    vertical-align: middle;
 
 }
 
 .status{
 	text-align:right;
-	width:48px;
+	width:40px;
 	position:relative;
 	background-color:#555;
 	margin:1px;
@@ -55,7 +71,7 @@ span.part{
 	position:absolute;
 	left:0px;
 	top:0px;
-	font-size:8px;
+	font-size:xx-small;
 	padding:1px;
 }
 .status.atk::before{
@@ -107,12 +123,6 @@ td span.UR{
 	color:#ff6;
 }
 
-.rarelity{
-	width:40px;
-}
-.lv{
-	width:50px;
-}
 
 span.skill{
 	font-size:smaller;
