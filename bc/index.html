@@ -29,12 +29,12 @@
 	</div>
 </div>
 
-	<div><span class="shinki template_part" id="shinki" ></span></span></div>
+	<div><span class="shinki template_part" id="shinki" ></span></div>
 	<div>武器適性<span bind="tekise" class="biko"></span></div>
 	<div>
 		<span class="setting">
 			<span>アイコン</span>
-			<select id="individual" style="width:100px" bind="shinki.individual">
+			<select id="individual"  bind="shinki.individual">
 			</select>
 		</span>
 		<span class="param" bind="individual">
@@ -44,22 +44,21 @@
 		<button id="add_extra_passive">追加</button>
 		<span id="extra_passive" class="biko"></span>
 	</div>
-	<div id="armor">
-	</div>
 
-	<br>
+	<div id="armor"></div>
+
 	<div>
 		<span class="setting">
-		<span >総コスト</span>
-		<span bind="total.cost"></span>
-		<span class="name" style="text-align:right;">ステータス計</span>
+			<span >総コスト</span>
+			<span bind="total.cost"></span>
+			<span class="name" style="text-align:right;">ステータス計</span>
 		</span>
 		<span class="param" bind="subtotal"></span><br>
 		<span class="biko" bind="subtotal.biko" id="subbiko"></span>
 	</div>
 	<div>
 		<span class="setting">
-		<span class="name" style="text-align:right;">武器適正とパッシブ適用後</span>
+			<span class="name" style="text-align:right;">武器適正とパッシブ適用後</span>
 		</span>
 		<span class="param" bind="total"></span>
 	</div>
@@ -108,15 +107,10 @@
 var values={total:{},subtotal:{},extra_passives:[]};
 
 var reset=function(a){
-	for(var i=0;i<DATA.param_cd.length;i++){
-		a[DATA.param_cd[i]]= 0;
-	}
+	DATA.param_cd.forEach(function(e){ a[e]= 0; });
 }
 var add=function(a,b){
-	for(var i=0;i<DATA.param_cd.length;i++){
-		var param_cd = DATA.param_cd[i];
-		a[param_cd] += b[param_cd];
-	}
+	DATA.param_cd.forEach(function(e){ a[e] += b[e]; });
 }
 
 var reCalc=function(){
@@ -133,24 +127,21 @@ var reCalc=function(){
 	values.total.cost=0;
 
 	//神姫
-	values.default_shinki_param = DATA.default_shinki_param;
-	var shinki= DATA.shinkis.find(function(elem){return elem.cd === values.shinki.cd});
-	values.shinki.org =shinki;
-	if(!shinki){return;}
+	values.shinki.org = DATA.shinkis.find(function(elem){return elem.cd === values.shinki.cd});
+	if(!values.shinki.org){return;}
 	reset(values.shinki);
-	add(values.shinki,shinki);
-	values.shinki.name=shinki.name;
+	add(values.shinki,values.shinki.org);
+	values.shinki.name=values.shinki.org.name;
 
 	//レアリティ
 	var rare = values.shinki.rarelity;
 	add(values.shinki,DATA.shinki_rarelity_bonus[rare]);
 
 	values.shinki.apts=[];
-	for(var i=0;i<shinki.apts.length;i++){
+	values.shinki.org.apts.forEach(function(effect,idx){
 		var apt={};
-		var effect= shinki.apts[i];
 		if(effect!==0){
-			apt.category = i;
+			apt.category = idx;
 			if(effect===100){
 				effect-=20*rare;
 			}else if(effect<0){
@@ -161,7 +152,7 @@ var reCalc=function(){
 			apt.effect = effect;
 			values.shinki.apts.push(apt);
 		}
-	}
+	});
 	values.tekise= document.createElement("span");
 	values.shinki.apts.forEach(function(e){
 		values.tekise.appendChild(getAptSpan(e));
@@ -390,15 +381,32 @@ var onloadfunc=function(){
 						(e.parent!=="-"?"*":"")
 						+(e.set !==""?"+":"")
 						+e.name);}}
-					,{data:"atk",label:"攻",class:"status atk"}
-					,{data:"def",label:"防",class:"status def"}
-					,{data:"spd",label:"速",class:"status spd"}
-					,{data:"lp", label:"体",class:"status lp"}
-					,{data:"bst",label:"ブ",class:"status bst"}];
+					,{data:"atk",label:"攻",class:"status"}
+					,{data:"def",label:"防",class:"status"}
+					,{data:"spd",label:"速",class:"status"}
+					,{data:"lp", label:"体",class:"status"}
+					,{data:"bst",label:"ブ",class:"status"}];
 
 				if(part_idx===0){
 					values.filter={};
-					table_data = DATA.shinkis;
+					var datalist = [];
+					DATA.shinkis.forEach(function(e2){
+						var data={};
+						sub_cols.forEach(function(e){
+							data[e.data]=e2[e.data];
+						});
+						DATA.category_short.forEach(function(e,idx){
+							if(idx===0)return;
+							data["cat"+idx]=e2.apts[idx];
+						});
+						data.cd = e2.cd;
+						datalist.push(data);
+					});
+					table_data = datalist;
+					DATA.category_short.forEach(function(e,idx){
+						if(idx===0)return;
+						sub_cols.push({label:e,data:"cat"+idx,filter:1,class:"cat"})
+					});
 				}else{
 					sub_cols.splice(0,0,{data:"rarelity",filter:1
 						,disp:function(e){return DATA.rarelity[e.rarelity];}}); 
@@ -600,32 +608,39 @@ var openSubWindow=function(callback){
 		values.sort=[];
 
 		//ヘッダ作る
-		var tr = document.createElement("tr");
-		tr.classList.add("sort");
-		var tr2 = document.createElement("tr");
-		tr2.classList.add("filter");
+		var tr_sort = document.createElement("tr");
+		tr_sort.classList.add("sort");
+		var tr_filter = document.createElement("tr");
+		tr_filter.classList.add("filter");
+
 		var th = document.createElement("th");
-	  	tr.appendChild(th);
+		th.className="pick";
+	  	tr_filter.appendChild(th);
 		th = document.createElement("th");
-	  	tr2.appendChild(th);
+		th.className="pick";
+	  	tr_sort.appendChild(th);
+
 		sub_cols.forEach(function(col){
-			var th = document.createElement("th");
+			var th_filter = document.createElement("th");
 
-			th.classList.add(col.data);
-			tr2.appendChild(th);
-
-			th = document.createElement("th");
+			var th_sort = document.createElement("th");
 			var a= document.createElement("button");
 			a.textContent=col.label?col.label:col.data;
 			a.onclick=(function(cd){return function(e){setSort(cd);}})(col.data);
-			th.appendChild(a);
+			th_sort.appendChild(a);
 
-			th.classList.add(col.data);
-			tr.appendChild(th);
+			th_filter.classList.add(col.data);
+			th_sort.classList.add(col.data);
+			if(col.class){
+				th_filter.classList.add(col.class);
+				th_sort.classList.add(col.class);
+			}
+			tr_filter.appendChild(th_filter);
+			tr_sort.appendChild(th_sort);
 		});
 		var cols = document.querySelectorAll("#sub_head tr");
-		cols[0].parentNode.replaceChild(tr2,cols[0]);
-		cols[1].parentNode.replaceChild(tr,cols[1]);
+		cols[0].parentNode.replaceChild(tr_filter,cols[0]);
+		cols[1].parentNode.replaceChild(tr_sort,cols[1]);
 
 	  	Bind.init();
 
@@ -740,6 +755,7 @@ var createTable=function(){
 		tr = document.createElement("tr");
 
 		var th = document.createElement("th");
+		th.className="pick";
 		var span = document.createElement("button");
 		span.textContent = "選択";
 		span.className="pick";
@@ -750,11 +766,13 @@ var createTable=function(){
 		sub_cols.forEach(function(col){
 			var content =  typeof col.disp == "function"?col.disp(rowdata):rowdata[col.data];
 			var td = document.createElement("td");
-			td.className =col.data;
-			var span = document.createElement("span");
+			td.classList.add(col.data);
+			if(col.class){
+				td.classList.add(col.class);
+			}
+			var span = td;//document.createElement("span");
 			span.textContent = content;
-			span.className = col.class;
-			td.appendChild(span);
+			//td.appendChild(span);
 			if(col.data ==='name' || col.data ==='rarelity'){
 				if(rowdata.rarelity){
 					span.className =DATA.rarelity[rowdata.rarelity];

@@ -39,24 +39,16 @@ select.rarelity{
 }
 select.lv{
 	width:20px;
-	text-align:right;
-}
-select.lv option{
-	text-align:right;
 }
 span{
 	display:inline-block;
 }
 span.setting{
-width:240px;
+width:260px;
 	  text-align:right;
 }
 span.part{
 	text-align:right;
-	width:70px;
-}
-.name{
-
 }
 
 .status{
@@ -203,15 +195,16 @@ tr{
 }
 thead{
 	position:sticky;
+	display:table-caption;
 	top:0;
-	display:block;
 	z-index:100;
 	background-color:#111;
 }
 tbody th{
-position:sticky;
+	position:sticky;
 	left:0;
-		 background-color:#111;
+	background-color:#111;
+	z-index:99;
 }
 tr.filter span{
 	cursor:cell;
@@ -226,10 +219,16 @@ tbody{
 table td{
 	margin-top :4px;
 }
-tr{
+th{
+	vertical-align:bottom;
+	overflow:hidden;
+
+}
+th.cat{
+	text-align:center;
 }
 th,td{
-	min-width:40px;
+	width:40px;
 	margin-left:4px ;
 	white-space: nowrap;
 	overflow:hidden;
@@ -248,16 +247,19 @@ tr .category{
 tr .active{
 	width:200px;
 }
-td.rarelity,th.rarelity{
+tr .rarelity{
 	width:40px;
 }
-td.name,th.name{
+tr .name{
 	width:200px;
-	font-size:14px;
 }
-td.atk,td.def,td.spd,td.lp,td.bst
-,th.atk,th.def,th.spd,th.lp,th.bst{
+th.status::before{
+	content:"" !important;
+}
+tr .status{
 	width:52px;
+	padding:0px;
+	margin:1px;
 }
 .filtertarget{
 	cursor:cell;
@@ -272,12 +274,8 @@ td.category::after{
 td.part,th.part{
 width:60px;
 }
-td.class{
-	width:30px;
-}
-td span.status{
-	margin-top:2px;
-	margin-bottom:2px;
+tr .class{
+	width:50px;
 }
 button.pick{
 	background-color:#c00;
@@ -287,4 +285,19 @@ tr.sort button{
 text-decoration: underline;
     background: none;
     color: #fff;
+}
+th.cat,td.cat{
+	width:20px;
+}
+td.cat{
+	text-align:right;
+}
+
+th.status{
+	text-align:inherit;
+	position:inherit;
+	background-color:inherit;
+}
+th.pick{
+	width:60px;
 }
