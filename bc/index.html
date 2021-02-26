@@ -9,6 +9,7 @@
 <meta http-equiv="Content-Script-Type" content="text/javascript" />
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Cache-Control" content="no-cache" />
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>bcassembly</title>
 <link rel="stylesheet" href="main.css">
 </head>
@@ -54,8 +55,8 @@
 			<span class="name" style="text-align:right;">ステータス計</span>
 		</span>
 		<span class="param" bind="subtotal"></span><br>
-		<span class="biko" bind="subtotal.biko" id="subbiko"></span>
 	</div>
+	<div class="biko" style="text-align:right;" bind="subtotal.biko" id="subbiko"></div>
 	<div>
 		<span class="setting">
 			<span class="name" style="text-align:right;">武器適正とパッシブ適用後</span>
@@ -374,8 +375,9 @@ var onloadfunc=function(){
 			return function(e){
 				var rarelity = Number(values[part_cd].rarelity);
 
-				sub_cols=[{label:"name",data:"name",filter:1
-					,disp:function(e){ 
+				sub_cols=[
+					{label:"name",data:"name",filter:1
+						,disp:function(e){ 
 						if(e.parent === undefined){return e.name};
 						return (
 						(e.parent!=="-"?"*":"")
@@ -385,7 +387,9 @@ var onloadfunc=function(){
 					,{data:"def",label:"防",class:"status"}
 					,{data:"spd",label:"速",class:"status"}
 					,{data:"lp", label:"体",class:"status"}
-					,{data:"bst",label:"ブ",class:"status"}];
+					,{data:"bst",label:"ブ",class:"status"}
+					,{data:"biko",label:"備考"}
+					];
 
 				if(part_idx===0){
 					values.filter={};

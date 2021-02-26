@@ -2,9 +2,9 @@ body{
 	background-color:#888;
 	color:#fff;
 	font-size:14px;
+	width:540px;
 }
 div{
-	padding-top:6px;
 }
 	
 
@@ -18,8 +18,20 @@ button{
 }
 button.armor{
 	width:160px;
-	height:32px;
+	height:40px;
 	
+}
+select{
+	appearance: none;
+	border:none;
+	padding:1px;
+	margin:1px;
+}
+select.rarelity{
+	width:30px;
+}
+select.lv{
+	width:20px;
 }
 
 textarea.export{
@@ -28,17 +40,6 @@ textarea.export{
 }
 span.armor span{
 	vertical-align:top;
-}
-select{
-	appearance: none;
-	border:none;
-	padding:1px;
-}
-select.rarelity{
-	width:30px;
-}
-select.lv{
-	width:20px;
 }
 span{
 	display:inline-block;
@@ -53,7 +54,7 @@ span.part{
 
 .status{
 	text-align:right;
-	width:40px;
+	width:44px;
 	position:relative;
 	background-color:#555;
 	margin:1px;
@@ -189,9 +190,16 @@ table{
 	width:100%;
 	overflow:auto;
 	display:block;
+	text-align:left;
 }
-tr{
+tbody tr{
 	white-space:nowrap;
+	height:40px;
+	max-height:40px;
+	vertical-align:top;
+}
+tr td{
+	white-space:pre-wrap;
 }
 thead{
 	position:sticky;
@@ -205,11 +213,6 @@ tbody th{
 	left:0;
 	background-color:#111;
 	z-index:99;
-}
-tr.filter span{
-	cursor:cell;
-	text-decoration:underline dotted ;
-	font-size:smaller;
 }
 tbody{
 	position:relative;
@@ -248,19 +251,26 @@ tr .active{
 	width:200px;
 }
 tr .rarelity{
-	width:40px;
+	width:20px;
+}
+tr .biko{
+	width:100px;
 }
 tr .name{
-	width:200px;
+	width:140px;
 }
 th.status::before{
 	content:"" !important;
 }
 tr .status{
-	width:52px;
+	width:40px;
 	padding:0px;
 	margin:1px;
 }
+tr .name{
+	white-space: normal;
+}
+
 .filtertarget{
 	cursor:cell;
 	text-decoration:underline dotted ;
@@ -275,7 +285,7 @@ td.part,th.part{
 width:60px;
 }
 tr .class{
-	width:50px;
+	width:60px;
 }
 button.pick{
 	background-color:#c00;
@@ -300,4 +310,11 @@ th.status{
 }
 th.pick{
 	width:60px;
+}
+tbody th.pick{
+	height:40px;
+}
+button.pick{
+	width:100%;
+	height:100%;
 }
