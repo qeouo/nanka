@@ -1,4 +1,5 @@
 "use strict"
+import Engine from "../engine/engine.js"
 var MainScene=(function(){
 	var ret = MainScene=function(){
 		Engine.Scene.apply(this);
@@ -13,10 +14,13 @@ var MainScene=(function(){
 
 
 //オブジェクト読み込み
-var gos=["camera","field","main"];
-for(var i=0;i<gos.length;i++){
-	Util.loadJs("./go/"+ gos[i]+".js");
-}
+//var gos=["camera","field","main"];
+//for(var i=0;i<gos.length;i++){
+//	Util.loadJs("./go/"+ gos[i]+".js");
+//}
+import Camera from "./go/camera.js";
+import Field from "./go/field.js";
+import Main from "./go/main.js";
 //グローバル値初期化
 globalParam.outline_bold=0;
 globalParam.outline_color="000000";

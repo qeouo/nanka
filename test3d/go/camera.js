@@ -1,3 +1,5 @@
+
+import Engine from "../../engine/engine.js"
 Engine.goClass.camera= (function(){
 	var GoCamera=function(){};
 	var ret = GoCamera;
@@ -67,3 +69,4 @@ Engine.goClass.camera= (function(){
 	return ret;
 })();
 
+export default Engine.goClass.camera;

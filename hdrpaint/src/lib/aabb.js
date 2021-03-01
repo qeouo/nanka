@@ -1,4 +1,5 @@
 "use strict"
+import {Vec2,Vec3,Vec4} from "./vector.js"
 //AABB -----------------
 var AABB = (function(){
 	var AABB = function(){
@@ -137,3 +138,7 @@ var AABBTree= (function(){
 	}
 	return ret;
 })();
+
+
+export var AABB;
+export var AABBTree;

@@ -1,3 +1,6 @@
+
+import Engine from "../../engine/engine.js"
+import Ono3d from "../../hdrpaint/src/lib/ono3d.js"
 Engine.goClass.main= (function(){
 	var GoMain=function(){};
 	var ret = GoMain;
@@ -63,7 +66,7 @@ Engine.goClass.main= (function(){
 		Vec3.set(p1,vec4[0],vec4[1],vec4[2]);
 
 		if(Util.pressCount == 1){
-			tsukamiZ= 1;
+			var tsukamiZ= 1;
 			var targetPhyObj = null;
 			var res2={};
 			var goField = Engine.go.field;
@@ -226,3 +229,4 @@ Engine.goClass.main= (function(){
 	
 	return ret;
 })();
+export default Engine.goClass.main;

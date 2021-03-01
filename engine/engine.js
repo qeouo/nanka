@@ -1,4 +1,9 @@
 "use strict"
+import Rastgl from "../hdrpaint/src/lib/rastgl.js"
+import Ono3d from "../hdrpaint/src/lib/ono3d.js"
+import AssetManager from "./assetmanager.js";
+import O3o from "./o3o.js";
+import Util from "../hdrpaint/src/lib/util.js"
 var Engine = (function(){
 	var Engine={};
 
@@ -748,8 +753,7 @@ ret.scenes=[];
 
 	
 
-	Util.loadJs("../engine/assetmanager.js");
-	Util.loadJs("../engine/o3o.js",function(){
+//	Util.loadJs("../engine/o3o.js",function(){
 
 		sigmaShader=Ono3d.loadShader("../lib/spherical_harmonics/sigma.shader");
 		shadow_gauss_shader=Ono3d.loadShader("../engine/gauss_shadow.shader");
@@ -761,7 +765,7 @@ ret.scenes=[];
 		O3o.setOno3d(ono3d)
 		ono3d.init(canvas,ctx);
 		ono3d.rendercanvas=canvas;
-	});
+//	});
 
 		
 
@@ -1183,3 +1187,4 @@ ret.scenes=[];
 	return ret;
 
 })();
+export default Engine;

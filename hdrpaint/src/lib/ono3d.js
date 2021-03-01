@@ -1,9 +1,13 @@
 "use strict"
+import Util from "./util.js"
+import Rastgl from "./rastgl.js"
+//import Engine from "../../../engine/engine.js"
+
 var Ono3d = (function(){
 	var _PI= 1.0/Math.PI;
 	var gl;
 	var shaders;
-	var currentpath = Util.getCurrent();
+	var currentpath = "../hdrpaint/src/lib/";//Util.getCurrent();
 	var
 		i
 		
@@ -569,7 +573,7 @@ var Ono3d = (function(){
 		Ono3d.copyImage(this.shadowTexture,0,0,0,0,1024,1024);
 		gl.bindFramebuffer(gl.FRAMEBUFFER, Rastgl.frameBuffer);
 		this.setViewport(0,0,1024,1024);
-		Engine.shadowGauss(1024,1024,1000,this.shadowTexture,0,0,1,1);
+	//	Engine.shadowGauss(1024,1024,1000,this.shadowTexture,0,0,1,1);
 		Ono3d.copyImage(this.shadowTexture,0,0,0,0,1024,1024);
 
 
@@ -1488,3 +1492,4 @@ ret.calcST = function(s,t,p0,p1,p2,u0,v0,u1,v1,u2,v2){
 
 })()
 
+export default Ono3d;

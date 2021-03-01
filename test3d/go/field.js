@@ -1,3 +1,7 @@
+import Engine from "../../engine/engine.js"
+import AssetManager from "../../engine/assetmanager.js";
+import Ono3d from "../../hdrpaint/src/lib/ono3d.js";
+import O3o from "../../engine/o3o.js";
 Engine.goClass.field= (function(){
 	var ono3d = Engine.ono3d;
 	var onoPhy=Engine.onoPhy;
@@ -155,7 +159,7 @@ Engine.goClass.field= (function(){
 				var shcoefs=[];
 				var MAX=1000;
 				for(var i=0;i<8;i++){
-					p=new Vec3();
+					var p=new Vec3();
 					Vec3.set(p,((i&1)*2-1)*MAX,(((i&2)>>1)*2-1)*MAX,(((i&4)>>2)*2-1)*MAX);
 					points.push(p);
 				}
@@ -365,3 +369,4 @@ Engine.goClass.field= (function(){
 	}
 	return ret;
 })();
+export default Engine.goClass.Field;

@@ -1,4 +1,9 @@
 "use strict"
+
+import Ono3d from "../hdrpaint/src/lib/ono3d.js"
+import Engine from "./engine.js"
+import AssetManager from "./assetmanager.js"
+import Rastgl from "../hdrpaint/src/lib/rastgl.js"
 var O3o=(function(){
 	const MAX_SIZE=4096;
 	var abs=Math.abs;
@@ -2859,3 +2864,4 @@ var O3o=(function(){
 	})();
 	return ret
 })()
+export default O3o;

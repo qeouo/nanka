@@ -84,42 +84,42 @@ export default class Util{
 	}
 	static mainloop(){
 		var dx,dy
-		util.tap=0
+		Util.tap=0
 	
-		if(util.pressOn){
-			util.pressCount = util.pressCount + 1
-			if(util.pressCount==1){
+		if(Util.pressOn){
+			Util.pressCount = Util.pressCount + 1
+			if(Util.pressCount==1){
 	
-				util.oldcursorX2= util.cursorX
-				util.oldcursorY2= util.cursorY
-				util.oldcursorX = util.cursorX
-				util.oldcursorY = util.cursorY
+				Util.oldcursorX2= Util.cursorX
+				Util.oldcursorY2= Util.cursorY
+				Util.oldcursorX = Util.cursorX
+				Util.oldcursorY = Util.cursorY
 			}
-		}else if(util.pressCount > 0){
+		}else if(Util.pressCount > 0){
 			
-			dx=util.cursorX-util.oldcursorX2
-			dy=util.cursorY-util.oldcursorY2
-			if(util.pressCount<10 && dx*dx+dy*dy<16){
-				util.tap=1
+			dx=Util.cursorX-Util.oldcursorX2
+			dy=Util.cursorY-Util.oldcursorY2
+			if(Util.pressCount<10 && dx*dx+dy*dy<16){
+				Util.tap=1
 			}
-			util.pressCount = -1
+			Util.pressCount = -1
 			
-		}else util.pressCount = 0
-		if(util.pressOnRight){
-			util.pressCountRight += 1
+		}else Util.pressCount = 0
+		if(Util.pressOnRight){
+			Util.pressCountRight += 1
 		}else{
-			util.pressCountRight =0
+			Util.pressCountRight =0
 		}
 
 		if(loadingCount ==0){
 			mainfunc()
 		}
-		util.oldcursorX = util.cursorX
-		util.oldcursorY = util.cursorY
+		Util.oldcursorX = Util.cursorX
+		Util.oldcursorY = Util.cursorY
 		
 		var i 
-		for(i=util.keyflag.length;i--;){
-			util.keyflagOld[i]=util.keyflag[i]
+		for(i=Util.keyflag.length;i--;){
+			Util.keyflagOld[i]=Util.keyflag[i]
 		}
 
 	}
@@ -691,11 +691,11 @@ static hex2rgb(rgb,hex){
 		}
 		
 		nextsleep = nowTime + spf + dt;
-		mainloop()
+		Util.mainloop()
 		nowTime = performance.now();//Date.now();
 		dt=nextsleep-nowTime;
 		if(dt<=0)dt=1;
-		setTimeout(fpsman,dt);
+		setTimeout(Util.fpsman,dt);
 
 	}
 	static drawText(target,x,y,text,img,sizex,sizey){
