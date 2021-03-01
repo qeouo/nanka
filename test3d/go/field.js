@@ -59,7 +59,8 @@ Engine.goClass.field= (function(){
 			for(var i=0;i<2;i++){
 				var ol = [env.sun,env.area][i];
 				var el = document.getElementById("lightColor"+(i+1));
-				el.value = Util.rgb(ol.color[0],ol.color[1],ol.color[2]).slice(1);
+				//el.value = Util.rgb(ol.color[0],ol.color[1],ol.color[2]).slice(1);
+				el.value = ol.color[0]+","+ol.color[1]+","+ol.color[2]+",1";
 				Util.fireEvent(el,"change");
 			}
 

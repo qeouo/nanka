@@ -23,9 +23,9 @@ import Field from "./go/field.js";
 import Main from "./go/main.js";
 //グローバル値初期化
 globalParam.outline_bold=0;
-globalParam.outline_color="000000";
-globalParam.lightColor1="808080";
-globalParam.lightColor2="808080";;
+globalParam.outline_color="0,0,0,0";
+globalParam.lightColor1="0.8,0.8,0.8,1";
+globalParam.lightColor2="0.8,0.8,0.8,1";
 globalParam.lightThreshold1=0.;
 globalParam.lightThreshold2=1.;
 globalParam.physics=1;
@@ -40,9 +40,9 @@ globalParam.shadow=1;
 globalParam.model="./f1.o3o";
 globalParam.materialMode = false;
 //カスタムマテリアル
-globalParam.baseColor= "ffffff";
+globalParam.baseColor= "1,1,1,1";
 globalParam.metallic= 0;
-globalParam.metalColor= "ffffff";
+globalParam.metalColor= "1,1,1,1";
 globalParam.roughness= 0;
 globalParam.subRoughness= 0;
 globalParam.frenel = 0;
