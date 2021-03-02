@@ -29,7 +29,10 @@ Engine.goClass.main= (function(){
 		this.bane = null;
 	
 	}
+	var tsukamiZ=0;
 	ret.prototype.move=function(){
+		var ono3d = Engine.ono3d;
+		var onoPhy = Engine.onoPhy;
 
 		var bane = this.bane;
 		var mat44 = Mat44.poolAlloc();
@@ -66,7 +69,7 @@ Engine.goClass.main= (function(){
 		Vec3.set(p1,vec4[0],vec4[1],vec4[2]);
 
 		if(Util.pressCount == 1){
-			var tsukamiZ= 1;
+			tsukamiZ= 1;
 			var targetPhyObj = null;
 			var res2={};
 			var goField = Engine.go.field;
@@ -162,6 +165,9 @@ Engine.goClass.main= (function(){
 	ret.prototype.delete=function(){
 	}
 	ret.prototype.draw=function(){
+
+		var ono3d = Engine.ono3d;
+		var onoPhy= Engine.onoPhy;
 		var p0 = Vec3.poolAlloc();
 		var p1 = Vec3.poolAlloc();
 		var mat44 = Mat44.poolAlloc();

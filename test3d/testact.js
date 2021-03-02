@@ -13,15 +13,11 @@ var MainScene=(function(){
 })();
 
 
-//ƒIƒuƒWƒFƒNƒg“Ç‚İ‚İ
-//var gos=["camera","field","main"];
-//for(var i=0;i<gos.length;i++){
-//	Util.loadJs("./go/"+ gos[i]+".js");
-//}
+//ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆèª­ã¿è¾¼ã¿
 import Camera from "./go/camera.js";
 import Field from "./go/field.js";
 import Main from "./go/main.js";
-//ƒOƒ[ƒoƒ‹’l‰Šú‰»
+//ã‚°ãƒ­ãƒ¼ãƒãƒ«å€¤åˆæœŸåŒ–
 globalParam.outline_bold=0;
 globalParam.outline_color="0,0,0,0";
 globalParam.lightColor1="0.8,0.8,0.8,1";
@@ -39,7 +35,7 @@ globalParam.scene=0;
 globalParam.shadow=1;
 globalParam.model="./f1.o3o";
 globalParam.materialMode = false;
-//ƒJƒXƒ^ƒ€ƒ}ƒeƒŠƒAƒ‹
+//ã‚«ã‚¹ã‚¿ãƒ ãƒãƒ†ãƒªã‚¢ãƒ«
 globalParam.baseColor= "1,1,1,1";
 globalParam.metallic= 0;
 globalParam.metalColor= "1,1,1,1";
@@ -54,15 +50,18 @@ globalParam.emi= 0.0;
 globalParam.debugMenu= 0;
 globalParam.shader= 0;
 
-//ƒJƒƒ‰˜IŒõ
+//ã‚«ãƒ¡ãƒ©éœ²å…‰
 globalParam.autoExposure=1;
 globalParam.exposure_level=0.18;
 globalParam.exposure_upper=1;
 globalParam.exposure_bloom=0.1;
 
 
+
+export default class Testact{
+}
 Engine.userInit=function(){
-	//‰Šúˆ—
+	//åˆæœŸå‡¦ç†
 
 	var select = document.getElementById("cTexture");
 	var option;
@@ -71,7 +70,7 @@ Engine.userInit=function(){
 	
 
 
-	//İ’è—pƒCƒ“ƒ^ƒtƒF[ƒX‚É‰Šú’lƒZƒbƒg&•ÏX‚ÌƒCƒxƒ“ƒgİ’è
+	//è¨­å®šç”¨ã‚¤ãƒ³ã‚¿ãƒ•ã‚§ãƒ¼ã‚¹ã«åˆæœŸå€¤ã‚»ãƒƒãƒˆ&å¤‰æ›´æ™‚ã®ã‚¤ãƒ™ãƒ³ãƒˆè¨­å®š
 	var control = document.getElementById("control");
 	var inputs = Array.prototype.slice.call(control.getElementsByTagName("input"));
 	var selects= Array.prototype.slice.call(control.getElementsByTagName("select"));
@@ -126,7 +125,7 @@ Engine.userInit=function(){
 			}
 	});
 
-	//ƒƒCƒ“ƒIƒuƒWƒFƒNƒgì¬
+	//ãƒ¡ã‚¤ãƒ³ã‚ªãƒ–ã‚¸ã‚§ã‚¯ãƒˆä½œæˆ
 	//Engine.go.main= Engine.objMan.createObj(Engine.goClass.main);
 	Engine.scenes.push(new MainScene());
 }

@@ -18,6 +18,8 @@ Engine.goClass.camera= (function(){
 
 	}
 	ret.prototype.move=function(){
+		var onoPhy = Engine.onoPhy;
+		var ono3d = Engine.ono3d;
 		var vec3=this.target;
 
 
@@ -46,8 +48,6 @@ Engine.goClass.camera= (function(){
 
 
 		homingCamera(camera.a,vec3,camera.p);
-
-		
 
 		var light = Engine.ono3d.environments[0].sun;
 		Mat44.dot(light.viewmatrix2,ono3d.projectionMatrix,ono3d.viewMatrix);

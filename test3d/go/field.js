@@ -20,6 +20,10 @@ Engine.goClass.field= (function(){
 	}
 	var aaa=true;
 	ret.prototype.move=function(){
+		var onoPhy = Engine.onoPhy;
+		var ono3d = Engine.ono3d;
+		gl = globalParam.gl;
+
 		var obj = this;
 		if(o3o.scenes.length===0){
 			return;
@@ -34,12 +38,12 @@ Engine.goClass.field= (function(){
 			var scene= o3o.scenes[0];
 			
 			if(scene.world.envTexture){
-				//”wŒiƒZƒbƒg
+				//èƒŒæ™¯ã‚»ãƒƒãƒˆ
 				Engine.skyTexture = scene.world.envTexture;
 			}
 
-			scene.setFrame(0); //‰Šúó‘ÔƒZƒbƒg
-			instance = o3o.createInstance(); //ƒCƒ“ƒXƒ^ƒ“ƒXì¬
+			scene.setFrame(0); //åˆæœŸçŠ¶æ…‹ã‚»ãƒƒãƒˆ
+			instance = o3o.createInstance(); //ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹ä½œæˆ
 			this.instance=instance;
 			instance.calcMatrix(0,true);
 			globalParam.instance=instance;
@@ -51,10 +55,10 @@ Engine.goClass.field= (function(){
 
 			ono3d.environments_index=1;
 
-			O3o.setEnvironments(scene); //ŒõŒ¹ƒZƒbƒg
+			O3o.setEnvironments(scene); //å…‰æºã‚»ãƒƒãƒˆ
 
 
-			//0”Ô–Ú‚ÌŒõŒ¹ƒZƒbƒg‚ğƒRƒ“ƒgƒ[ƒ‹‚É”½‰f
+			//0ç•ªç›®ã®å…‰æºã‚»ãƒƒãƒˆã‚’ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ã«åæ˜ 
 			var env = ono3d.environments[0];
 			for(var i=0;i<2;i++){
 				var ol = [env.sun,env.area][i];
@@ -107,7 +111,7 @@ Engine.goClass.field= (function(){
 
 			ono3d.clear();
 
-			//ŠÂ‹«ƒ}ƒbƒv
+			//ç’°å¢ƒãƒãƒƒãƒ—
 			gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 			ono3d.environments[0].envTexture = ono3d.createEnv(null,0,0,0,Engine.drawSub);
 
@@ -175,20 +179,20 @@ Engine.goClass.field= (function(){
 			
 		}
 		
-		 //•ÏŠ·ƒ}ƒgƒŠƒNƒX‰Šú‰»
+		 //å¤‰æ›ãƒãƒˆãƒªã‚¯ã‚¹åˆæœŸåŒ–
 		ono3d.setTargetMatrix(0);
 		ono3d.loadIdentity();
 
 		var scene= o3o.scenes[0];
 
-		scene.setFrame(this.t/60.0*60.0); //ƒAƒjƒ[ƒVƒ‡ƒ“ˆ—
+		scene.setFrame(this.t/60.0*60.0); //ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³å‡¦ç†
 		var instance=this.instance;
 
 		instance.calcMatrix(1.0/globalParam.fps,!globalParam.physics_ || !globalParam.physics);
 
 
 
-		//“Áê
+		//ç‰¹æ®Š
 		var phyObj = instance.o3o.objects.find(function(o){return o.name==="convexhull";});
 		if(phyObj){
 			var objectInstance = instance.objectInstances[phyObj.idx];
@@ -237,6 +241,8 @@ Engine.goClass.field= (function(){
 	ret.prototype.draw2=function(){
 		var phyObjs = this.phyObjs;
 		var instance=this.instance;
+	var ono3d = Engine.ono3d;
+	var onoPhy=Engine.onoPhy;
 
 		ono3d.setTargetMatrix(0)
 		ono3d.loadIdentity();
@@ -265,6 +271,9 @@ Engine.goClass.field= (function(){
 		}
 	}
 	ret.prototype.draw=function(){
+		var onoPhy = Engine.onoPhy;
+		var ono3d = Engine.ono3d;
+
 		var phyObjs = this.phyObjs;
 
 		ono3d.setTargetMatrix(0)
