@@ -1,5 +1,31 @@
 "use strict"
 
+import Ono3d from "../lib/ono3d.js"
+import Rastgl from "../lib/rastgl.js"
+import Collider from "../lib/collider.js"
+import Util from "../lib/util.js"
+import ColorSelector from "../lib/colorselector.js";
+import Engine from "../engine/engine.js"
+import O3o from "../engine/o3o.js"
+import {Vec2,Vec3,Vec4,Mat33,Mat43,Mat44} from "../lib/vector.js"
+import SH from "../lib/spherical_harmonics/sh.js";
+
+	Engine.init(document.getElementById("aaa"));
+	var onl=function(){
+		if(Util.getLoadingCount()>0){
+			//初期ロードが未完了の場合はメイン処理は開始しない
+			setTimeout(onl,100);
+		}else{
+			if(globalParam.debugMenu){
+				debugClose();
+			}
+			Engine.start();
+		}
+	}
+
+	window.onl=onl;
+
+
 var field;
 var shShader=[];
 var sigmaShader;
@@ -33,6 +59,7 @@ Engine.goClass.main= (function(){
 	inherits(ret,Engine.defObj);
 
 	ret.prototype.init=function(){
+		var onoPhy = Engine.onoPhy;
 
 
 		for(var i=objMan.objs.length;i--;){
@@ -96,7 +123,7 @@ Engine.goClass.main= (function(){
 			var target = instance.objectInstances["LightProbe"];
 			var points ;
 			if(target){
-				var lightProbe = target .createLightProbe(ono3d);
+				var lightProbe = target.createLightProbe(ono3d);
 				points = lightProbe.points;
 			}
 			var lightProbeTexture = Ono3d.createTexture(64,64);
@@ -385,10 +412,10 @@ Engine.userInit=function(){
 
 }
 
-	sigmaShader=Ono3d.loadShader("sigma.shader");
+	sigmaShader=Ono3d.loadShader("../lib/spherical_harmonics/sigma.shader");
 
 	for(var i=0;i<9;i++){
-		shShader.push(Ono3d.loadShader("sh"+i+".shader"));
+		shShader.push(Ono3d.loadShader("../lib/spherical_harmonics/sh"+i+".shader"));
 	}
 	Engine.enableDraw=false;
 

@@ -6,6 +6,7 @@ import OnoPhy from "../lib/onophy.js"
 import Collider from "../lib/collider.js"
 import AssetManager from "./assetmanager.js"
 import Rastgl from "../lib/rastgl.js"
+import Util from "../lib/util.js"
 import SH from "../lib/spherical_harmonics/sh.js";
 import {Vec2,Vec3,Vec4,Mat33,Mat43,Mat44} from "../lib/vector.js"
 var O3o=(function(){
