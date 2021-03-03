@@ -1,7 +1,11 @@
 import Engine from "../../engine/engine.js"
 import AssetManager from "../../engine/assetmanager.js";
-import Ono3d from "../../hdrpaint/src/lib/ono3d.js";
+import Ono3d from "../../lib/ono3d.js";
 import O3o from "../../engine/o3o.js";
+import SH from "../../lib/spherical_harmonics/sh.js";
+import Collider from "../../lib/collider.js"
+import {AABB,AABBTree} from "../../lib/aabb.js"
+import {Vec2,Vec3,Vec4,Mat33,Mat43,Mat44} from "../../lib/vector.js"
 Engine.goClass.field= (function(){
 	var ono3d = Engine.ono3d;
 	var onoPhy=Engine.onoPhy;

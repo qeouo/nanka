@@ -1,3 +1,6 @@
+
+import {Vec2,Vec3,Vec4,Mat33,Mat43,Mat44} from "./vector.js"
+import Geono from "./geono.js"
 var Delaunay=(function(){
 	var Delaunay = {};
 	var ret=Delaunay;
@@ -133,3 +136,4 @@ var Delaunay=(function(){
 	}
 	return Delaunay;
 })();
+export default Delaunay;

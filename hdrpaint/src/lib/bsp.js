@@ -1,3 +1,6 @@
+
+import {Vec2,Vec3,Vec4,Mat33,Mat43,Mat44} from "./vector.js"
+import Sort from "./sort.js"
 var Bsp= (function(){
 	var Bsp= function(){
 		this.m = 0;//平面と原点との距離
@@ -161,3 +164,4 @@ var Bsp= (function(){
 	
 	return ret;
 })();
+export default Bsp;

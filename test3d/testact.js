@@ -1,5 +1,15 @@
 "use strict"
+import Ono3d from "../lib/ono3d.js"
+import Rastgl from "../lib/rastgl.js"
+import Util from "../lib/util.js"
+import Slider from "../lib/slider.js";
+import ColorPickerHDR from "../lib/colorpickerhdr.js";
+import ColorSelector from "../lib/colorselector.js";
 import Engine from "../engine/engine.js"
+//オブジェクト読み込み
+import Camera from "./go/camera.js";
+import Field from "./go/field.js";
+import Main from "./go/main.js";
 var MainScene=(function(){
 	var ret = MainScene=function(){
 		Engine.Scene.apply(this);
@@ -13,10 +23,6 @@ var MainScene=(function(){
 })();
 
 
-//オブジェクト読み込み
-import Camera from "./go/camera.js";
-import Field from "./go/field.js";
-import Main from "./go/main.js";
 //グローバル値初期化
 globalParam.outline_bold=0;
 globalParam.outline_color="0,0,0,0";
@@ -130,3 +136,33 @@ Engine.userInit=function(){
 	Engine.scenes.push(new MainScene());
 }
 
+
+window.Util = Util;
+	var onl=function(){
+		if(Util.getLoadingCount()>0){
+			//初期ロードが未完了の場合はメイン処理は開始しない
+			setTimeout(onl,100);
+		}else{
+			if(globalParam.debugMenu){
+				debugClose();
+			}
+			Engine.init(document.getElementById("aaa"));
+			Engine.start();
+		}
+
+		var a = document.getElementById("aaa");
+		a.onresize=function(){
+
+			console.log("HOGE");
+		}
+	}
+	window.onl=onl;
+	var debugClose=function(){
+		var element = document.getElementById("control");
+		if( element.classList.contains('close')){
+			element.classList.remove("close");
+		}else{
+			element.classList.add("close");
+		}
+	}
+	window.debugClose=debugClose;

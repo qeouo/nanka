@@ -1,9 +1,13 @@
 "use strict"
 
-import Ono3d from "../hdrpaint/src/lib/ono3d.js"
+import Ono3d from "../lib/ono3d.js"
 import Engine from "./engine.js"
+import OnoPhy from "../lib/onophy.js"
+import Collider from "../lib/collider.js"
 import AssetManager from "./assetmanager.js"
-import Rastgl from "../hdrpaint/src/lib/rastgl.js"
+import Rastgl from "../lib/rastgl.js"
+import SH from "../lib/spherical_harmonics/sh.js";
+import {Vec2,Vec3,Vec4,Mat33,Mat43,Mat44} from "../lib/vector.js"
 var O3o=(function(){
 	const MAX_SIZE=4096;
 	var abs=Math.abs;

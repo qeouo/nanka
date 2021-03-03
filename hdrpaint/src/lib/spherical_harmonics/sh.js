@@ -1,3 +1,5 @@
+
+import {Vec2,Vec3,Vec4,Mat33,Mat43,Mat44} from "../vector.js"
 var SH = (function(){
 	var SH = {};
 	var ret = SH;
@@ -289,3 +291,5 @@ for(var i=0;i<9;i++){
 
 return ret;
 })();
+
+export default SH;

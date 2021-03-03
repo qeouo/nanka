@@ -1,9 +1,14 @@
 "use strict"
-import Rastgl from "../hdrpaint/src/lib/rastgl.js"
-import Ono3d from "../hdrpaint/src/lib/ono3d.js"
+import Rastgl from "../lib/rastgl.js"
+import Ono3d from "../lib/ono3d.js"
+import OnoPhy from "../lib/onophy.js"
+import Bsp from "../lib/bsp.js"
+import Delaunay from "../lib/delaunay.js"
+import Collider from "../lib/collider.js"
 import AssetManager from "./assetmanager.js";
 import O3o from "./o3o.js";
-import Util from "../hdrpaint/src/lib/util.js"
+import Util from "../lib/util.js"
+import {Vec2,Vec3,Vec4,Mat33,Mat43,Mat44} from "../lib/vector.js"
 
 var ono3d;
 var Engine = (function(){

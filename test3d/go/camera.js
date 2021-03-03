@@ -1,5 +1,6 @@
 
 import Engine from "../../engine/engine.js"
+import {Vec2,Vec3,Vec4,Mat33,Mat43,Mat44} from "../../lib/vector.js"
 Engine.goClass.camera= (function(){
 	var GoCamera=function(){};
 	var ret = GoCamera;

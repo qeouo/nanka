@@ -1,6 +1,7 @@
 "use strict"
 
 import Util from "./util.js"
+import {Vec2,Vec3,Vec4,Mat43,Mat44} from "./vector.js"
 
 var Rastgl= (function(){
 	var currentpath = Util.getCurrent();

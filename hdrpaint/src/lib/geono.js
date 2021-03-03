@@ -1,4 +1,5 @@
 "use strict"
+import {Vec2,Vec3,Vec4,Mat33,Mat43,Mat44} from "./vector.js"
 
 export default class Geono{
 

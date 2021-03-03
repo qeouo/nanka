@@ -1130,7 +1130,7 @@ export class Mat44{
 		return m;
 	}
 
-	static setInit(){
+	static setInit(mat){
 		mat[0]=1.0
 		mat[1]=0.0
 		mat[2]=0.0
@@ -1463,8 +1463,4 @@ export class Mat44{
 	}
 })();
 
-export var Vec2;
-export var Vec3;
-export var Vec4;
-export var Mat33;
-export var Mat43;
+export var Vec2,Vec3,Vec4,Mat33,Mat43;

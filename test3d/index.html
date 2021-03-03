@@ -10,16 +10,6 @@
 <meta http-equiv="Cache-Control" content="no-cache" />
 
 <script type="text/javascript" src="../lib/inherits.js"></script>
-<script type="text/javascript" src="../lib/vector.js"></script>
-<script type="text/javascript" src="../lib/geono.js"></script>
-<script type="text/javascript" src="../lib/sort.js"></script>
-<script type="text/javascript" src="../lib/aabb.js"></script>
-<script type="text/javascript" src="../lib/collider.js"></script>
-<script type="text/javascript" src="../lib/delaunay.js"></script>
-<script type="text/javascript" src="../lib/bsp.js"></script>
-<script type="text/javascript" src="../lib/onophy.js"></script>
-<script type="text/javascript" src="../lib/bdf.js"></script>
-<script type="text/javascript" src="../lib/spherical_harmonics/sh.js"></script>
 <link rel="stylesheet" type="text/css" href="./css/slider.css">
 <link rel="stylesheet" type="text/css" href="./css/colorpickerhdr.css">
 <style type="text/css">
@@ -95,48 +85,7 @@ display:none;
 
 
 </style>
-<script type="module">
-import Ono3d from "../hdrpaint/src/lib/ono3d.js"
-import Rastgl from "../hdrpaint/src/lib/rastgl.js"
-
-import Util from "../hdrpaint/src/lib/util.js"
-
-import Slider from "../hdrpaint/src/lib/slider.js";
-import ColorPickerHDR from "../hdrpaint/src/lib/colorpickerhdr.js";
-import ColorSelector from "../hdrpaint/src/lib/colorselector.js";
-import Testact from "./testact.js";
-import Engine from "../engine/engine.js"
-window.Util = Util;
-	var onl=function(){
-		if(Util.getLoadingCount()>0){
-			//初期ロードが未完了の場合はメイン処理は開始しない
-			setTimeout(onl,100);
-		}else{
-			if(globalParam.debugMenu){
-				debugClose();
-			}
-			Engine.init(document.getElementById("aaa"));
-			Engine.start();
-		}
-
-		var a = document.getElementById("aaa");
-		a.onresize=function(){
-
-			console.log("HOGE");
-		}
-	}
-	window.onl=onl;
-	var debugClose=function(){
-		var element = document.getElementById("control");
-		if( element.classList.contains('close')){
-			element.classList.remove("close");
-		}else{
-			element.classList.add("close");
-		}
-	}
-	window.debugClose=debugClose;
-
-</script>
+<script type="module" src="./testact.js"></script>
 
 </head>
 <body onload="onl();" style="height:100%;overflow-y:hidden;">

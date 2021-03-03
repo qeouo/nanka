@@ -1,0 +1,155 @@
+
+/* レイヤ ------------------------------------------------*/
+
+.layers{
+	border:solid 1px;
+	overflow:visible scroll;
+	height:240px;
+	background-color:#666;
+	padding:3px;
+}
+.layer{
+	color:#ccc;
+	border:solid 2px;
+	min-width:240px;
+	font-size:smaller;
+	background-color:#333;
+	white-space: nowrap;
+	position:relative;
+	min-height:34px;
+
+	text-shadow:0px 0px 1px  #000 ;
+	border-color:#000;
+	color:#fff;
+}
+@keyframes active-color {
+  0% { border-color: #FA0; }
+  50% { border-color: #FFF; }
+  100% { border-color: #FA0; }
+  }
+.layer.active{
+  border-color: #FA0;
+ /*	animation: active-color 2s linear infinite;*/
+}
+
+.layer.modifier{
+	border-radius:0px;
+	border-top-right-radius:13px;
+	border-top-left-radius:13px;
+	background-color:#063;
+	background-size:contain,auto;
+
+}
+
+.layer .thumbnail{
+	border:solid 1px;
+		   border-color:#000;
+	background-image:url(./back.png);
+}
+.layer.modifier .thumbnailouter{
+	display:none;
+}
+.layer .name{
+	display:inline-block;
+	vertical-align:top;
+	text-align:left;
+	font-weight:bold;
+height:34px;
+
+
+}
+.layer_attributes{
+	display:inline-block;
+	position:absolute;
+	right:0px;
+}
+.layer_dragenter{
+	min-height:34px;
+	min-width:240px;
+	position:absolute;
+	left:8px;
+	top:0px;
+
+}
+.layer .openclosebutton{
+	text-decoration:underline;
+	margin-right:4px;
+	visibility:hidden;
+	color:inherit;
+	vertical-align:top;
+	display:inline-block;
+	margin-top:10px;
+	margin-left:2px;
+
+}
+.layer.group{
+	border-radius:10px;
+}
+
+.layer.group .openclosebutton{
+	visibility:inherit;
+}
+.layer:not(.group) .openclosebutton{
+	display:none;
+}
+.layer:not(.open) .openclosebutton:after{
+	content:'+';
+}
+.layer.open .openclosebutton:after{
+	content:'-';
+}
+.layer.group.open div.children{
+	display:block;
+}
+.layer.group:not(.open) div.children{
+	display:none;
+}
+.layer:not(.group) div.children{
+	display:none !important;
+}
+.layer div.children{
+	margin-left:8px;
+	min-height: 32px;
+	position:relative;
+}
+.layer .openclosebutton a{
+	color:inherit;
+}
+.layer:not(.modifier) .thumbnailouter{
+display:inline-block;
+	width:32px;
+	height:32px;
+    align-items: center;
+    justify-content: center;
+	margin-top:1px;
+	margin-right:4px;
+}
+
+
+.layer.invisible{
+	opacity:0.3;
+}
+ .layer.lock .layer_attributes{
+	text-decoration: line-through;
+}
+.layer_attributes{
+	text-align:right;
+
+}
+
+
+div#modifier_param_area{
+position:relative;
+margin:8px;
+min-height:120px;
+}
+div.modifier_param{
+left:0px;
+top:0px;
+display:none;
+}
+div#modifier_area input{
+	background-color:#063;
+	margin:1px;
+}
+
