@@ -1,7 +1,7 @@
 "use strict"
 import Rastgl from "../lib/rastgl.js"
 import Ono3d from "../lib/ono3d.js"
-import OnoPhy from "../lib/onophy.js"
+import OnoPhy from "../lib/onophy/onophy.js"
 import Bsp from "../lib/bsp.js"
 import Delaunay from "../lib/delaunay.js"
 import Collider from "../lib/collider.js"
