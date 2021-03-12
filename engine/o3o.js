@@ -3,6 +3,7 @@
 import Ono3d from "../lib/ono3d.js"
 import Engine from "./engine.js"
 import OnoPhy from "../lib/onophy/onophy.js"
+import Geono from "../lib/geono.js"
 import Collider from "../lib/collider.js"
 import AssetManager from "./assetmanager.js"
 import Rastgl from "../lib/rastgl.js"
