@@ -1,6 +1,7 @@
 
 import Engine from "../../engine/engine.js"
 import Ono3d from "../../lib/ono3d.js"
+import OnoPhy from "../../lib/onophy/onophy.js"
 import {Vec2,Vec3,Vec4,Mat33,Mat43,Mat44} from "../../lib/vector.js"
 Engine.goClass.main= (function(){
 	var GoMain=function(){};
