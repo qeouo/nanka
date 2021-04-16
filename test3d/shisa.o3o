@@ -182,19 +182,6 @@
     ,"static": 1
   }
   ,{
-    "name":"LightProbe"
-    ,"groups":[]
-    ,"location":[ 0.000000, 0.000000, 0.000000]
-    ,"rotation":[ 0.000000, 0.000000, 0.000000]
-    ,"scale":[ 1.000000, 1.000000, 1.000000]
-    ,"type":"MESH"
-    ,"data":"Plane"
-    ,"bound_box":[-21.440670,-22.104876,-23.559330,22.559328,28.010759,22.559328]
-    ,"bound_type":"BOX"
-    ,"modifiers":[
-    ]
-  }
-  ,{
     "name":"prob_shade"
     ,"groups":[]
     ,"location":[-14.145937, 2.180909,12.622230]
@@ -213,7 +200,7 @@
     "name":"Scene"
     ,"frame_start":1
     ,"frame_end":120
-    ,"objects":["1sun","Camera","LightProbe","Cube","jimen"]
+    ,"objects":["1sun","Camera","Cube","jimen"]
     ,"world":{
       "name":"World"
       ,"envTexture":"//sky.jpg"

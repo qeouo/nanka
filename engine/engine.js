@@ -201,8 +201,10 @@ ret.Scene = (function(){
 
 
 		var environment = Engine.ono3d.environments[0];
-		Util.hex2rgb(environment.sun.color,globalParam.lightColor1)
-		Util.hex2rgb(environment.area.color,globalParam.lightColor2)
+
+
+		Util.str2rgba(environment.sun.color,globalParam.lightColor1)
+		Util.str2rgba(environment.area.color,globalParam.lightColor2)
 
 		if(globalParam.cMaterial){
 			var cMat = ono3d.materials[ono3d.materials_index];

@@ -89,7 +89,7 @@ Engine.userInit=function(){
 		if(!tag)continue;
 
 		element.title = tag;
-		if(element.className=="colorpicker"){
+		if(element.className=="colorpickerhdr"){
 			element.value=globalParam[tag];
 			element.addEventListener("change",function(evt){globalParam[evt.target.id] = this.value},false);
 		}else if(element.type=="checkbox"){
@@ -112,6 +112,9 @@ Engine.userInit=function(){
 			if(!element.checked){
 				continue;
 			}
+		}else{
+			element.value=globalParam[tag];
+			element.addEventListener("change",function(evt){globalParam[evt.target.id] = this.value},false);
 		}
 		Util.fireEvent(element,"change");
 	}

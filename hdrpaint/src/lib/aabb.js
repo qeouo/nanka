@@ -1,4 +1,5 @@
 "use strict"
+import Sort from "./sort.js"
 import {Vec2,Vec3,Vec4} from "./vector.js"
 //AABB -----------------
 var AABB = (function(){
@@ -115,7 +116,7 @@ var AABBTree= (function(){
 		this.child1=null;
 		this.child2=null;
 		this.element=null;
-		this.AABB = new AABB();
+		this.aabb = new AABB();
 	}
 	ret.createAABBTree = function(list){
 		return _createAABBTree(list,0,list.length-1,0);
@@ -126,13 +127,13 @@ var AABBTree= (function(){
 			return list[first];
 		}
 		var node = new Node();
-		Sort.qSort(list,first,last,function(a,b){return a.AABB.min[axis] - b.AABB.min[axis]});
+		Sort.qSort(list,first,last,function(a,b){return a.aabb.min[axis] - b.aabb.min[axis]});
 		var center = (last+first)/2|0;
 		axis=[1,2,0][axis];
 		node.child1=_createAABBTree(list,first,center,axis);
 		node.child2=_createAABBTree(list,center+1,last,axis);
 		node.element=null;
-		AABB.add(node.AABB,node.child1.AABB,node.child2.AABB);
+		AABB.add(node.aabb,node.child1.aabb,node.child2.aabb);
 
 		return node;
 	}
