@@ -156,10 +156,10 @@ window.Util = Util;
 		var a = document.getElementById("aaa");
 		a.onresize=function(){
 
-			console.log("HOGE");
 		}
 	}
-	window.onl=onl;
+//	window.onl=onl;
+onl();
 	var debugClose=function(){
 		var element = document.getElementById("control");
 		if( element.classList.contains('close')){
