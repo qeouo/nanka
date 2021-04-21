@@ -10,17 +10,13 @@ import Engine from "../engine/engine.js"
 import Camera from "./go/camera.js";
 import Field from "./go/field.js";
 import Main from "./go/main.js";
-var MainScene=(function(){
-	var ret = MainScene=function(){
-		Engine.Scene.apply(this);
+class MainScene extends Engine.Scene{
+	constructor(){
+		super();
 
-		var objMan = this.objMan;
-		Engine.go.main= objMan.createObj(Engine.goClass.main);
-	};
-	inherits(ret,Engine.Scene);
-	
-	return ret;
-})();
+		Engine.go.main= this.objMan.createObj(Engine.goClass.main);
+	}
+}
 
 
 //グローバル値初期化
